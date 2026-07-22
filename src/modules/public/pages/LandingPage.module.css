@@ -119,10 +119,14 @@
 .heroSwitchIdle {
     position: relative;
     z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     min-height: 44px;
+    height: 44px;
     border: 0;
     border-radius: 100px;
-    padding: 10px 20px;
+    padding: 0 20px;
     font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
     font-size: 16px;
     line-height: 1.5;
@@ -136,15 +140,23 @@
 
 .heroSwitchActive:global(.MuiButton-root),
 .heroSwitchIdle:global(.MuiButton-root) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     min-width: 0;
+    min-height: 44px;
+    height: 44px;
     text-transform: none;
-    padding: 10px 20px;
+    padding: 0 20px;
+    font-size: 16px;
 }
 
 .heroSwitchActive:global(.MuiButton-root):global(.MuiButton-text),
 .heroSwitchIdle:global(.MuiButton-root):global(.MuiButton-text) {
     min-width: 0;
-    padding: 10px 20px;
+    min-height: 44px;
+    height: 44px;
+    padding: 0 20px;
     border-radius: 100px;
     transition: background-color 180ms ease, color 180ms ease;
 }
@@ -254,8 +266,8 @@
 }
 
 .heroCta:global(.MuiButton-root):global(.MuiButton-contained):hover {
-    background: #f5f9ff;
-    color: #2a3132;
+    background: #2B96D9;
+    color: #ffffff;
     box-shadow: none;
 }
 
@@ -650,7 +662,7 @@
 }
 
 .tagChip:global(.MuiChip-root):global(.MuiChip-outlined) {
-    border-width: 2px;
+    border-width: 1px;
     border-style: solid;
     border-color: #32abbf;
     background: transparent;
@@ -782,7 +794,7 @@
 }
 
 .cardCta:global(.MuiButton-root):global(.MuiButton-contained):hover {
-    background: #02366a;
+    background: #2B96D9;
     box-shadow: none;
 }
 

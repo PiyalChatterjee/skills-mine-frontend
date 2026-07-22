@@ -94,7 +94,7 @@
 }
 
 .signUpButton:global(.MuiButton-root):global(.MuiButton-contained):hover {
-  background: #02366a;
+  background: #2B96D9;
   box-shadow: none;
 }
 

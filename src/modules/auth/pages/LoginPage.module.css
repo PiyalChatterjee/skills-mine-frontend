@@ -103,7 +103,7 @@
 }
 
 .submitButton:global(.MuiButton-root):global(.MuiButton-contained):hover {
-  background-color: #023466;
+  background: #2B96D9;
 }
 
 
