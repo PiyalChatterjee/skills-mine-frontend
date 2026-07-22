@@ -9,13 +9,10 @@ import {
   Typography,
 } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
+import { useDispatch } from "react-redux";
 import aiIconUrl from "@/assets/landing-page/ai-icon.svg";
 import bookmarkIconUrl from "@/assets/landing-page/bookmark-icon.svg";
 import chartIconUrl from "@/assets/landing-page/chart-icon.svg";
-import employerOrbFourUrl from "@/assets/landing-page/employer-orb-four.svg";
-import employerOrbOneUrl from "@/assets/landing-page/employer-orb-one.svg";
-import employerOrbThreeUrl from "@/assets/landing-page/employer-orb-three.svg";
-import employerOrbTwoUrl from "@/assets/landing-page/employer-orb-two.svg";
 import patternOneUrl from "@/assets/landing-page/pattern-one.svg";
 import patternThreeUrl from "@/assets/landing-page/pattern-three.svg";
 import patternTwoUrl from "@/assets/landing-page/pattern-two.svg";
@@ -23,18 +20,13 @@ import searchIconUrl from "@/assets/landing-page/search-icon.svg";
 import shieldIconUrl from "@/assets/landing-page/shield-icon.svg";
 import starIconUrl from "@/assets/landing-page/star-icon.svg";
 import timeIconUrl from "@/assets/landing-page/time-icon.svg";
+import {
+  heroContent,
+  type HeroMode,
+} from "@/modules/public/constants/landingPage.constants";
+import { useOpportunities } from "@/modules/public/hooks/useOpportunities";
+import { setLandingMode } from "@/store/slices/uiSlice";
 import styles from "./LandingPage.module.css";
-
-type Opportunity = {
-  id: string;
-  title: string;
-  tags: string[];
-  description: string;
-  employerName: string;
-  employerOrbSrc: string;
-  blurredEmployer?: boolean;
-  tallCard?: boolean;
-};
 
 type Feature = {
   id: string;
@@ -49,69 +41,6 @@ type Metric = {
   cardClassName: string;
 };
 
-const opportunities: Opportunity[] = [
-  {
-    id: "1",
-    title: "Senior Logistics Manager",
-    tags: ["Manufacturing", "Johannesburg"],
-    description:
-      "We’re looking for an experienced Senior Logistics Manager to lead and optimise our end-to-end supply chain operations. In this role, you’ll oversee production scheduling, inventory planning, warehousing, and national distribution to ensure our glass products reach customers efficiently and on time.",
-    employerName: "PG Glass",
-    employerOrbSrc: employerOrbOneUrl,
-    blurredEmployer: true,
-    tallCard: true,
-  },
-  {
-    id: "2",
-    title: "Compliance Analyst",
-    tags: ["Legal", "Johannesburg", "Full time"],
-    description:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam dignissim mi a odio elementum, maximus luctus tortor iaculis. Ut auctor euismod leo egestas elementum. Vestibulum dignissim tincidunt tincidunt.",
-    employerName: "Webber Wentzel",
-    employerOrbSrc: employerOrbTwoUrl,
-    blurredEmployer: true,
-    tallCard: true,
-  },
-  {
-    id: "3",
-    title: "Cyber Compliance Specialist",
-    tags: ["Legal", "Financial Services", "Johannesburg"],
-    description:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam dignissim mi a odio elementum, maximus luctus tortor iaculis. Ut auctor euismod leo egestas elementum. Vestibulum dignissim tincidunt tincidunt.",
-    employerName: "TymeBank",
-    employerOrbSrc: employerOrbThreeUrl,
-    blurredEmployer: true,
-  },
-  {
-    id: "4",
-    title: "12-month Digital Marketing Learnership",
-    tags: ["Digital Marketing", "Cape Town", "Learnership"],
-    description:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam dignissim mi a odio elementum, maximus luctus tortor iaculis. Ut auctor euismod leo egestas elementum. Vestibulum dignissim tincidunt tincidunt.",
-    employerName: "Helm",
-    employerOrbSrc: employerOrbFourUrl,
-    blurredEmployer: true,
-  },
-  {
-    id: "5",
-    title: "Business Development Consultant",
-    tags: ["Legal", "Cape Town"],
-    description:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam dignissim mi a odio elementum, maximus luctus tortor iaculis. Ut auctor euismod leo egestas elementum. Vestibulum dignissim tincidunt tincidunt.",
-    employerName: "Webber Wentzel",
-    employerOrbSrc: employerOrbTwoUrl,
-  },
-  {
-    id: "6",
-    title: "Business Development Consultant",
-    tags: ["Legal", "Cape Town"],
-    description:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam dignissim mi a odio elementum, maximus luctus tortor iaculis. Ut auctor euismod leo egestas elementum. Vestibulum dignissim tincidunt tincidunt.",
-    employerName: "Webber Wentzel",
-    employerOrbSrc: employerOrbTwoUrl,
-  },
-];
-
 const features: Feature[] = [
   { id: "1", label: "ATS-Optimised CVs", iconSrc: shieldIconUrl },
   { id: "2", label: "Suitability Scores", iconSrc: chartIconUrl },
@@ -120,22 +49,46 @@ const features: Feature[] = [
 ];
 
 const metrics: Metric[] = [
-  { id: "1", value: "2500+", label: "Active Roles", cardClassName: styles.metricCardWideLeft },
-  { id: "2", value: "85%", label: "Match Rate", cardClassName: styles.metricCardNarrow },
-  { id: "3", value: "14 Days", label: "Average Time to Hire", cardClassName: styles.metricCardWideRight },
+  {
+    id: "1",
+    value: "2500+",
+    label: "Active Roles",
+    cardClassName: styles.metricCardWideLeft,
+  },
+  {
+    id: "2",
+    value: "85%",
+    label: "Match Rate",
+    cardClassName: styles.metricCardNarrow,
+  },
+  {
+    id: "3",
+    value: "14 Days",
+    label: "Average Time to Hire",
+    cardClassName: styles.metricCardWideRight,
+  },
 ];
 
 const LandingPage = () => {
-  const [activeHeroMode, setActiveHeroMode] = useState<"findJob" | "startHiring">("findJob");
+  const dispatch = useDispatch();
+  const [activeHeroMode, setActiveHeroMode] = useState<HeroMode>("findJob");
   const [heroSwitchActiveWidth, setHeroSwitchActiveWidth] = useState("111px");
   const [heroSwitchActiveX, setHeroSwitchActiveX] = useState("4px");
   const findJobButtonRef = useRef<HTMLButtonElement | null>(null);
   const startHiringButtonRef = useRef<HTMLButtonElement | null>(null);
 
+  const {
+    data: opportunitiesData,
+    isError: isOpportunitiesError,
+    error: opportunitiesError,
+  } = useOpportunities();
+
   useEffect(() => {
     const updateHeroSwitchMetrics = () => {
       const activeButton =
-        activeHeroMode === "findJob" ? findJobButtonRef.current : startHiringButtonRef.current;
+        activeHeroMode === "findJob"
+          ? findJobButtonRef.current
+          : startHiringButtonRef.current;
 
       if (!activeButton) {
         return;
@@ -153,6 +106,14 @@ const LandingPage = () => {
     };
   }, [activeHeroMode]);
 
+  useEffect(() => {
+    dispatch(setLandingMode(activeHeroMode));
+
+    return () => {
+      dispatch(setLandingMode("findJob"));
+    };
+  }, [activeHeroMode, dispatch]);
+
   const handleFindJobClick = () => {
     setActiveHeroMode("findJob");
   };
@@ -162,6 +123,10 @@ const LandingPage = () => {
   };
 
   const handleHeroCtaClick = () => {
+    // TODO: Implement action
+  };
+
+  const handleHeroSecondaryCtaClick = () => {
     // TODO: Implement action
   };
 
@@ -177,24 +142,52 @@ const LandingPage = () => {
     // TODO: Implement action
   };
 
+  const currentHeroContent = heroContent[activeHeroMode];
+
   return (
     <Box className={styles.pageRoot}>
       <Box component="section" className={styles.heroSection}>
-        <img src={patternOneUrl} alt="" className={styles.heroPatternOne} aria-hidden="true" />
-        <img src={patternTwoUrl} alt="" className={styles.heroPatternTwo} aria-hidden="true" />
-        <img src={patternThreeUrl} alt="" className={styles.heroPatternThree} aria-hidden="true" />
+        <img
+          src={patternOneUrl}
+          alt=""
+          className={styles.heroPatternOne}
+          aria-hidden="true"
+        />
+        <img
+          src={patternTwoUrl}
+          alt=""
+          className={styles.heroPatternTwo}
+          aria-hidden="true"
+        />
+        <img
+          src={patternThreeUrl}
+          alt=""
+          className={styles.heroPatternThree}
+          aria-hidden="true"
+        />
 
         <Box className={styles.heroInner}>
           <Box className={styles.heroBadge}>
-            <img src={aiIconUrl} alt="" className={styles.heroBadgeIcon} aria-hidden="true" />
-            <Typography component="span" className={styles.heroBadgeText} sx={{ m: 0 }}>
-              AI-Powered Matching
+            <img
+              src={aiIconUrl}
+              alt=""
+              className={styles.heroBadgeIcon}
+              aria-hidden="true"
+            />
+            <Typography
+              component="span"
+              className={styles.heroBadgeText}
+              sx={{ m: 0 }}
+            >
+              {currentHeroContent.badge}
             </Typography>
           </Box>
 
           <Box
             className={`${styles.heroSwitch} ${
-              activeHeroMode === "findJob" ? styles.heroSwitchFindJob : styles.heroSwitchStartHiring
+              activeHeroMode === "findJob"
+                ? styles.heroSwitchFindJob
+                : styles.heroSwitchStartHiring
             }`}
             style={{
               ["--hero-switch-active-width" as string]: heroSwitchActiveWidth,
@@ -205,7 +198,11 @@ const LandingPage = () => {
               ref={findJobButtonRef}
               type="button"
               variant="text"
-              className={activeHeroMode === "findJob" ? styles.heroSwitchActive : styles.heroSwitchIdle}
+              className={
+                activeHeroMode === "findJob"
+                  ? styles.heroSwitchActive
+                  : styles.heroSwitchIdle
+              }
               onClick={handleFindJobClick}
               aria-pressed={activeHeroMode === "findJob"}
               disableRipple
@@ -216,7 +213,11 @@ const LandingPage = () => {
               ref={startHiringButtonRef}
               type="button"
               variant="text"
-              className={activeHeroMode === "startHiring" ? styles.heroSwitchActive : styles.heroSwitchIdle}
+              className={
+                activeHeroMode === "startHiring"
+                  ? styles.heroSwitchActive
+                  : styles.heroSwitchIdle
+              }
               onClick={handleStartHiringClick}
               aria-pressed={activeHeroMode === "startHiring"}
               disableRipple
@@ -226,39 +227,73 @@ const LandingPage = () => {
           </Box>
 
           <Box className={styles.heroTextBlock}>
-            <Typography component="h1" className={styles.heroTitle} sx={{ m: 0 }}>
+            <Typography
+              component="h1"
+              className={styles.heroTitle}
+              sx={{ m: 0 }}
+            >
               <Box component="span" className={styles.heroTitleStrong}>
-                Your perfect role,
+                {currentHeroContent.titleStrong}
               </Box>{" "}
-              <Box component="span" className={styles.heroTitleLight}>
-                matched to you.
-              </Box>
+              {"titleLight" in currentHeroContent && currentHeroContent.titleLight && (
+                <Box component="span" className={styles.heroTitleLight}>
+                  {currentHeroContent.titleLight}
+                </Box>
+              )}
             </Typography>
 
             <Box className={styles.heroCopy}>
-              <Typography component="p" className={styles.heroText} sx={{ m: 0 }}>
-                Upload your CV once.
-              </Typography>
-              <Typography component="p" className={styles.heroText} sx={{ m: 0 }}>
-                Get matched with bespoke opportunities.
-              </Typography>
-              <Typography component="p" className={styles.heroText} sx={{ m: 0 }}>
-                Our AI optimises your profile and connects you with roles where you&apos;ll thrive.
-              </Typography>
+              {currentHeroContent.copy.map((line) => (
+                <Typography
+                  key={line}
+                  component="p"
+                  className={styles.heroText}
+                  sx={{ m: 0 }}
+                >
+                  {line}
+                </Typography>
+              ))}
             </Box>
           </Box>
+          <Box className={styles.heroCtaGroup}>
+            <Button
+              variant="contained"
+              className={styles.heroCta}
+              onClick={handleHeroCtaClick}
+            >
+              {currentHeroContent.primaryCta}
+            </Button>
 
-          <Button variant="contained" className={styles.heroCta} onClick={handleHeroCtaClick}>
-            Sign up and Browse Jobs
-          </Button>
+            {activeHeroMode === "startHiring" ? (
+              <Button
+                variant="outlined"
+                className={styles.heroSecondaryCta}
+                onClick={handleHeroSecondaryCtaClick}
+              >
+                {heroContent.startHiring.secondaryCta}
+              </Button>
+            ) : null}
+          </Box>
 
           <Box className={styles.metricsGrid}>
             {metrics.map((metric) => (
-              <Card key={metric.id} className={metric.cardClassName} elevation={0}>
-                <Typography component="p" className={styles.metricValue} sx={{ m: 0 }}>
+              <Card
+                key={metric.id}
+                className={metric.cardClassName}
+                elevation={0}
+              >
+                <Typography
+                  component="p"
+                  className={styles.metricValue}
+                  sx={{ m: 0 }}
+                >
                   {metric.value}
                 </Typography>
-                <Typography component="p" className={styles.metricLabel} sx={{ m: 0 }}>
+                <Typography
+                  component="p"
+                  className={styles.metricLabel}
+                  sx={{ m: 0 }}
+                >
                   {metric.label}
                 </Typography>
               </Card>
@@ -271,8 +306,17 @@ const LandingPage = () => {
         <Box className={styles.featureBarInner}>
           {features.map((feature) => (
             <Box key={feature.id} className={styles.featureItem}>
-              <img src={feature.iconSrc} alt="" className={styles.featureIcon} aria-hidden="true" />
-              <Typography component="span" className={styles.featureText} sx={{ m: 0 }}>
+              <img
+                src={feature.iconSrc}
+                alt=""
+                className={styles.featureIcon}
+                aria-hidden="true"
+              />
+              <Typography
+                component="span"
+                className={styles.featureText}
+                sx={{ m: 0 }}
+              >
                 {feature.label}
               </Typography>
             </Box>
@@ -280,99 +324,151 @@ const LandingPage = () => {
         </Box>
       </Box>
 
-      <Box component="section" className={styles.opportunitiesSection}>
-        <Box className={styles.sectionHeader}>
-          <Box className={styles.sectionHeadingGroup}>
-            <Typography component="h2" className={styles.sectionTitle} sx={{ m: 0 }}>
-              Latest Opportunities
-            </Typography>
-            <Typography component="p" className={styles.sectionSubtitle} sx={{ m: 0 }}>
-              Sign up to reveal employer details and apply
-            </Typography>
+      {activeHeroMode === "findJob" ? (
+        <Box component="section" className={styles.opportunitiesSection}>
+          <Box className={styles.sectionHeader}>
+            <Box className={styles.sectionHeadingGroup}>
+              <Typography
+                component="h2"
+                className={styles.sectionTitle}
+                sx={{ m: 0 }}
+              >
+                Latest Opportunities
+              </Typography>
+              <Typography
+                component="p"
+                className={styles.sectionSubtitle}
+                sx={{ m: 0 }}
+              >
+                Sign up to reveal employer details and apply
+              </Typography>
+            </Box>
+            <Box className={styles.searchWrap}>
+              <TextField
+                className={styles.searchInput}
+                placeholder="Search"
+                aria-label="Search opportunities"
+                variant="outlined"
+                fullWidth
+                onChange={handleSearchChange}
+                slotProps={{
+                  input: {
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <Box className={styles.searchIcon} aria-hidden="true">
+                          <img
+                            src={searchIconUrl}
+                            alt=""
+                            className={styles.searchIconImage}
+                          />
+                        </Box>
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+              />
+            </Box>
           </Box>
-          <Box className={styles.searchWrap}>
-            <TextField
-              className={styles.searchInput}
-              placeholder="Search"
-              aria-label="Search opportunities"
-              variant="outlined"
-              fullWidth
-              onChange={handleSearchChange}
-              slotProps={{
-                input: {
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <Box className={styles.searchIcon} aria-hidden="true">
-                        <img src={searchIconUrl} alt="" className={styles.searchIconImage} />
-                      </Box>
-                    </InputAdornment>
-                  ),
-                },
-              }}
-            />
-          </Box>
-        </Box>
 
-        <Box className={styles.cardGrid}>
-          {opportunities.map((job) => (
-            <Card
-              component="article"
-              key={job.id}
-              className={`${styles.jobCard} ${job.tallCard ? styles.jobCardTall : styles.jobCardShort}`}
-              elevation={0}
+          {isOpportunitiesError ? (
+            <Typography
+              component="p"
+              className={styles.sectionSubtitle}
+              sx={{ mt: 2, mb: 0 }}
             >
-              <Box className={styles.cardTop}>
-                <Box className={styles.cardHeader}>
-                  <Typography component="h3" className={styles.cardTitle} sx={{ m: 0 }}>
-                    {job.title}
-                  </Typography>
-                  <IconButton
-                    type="button"
-                    className={styles.bookmarkButton}
-                    aria-label={`Save ${job.title}`}
-                    onClick={handleBookmarkClick}
-                    disableRipple
-                  >
-                    <img src={bookmarkIconUrl} alt="" className={styles.bookmarkIcon} aria-hidden="true" />
-                  </IconButton>
-                </Box>
-                <Box className={styles.cardRule} />
-              </Box>
-
-              <Box className={styles.cardBody}>
-                <Box className={styles.cardContentColumn}>
-                  <Box className={styles.tagAndCopy}>
-                    <Box className={styles.tagRow}>
-                      {job.tags.map((tag) => (
-                        <Chip key={tag} label={tag} className={styles.tagChip} />
-                      ))}
+              {opportunitiesError?.message || "Failed to load opportunities."}
+            </Typography>
+          ) : opportunitiesData && opportunitiesData.length > 0 ? (
+            <Box className={styles.cardGrid}>
+              {opportunitiesData.map((job) => (
+                <Card
+                  component="article"
+                  key={job.id}
+                  className={`${styles.jobCard} ${job.tallCard ? styles.jobCardTall : styles.jobCardShort}`}
+                  elevation={0}
+                >
+                  <Box className={styles.cardTop}>
+                    <Box className={styles.cardHeader}>
+                      <Typography
+                        component="h3"
+                        className={styles.cardTitle}
+                        sx={{ m: 0 }}
+                      >
+                        {job.title}
+                      </Typography>
+                      <IconButton
+                        type="button"
+                        className={styles.bookmarkButton}
+                        aria-label={`Save ${job.title}`}
+                        onClick={handleBookmarkClick}
+                        disableRipple
+                      >
+                        <img
+                          src={bookmarkIconUrl}
+                          alt=""
+                          className={styles.bookmarkIcon}
+                          aria-hidden="true"
+                        />
+                      </IconButton>
                     </Box>
-
-                    <Typography component="p" className={styles.cardDescription} sx={{ m: 0 }}>
-                      {job.description}
-                    </Typography>
+                    <Box className={styles.cardRule} />
                   </Box>
 
-                  <Button variant="contained" className={styles.cardCta} onClick={handleCardCtaClick}>
-                    Sign Up to View
-                  </Button>
-                </Box>
+                  <Box className={styles.cardBody}>
+                    <Box className={styles.cardContentColumn}>
+                      <Box className={styles.tagAndCopy}>
+                        <Box className={styles.tagRow}>
+                          {job.tags.map((tag) => (
+                            <Chip
+                              key={tag}
+                              label={tag}
+                              variant="outlined"
+                              className={styles.tagChip}
+                            />
+                          ))}
+                        </Box>
 
-                <Box className={styles.companyThumb} aria-hidden="true">
-                  <img src={job.employerOrbSrc} alt="" className={styles.companyOrbImage} />
-                  <Typography
-                    component="span"
-                    className={`${styles.companyName} ${job.blurredEmployer ? styles.companyNameBlurred : ""}`}
-                    sx={{ m: 0 }}
-                  >
-                    {job.employerName}
-                  </Typography>
-                </Box>
-              </Box>
-            </Card>
-          ))}
+                        <Typography
+                          component="p"
+                          className={styles.cardDescription}
+                          sx={{ m: 0 }}
+                        >
+                          {job.description}
+                        </Typography>
+                      </Box>
+
+                      <Button
+                        variant="contained"
+                        className={styles.cardCta}
+                        onClick={handleCardCtaClick}
+                      >
+                        Sign Up to View
+                      </Button>
+                    </Box>
+
+                    <Box className={styles.companyThumb} aria-hidden="true">
+                      <Box
+                        className={`${styles.companyOrbImage} ${job.blurredEmployer ? styles.companyOrbImageBlurred : ""}`}
+                        style={{
+                          ["--orb-core" as string]: job.employerOrbColor,
+                          ["--orb-glow" as string]: job.employerOrbGlow,
+                        }}
+                      />
+                      <Typography
+                        component="span"
+                        className={`${styles.companyName} ${job.blurredEmployer ? styles.companyNameBlurred : ""}`}
+                        sx={{ m: 0 }}
+                      >
+                        {job.employerName}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Card>
+              ))}
+            </Box>
+          ) : null}
         </Box>
-      </Box>
+      ) : null}
     </Box>
   );
 };

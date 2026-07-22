@@ -14,7 +14,7 @@
 }
 
 .topBarInner {
-  width: min(100%, 1440px);
+  width: 100%;
   margin: 0 auto;
   padding: 22px 80px;
   display: flex;
@@ -27,6 +27,10 @@
   width: 230px;
   height: 55px;
   object-fit: contain;
+}
+.logoLink {
+    display: inline-flex;
+    text-decoration: none;
 }
 
 .helpButton,
@@ -139,7 +143,7 @@
 }
 
 .footerInner {
-  width: min(100%, 1440px);
+  width: 100%;
   margin: 0 auto;
   padding: 20px 80px;
   display: flex;
