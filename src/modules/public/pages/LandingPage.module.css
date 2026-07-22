@@ -453,7 +453,7 @@
 }
 
 .searchInput :global(.MuiOutlinedInput-input) {
-    padding: 11.5px 0;
+    padding: 11.5px 0 11.5px 8px;
 }
 
 .searchInput :global(.MuiOutlinedInput-input::placeholder) {

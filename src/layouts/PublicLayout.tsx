@@ -1,20 +1,39 @@
 import { Button } from "@mui/material";
+import type { MouseEvent } from "react";
 import { useSelector } from "react-redux";
-import { NavLink, Outlet, useLocation } from "react-router-dom";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "@/app/auth/AuthContext";
+import { isJwtExpired } from "@/app/auth/jwt";
+import searchIcon from "@/assets/landing-page/search-icon.svg";
 import skillsMineLogo from "@/assets/skillsMine-logo.svg";
+import userIcon from "@/assets/public-layout/user-icon.svg";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import type { RootState } from "@/store";
 import styles from "./PublicLayout.module.css";
 
-const searchIconUrl = "https://www.figma.com/api/mcp/asset/b6b13bc7-abae-40ae-a5d3-5bcb49234739";
-const userIconUrl = "https://www.figma.com/api/mcp/asset/3832ad04-5b69-44b0-840f-44831f8f2d5e";
-
 export const PublicLayout = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { isAuthenticated, tokens } = useAuth();
   const isLoginPage = location.pathname === ROUTE_PATHS.login;
   const landingMode = useSelector((state: RootState) => state.ui.landingMode);
   const isLandingPage = location.pathname === ROUTE_PATHS.landing;
   const isHiringLandingMode = isLandingPage && landingMode === "startHiring";
+  const accessToken = tokens?.accessToken;
+  const hasValidAccessToken = accessToken ? !isJwtExpired(accessToken) : false;
+  const canAccessProtectedRoutes = isAuthenticated && hasValidAccessToken;
+
+  const handleProtectedNavClick = (
+    event: MouseEvent<HTMLAnchorElement>,
+    targetPath: string,
+  ) => {
+    if (canAccessProtectedRoutes) {
+      return;
+    }
+
+    event.preventDefault();
+    navigate(ROUTE_PATHS.login, { state: { from: targetPath } });
+  };
 
   return (
     <div className={styles.layoutRoot}>
@@ -39,16 +58,31 @@ export const PublicLayout = () => {
           ) : (
             <div className={styles.navGroup}>
               {!isHiringLandingMode ? (
-                <NavLink to={ROUTE_PATHS.jobs} className={styles.navItemMuted}>
+                <NavLink
+                  to={ROUTE_PATHS.jobs}
+                  className={styles.navItemMuted}
+                  aria-disabled={!canAccessProtectedRoutes}
+                  onClick={(event) => handleProtectedNavClick(event, ROUTE_PATHS.jobs)}
+                >
                   Explore Jobs
                 </NavLink>
               ) : null}
               {!isHiringLandingMode ? (
-                <NavLink to={ROUTE_PATHS.dashboard} className={styles.navItemMuted}>
+                <NavLink
+                  to={ROUTE_PATHS.dashboard}
+                  className={styles.navItemMuted}
+                  aria-disabled={!canAccessProtectedRoutes}
+                  onClick={(event) =>
+                    handleProtectedNavClick(event, ROUTE_PATHS.dashboard)
+                  }
+                >
                   Dashboard
                 </NavLink>
               ) : null}
-              <NavLink to={ROUTE_PATHS.landing} className={styles.navItemActive}>
+              <NavLink
+                to={ROUTE_PATHS.landing}
+                className={styles.navItemActive}
+              >
                 Skills Build
               </NavLink>
               <NavLink to={ROUTE_PATHS.login} className={styles.navItemStrong}>
@@ -59,12 +93,24 @@ export const PublicLayout = () => {
               </Button>
               {!isHiringLandingMode ? (
                 <span className={styles.profileBadge} aria-hidden="true">
-                  <img src={userIconUrl} alt="" className={styles.profileIcon} />
+                  <img
+                    src={userIcon}
+                    alt=""
+                    className={styles.profileIcon}
+                  />
                 </span>
               ) : null}
               {!isHiringLandingMode ? (
-                <button type="button" className={styles.searchButton} aria-label="Search site">
-                  <img src={searchIconUrl} alt="" className={styles.searchButtonIcon} />
+                <button
+                  type="button"
+                  className={styles.searchButton}
+                  aria-label="Search site"
+                >
+                  <img
+                    src={searchIcon}
+                    alt=""
+                    className={styles.searchButtonIcon}
+                  />
                 </button>
               ) : null}
             </div>
