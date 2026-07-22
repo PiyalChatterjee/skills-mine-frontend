@@ -1,0 +1,141 @@
+.pageRoot {
+  background-color: #ffffff;
+}
+
+.heroSection {
+  position: relative;
+  overflow: hidden;
+  height: 220px;
+  background: linear-gradient(69deg, #2b96d9 0%, #32abbf 100%);
+}
+
+.heroVector {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 720px;
+  height: auto;
+  opacity: 0.2;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.heroPortrait {
+  position: absolute;
+  right: -110px;
+  top: -180px;
+  width: 310px;
+  height: auto;
+  opacity: 0.3;
+  mix-blend-mode: luminosity;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.78) 34%, rgba(0, 0, 0, 1) 56%);
+  mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.78) 34%, rgba(0, 0, 0, 1) 56%);
+  z-index: 2;
+  pointer-events: none;
+}
+
+.heroOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(79.1439862488deg, #2b96d9 0%, #32abbf 70.557%, rgba(50, 171, 191, 0) 96.653%);
+  z-index: 3;
+  pointer-events: none;
+}
+
+.heroHeadlineWrap {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 0 16px;
+  z-index: 5;
+}
+
+.heroHeadline,
+.heroHeadline:global(.MuiTypography-root) {
+  color: #ffffff;
+  text-align: center;
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
+  max-width: 824px;
+}
+
+.formSection {
+  max-width: 537px;
+  margin: 48px auto 0;
+  padding: 0 16px 48px;
+}
+
+.formHeading,
+.formHeading:global(.MuiTypography-root) {
+  color: #03478c;
+  font-size: 21px;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
+  margin-bottom: 32px;
+}
+
+.formFields {
+  display: grid;
+  row-gap: 24px;
+}
+
+.inputField :global(.MuiOutlinedInput-root) {
+  border-radius: 8px;
+}
+
+.submitButton,
+.submitButton:global(.MuiButton-root) {
+  margin-top: 8px;
+  min-height: 48px;
+  border-radius: 999px;
+  text-transform: none;
+  font-weight: 500;
+  font-size: 16px;
+  letter-spacing: 0.1px;
+}
+
+.submitButton:global(.MuiButton-root):global(.MuiButton-contained) {
+  background-color: #03478c;
+}
+
+.submitButton:global(.MuiButton-root):global(.MuiButton-contained):hover {
+  background-color: #023466;
+}
+
+
+@media (min-width: 900px) {
+  .heroSection {
+    height: 260px;
+  }
+
+  .heroVector {
+    left: 0;
+    top: 0;
+    width: 965px;
+  }
+
+  .heroPortrait {
+    right: -40px;
+    top: -258px;
+    width: 481px;
+  }
+
+  .heroHeadline,
+  .heroHeadline:global(.MuiTypography-root) {
+    font-size: 48px;
+  }
+
+  .formSection {
+    margin-top: 64px;
+    padding: 0 0 80px;
+  }
+
+  .formHeading,
+  .formHeading:global(.MuiTypography-root) {
+    font-size: 24px;
+  }
+}
