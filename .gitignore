@@ -10,6 +10,9 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+.env
+.env.*
+!.env.example
 *.local
 
 # Editor directories and files
@@ -25,3 +28,8 @@ dist-ssr
 
 # Personal learning sandbox (ignored)
 .learning-workspace/
+
+# Local API request workspace (httpyac)
+.httpyac/
+.httpyac.json
+*.http.env.json
