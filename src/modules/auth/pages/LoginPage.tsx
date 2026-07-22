@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/app/auth/AuthContext";
 import { useZodForm } from "@/hooks/useZodForm";
 import { loginSchema, type LoginFormValues } from "@/modules/auth/types";
+import { ROUTE_PATHS } from "@/routes/routePaths";
 import { authApi, mapLoginResponseToSession } from "@/services/api/authApi";
 import loginFaceImage from "@/assets/login-face-img.jpg";
 import loginVectorImage from "@/assets/login-vector.svg";
@@ -36,7 +37,7 @@ const LoginPage = () => {
 
       const response = await authApi.login(values);
       login(mapLoginResponseToSession(response));
-      navigate("/", { replace: true });
+      navigate(ROUTE_PATHS.portal, { replace: true });
     } catch {
       setSubmitError("Login failed. Check your credentials and try again.");
     }

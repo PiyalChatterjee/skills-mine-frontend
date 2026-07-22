@@ -1,0 +1,730 @@
+.pageRoot {
+    background: #ffffff;
+}
+
+.heroSection {
+    position: relative;
+    overflow: hidden;
+    min-height: 924px;
+    width: 100%;
+    margin: 0 auto;
+    background: linear-gradient(83.806deg, #03478c 0%, #2b96d9 100%);
+}
+
+.heroPatternOne,
+.heroPatternTwo,
+.heroPatternThree {
+    position: absolute;
+    pointer-events: none;
+    user-select: none;
+}
+
+.heroPatternOne {
+    width: 906.964px;
+    height: 569px;
+    left: 1067px;
+    top: -220px;
+}
+
+.heroPatternTwo {
+    width: 946.25px;
+    height: 611.954px;
+    left: -552px;
+    top: -308px;
+    transform: rotate(-120deg);
+    transform-origin: center;
+}
+
+.heroPatternThree {
+    width: 1043.84px;
+    height: 644.148px;
+    left: 886.71px;
+    top: 367.4px;
+    transform: rotate(-149deg);
+    transform-origin: center;
+}
+
+.heroInner {
+    width: 50vw;
+    margin: 0 auto;
+    padding-top: 97px;
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+    position: relative;
+    z-index: 1;
+}
+
+.heroBadge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 250px;
+    min-height: 48px;
+    padding: 12px 30px;
+    border-radius: 16px;
+    background: #03478c;
+    color: #ffffff;
+    font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    letter-spacing: 0.1px;
+}
+
+.heroBadgeText,
+.heroBadgeText:global(.MuiTypography-root) {
+    color: #ffffff;
+    font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    letter-spacing: 0.1px;
+}
+
+.heroBadgeIcon {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+}
+
+.heroSwitch {
+    display: inline-flex;
+    width: 258px;
+    padding: 4px;
+    gap: 4px;
+    border-radius: 100px;
+    background: #2b96d9;
+}
+
+.heroSwitchActive,
+.heroSwitchIdle {
+    min-height: 44px;
+    border: 0;
+    border-radius: 100px;
+    padding: 10px 20px;
+    font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    letter-spacing: 0.1px;
+    color: #ffffff;
+    cursor: pointer;
+    min-width: 0;
+    text-transform: none;
+}
+
+.heroSwitchActive:global(.MuiButton-root),
+.heroSwitchIdle:global(.MuiButton-root) {
+    min-width: 0;
+    text-transform: none;
+    padding: 10px 20px;
+}
+
+.heroSwitchActive {
+    width: max-content;
+    background: #03478c;
+}
+
+.heroSwitchIdle {
+    width: max-content;
+    background: #2b96d9;
+}
+
+.heroTextBlock {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.heroTitle {
+    margin: 0;
+    color: #ffffff;
+    font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 48px;
+    line-height: 1.5;
+    letter-spacing: 0.1px;
+}
+
+.heroTitleStrong {
+    font-weight: 600;
+}
+
+.heroTitleLight {
+    font-weight: 400;
+}
+
+.heroCopy {
+    display: flex;
+    flex-direction: column;
+}
+
+.heroText {
+    margin: 0;
+    font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 24px;
+    line-height: 1.5;
+    font-weight: 500;
+    letter-spacing: 0.1px;
+}
+
+.heroCta,
+.heroCta:global(.MuiButton-root):global(.MuiButton-contained) {
+    align-self: flex-start;
+    min-width: 242px;
+    min-height: 48px;
+    padding: 12px 30px;
+    border-radius: 100px;
+    background: #ffffff;
+    color: #2a3132;
+    text-transform: none;
+    font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.5;
+    letter-spacing: 0.1px;
+    box-shadow: none;
+}
+
+.heroCta:global(.MuiButton-root):global(.MuiButton-contained):hover {
+    background: #f5f9ff;
+    color: #2a3132;
+    box-shadow: none;
+}
+
+.metricsGrid {
+    display: flex;
+    gap: 48px;
+    align-items: center;
+}
+
+.metricCardWideLeft,
+.metricCardNarrow,
+.metricCardWideRight {
+    min-height: 163px;
+    padding: 32px;
+    border: 1px solid #ffffff;
+    border-radius: 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    box-shadow: none;
+    background: transparent;
+}
+
+.metricCardWideLeft:global(.MuiCard-root),
+.metricCardNarrow:global(.MuiCard-root),
+.metricCardWideRight:global(.MuiCard-root) {
+    box-shadow: none;
+    background: transparent;
+}
+
+.metricCardWideLeft {
+    width: 213px;
+}
+
+.metricCardNarrow {
+    width: 159px;
+}
+
+.metricCardWideRight {
+    width: 238px;
+}
+
+.metricValue {
+    margin: 0;
+    color: #ffffff;
+    font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 48px;
+    line-height: 1.5;
+    font-weight: 600;
+    letter-spacing: 0.1px;
+}
+
+.metricLabel {
+    margin: 0;
+    color: #ffffff;
+    font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 18px;
+    line-height: 1.5;
+    font-weight: 500;
+    letter-spacing: 0.1px;
+}
+
+.featureBar {
+    width: 100%;
+    background: #32abbf;
+    position: relative;
+    z-index: 1;
+}
+
+.opportunitiesSection {
+    width: min(100%, 1441px);
+    margin: 0 auto;
+    padding: 40px 80px 80px;
+}
+
+.sectionHeader {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+.sectionHeadingGroup {
+    width: 278px;
+}
+
+.sectionTitle {
+    margin: 0;
+    color: #03478c;
+    font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 24px;
+    line-height: 1.5;
+    font-weight: 500;
+    letter-spacing: 0.1px;
+}
+
+.sectionSubtitle {
+    margin: 8px 0 0;
+    color: #03478c;
+    font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    letter-spacing: 0.1px;
+}
+
+.searchWrap {
+    position: relative;
+    width: 723px;
+}
+
+.searchInput {
+    width: 100%;
+}
+
+.searchInput :global(.MuiOutlinedInput-root) {
+    min-height: 48px;
+    border-radius: 100px;
+    background: #ffffff;
+    color: #5a5e63;
+    font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    letter-spacing: 0.1px;
+    padding-left: 8px;
+}
+
+.searchInput :global(.MuiOutlinedInput-input) {
+    padding: 11.5px 0;
+}
+
+.searchInput :global(.MuiOutlinedInput-input::placeholder) {
+    color: #5a5e63;
+    opacity: 1;
+}
+
+.searchInput :global(.MuiOutlinedInput-notchedOutline) {
+    border-color: #b0b4b8;
+}
+
+.searchInput :global(.MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline) {
+    border-color: #b0b4b8;
+}
+
+.searchInput :global(.MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline) {
+    border-color: #2b96d9;
+    border-width: 1px;
+}
+
+.searchIcon {
+    width: 32px;
+    height: 32px;
+    border: 1px solid #e1e3e6;
+    border-radius: 100px;
+    background: #ffffff;
+    display: grid;
+    place-items: center;
+}
+
+.searchInput :global(.MuiInputAdornment-root) {
+    margin-right: 7px;
+}
+
+.searchIconImage {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+}
+
+.cardGrid {
+    margin-top: 40px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+}
+
+.jobCard {
+    background: #ffffff;
+    border: 1px solid #e1e3e6;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(42, 49, 50, 0.08);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    box-shadow: 0 2px 8px rgba(42, 49, 50, 0.08);
+}
+
+.jobCard:global(.MuiCard-root) {
+    box-shadow: 0 2px 8px rgba(42, 49, 50, 0.08);
+}
+
+.jobCardTall {
+    min-height: 368px;
+}
+
+.jobCardShort {
+    min-height: 326px;
+}
+
+.cardTop {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.cardHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.cardTitle {
+    margin: 0;
+    color: #03478c;
+    font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 24px;
+    line-height: 1.5;
+    font-weight: 500;
+    letter-spacing: 0.1px;
+}
+
+.bookmarkButton {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 1px solid #e1e3e6;
+    border-radius: 100px;
+    background: #ffffff;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.bookmarkButton:global(.MuiIconButton-root) {
+    padding: 0;
+}
+
+.bookmarkIcon {
+    width: 12px;
+    height: 16px;
+    object-fit: contain;
+}
+
+.cardRule {
+    width: 100%;
+    height: 1px;
+    background: #e1e3e6;
+}
+
+.cardBody {
+    display: flex;
+    align-items: center;
+    gap: 31px;
+    flex: 1;
+}
+
+.cardContentColumn {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.tagAndCopy {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.tagRow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.tagChip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 24px;
+    border: 1px solid #32abbf;
+    border-radius: 100px;
+    color: #32abbf;
+    font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 12px;
+    line-height: 1.5;
+    letter-spacing: 0.1px;
+}
+
+.tagChip:global(.MuiChip-root) {
+    height: 28px;
+    background: transparent;
+}
+
+.tagChip :global(.MuiChip-label) {
+    color: #32abbf;
+    font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 12px;
+    line-height: 1.5;
+    letter-spacing: 0.1px;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.cardDescription {
+    margin: 0;
+    color: #000000;
+    font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    letter-spacing: 0.1px;
+}
+
+.companyThumb {
+    position: relative;
+    width: 200px;
+    height: 144px;
+    border: 1px solid #e1e3e6;
+    border-radius: 8px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.companyOrbImage {
+    position: absolute;
+    left: 56px;
+    top: 15px;
+    width: 88px;
+    height: 88px;
+}
+
+.companyName {
+    position: absolute;
+    left: 50%;
+    bottom: 20px;
+    transform: translateX(-50%);
+    color: #2b96d9;
+    font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    letter-spacing: 0.1px;
+    text-decoration: underline;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.companyNameBlurred {
+    filter: blur(8px);
+}
+
+.cardCta,
+.cardCta:global(.MuiButton-root):global(.MuiButton-contained) {
+    align-self: flex-start;
+    min-height: 48px;
+    padding: 12px 30px;
+    border-radius: 100px;
+    background: #03478c;
+    color: #ffffff;
+    text-transform: none;
+    font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.5;
+    letter-spacing: 0.1px;
+    box-shadow: none;
+}
+
+.cardCta:global(.MuiButton-root):global(.MuiButton-contained):hover {
+    background: #02366a;
+    box-shadow: none;
+}
+
+.featureBarInner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+    padding: 24px 80px;
+}
+
+.featureItem {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #ffffff;
+    font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    font-weight: 500;
+    letter-spacing: 0.1px;
+}
+
+.featureText,
+.featureText:global(.MuiTypography-root) {
+    color: #ffffff;
+    font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    font-weight: 500;
+    letter-spacing: 0.1px;
+}
+
+.featureIcon {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+}
+
+@media (max-width: 1320px) {
+
+    .heroSection,
+    .featureBar,
+    .opportunitiesSection {
+        width: 100%;
+    }
+
+    .heroInner {
+        width: min(100%, 836px);
+        padding: 97px 20px 0;
+    }
+
+    .heroPatternOne {
+        left: auto;
+        right: -420px;
+    }
+
+    .heroPatternTwo {
+        left: -640px;
+    }
+
+    .heroPatternThree {
+        left: auto;
+        right: -180px;
+    }
+
+    .featureBarInner,
+    .opportunitiesSection {
+        padding-left: 32px;
+        padding-right: 32px;
+    }
+}
+
+@media (max-width: 1100px) {
+    .featureBar {
+        margin-top: 0;
+    }
+
+    .featureBarInner {
+        flex-wrap: wrap;
+        justify-content: flex-start;
+    }
+
+    .sectionHeader {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .searchWrap {
+        width: min(100%, 723px);
+    }
+
+    .cardGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .jobCardTall,
+    .jobCardShort {
+        min-height: 0;
+    }
+
+    .cardBody {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 768px) {
+    .heroSection {
+        min-height: 0;
+    }
+
+    .heroInner {
+        gap: 24px;
+        padding-top: 56px;
+        padding-bottom: 56px;
+    }
+
+    .heroTitle {
+        font-size: 36px;
+    }
+
+    .heroText {
+        font-size: 20px;
+    }
+
+    .metricsGrid {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 20px;
+    }
+
+    .metricCardWideLeft,
+    .metricCardNarrow,
+    .metricCardWideRight {
+        width: 100%;
+    }
+
+    .featureBarInner,
+    .opportunitiesSection {
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+
+    .heroSwitch {
+        width: 100%;
+        max-width: 258px;
+    }
+
+    .heroSwitchActive,
+    .heroSwitchIdle {
+        width: 50%;
+    }
+
+    .companyThumb {
+        width: 100%;
+        max-width: 200px;
+    }
+
+    .heroPatternOne,
+    .heroPatternTwo,
+    .heroPatternThree {
+        opacity: 0.35;
+    }
+}

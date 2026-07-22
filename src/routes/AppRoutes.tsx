@@ -6,13 +6,14 @@ import { ExcoLayout } from '@/layouts/ExcoLayout'
 import { MancoLayout } from '@/layouts/MancoLayout'
 import { PublicLayout } from '@/layouts/PublicLayout'
 import { RecruiterLayout } from '@/layouts/RecruiterLayout'
+import LoginPage from '@/modules/auth/pages/LoginPage'
+import LandingPage from '@/modules/public/pages/LandingPage'
 import { PortalRoute } from '@/routes/PortalRoute'
 import { PermissionGuard } from '@/routes/guards/PermissionGuard'
 import { ProtectedRoute } from '@/routes/guards/ProtectedRoute'
 import { RoleGuard } from '@/routes/guards/RoleGuard'
 import { ROUTE_PATHS } from '@/routes/routePaths'
 
-const LoginPage = lazy(() => import('@/modules/auth/pages/LoginPage'))
 const DashboardEntryPage = lazy(
   () => import('@/modules/dashboard/pages/DashboardEntryPage'),
 )
@@ -30,12 +31,13 @@ export const AppRoutes = () => {
     <Suspense fallback={<RouteFallback />}>
       <Routes>
         <Route element={<PublicLayout />}>
+          <Route path={ROUTE_PATHS.landing} element={<LandingPage />} />
           <Route path={ROUTE_PATHS.login} element={<LoginPage />} />
         </Route>
 
         <Route element={<ProtectedRoute />}>
           <Route element={<PortalRoute />}>
-            <Route path="/" element={<RouteFallback />} />
+            <Route path={ROUTE_PATHS.portal} element={<RouteFallback />} />
           </Route>
 
           <Route element={<CandidateLayout />}>
@@ -73,7 +75,7 @@ export const AppRoutes = () => {
           </Route>
         </Route>
 
-        <Route path="*" element={<Navigate to={ROUTE_PATHS.login} replace />} />
+        <Route path="*" element={<Navigate to={ROUTE_PATHS.landing} replace />} />
       </Routes>
     </Suspense>
   )
