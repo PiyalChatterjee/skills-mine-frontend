@@ -61,7 +61,7 @@
     align-items: center;
     justify-content: center;
     gap: 10px;
-    width: 250px;
+    width: max-content;
     min-height: 48px;
     padding: 12px 30px;
     border-radius: 16px;
@@ -89,16 +89,36 @@
 }
 
 .heroSwitch {
+    --hero-switch-active-width: 111px;
+    --hero-switch-active-x: 4px;
+    position: relative;
     display: inline-flex;
-    width: 258px;
+    width: max-content;
     padding: 4px;
     gap: 4px;
     border-radius: 100px;
     background: #2b96d9;
+    overflow: hidden;
 }
+
+.heroSwitch::before {
+    content: "";
+    position: absolute;
+    top: 4px;
+    left: var(--hero-switch-active-x);
+    width: var(--hero-switch-active-width);
+    height: 44px;
+    border-radius: 100px;
+    background: #03478c;
+    transition: left 220ms ease, width 220ms ease;
+    z-index: 0;
+}
+
 
 .heroSwitchActive,
 .heroSwitchIdle {
+    position: relative;
+    z-index: 1;
     min-height: 44px;
     border: 0;
     border-radius: 100px;
@@ -111,6 +131,7 @@
     cursor: pointer;
     min-width: 0;
     text-transform: none;
+    transition: background-color 180ms ease, color 180ms ease;
 }
 
 .heroSwitchActive:global(.MuiButton-root),
@@ -120,14 +141,42 @@
     padding: 10px 20px;
 }
 
+.heroSwitchActive:global(.MuiButton-root):global(.MuiButton-text),
+.heroSwitchIdle:global(.MuiButton-root):global(.MuiButton-text) {
+    min-width: 0;
+    padding: 10px 20px;
+    border-radius: 100px;
+    transition: background-color 180ms ease, color 180ms ease;
+}
+
 .heroSwitchActive {
     width: max-content;
-    background: #03478c;
+    background: transparent;
+}
+
+.heroSwitchActive:global(.MuiButton-root):global(.MuiButton-text) {
+    width: max-content;
+    background: transparent;
+    color: #ffffff;
+}
+
+.heroSwitchActive:global(.MuiButton-root):global(.MuiButton-text):hover {
+    background: transparent;
 }
 
 .heroSwitchIdle {
     width: max-content;
-    background: #2b96d9;
+    background: transparent;
+}
+
+.heroSwitchIdle:global(.MuiButton-root):global(.MuiButton-text) {
+    width: max-content;
+    background: transparent;
+    color: #ffffff;
+}
+
+.heroSwitchIdle:global(.MuiButton-root):global(.MuiButton-text):hover {
+    background: transparent;
 }
 
 .heroTextBlock {
@@ -138,6 +187,15 @@
 }
 
 .heroTitle {
+    margin: 0;
+    color: #ffffff;
+    font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 48px;
+    line-height: 1.5;
+    letter-spacing: 0.1px;
+}
+
+.heroTitle:global(.MuiTypography-root) {
     margin: 0;
     color: #ffffff;
     font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
@@ -160,6 +218,15 @@
 }
 
 .heroText {
+    margin: 0;
+    font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 24px;
+    line-height: 1.5;
+    font-weight: 500;
+    letter-spacing: 0.1px;
+}
+
+.heroText:global(.MuiTypography-root) {
     margin: 0;
     font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
     font-size: 24px;
@@ -243,7 +310,27 @@
     letter-spacing: 0.1px;
 }
 
+.metricValue:global(.MuiTypography-root) {
+    margin: 0;
+    color: #ffffff;
+    font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 48px;
+    line-height: 1.5;
+    font-weight: 600;
+    letter-spacing: 0.1px;
+}
+
 .metricLabel {
+    margin: 0;
+    color: #ffffff;
+    font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 18px;
+    line-height: 1.5;
+    font-weight: 500;
+    letter-spacing: 0.1px;
+}
+
+.metricLabel:global(.MuiTypography-root) {
     margin: 0;
     color: #ffffff;
     font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
@@ -287,7 +374,26 @@
     letter-spacing: 0.1px;
 }
 
+.sectionTitle:global(.MuiTypography-root) {
+    margin: 0;
+    color: #03478c;
+    font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 24px;
+    line-height: 1.5;
+    font-weight: 500;
+    letter-spacing: 0.1px;
+}
+
 .sectionSubtitle {
+    margin: 8px 0 0;
+    color: #03478c;
+    font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    letter-spacing: 0.1px;
+}
+
+.sectionSubtitle:global(.MuiTypography-root) {
     margin: 8px 0 0;
     color: #03478c;
     font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
@@ -413,6 +519,16 @@
     letter-spacing: 0.1px;
 }
 
+.cardTitle:global(.MuiTypography-root) {
+    margin: 0;
+    color: #03478c;
+    font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 24px;
+    line-height: 1.5;
+    font-weight: 500;
+    letter-spacing: 0.1px;
+}
+
 .bookmarkButton {
     width: 32px;
     height: 32px;
@@ -507,6 +623,15 @@
     letter-spacing: 0.1px;
 }
 
+.cardDescription:global(.MuiTypography-root) {
+    margin: 0;
+    color: #000000;
+    font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    letter-spacing: 0.1px;
+}
+
 .companyThumb {
     position: relative;
     width: 200px;
@@ -526,6 +651,21 @@
 }
 
 .companyName {
+    position: absolute;
+    left: 50%;
+    bottom: 20px;
+    transform: translateX(-50%);
+    color: #2b96d9;
+    font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    letter-spacing: 0.1px;
+    text-decoration: underline;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.companyName:global(.MuiTypography-root) {
     position: absolute;
     left: 50%;
     bottom: 20px;
@@ -708,8 +848,8 @@
     }
 
     .heroSwitch {
-        width: 100%;
-        max-width: 258px;
+        width: max-content;
+        max-width: 100%;
     }
 
     .heroSwitchActive,

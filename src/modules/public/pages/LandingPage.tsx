@@ -1,4 +1,14 @@
-import { Button } from "@mui/material";
+import {
+  Box,
+  Button,
+  Card,
+  Chip,
+  IconButton,
+  InputAdornment,
+  TextField,
+  Typography,
+} from "@mui/material";
+import { useEffect, useRef, useState } from "react";
 import aiIconUrl from "@/assets/landing-page/ai-icon.svg";
 import bookmarkIconUrl from "@/assets/landing-page/bookmark-icon.svg";
 import chartIconUrl from "@/assets/landing-page/chart-icon.svg";
@@ -116,139 +126,254 @@ const metrics: Metric[] = [
 ];
 
 const LandingPage = () => {
+  const [activeHeroMode, setActiveHeroMode] = useState<"findJob" | "startHiring">("findJob");
+  const [heroSwitchActiveWidth, setHeroSwitchActiveWidth] = useState("111px");
+  const [heroSwitchActiveX, setHeroSwitchActiveX] = useState("4px");
+  const findJobButtonRef = useRef<HTMLButtonElement | null>(null);
+  const startHiringButtonRef = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    const updateHeroSwitchMetrics = () => {
+      const activeButton =
+        activeHeroMode === "findJob" ? findJobButtonRef.current : startHiringButtonRef.current;
+
+      if (!activeButton) {
+        return;
+      }
+
+      setHeroSwitchActiveWidth(`${activeButton.offsetWidth}px`);
+      setHeroSwitchActiveX(`${activeButton.offsetLeft}px`);
+    };
+
+    updateHeroSwitchMetrics();
+    window.addEventListener("resize", updateHeroSwitchMetrics);
+
+    return () => {
+      window.removeEventListener("resize", updateHeroSwitchMetrics);
+    };
+  }, [activeHeroMode]);
+
+  const handleFindJobClick = () => {
+    setActiveHeroMode("findJob");
+  };
+
+  const handleStartHiringClick = () => {
+    setActiveHeroMode("startHiring");
+  };
+
+  const handleHeroCtaClick = () => {
+    // TODO: Implement action
+  };
+
+  const handleSearchChange = () => {
+    // TODO: Implement action
+  };
+
+  const handleBookmarkClick = () => {
+    // TODO: Implement action
+  };
+
+  const handleCardCtaClick = () => {
+    // TODO: Implement action
+  };
+
   return (
-    <div className={styles.pageRoot}>
-      <section className={styles.heroSection}>
+    <Box className={styles.pageRoot}>
+      <Box component="section" className={styles.heroSection}>
         <img src={patternOneUrl} alt="" className={styles.heroPatternOne} aria-hidden="true" />
         <img src={patternTwoUrl} alt="" className={styles.heroPatternTwo} aria-hidden="true" />
         <img src={patternThreeUrl} alt="" className={styles.heroPatternThree} aria-hidden="true" />
 
-        <div className={styles.heroInner}>
-          <div className={styles.heroBadge}>
+        <Box className={styles.heroInner}>
+          <Box className={styles.heroBadge}>
             <img src={aiIconUrl} alt="" className={styles.heroBadgeIcon} aria-hidden="true" />
-            <span>AI-Powered Matching</span>
-          </div>
+            <Typography component="span" className={styles.heroBadgeText} sx={{ m: 0 }}>
+              AI-Powered Matching
+            </Typography>
+          </Box>
 
-          <div className={styles.heroSwitch}>
-            <button type="button" className={styles.heroSwitchActive}>
+          <Box
+            className={`${styles.heroSwitch} ${
+              activeHeroMode === "findJob" ? styles.heroSwitchFindJob : styles.heroSwitchStartHiring
+            }`}
+            style={{
+              ["--hero-switch-active-width" as string]: heroSwitchActiveWidth,
+              ["--hero-switch-active-x" as string]: heroSwitchActiveX,
+            }}
+          >
+            <Button
+              ref={findJobButtonRef}
+              type="button"
+              variant="text"
+              className={activeHeroMode === "findJob" ? styles.heroSwitchActive : styles.heroSwitchIdle}
+              onClick={handleFindJobClick}
+              aria-pressed={activeHeroMode === "findJob"}
+              disableRipple
+            >
               Find a job
-            </button>
-            <button type="button" className={styles.heroSwitchIdle}>
+            </Button>
+            <Button
+              ref={startHiringButtonRef}
+              type="button"
+              variant="text"
+              className={activeHeroMode === "startHiring" ? styles.heroSwitchActive : styles.heroSwitchIdle}
+              onClick={handleStartHiringClick}
+              aria-pressed={activeHeroMode === "startHiring"}
+              disableRipple
+            >
               Start hiring
-            </button>
-          </div>
+            </Button>
+          </Box>
 
-          <div className={styles.heroTextBlock}>
-            <h1 className={styles.heroTitle}>
-              <span className={styles.heroTitleStrong}>Your perfect role,</span>{" "}
-              <span className={styles.heroTitleLight}>matched to you.</span>
-            </h1>
+          <Box className={styles.heroTextBlock}>
+            <Typography component="h1" className={styles.heroTitle} sx={{ m: 0 }}>
+              <Box component="span" className={styles.heroTitleStrong}>
+                Your perfect role,
+              </Box>{" "}
+              <Box component="span" className={styles.heroTitleLight}>
+                matched to you.
+              </Box>
+            </Typography>
 
-            <div className={styles.heroCopy}>
-              <p className={styles.heroText}>Upload your CV once.</p>
-              <p className={styles.heroText}>Get matched with bespoke opportunities.</p>
-              <p className={styles.heroText}>
+            <Box className={styles.heroCopy}>
+              <Typography component="p" className={styles.heroText} sx={{ m: 0 }}>
+                Upload your CV once.
+              </Typography>
+              <Typography component="p" className={styles.heroText} sx={{ m: 0 }}>
+                Get matched with bespoke opportunities.
+              </Typography>
+              <Typography component="p" className={styles.heroText} sx={{ m: 0 }}>
                 Our AI optimises your profile and connects you with roles where you&apos;ll thrive.
-              </p>
-            </div>
-          </div>
+              </Typography>
+            </Box>
+          </Box>
 
-          <Button variant="contained" className={styles.heroCta}>
+          <Button variant="contained" className={styles.heroCta} onClick={handleHeroCtaClick}>
             Sign up and Browse Jobs
           </Button>
 
-          <div className={styles.metricsGrid}>
+          <Box className={styles.metricsGrid}>
             {metrics.map((metric) => (
-              <div key={metric.id} className={metric.cardClassName}>
-                <p className={styles.metricValue}>{metric.value}</p>
-                <p className={styles.metricLabel}>{metric.label}</p>
-              </div>
+              <Card key={metric.id} className={metric.cardClassName} elevation={0}>
+                <Typography component="p" className={styles.metricValue} sx={{ m: 0 }}>
+                  {metric.value}
+                </Typography>
+                <Typography component="p" className={styles.metricLabel} sx={{ m: 0 }}>
+                  {metric.label}
+                </Typography>
+              </Card>
             ))}
-          </div>
-        </div>
-      </section>
+          </Box>
+        </Box>
+      </Box>
 
-      <section className={styles.featureBar}>
-        <div className={styles.featureBarInner}>
+      <Box component="section" className={styles.featureBar}>
+        <Box className={styles.featureBarInner}>
           {features.map((feature) => (
-            <div key={feature.id} className={styles.featureItem}>
+            <Box key={feature.id} className={styles.featureItem}>
               <img src={feature.iconSrc} alt="" className={styles.featureIcon} aria-hidden="true" />
-              <span>{feature.label}</span>
-            </div>
+              <Typography component="span" className={styles.featureText} sx={{ m: 0 }}>
+                {feature.label}
+              </Typography>
+            </Box>
           ))}
-        </div>
-      </section>
+        </Box>
+      </Box>
 
-      <section className={styles.opportunitiesSection}>
-        <div className={styles.sectionHeader}>
-          <div className={styles.sectionHeadingGroup}>
-            <h2 className={styles.sectionTitle}>Latest Opportunities</h2>
-            <p className={styles.sectionSubtitle}>
+      <Box component="section" className={styles.opportunitiesSection}>
+        <Box className={styles.sectionHeader}>
+          <Box className={styles.sectionHeadingGroup}>
+            <Typography component="h2" className={styles.sectionTitle} sx={{ m: 0 }}>
+              Latest Opportunities
+            </Typography>
+            <Typography component="p" className={styles.sectionSubtitle} sx={{ m: 0 }}>
               Sign up to reveal employer details and apply
-            </p>
-          </div>
-          <div className={styles.searchWrap}>
-            <input
+            </Typography>
+          </Box>
+          <Box className={styles.searchWrap}>
+            <TextField
               className={styles.searchInput}
-              type="text"
               placeholder="Search"
               aria-label="Search opportunities"
+              variant="outlined"
+              fullWidth
+              onChange={handleSearchChange}
+              slotProps={{
+                input: {
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <Box className={styles.searchIcon} aria-hidden="true">
+                        <img src={searchIconUrl} alt="" className={styles.searchIconImage} />
+                      </Box>
+                    </InputAdornment>
+                  ),
+                },
+              }}
             />
-            <span className={styles.searchIcon} aria-hidden="true">
-              <img src={searchIconUrl} alt="" className={styles.searchIconImage} />
-            </span>
-          </div>
-        </div>
+          </Box>
+        </Box>
 
-        <div className={styles.cardGrid}>
+        <Box className={styles.cardGrid}>
           {opportunities.map((job) => (
-            <article
+            <Card
+              component="article"
               key={job.id}
               className={`${styles.jobCard} ${job.tallCard ? styles.jobCardTall : styles.jobCardShort}`}
+              elevation={0}
             >
-              <div className={styles.cardTop}>
-                <div className={styles.cardHeader}>
-                  <h3 className={styles.cardTitle}>{job.title}</h3>
-                  <button type="button" className={styles.bookmarkButton} aria-label={`Save ${job.title}`}>
+              <Box className={styles.cardTop}>
+                <Box className={styles.cardHeader}>
+                  <Typography component="h3" className={styles.cardTitle} sx={{ m: 0 }}>
+                    {job.title}
+                  </Typography>
+                  <IconButton
+                    type="button"
+                    className={styles.bookmarkButton}
+                    aria-label={`Save ${job.title}`}
+                    onClick={handleBookmarkClick}
+                    disableRipple
+                  >
                     <img src={bookmarkIconUrl} alt="" className={styles.bookmarkIcon} aria-hidden="true" />
-                  </button>
-                </div>
-                <div className={styles.cardRule} />
-              </div>
+                  </IconButton>
+                </Box>
+                <Box className={styles.cardRule} />
+              </Box>
 
-              <div className={styles.cardBody}>
-                <div className={styles.cardContentColumn}>
-                  <div className={styles.tagAndCopy}>
-                    <div className={styles.tagRow}>
+              <Box className={styles.cardBody}>
+                <Box className={styles.cardContentColumn}>
+                  <Box className={styles.tagAndCopy}>
+                    <Box className={styles.tagRow}>
                       {job.tags.map((tag) => (
-                        <span key={tag} className={styles.tagChip}>
-                          {tag}
-                        </span>
+                        <Chip key={tag} label={tag} className={styles.tagChip} />
                       ))}
-                    </div>
+                    </Box>
 
-                    <p className={styles.cardDescription}>{job.description}</p>
-                  </div>
+                    <Typography component="p" className={styles.cardDescription} sx={{ m: 0 }}>
+                      {job.description}
+                    </Typography>
+                  </Box>
 
-                  <Button variant="contained" className={styles.cardCta}>
+                  <Button variant="contained" className={styles.cardCta} onClick={handleCardCtaClick}>
                     Sign Up to View
                   </Button>
-                </div>
+                </Box>
 
-                <div className={styles.companyThumb} aria-hidden="true">
+                <Box className={styles.companyThumb} aria-hidden="true">
                   <img src={job.employerOrbSrc} alt="" className={styles.companyOrbImage} />
-                  <span
+                  <Typography
+                    component="span"
                     className={`${styles.companyName} ${job.blurredEmployer ? styles.companyNameBlurred : ""}`}
+                    sx={{ m: 0 }}
                   >
                     {job.employerName}
-                  </span>
-                </div>
-              </div>
-            </article>
+                  </Typography>
+                </Box>
+              </Box>
+            </Card>
           ))}
-        </div>
-      </section>
-    </div>
+        </Box>
+      </Box>
+    </Box>
   );
 };
 
