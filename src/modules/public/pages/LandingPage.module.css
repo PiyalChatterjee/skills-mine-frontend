@@ -486,7 +486,23 @@
     border-width: 1px;
 }
 
-.searchIcon {
+.searchIconButton,
+.searchIconButton:global(.MuiIconButton-root) {
+    width: 32px;
+    height: 32px;
+    border: 1px solid #e1e3e6;
+    border-radius: 100px;
+    background: #ffffff;
+    display: grid;
+    place-items: center;
+    padding: 0;
+}
+
+.searchIconButton:global(.MuiIconButton-root):hover {
+    background: #ffffff;
+}
+
+.searchIconShell {
     width: 32px;
     height: 32px;
     border: 1px solid #e1e3e6;
@@ -611,7 +627,7 @@
 .cardBody {
     display: flex;
     align-items: center;
-    gap: 31px;
+    gap: 8px;
     flex: 1;
 }
 

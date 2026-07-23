@@ -1,0 +1,465 @@
+.pageRoot {
+  background: #d7edf6;
+  min-height: 100%;
+  padding: 28px 0 48px;
+}
+
+/* ── Welcome Banner ─────────────────────────────────────────────────── */
+.welcomeBanner {
+  width: 100%;
+  background: transparent;
+  padding: 0;
+}
+
+.welcomeBannerInner {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 18px 18px 18px;
+  background: #124f92;
+  border-radius: 16px;
+}
+
+.welcomeGreeting,
+:global(.MuiTypography-root).welcomeGreeting,
+:global(.MuiTypography-root).welcomeGreeting.welcomeGreeting {
+  margin: 0 0 6px;
+  color: #ffffff;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: 0;
+}
+
+.welcomeSubtitle,
+:global(.MuiTypography-root).welcomeSubtitle,
+:global(.MuiTypography-root).welcomeSubtitle.welcomeSubtitle {
+  margin: 0 0 14px;
+  color: #ffffff;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0;
+}
+
+/* ── Stat Cards ──────────────────────────────────────────────────────── */
+.statsRow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.statCard {
+  padding: 16px 18px 14px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: relative;
+}
+
+.statCardBlue {
+  background: #4a9fd4;
+}
+
+.statCardGreen {
+  background: #4a9c6a;
+}
+
+.statCardTealMuted {
+  background: #5a9ea0;
+}
+
+.statCardTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 2px;
+}
+
+.statValue,
+:global(.MuiTypography-root).statValue,
+:global(.MuiTypography-root).statValue.statValue {
+  margin: 0;
+  color: #ffffff;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 58px;
+  font-weight: 300;
+  line-height: 1;
+  letter-spacing: -1px;
+}
+
+.statIcon {
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+
+.statLabel,
+:global(.MuiTypography-root).statLabel,
+:global(.MuiTypography-root).statLabel.statLabel {
+  margin: 0;
+  color: #ffffff;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: 0;
+}
+
+.statDesc,
+:global(.MuiTypography-root).statDesc,
+:global(.MuiTypography-root).statDesc.statDesc {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.85);
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0;
+}
+
+/* ── Quick Actions Row ───────────────────────────────────────────────── */
+.quickActionsRow {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px 0 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.quickCard {
+  padding: 16px 18px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  cursor: pointer;
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 8px 18px rgba(17, 61, 125, 0.2);
+  text-align: left;
+  transition: filter 0.15s ease;
+}
+
+.quickCard:hover {
+  filter: brightness(1.06);
+}
+
+.quickCard:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: -4px;
+}
+
+.quickCardBlue {
+  background: #4a9fd4;
+}
+
+.quickCardTeal {
+  background: #32abbf;
+}
+
+.quickCardNavy {
+  background: #0d3b7a;
+}
+
+.quickCardPurple {
+  background: #8b72be;
+}
+
+.quickCardIcon {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  flex-shrink: 0;
+}
+
+.quickCardTitle,
+:global(.MuiTypography-root).quickCardTitle,
+:global(.MuiTypography-root).quickCardTitle.quickCardTitle {
+  margin: 0;
+  color: #ffffff;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: 0;
+}
+
+.quickCardSubtitle,
+:global(.MuiTypography-root).quickCardSubtitle,
+:global(.MuiTypography-root).quickCardSubtitle.quickCardSubtitle {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.85);
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0;
+}
+
+/* ── Applications Section ────────────────────────────────────────────── */
+.applicationsSection {
+  width: 100%;
+  max-width: 1200px;
+  margin: 16px auto 0;
+  padding: 0;
+}
+
+.sectionTitle,
+:global(.MuiTypography-root).sectionTitle,
+:global(.MuiTypography-root).sectionTitle.sectionTitle {
+  margin: 0 0 14px;
+  color: #1a1a2e;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: 0;
+}
+
+.applicationsList {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  padding: 0 32px;
+  box-shadow: 0 6px 16px rgba(20, 54, 105, 0.08);
+}
+
+.applicationEntry {
+  padding: 28px 0 24px;
+}
+
+.applicationDivider {
+  height: 1px;
+  background: #e2e8f0;
+  margin-bottom: 28px;
+}
+
+.applicationHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.applicationTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.applicationTitle,
+:global(.MuiTypography-root).applicationTitle,
+:global(.MuiTypography-root).applicationTitle.applicationTitle {
+  margin: 0;
+  color: #1e6fa5;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: 0;
+}
+
+.expandButton {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid #d0dbe8;
+  background: #ffffff;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 0;
+  transition: border-color 0.15s ease;
+}
+
+.expandButton:hover {
+  border-color: #1e6fa5;
+}
+
+.expandButton:focus-visible {
+  outline: 2px solid #1e6fa5;
+  outline-offset: 1px;
+}
+
+/* ── Status Pills ────────────────────────────────────────────────────── */
+.statusPill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 34px;
+  padding: 0 20px;
+  border-radius: 999px;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.pillApplied {
+  background: #72c4e0;
+  color: #ffffff;
+}
+
+.pillShortlisted {
+  background: #5bbf8a;
+  color: #ffffff;
+}
+
+.pillInReview {
+  background: #e085c2;
+  color: #ffffff;
+}
+
+.pillUnsuccessful {
+  background: #e07070;
+  color: #ffffff;
+}
+
+/* ── Pipeline Progress Bar ───────────────────────────────────────────── */
+.pipelineWrap {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 16px 16px 12px;
+  margin-bottom: 14px;
+}
+
+.pipelineLabels {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  margin-bottom: 10px;
+}
+
+.pipelineLabel {
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  color: #4a5568;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.pipelineTrack {
+  width: 100%;
+  height: 8px;
+  background: #d0e8f5;
+  border-radius: 999px;
+  overflow: hidden;
+  position: relative;
+}
+
+.pipelineFill {
+  height: 100%;
+  background: #3399cc;
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+/* 6 stages → 0..5 index; fill covers to end of that segment */
+.pipelineFill0 { width: 8%; }
+.pipelineFill1 { width: 25%; }
+.pipelineFill2 { width: 42%; }
+.pipelineFill3 { width: 59%; }
+.pipelineFill4 { width: 79%; }
+.pipelineFill5 { width: 100%; }
+
+/* ── Application Message ─────────────────────────────────────────────── */
+.applicationMessage,
+:global(.MuiTypography-root).applicationMessage,
+:global(.MuiTypography-root).applicationMessage.applicationMessage {
+  margin: 0;
+  color: #4a5568;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0;
+}
+
+.applicationMessageLink {
+  color: #1e6fa5;
+  text-decoration: underline;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.applicationMessageLink:hover {
+  color: #2b96d9;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────── */
+@media (max-width: 1100px) {
+  .welcomeBannerInner,
+  .quickActionsRow,
+  .applicationsSection {
+    max-width: none;
+    margin-left: 20px;
+    margin-right: 20px;
+  }
+
+  .quickActionsRow {
+    padding-top: 14px;
+  }
+}
+
+@media (max-width: 900px) {
+  .statsRow {
+    grid-template-columns: 1fr;
+  }
+
+  .statCard {
+    border-radius: 8px;
+  }
+
+  .quickActionsRow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pipelineLabels {
+    display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .pageRoot {
+    padding-top: 16px;
+  }
+
+  .welcomeBannerInner,
+  .quickActionsRow,
+  .applicationsSection {
+    margin-left: 12px;
+    margin-right: 12px;
+  }
+
+  .applicationsList {
+    padding: 0 16px;
+  }
+
+  .quickActionsRow {
+    grid-template-columns: 1fr;
+  }
+
+  .statValue {
+    font-size: 48px;
+  }
+
+  .applicationTitle {
+    font-size: 17px;
+  }
+}

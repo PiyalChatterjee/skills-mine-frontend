@@ -8,7 +8,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import { useDispatch } from "react-redux";
 import aiIconUrl from "@/assets/landing-page/ai-icon.svg";
 import bookmarkIconUrl from "@/assets/landing-page/bookmark-icon.svg";
@@ -74,6 +74,7 @@ const LandingPage = () => {
   const [activeHeroMode, setActiveHeroMode] = useState<HeroMode>("findJob");
   const [heroSwitchActiveWidth, setHeroSwitchActiveWidth] = useState("111px");
   const [heroSwitchActiveX, setHeroSwitchActiveX] = useState("4px");
+  const [searchInputValue, setSearchInputValue] = useState("");
   const findJobButtonRef = useRef<HTMLButtonElement | null>(null);
   const startHiringButtonRef = useRef<HTMLButtonElement | null>(null);
 
@@ -130,8 +131,12 @@ const LandingPage = () => {
     // TODO: Implement action
   };
 
-  const handleSearchChange = () => {
-    // TODO: Implement action
+  const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setSearchInputValue(event.target.value);
+  };
+
+  const handleClearSearch = () => {
+    setSearchInputValue("");
   };
 
   const handleBookmarkClick = () => {
@@ -143,6 +148,21 @@ const LandingPage = () => {
   };
 
   const currentHeroContent = heroContent[activeHeroMode];
+  const normalizedSearchTerm = searchInputValue.trim().toLowerCase();
+  const shouldFilterOpportunities = normalizedSearchTerm.length >= 3;
+  const filteredOpportunities = useMemo(() => {
+    if (!opportunitiesData) {
+      return [];
+    }
+
+    if (!shouldFilterOpportunities) {
+      return opportunitiesData;
+    }
+
+    return opportunitiesData.filter((job) =>
+      job.title.toLowerCase().includes(normalizedSearchTerm),
+    );
+  }, [normalizedSearchTerm, opportunitiesData, shouldFilterOpportunities]);
 
   return (
     <Box className={styles.pageRoot}>
@@ -350,18 +370,43 @@ const LandingPage = () => {
                 aria-label="Search opportunities"
                 variant="outlined"
                 fullWidth
+                value={searchInputValue}
                 onChange={handleSearchChange}
                 slotProps={{
                   input: {
                     endAdornment: (
                       <InputAdornment position="end">
-                        <Box className={styles.searchIcon} aria-hidden="true">
-                          <img
-                            src={searchIconUrl}
-                            alt=""
-                            className={styles.searchIconImage}
-                          />
-                        </Box>
+                        {searchInputValue.length > 0 ? (
+                          <IconButton
+                            type="button"
+                            aria-label="Clear search"
+                            onClick={handleClearSearch}
+                            className={styles.searchIconButton}
+                          >
+                            <svg
+                              viewBox="0 0 20 20"
+                              width="20"
+                              height="20"
+                              className={styles.searchIconImage}
+                              aria-hidden="true"
+                            >
+                              <path
+                                d="M6 6l8 8M14 6l-8 8"
+                                stroke="#B0B4B8"
+                                strokeWidth="1.8"
+                                strokeLinecap="round"
+                              />
+                            </svg>
+                          </IconButton>
+                        ) : (
+                          <Box className={styles.searchIconShell} aria-hidden="true">
+                            <img
+                              src={searchIconUrl}
+                              alt=""
+                              className={styles.searchIconImage}
+                            />
+                          </Box>
+                        )}
                       </InputAdornment>
                     ),
                   },
@@ -378,94 +423,114 @@ const LandingPage = () => {
             >
               {opportunitiesError?.message || "Failed to load opportunities."}
             </Typography>
-          ) : opportunitiesData && opportunitiesData.length > 0 ? (
-            <Box className={styles.cardGrid}>
-              {opportunitiesData.map((job) => (
-                <Card
-                  component="article"
-                  key={job.id}
-                  className={`${styles.jobCard} ${job.tallCard ? styles.jobCardTall : styles.jobCardShort}`}
-                  elevation={0}
-                >
-                  <Box className={styles.cardTop}>
-                    <Box className={styles.cardHeader}>
-                      <Typography
-                        component="h3"
-                        className={styles.cardTitle}
-                        sx={{ m: 0 }}
-                      >
-                        {job.title}
-                      </Typography>
-                      <IconButton
-                        type="button"
-                        className={styles.bookmarkButton}
-                        aria-label={`Save ${job.title}`}
-                        onClick={handleBookmarkClick}
-                        disableRipple
-                      >
-                        <img
-                          src={bookmarkIconUrl}
-                          alt=""
-                          className={styles.bookmarkIcon}
-                          aria-hidden="true"
-                        />
-                      </IconButton>
-                    </Box>
-                    <Box className={styles.cardRule} />
-                  </Box>
-
-                  <Box className={styles.cardBody}>
-                    <Box className={styles.cardContentColumn}>
-                      <Box className={styles.tagAndCopy}>
-                        <Box className={styles.tagRow}>
-                          {job.tags.map((tag) => (
-                            <Chip
-                              key={tag}
-                              label={tag}
-                              variant="outlined"
-                              className={styles.tagChip}
+          ) : opportunitiesData ? (
+            opportunitiesData.length > 0 ? (
+              filteredOpportunities.length > 0 ? (
+                <Box className={styles.cardGrid}>
+                  {filteredOpportunities.map((job) => (
+                    <Card
+                      component="article"
+                      key={job.id}
+                      className={`${styles.jobCard} ${job.tallCard ? styles.jobCardTall : styles.jobCardShort}`}
+                      elevation={0}
+                    >
+                      <Box className={styles.cardTop}>
+                        <Box className={styles.cardHeader}>
+                          <Typography
+                            component="h3"
+                            className={styles.cardTitle}
+                            sx={{ m: 0 }}
+                          >
+                            {job.title}
+                          </Typography>
+                          <IconButton
+                            type="button"
+                            className={styles.bookmarkButton}
+                            aria-label={`Save ${job.title}`}
+                            onClick={handleBookmarkClick}
+                            disableRipple
+                          >
+                            <img
+                              src={bookmarkIconUrl}
+                              alt=""
+                              className={styles.bookmarkIcon}
+                              aria-hidden="true"
                             />
-                          ))}
+                          </IconButton>
                         </Box>
-
-                        <Typography
-                          component="p"
-                          className={styles.cardDescription}
-                          sx={{ m: 0 }}
-                        >
-                          {job.description}
-                        </Typography>
+                        <Box className={styles.cardRule} />
                       </Box>
 
-                      <Button
-                        variant="contained"
-                        className={styles.cardCta}
-                        onClick={handleCardCtaClick}
-                      >
-                        Sign Up to View
-                      </Button>
-                    </Box>
+                      <Box className={styles.cardBody}>
+                        <Box className={styles.cardContentColumn}>
+                          <Box className={styles.tagAndCopy}>
+                            <Box className={styles.tagRow}>
+                              {job.tags.map((tag) => (
+                                <Chip
+                                  key={tag}
+                                  label={tag}
+                                  variant="outlined"
+                                  className={styles.tagChip}
+                                />
+                              ))}
+                            </Box>
 
-                    <Box className={styles.companyThumb} aria-hidden="true">
-                      <Box
-                        className={`${styles.companyOrbImage} ${styles.companyOrbImageBlurred}`}
-                        style={{
-                          ["--orb-core" as string]: job.employerOrbColor,
-                          ["--orb-glow" as string]: job.employerOrbGlow,
-                        }}
-                      />
-                      <Typography
-                        component="span"
-                        className={`${styles.companyName} ${styles.companyNameBlurred}`}
-                        sx={{ m: 0 }}
-                      >
-                        {job.employerName}
-                      </Typography>
-                    </Box>
-                  </Box>
-                </Card>
-              ))}
-            </Box>
+                            <Typography
+                              component="p"
+                              className={styles.cardDescription}
+                              sx={{ m: 0 }}
+                            >
+                              {job.description}
+                            </Typography>
+                          </Box>
+
+                          <Button
+                            variant="contained"
+                            className={styles.cardCta}
+                            onClick={handleCardCtaClick}
+                          >
+                            Sign Up to View
+                          </Button>
+                        </Box>
+
+                        <Box className={styles.companyThumb} aria-hidden="true">
+                          <Box
+                            className={`${styles.companyOrbImage} ${styles.companyOrbImageBlurred}`}
+                            style={{
+                              ["--orb-core" as string]: job.employerOrbColor,
+                              ["--orb-glow" as string]: job.employerOrbGlow,
+                            }}
+                          />
+                          <Typography
+                            component="span"
+                            className={`${styles.companyName} ${styles.companyNameBlurred}`}
+                            sx={{ m: 0 }}
+                          >
+                            {job.employerName}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </Card>
+                  ))}
+                </Box>
+              ) : (
+                <Typography
+                  component="p"
+                  className={styles.sectionSubtitle}
+                  sx={{ mt: 2, mb: 0 }}
+                >
+                  No opportunities found for your search.
+                </Typography>
+              )
+            ) : (
+              <Typography
+                component="p"
+                className={styles.sectionSubtitle}
+                sx={{ mt: 2, mb: 0 }}
+              >
+                No opportunities available right now.
+              </Typography>
+            )
           ) : null}
         </Box>
       ) : null}

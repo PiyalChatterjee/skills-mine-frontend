@@ -54,7 +54,10 @@
 
 .navItemMuted,
 .navItemActive,
-.navItemStrong {
+.navItemStrong,
+.navItemDefault,
+.navItemSelected,
+.navButton {
   text-decoration: none;
   font-size: 16px;
   line-height: 1.5;
@@ -63,6 +66,13 @@
   letter-spacing: 0.1px;
   transition: color 0.2s ease;
   white-space: nowrap;
+}
+
+.navButton {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
 }
 
 .navItemMuted {
@@ -76,6 +86,32 @@
 
 .navItemStrong {
   color: #03478c;
+}
+
+.navItemDefault {
+  color: #03478c;
+}
+
+.navItemSelected {
+  color: #32abbf;
+}
+
+.navItemDefault:hover,
+.navButton.navItemDefault:hover {
+  color: #1c5ca1;
+}
+
+.navItemSelected:hover,
+.navButton.navItemSelected:hover {
+  color: #32abbf;
+}
+
+.navButton:focus-visible,
+.navItemDefault:focus-visible,
+.navItemSelected:focus-visible {
+  outline: 2px solid #32abbf;
+  outline-offset: 3px;
+  border-radius: 4px;
 }
 
 .signUpButton,
@@ -106,6 +142,102 @@
   display: grid;
   place-items: center;
   flex-shrink: 0;
+}
+
+.profileBadgeButton {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  border-radius: 77.083px;
+}
+
+.profileBadgeButton:focus-visible {
+  outline: 2px solid #2b96d9;
+  outline-offset: 2px;
+}
+
+.profileMenuPaper:global(.MuiPaper-root) {
+  margin-top: 8px;
+  border: 1px solid #3a6bc9;
+  border-radius: 14px;
+  min-width: 272px;
+  box-shadow: 0 10px 24px rgba(15, 43, 90, 0.2);
+}
+
+.profileMenuList:global(.MuiList-root) {
+  padding: 12px 14px 10px;
+}
+
+.profileMenuUserBlock {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 2px 10px;
+}
+
+.profileMenuUserAvatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  background: #2facc0;
+}
+
+.profileMenuUserAvatarIcon {
+  width: 19px;
+  height: 19px;
+  object-fit: contain;
+}
+
+.profileMenuUserText {
+  min-width: 0;
+}
+
+.profileMenuUserName,
+.profileMenuUserName:global(.MuiTypography-root) {
+  margin: 0;
+  color: #1c4f8e;
+  font-weight: 500;
+  font-size: 24px;
+  line-height: 1.25;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+}
+
+.profileMenuUserEmail,
+.profileMenuUserEmail:global(.MuiTypography-root) {
+  margin: 0;
+  color: #1b63ad;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.5;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+}
+
+.profileMenuDivider {
+  height: 1px;
+  background: #d9d9d9;
+  margin: 2px 0 8px;
+}
+
+.profileMenuItem,
+.profileMenuItem:global(.MuiMenuItem-root) {
+  min-height: 36px;
+  border-radius: 8px;
+  padding: 6px 8px;
+  color: #23303f;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+}
+
+.profileMenuItem:global(.MuiMenuItem-root):hover {
+  background: #f2f7ff;
 }
 
 .profileIcon {
@@ -144,6 +276,45 @@
   width: 20px;
   height: 20px;
   object-fit: contain;
+}
+
+.notificationButton,
+.notificationButton:global(.MuiIconButton-root) {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  position: relative;
+  color: #c8c8c8;
+}
+
+.notificationButton:global(.MuiIconButton-root):hover {
+  background: transparent;
+}
+
+.notificationBadgeDot {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #f04e4e;
+  border: 2px solid #ffffff;
+}
+
+.notificationBadgeDot::after {
+  content: '3';
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #ffffff;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .contentArea {
