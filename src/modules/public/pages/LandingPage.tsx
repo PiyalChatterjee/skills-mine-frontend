@@ -448,7 +448,7 @@ const LandingPage = () => {
 
                     <Box className={styles.companyThumb} aria-hidden="true">
                       <Box
-                        className={`${styles.companyOrbImage} ${job.blurredEmployer ? styles.companyOrbImageBlurred : ""}`}
+                        className={`${styles.companyOrbImage} ${styles.companyOrbImageBlurred}`}
                         style={{
                           ["--orb-core" as string]: job.employerOrbColor,
                           ["--orb-glow" as string]: job.employerOrbGlow,
@@ -456,7 +456,7 @@ const LandingPage = () => {
                       />
                       <Typography
                         component="span"
-                        className={`${styles.companyName} ${job.blurredEmployer ? styles.companyNameBlurred : ""}`}
+                        className={`${styles.companyName} ${styles.companyNameBlurred}`}
                         sx={{ m: 0 }}
                       >
                         {job.employerName}
