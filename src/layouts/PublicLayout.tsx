@@ -1,4 +1,4 @@
-import { Button } from "@mui/material";
+import { Box, Button, IconButton, Typography } from "@mui/material";
 import type { MouseEvent } from "react";
 import { useSelector } from "react-redux";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
@@ -23,6 +23,18 @@ export const PublicLayout = () => {
   const hasValidAccessToken = accessToken ? !isJwtExpired(accessToken) : false;
   const canAccessProtectedRoutes = isAuthenticated && hasValidAccessToken;
 
+  const handleHelpClick = () => {
+    // TODO: Implement action
+  };
+
+  const handleSignUpClick = () => {
+    // TODO: Implement action
+  };
+
+  const handleSearchClick = () => {
+    // TODO: Implement action
+  };
+
   const handleProtectedNavClick = (
     event: MouseEvent<HTMLAnchorElement>,
     targetPath: string,
@@ -36,111 +48,146 @@ export const PublicLayout = () => {
   };
 
   return (
-    <div className={styles.layoutRoot}>
-      <header className={styles.topBar}>
-        <div className={styles.topBarInner}>
-          <NavLink
+    <Box className={styles.layoutRoot}>
+      <Box component="header" className={styles.topBar}>
+        <Box className={styles.topBarInner}>
+          <Box
+            component={NavLink}
             to={ROUTE_PATHS.landing}
             aria-label="Go to landing page"
             className={styles.logoLink}
           >
-            <img
+            <Box
+              component="img"
               src={skillsMineLogo}
               alt="SkillsMine"
               className={styles.logoPrimary}
             />
-          </NavLink>
+          </Box>
 
           {isLoginPage ? (
-            <Button variant="text" className={styles.helpButton}>
+            <Button
+              variant="text"
+              onClick={handleHelpClick}
+              className={styles.helpButton}
+            >
               Need help?
             </Button>
           ) : (
-            <div className={styles.navGroup}>
+            <Box className={styles.navGroup}>
               {!isHiringLandingMode ? (
-                <NavLink
+                <Box
+                  component={NavLink}
                   to={ROUTE_PATHS.jobs}
-                  className={styles.navItemMuted}
                   aria-disabled={!canAccessProtectedRoutes}
                   onClick={(event) => handleProtectedNavClick(event, ROUTE_PATHS.jobs)}
+                  className={styles.navItemMuted}
                 >
                   Explore Jobs
-                </NavLink>
+                </Box>
               ) : null}
               {!isHiringLandingMode ? (
-                <NavLink
+                <Box
+                  component={NavLink}
                   to={ROUTE_PATHS.dashboard}
-                  className={styles.navItemMuted}
                   aria-disabled={!canAccessProtectedRoutes}
                   onClick={(event) =>
                     handleProtectedNavClick(event, ROUTE_PATHS.dashboard)
                   }
+                  className={styles.navItemMuted}
                 >
                   Dashboard
-                </NavLink>
+                </Box>
               ) : null}
-              <NavLink
+              <Box
+                component={NavLink}
                 to={ROUTE_PATHS.landing}
                 className={styles.navItemActive}
               >
                 Skills Build
-              </NavLink>
-              <NavLink to={ROUTE_PATHS.login} className={styles.navItemStrong}>
+              </Box>
+              <Box
+                component={NavLink}
+                to={ROUTE_PATHS.login}
+                className={styles.navItemStrong}
+              >
                 Sign in
-              </NavLink>
-              <Button variant="contained" className={styles.signUpButton}>
+              </Box>
+              <Button
+                variant="contained"
+                onClick={handleSignUpClick}
+                className={styles.signUpButton}
+              >
                 Sign up
               </Button>
               {!isHiringLandingMode ? (
-                <span className={styles.profileBadge} aria-hidden="true">
-                  <img
+                <Box
+                  component="span"
+                  aria-hidden="true"
+                  className={styles.profileBadge}
+                >
+                  <Box
+                    component="img"
                     src={userIcon}
                     alt=""
                     className={styles.profileIcon}
                   />
-                </span>
+                </Box>
               ) : null}
               {!isHiringLandingMode ? (
-                <button
-                  type="button"
-                  className={styles.searchButton}
+                <IconButton
                   aria-label="Search site"
+                  onClick={handleSearchClick}
+                  className={styles.searchButton}
                 >
-                  <img
+                  <Box
+                    component="img"
                     src={searchIcon}
                     alt=""
                     className={styles.searchButtonIcon}
                   />
-                </button>
+                </IconButton>
               ) : null}
-            </div>
+            </Box>
           )}
-        </div>
-      </header>
+        </Box>
+      </Box>
 
-      <main className={styles.contentArea}>
+      <Box component="main" className={styles.contentArea}>
         <Outlet />
-      </main>
+      </Box>
 
-      <footer className={styles.footerBar}>
-        <div className={styles.footerInner}>
-          <div className={styles.footerBrandBlock}>
-            <img
+      <Box component="footer" className={styles.footerBar}>
+        <Box className={styles.footerInner}>
+          <Box className={styles.footerBrandBlock}>
+            <Box
+              component="img"
               src={skillsMineLogo}
               alt="SkillsMine"
               className={styles.logoFooter}
             />
-            <p className={styles.copyrightText}>© 2026</p>
-          </div>
-          <div className={styles.footerLinks}>
-            <p className={styles.footerLinkText}>Privacy</p>
-            <p className={styles.footerLinkText}>Terms and Conditions</p>
+            <Typography
+              component="p"
+              className={styles.copyrightText}
+            >
+              © 2026
+            </Typography>
+          </Box>
+          <Box className={styles.footerLinks}>
+            <Typography component="p" className={styles.footerLinkText}>
+              Privacy
+            </Typography>
+            <Typography component="p" className={styles.footerLinkText}>
+              Terms and Conditions
+            </Typography>
             {!isLoginPage ? (
-              <p className={styles.footerLinkText}>Contact</p>
+              <Typography component="p" className={styles.footerLinkText}>
+                Contact
+              </Typography>
             ) : null}
-          </div>
-        </div>
-      </footer>
-    </div>
+          </Box>
+        </Box>
+      </Box>
+    </Box>
   );
 };

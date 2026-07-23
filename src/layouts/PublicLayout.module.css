@@ -127,6 +127,19 @@
   flex-shrink: 0;
 }
 
+.searchButton:global(.MuiIconButton-root) {
+  width: 32px;
+  height: 32px;
+  border-radius: 100px;
+  border: 1px solid #03478c;
+  background: #ffffff;
+  padding: 0;
+}
+
+.searchButton:global(.MuiIconButton-root):hover {
+  background: #ffffff;
+}
+
 .searchButtonIcon {
   width: 20px;
   height: 20px;
@@ -174,6 +187,16 @@
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
 }
 
+.copyrightText:global(.MuiTypography-root) {
+  color: #03478c;
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: 0.1px;
+  line-height: 1.5;
+  margin: 0;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+}
+
 .footerLinks {
   display: flex;
   align-items: center;
@@ -183,6 +206,16 @@
 }
 
 .footerLinkText {
+  color: #03478c;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
+  margin: 0;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+}
+
+.footerLinkText:global(.MuiTypography-root) {
   color: #03478c;
   font-weight: 500;
   font-size: 16px;
