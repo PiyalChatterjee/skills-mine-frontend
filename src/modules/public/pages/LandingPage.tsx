@@ -26,7 +26,9 @@ import {
 } from "@/modules/public/constants/landingPage.constants";
 import { useOpportunitiesSearch } from "@/modules/public/hooks/useOpportunitiesSearch";
 import { useSearchQueryState } from "@/hooks/useSearchQueryState";
+import type { PublicLayoutOutletContext } from "@/layouts/PublicLayout";
 import { setLandingMode } from "@/store/slices/uiSlice";
+import { useOutletContext } from "react-router-dom";
 import styles from "./LandingPage.module.css";
 
 type Feature = {
@@ -71,6 +73,7 @@ const metrics: Metric[] = [
 ];
 
 const LandingPage = () => {
+  const { openSignUpDrawer } = useOutletContext<PublicLayoutOutletContext>();
   const dispatch = useDispatch();
   const [activeHeroMode, setActiveHeroMode] = useState<HeroMode>("findJob");
   const [heroSwitchActiveWidth, setHeroSwitchActiveWidth] = useState("111px");
@@ -142,6 +145,11 @@ const LandingPage = () => {
   };
 
   const handleHeroCtaClick = () => {
+    if (activeHeroMode === "findJob") {
+      openSignUpDrawer();
+      return;
+    }
+
     // TODO: Implement action
   };
 
@@ -154,7 +162,7 @@ const LandingPage = () => {
   };
 
   const handleCardCtaClick = () => {
-    // TODO: Implement action
+    openSignUpDrawer();
   };
 
   const currentHeroContent = heroContent[activeHeroMode];

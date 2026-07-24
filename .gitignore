@@ -33,3 +33,6 @@ dist-ssr
 .httpyac/
 .httpyac.json
 *.http.env.json
+
+# Bob config files
+.bob

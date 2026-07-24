@@ -8,6 +8,7 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/app/auth/AuthContext";
+import { PasswordVisibilityAdornment } from "@/components/PasswordVisibilityAdornment";
 import { useZodForm } from "@/hooks/useZodForm";
 import { loginSchema, type LoginFormValues } from "@/modules/auth/types";
 import { ROUTE_PATHS } from "@/routes/routePaths";
@@ -20,9 +21,11 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isPasswordVisible, setPasswordVisible] = useState(false);
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors, isSubmitting },
   } = useZodForm(loginSchema, {
     defaultValues: {
@@ -30,6 +33,8 @@ const LoginPage = () => {
       password: "",
     },
   });
+  const passwordValue = watch("password");
+  const hasPasswordValue = Boolean(passwordValue?.length);
 
   const onSubmit = async (values: LoginFormValues) => {
     try {
@@ -71,27 +76,49 @@ const LoginPage = () => {
           Log in using your email and provided password.
         </Typography>
 
-        <form className={styles.formFields} onSubmit={handleSubmit(onSubmit)}>
+        <Box component="form" className={styles.formFields} onSubmit={handleSubmit(onSubmit)}>
           {submitError ? <Alert severity="error">{submitError}</Alert> : null}
 
-          <TextField
-            label="Email"
-            autoComplete="email"
-            error={Boolean(errors.email)}
-            helperText={errors.email?.message}
-            {...register("email")}
-            className={styles.inputField}
-          />
+          <Box className={styles.fieldGroup}>
+            <Typography className={styles.fieldLabel}>Email</Typography>
+            <TextField
+              placeholder="Email"
+              autoComplete="email"
+              error={Boolean(errors.email)}
+              helperText={errors.email?.message}
+              {...register("email")}
+              className={styles.inputField}
+            />
+          </Box>
 
-          <TextField
-            label="Password"
-            type="password"
-            autoComplete="current-password"
-            error={Boolean(errors.password)}
-            helperText={errors.password?.message}
-            {...register("password")}
-            className={styles.inputField}
-          />
+          <Box className={styles.fieldGroup}>
+            <Typography className={styles.fieldLabel}>Password</Typography>
+            <TextField
+              placeholder="Password"
+              type={hasPasswordValue && isPasswordVisible ? "text" : "password"}
+              autoComplete="current-password"
+              error={Boolean(errors.password)}
+              helperText={errors.password?.message}
+              slotProps={{
+                input: {
+                  endAdornment: hasPasswordValue
+                    ? (
+                        <PasswordVisibilityAdornment
+                          visible={isPasswordVisible}
+                          onToggle={() => {
+                            setPasswordVisible((previous) => !previous);
+                          }}
+                          buttonClassName={styles.passwordToggleButton}
+                          iconClassName={styles.passwordToggleIcon}
+                        />
+                      )
+                    : null,
+                },
+              }}
+              {...register("password")}
+              className={styles.inputField}
+            />
+          </Box>
 
           <Button
             type="submit"
@@ -102,7 +129,7 @@ const LoginPage = () => {
           >
             {isSubmitting ? "Signing in..." : "Log In"}
           </Button>
-        </form>
+        </Box>
       </Box>
     </Box>
   );

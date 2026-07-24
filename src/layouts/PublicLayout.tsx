@@ -1,17 +1,23 @@
 import { Box } from "@mui/material";
-import type { MouseEvent } from "react";
+import { useState, type MouseEvent } from "react";
 import { useSelector } from "react-redux";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/app/auth/AuthContext";
 import { isJwtExpired } from "@/app/auth/jwt";
 import { PUBLIC_HEADER_NAV_PRESETS, buildHeaderNavItems } from "@/layouts/headerNav";
+import { CandidateSignUpDrawer } from "@/modules/public/components/CandidateSignUpDrawer";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import type { RootState } from "@/store";
 import { PublicFooter } from "./components/PublicFooter";
 import { PublicHeader } from "./components/PublicHeader";
 import styles from "./PublicLayout.module.css";
 
+export type PublicLayoutOutletContext = {
+  openSignUpDrawer: () => void;
+};
+
 export const PublicLayout = () => {
+  const [isSignUpDrawerOpen, setSignUpDrawerOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated, tokens } = useAuth();
@@ -28,7 +34,11 @@ export const PublicLayout = () => {
   };
 
   const handleSignUpClick = () => {
-    // TODO: Implement action
+    setSignUpDrawerOpen(true);
+  };
+
+  const handleSignUpDrawerClose = () => {
+    setSignUpDrawerOpen(false);
   };
 
   const handleSearchClick = () => {
@@ -77,10 +87,19 @@ export const PublicLayout = () => {
       />
 
       <Box component="main" className={styles.contentArea}>
-        <Outlet />
+        <Outlet
+          context={{
+            openSignUpDrawer: handleSignUpClick,
+          }}
+        />
       </Box>
 
       <PublicFooter showContactLink={!isLoginPage} />
+
+      <CandidateSignUpDrawer
+        open={isSignUpDrawerOpen}
+        onClose={handleSignUpDrawerClose}
+      />
     </Box>
   );
 };
