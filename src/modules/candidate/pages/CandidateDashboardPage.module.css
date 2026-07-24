@@ -1,7 +1,7 @@
 .pageRoot {
   background: #d7edf6;
   min-height: 100%;
-  padding: 28px 0 48px;
+  padding: 40px 80px 48px;
 }
 
 /* ── Welcome Banner ─────────────────────────────────────────────────── */
@@ -13,11 +13,11 @@
 
 .welcomeBannerInner {
   width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 18px 18px 18px;
-  background: #124f92;
-  border-radius: 16px;
+  max-width: none;
+  margin: 0;
+  padding: 24px;
+  background: #03478c;
+  border-radius: 20px;
 }
 
 .welcomeGreeting,
@@ -26,7 +26,7 @@
   margin: 0 0 6px;
   color: #ffffff;
   font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 22px;
+  font-size: 16px;
   font-weight: 400;
   line-height: 1.4;
   letter-spacing: 0;
@@ -38,7 +38,7 @@
   margin: 0 0 14px;
   color: #ffffff;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 400;
   line-height: 1.5;
   letter-spacing: 0;
@@ -48,35 +48,34 @@
 .statsRow {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
+  gap: 16px;
 }
 
 .statCard {
-  padding: 16px 18px 14px;
-  border-radius: 8px;
+  padding: 24px 24px 16px;
+  border-radius: 10px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 16px;
   position: relative;
 }
 
 .statCardBlue {
-  background: #4a9fd4;
+  background: #55abe1;
 }
 
 .statCardGreen {
-  background: #4a9c6a;
+  background: #4baf73;
 }
 
 .statCardTealMuted {
-  background: #5a9ea0;
+  background: #5196a1;
 }
 
 .statCardTop {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: 2px;
 }
 
 .statValue,
@@ -85,15 +84,21 @@
   margin: 0;
   color: #ffffff;
   font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 58px;
-  font-weight: 300;
+  font-size: 64px;
+  font-weight: 400;
   line-height: 1;
-  letter-spacing: -1px;
+  letter-spacing: 0;
 }
 
 .statIcon {
-  margin-top: 4px;
+  margin-top: 0;
   flex-shrink: 0;
+}
+
+.statIconImage {
+  display: block;
+  width: 24px;
+  height: 24px;
 }
 
 .statLabel,
@@ -101,11 +106,11 @@
 :global(.MuiTypography-root).statLabel.statLabel {
   margin: 0;
   color: #ffffff;
-  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 18px;
-  font-weight: 600;
-  line-height: 1.3;
-  letter-spacing: 0;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
 }
 
 .statDesc,
@@ -114,7 +119,7 @@
   margin: 0;
   color: rgba(255, 255, 255, 0.85);
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 400;
   line-height: 1.5;
   letter-spacing: 0;
@@ -123,25 +128,30 @@
 /* ── Quick Actions Row ───────────────────────────────────────────────── */
 .quickActionsRow {
   width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 16px 0 0;
+  max-width: none;
+  margin: 24px 0 0;
+  padding: 0;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
+  gap: 24px;
 }
 
 .quickCard {
-  padding: 16px 18px 14px;
+  padding: 24px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 24px;
   cursor: pointer;
   border: none;
-  border-radius: 12px;
-  box-shadow: 0 8px 18px rgba(17, 61, 125, 0.2);
+  border-radius: 16px;
+  box-shadow: 2px 4px 5px rgba(3, 71, 140, 0.32);
   text-align: left;
   transition: filter 0.15s ease;
+}
+
+.quickCard:global(.MuiButtonBase-root) {
+  align-items: flex-start;
+  justify-content: flex-start;
 }
 
 .quickCard:hover {
@@ -154,7 +164,7 @@
 }
 
 .quickCardBlue {
-  background: #4a9fd4;
+  background: #2b96d9;
 }
 
 .quickCardTeal {
@@ -162,22 +172,53 @@
 }
 
 .quickCardNavy {
-  background: #0d3b7a;
+  background: #03478c;
 }
 
 .quickCardPurple {
-  background: #8b72be;
+  background: #957dd2;
 }
 
-.quickCardIcon {
+.quickCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.quickCardIconFrameBlue,
+.quickCardIconFrameTeal,
+.quickCardIconFrameNavy,
+.quickCardIconFrameNeutral {
   width: 34px;
   height: 34px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
   flex-shrink: 0;
+}
+
+.quickCardIconFrameBlue {
+  background: #d5eaf7;
+}
+
+.quickCardIconFrameTeal {
+  background: #d6eef2;
+}
+
+.quickCardIconFrameNavy {
+  background: #cddae8;
+}
+
+.quickCardIconFrameNeutral {
+  background: #cddae8;
+}
+
+.quickCardIcon {
+  display: block;
+  width: 24px;
+  height: 24px;
 }
 
 .quickCardTitle,
@@ -185,11 +226,17 @@
 :global(.MuiTypography-root).quickCardTitle.quickCardTitle {
   margin: 0;
   color: #ffffff;
-  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 18px;
-  font-weight: 500;
-  line-height: 1.3;
-  letter-spacing: 0;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
+  display: flex;
+  flex-direction: column;
+}
+
+.quickCardTitleLine {
+  display: block;
 }
 
 .quickCardSubtitle,
@@ -198,17 +245,17 @@
   margin: 0;
   color: rgba(255, 255, 255, 0.85);
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 400;
   line-height: 1.5;
-  letter-spacing: 0;
+  letter-spacing: 0.1px;
 }
 
 /* ── Applications Section ────────────────────────────────────────────── */
 .applicationsSection {
   width: 100%;
-  max-width: 1200px;
-  margin: 16px auto 0;
+  max-width: none;
+  margin: 40px 0 0;
   padding: 0;
 }
 
@@ -291,6 +338,12 @@
 .expandButton:focus-visible {
   outline: 2px solid #1e6fa5;
   outline-offset: 1px;
+}
+
+.expandButtonIcon {
+  display: block;
+  width: 16px;
+  height: 16px;
 }
 
 /* ── Status Pills ────────────────────────────────────────────────────── */

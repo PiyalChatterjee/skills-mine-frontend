@@ -4,6 +4,8 @@ import type { Opportunity } from '@/types'
 
 const OPPORTUNITIES_ENDPOINT =
   import.meta.env.VITE_OPPORTUNITIES_ENDPOINT ?? '/opportunities'
+const OPPORTUNITIES_QUERY_PARAM =
+  import.meta.env.VITE_OPPORTUNITIES_QUERY_PARAM ?? 'query'
 
 type OpportunitiesPayload = {
   opportunities?: Opportunity[]
@@ -41,15 +43,18 @@ const extractOpportunities = (payload: unknown): Opportunity[] | null => {
 }
 
 export const opportunitiesApi = {
-  async list(): Promise<Opportunity[]> {
-    const cacheBustParam = `_cb=${Date.now()}`
-    const endpointWithCacheBust = OPPORTUNITIES_ENDPOINT.includes('?')
-      ? `${OPPORTUNITIES_ENDPOINT}&${cacheBustParam}`
-      : `${OPPORTUNITIES_ENDPOINT}?${cacheBustParam}`
+  async list(searchQuery?: string): Promise<Opportunity[]> {
+    const normalizedSearchQuery = searchQuery?.trim() ?? ''
 
     const response = await apiClient.get<
       ApiResponse<Opportunity[]> | Opportunity[] | OpportunitiesPayload
-    >(endpointWithCacheBust)
+    >(OPPORTUNITIES_ENDPOINT, {
+      params: {
+        ...(normalizedSearchQuery
+          ? { [OPPORTUNITIES_QUERY_PARAM]: normalizedSearchQuery }
+          : {}),
+      },
+    })
 
     const payload =
       typeof response.data === 'string'

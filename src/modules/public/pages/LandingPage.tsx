@@ -8,7 +8,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
 import aiIconUrl from "@/assets/landing-page/ai-icon.svg";
 import bookmarkIconUrl from "@/assets/landing-page/bookmark-icon.svg";
@@ -24,7 +24,8 @@ import {
   heroContent,
   type HeroMode,
 } from "@/modules/public/constants/landingPage.constants";
-import { useOpportunities } from "@/modules/public/hooks/useOpportunities";
+import { useOpportunitiesSearch } from "@/modules/public/hooks/useOpportunitiesSearch";
+import { useSearchQueryState } from "@/hooks/useSearchQueryState";
 import { setLandingMode } from "@/store/slices/uiSlice";
 import styles from "./LandingPage.module.css";
 
@@ -74,15 +75,32 @@ const LandingPage = () => {
   const [activeHeroMode, setActiveHeroMode] = useState<HeroMode>("findJob");
   const [heroSwitchActiveWidth, setHeroSwitchActiveWidth] = useState("111px");
   const [heroSwitchActiveX, setHeroSwitchActiveX] = useState("4px");
-  const [searchInputValue, setSearchInputValue] = useState("");
+  const {
+    inputValue: searchInputValue,
+    normalizedValue: normalizedSearchTerm,
+    debouncedValue: debouncedSearchTerm,
+    shouldFilter: shouldFilterOpportunities,
+    shouldUseDebouncedQuery: shouldUseApiSearch,
+    handleInputChange: handleSearchChange,
+    clear: handleClearSearch,
+  } = useSearchQueryState({
+    minCharacters: 3,
+    debounceMs: 250,
+  });
   const findJobButtonRef = useRef<HTMLButtonElement | null>(null);
   const startHiringButtonRef = useRef<HTMLButtonElement | null>(null);
 
   const {
-    data: opportunitiesData,
-    isError: isOpportunitiesError,
-    error: opportunitiesError,
-  } = useOpportunities();
+    allOpportunities,
+    visibleOpportunities,
+    isOpportunitiesError,
+    opportunitiesError,
+  } = useOpportunitiesSearch({
+    normalizedSearchTerm,
+    shouldFilter: shouldFilterOpportunities,
+    shouldUseDebouncedQuery: shouldUseApiSearch,
+    debouncedSearchTerm,
+  });
 
   useEffect(() => {
     const updateHeroSwitchMetrics = () => {
@@ -131,14 +149,6 @@ const LandingPage = () => {
     // TODO: Implement action
   };
 
-  const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setSearchInputValue(event.target.value);
-  };
-
-  const handleClearSearch = () => {
-    setSearchInputValue("");
-  };
-
   const handleBookmarkClick = () => {
     // TODO: Implement action
   };
@@ -148,22 +158,6 @@ const LandingPage = () => {
   };
 
   const currentHeroContent = heroContent[activeHeroMode];
-  const normalizedSearchTerm = searchInputValue.trim().toLowerCase();
-  const shouldFilterOpportunities = normalizedSearchTerm.length >= 3;
-  const filteredOpportunities = useMemo(() => {
-    if (!opportunitiesData) {
-      return [];
-    }
-
-    if (!shouldFilterOpportunities) {
-      return opportunitiesData;
-    }
-
-    return opportunitiesData.filter((job) =>
-      job.title.toLowerCase().includes(normalizedSearchTerm),
-    );
-  }, [normalizedSearchTerm, opportunitiesData, shouldFilterOpportunities]);
-
   return (
     <Box className={styles.pageRoot}>
       <Box component="section" className={styles.heroSection}>
@@ -423,11 +417,10 @@ const LandingPage = () => {
             >
               {opportunitiesError?.message || "Failed to load opportunities."}
             </Typography>
-          ) : opportunitiesData ? (
-            opportunitiesData.length > 0 ? (
-              filteredOpportunities.length > 0 ? (
+          ) : allOpportunities ? (
+            visibleOpportunities.length > 0 ? (
                 <Box className={styles.cardGrid}>
-                  {filteredOpportunities.map((job) => (
+                  {visibleOpportunities.map((job) => (
                     <Card
                       component="article"
                       key={job.id}
@@ -513,22 +506,15 @@ const LandingPage = () => {
                     </Card>
                   ))}
                 </Box>
-              ) : (
-                <Typography
-                  component="p"
-                  className={styles.sectionSubtitle}
-                  sx={{ mt: 2, mb: 0 }}
-                >
-                  No opportunities found for your search.
-                </Typography>
-              )
             ) : (
               <Typography
                 component="p"
                 className={styles.sectionSubtitle}
                 sx={{ mt: 2, mb: 0 }}
               >
-                No opportunities available right now.
+                {shouldFilterOpportunities
+                  ? "No opportunities found for your search."
+                  : "No opportunities available right now."}
               </Typography>
             )
           ) : null}
