@@ -6,6 +6,7 @@ import { useAuth } from "@/app/auth/AuthContext";
 import { isJwtExpired } from "@/app/auth/jwt";
 import { PUBLIC_HEADER_NAV_PRESETS, buildHeaderNavItems } from "@/layouts/headerNav";
 import { CandidateSignUpDrawer } from "@/modules/public/components/CandidateSignUpDrawer";
+import { RecruiterSignUpDrawer } from "@/modules/public/components/RecruiterSignUpDrawer";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import type { RootState } from "@/store";
 import { PublicFooter } from "./components/PublicFooter";
@@ -96,10 +97,17 @@ export const PublicLayout = () => {
 
       <PublicFooter showContactLink={!isLoginPage} />
 
-      <CandidateSignUpDrawer
-        open={isSignUpDrawerOpen}
-        onClose={handleSignUpDrawerClose}
-      />
+      {isHiringLandingMode ? (
+        <RecruiterSignUpDrawer
+          open={isSignUpDrawerOpen}
+          onClose={handleSignUpDrawerClose}
+        />
+      ) : (
+        <CandidateSignUpDrawer
+          open={isSignUpDrawerOpen}
+          onClose={handleSignUpDrawerClose}
+        />
+      )}
     </Box>
   );
 };

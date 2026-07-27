@@ -145,12 +145,7 @@ const LandingPage = () => {
   };
 
   const handleHeroCtaClick = () => {
-    if (activeHeroMode === "findJob") {
-      openSignUpDrawer();
-      return;
-    }
-
-    // TODO: Implement action
+    openSignUpDrawer();
   };
 
   const handleHeroSecondaryCtaClick = () => {

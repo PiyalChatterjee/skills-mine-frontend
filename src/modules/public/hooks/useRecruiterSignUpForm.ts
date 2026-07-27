@@ -1,15 +1,15 @@
 import { useZodForm } from "@/hooks/useZodForm";
 import { initialSignUpFormValues, type SignUpFormValues } from "@/modules/public/components/SignUpDrawer.types";
-import { candidateSignUpSchema } from "@/app/validation.schema";
+import { recruiterSignUpSchema } from "@/app/validation.schema";
 import { authApi } from "@/services/api/authApi";
 
-export const useCandidateSignUpForm = () => {
+export const useRecruiterSignUpForm = () => {
   const {
     register,
     control,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useZodForm(candidateSignUpSchema, {
+  } = useZodForm(recruiterSignUpSchema, {
     defaultValues: initialSignUpFormValues,
   });
 
@@ -17,7 +17,7 @@ export const useCandidateSignUpForm = () => {
     let submitted = false;
 
     await handleSubmit(async (formValues: SignUpFormValues) => {
-      const response = await authApi.signup(formValues);
+      const response = await authApi.recruiterSignup(formValues);
       submitted = response.status === 201;
     })();
 
