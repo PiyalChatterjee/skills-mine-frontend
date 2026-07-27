@@ -83,8 +83,32 @@
   row-gap: 24px;
 }
 
+.fieldGroup {
+  display: grid;
+  row-gap: 8px;
+}
+
+.fieldLabel,
+.fieldLabel:global(.MuiTypography-root) {
+  color: #2a3132;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
+}
+
 .inputField :global(.MuiOutlinedInput-root) {
   border-radius: 8px;
+}
+
+.passwordToggleButton:global(.MuiIconButton-root) {
+  width: 28px;
+  height: 28px;
+  color: #2a3132;
+}
+
+.passwordToggleIcon {
+  display: block;
 }
 
 .submitButton,
@@ -103,7 +127,7 @@
 }
 
 .submitButton:global(.MuiButton-root):global(.MuiButton-contained):hover {
-  background-color: #023466;
+  background: #2B96D9;
 }
 
 

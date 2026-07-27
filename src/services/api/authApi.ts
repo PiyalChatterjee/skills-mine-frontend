@@ -6,10 +6,25 @@ export interface LoginRequest {
   password: string
 }
 
+export interface SignUpRequest {
+  firstName: string
+  lastName: string
+  email: string
+  phoneNumber: string
+  password: string
+  confirmPassword: string
+  passwordHint: string
+  termsAccepted: boolean
+}
+
 export interface LoginResponse {
   token: string
   user: AuthUser
   expiresIn: number
+}
+
+export interface SignUpResponse {
+  status: number
 }
 
 interface MockLoginUser {
@@ -104,6 +119,16 @@ export const authApi = {
       token: response.data.token,
       user: toAuthUser(response.data.user),
       expiresIn: response.data.expiresIn,
+    }
+  },
+  async signup(payload: SignUpRequest): Promise<SignUpResponse> {
+    const response = await apiClient.post<MockLoginApiResponse>(
+      import.meta.env.VITE_AUTH_SIGNUP_ENDPOINT,
+      payload,
+    )
+
+    return {
+      status: response.status,
     }
   },
   refresh: () =>

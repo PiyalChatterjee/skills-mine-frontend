@@ -3,13 +3,16 @@ import { Provider } from 'react-redux'
 import { ThemeProvider, CssBaseline } from '@mui/material'
 import type { PropsWithChildren } from 'react'
 import { BrowserRouter } from 'react-router-dom'
+import { GoogleOAuthProvider } from '@react-oauth/google'
 import { AuthProvider } from '@/app/auth/AuthContext'
 import { queryClient } from '@/app/queryClient'
 import { store } from '@/store'
 import { appTheme } from '@/theme/theme'
 
+const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID?.trim()
+
 export const AppProviders = ({ children }: PropsWithChildren) => {
-  return (
+  const appTree = (
     <Provider store={store}>
       <BrowserRouter>
         <AuthProvider>
@@ -22,5 +25,15 @@ export const AppProviders = ({ children }: PropsWithChildren) => {
         </AuthProvider>
       </BrowserRouter>
     </Provider>
+  )
+
+  if (!googleClientId) {
+    return appTree
+  }
+
+  return (
+    <GoogleOAuthProvider clientId={googleClientId}>
+      {appTree}
+    </GoogleOAuthProvider>
   )
 }

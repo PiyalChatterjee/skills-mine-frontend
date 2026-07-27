@@ -42,21 +42,28 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
 
   useEffect(() => {
     const tokens = tokenStorage.getTokens()
+    const user = tokenStorage.getUser()
+
     if (!tokens?.accessToken || isJwtExpired(tokens.accessToken)) {
-      tokenStorage.clearTokens()
+      tokenStorage.clearAuth()
       return
     }
 
-    // User hydration is intentionally deferred to a future profile endpoint.
-    setSession((current) => ({
-      ...current,
+    if (!user) {
+      tokenStorage.clearAuth()
+      return
+    }
+
+    setSession({
+      user,
       tokens,
       isAuthenticated: true,
-    }))
+    })
   }, [])
 
   const login = useCallback((payload: LoginPayload) => {
     tokenStorage.setTokens(payload.tokens)
+    tokenStorage.setUser(payload.user)
     setSession({
       user: payload.user,
       tokens: payload.tokens,
@@ -65,7 +72,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   }, [])
 
   const logout = useCallback(() => {
-    tokenStorage.clearTokens()
+    tokenStorage.clearAuth()
     setSession(defaultState)
   }, [])
 

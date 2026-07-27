@@ -1,81 +1,105 @@
-import { Button } from "@mui/material";
-import { NavLink, Outlet, useLocation } from "react-router-dom";
-import skillsMineLogo from "@/assets/skillsMine-logo.svg";
+import { Box } from "@mui/material";
+import { useState, type MouseEvent } from "react";
+import { useSelector } from "react-redux";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "@/app/auth/AuthContext";
+import { isJwtExpired } from "@/app/auth/jwt";
+import { PUBLIC_HEADER_NAV_PRESETS, buildHeaderNavItems } from "@/layouts/headerNav";
+import { CandidateSignUpDrawer } from "@/modules/public/components/CandidateSignUpDrawer";
 import { ROUTE_PATHS } from "@/routes/routePaths";
+import type { RootState } from "@/store";
+import { PublicFooter } from "./components/PublicFooter";
+import { PublicHeader } from "./components/PublicHeader";
 import styles from "./PublicLayout.module.css";
 
-const searchIconUrl = "https://www.figma.com/api/mcp/asset/b6b13bc7-abae-40ae-a5d3-5bcb49234739";
-const userIconUrl = "https://www.figma.com/api/mcp/asset/3832ad04-5b69-44b0-840f-44831f8f2d5e";
+export type PublicLayoutOutletContext = {
+  openSignUpDrawer: () => void;
+};
 
 export const PublicLayout = () => {
+  const [isSignUpDrawerOpen, setSignUpDrawerOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { isAuthenticated, tokens } = useAuth();
   const isLoginPage = location.pathname === ROUTE_PATHS.login;
+  const landingMode = useSelector((state: RootState) => state.ui.landingMode);
+  const isLandingPage = location.pathname === ROUTE_PATHS.landing;
+  const isHiringLandingMode = isLandingPage && landingMode === "startHiring";
+  const accessToken = tokens?.accessToken;
+  const hasValidAccessToken = accessToken ? !isJwtExpired(accessToken) : false;
+  const canAccessProtectedRoutes = isAuthenticated && hasValidAccessToken;
+
+  const handleHelpClick = () => {
+    // TODO: Implement action
+  };
+
+  const handleSignUpClick = () => {
+    setSignUpDrawerOpen(true);
+  };
+
+  const handleSignUpDrawerClose = () => {
+    setSignUpDrawerOpen(false);
+  };
+
+  const handleSearchClick = () => {
+    // TODO: Implement action
+  };
+
+  const handleProtectedNavClick = (
+    event: MouseEvent<HTMLAnchorElement>,
+    targetPath: string,
+  ) => {
+    if (canAccessProtectedRoutes) {
+      return;
+    }
+
+    event.preventDefault();
+    navigate(ROUTE_PATHS.login, { state: { from: targetPath } });
+  };
+
+  const navItems = isLoginPage
+    ? []
+    : isLandingPage
+      ? buildHeaderNavItems({
+          keys: PUBLIC_HEADER_NAV_PRESETS.landing,
+          pathname: location.pathname,
+        })
+      : isHiringLandingMode
+        ? []
+        : buildHeaderNavItems({
+            keys: PUBLIC_HEADER_NAV_PRESETS.discovery,
+            pathname: location.pathname,
+          });
 
   return (
-    <div className={styles.layoutRoot}>
-      <header className={styles.topBar}>
-        <div className={styles.topBarInner}>
-          <img
-            src={skillsMineLogo}
-            alt="SkillsMine"
-            className={styles.logoPrimary}
-          />
+    <Box className={styles.layoutRoot}>
+      <PublicHeader
+        canAccessProtectedRoutes={canAccessProtectedRoutes}
+        navItems={navItems}
+        onProtectedNavClick={handleProtectedNavClick}
+        onHelpClick={handleHelpClick}
+        onSignUpClick={handleSignUpClick}
+        onSearchClick={handleSearchClick}
+        showHelpButton={isLoginPage}
+        showProfileBadge={!isLoginPage && !isLandingPage && !isHiringLandingMode}
+        showSearchButton={!isLoginPage && !isLandingPage && !isHiringLandingMode}
+        showSignUp={!isLoginPage}
+      />
 
-          {isLoginPage ? (
-            <Button variant="text" className={styles.helpButton}>
-              Need help?
-            </Button>
-          ) : (
-            <div className={styles.navGroup}>
-              <NavLink to={ROUTE_PATHS.jobs} className={styles.navItemMuted}>
-                Explore Jobs
-              </NavLink>
-              <NavLink to={ROUTE_PATHS.dashboard} className={styles.navItemMuted}>
-                Dashboard
-              </NavLink>
-              <NavLink to={ROUTE_PATHS.landing} className={styles.navItemActive}>
-                Skills Build
-              </NavLink>
-              <NavLink to={ROUTE_PATHS.login} className={styles.navItemStrong}>
-                Sign in
-              </NavLink>
-              <Button variant="contained" className={styles.signUpButton}>
-                Sign up
-              </Button>
-              <span className={styles.profileBadge} aria-hidden="true">
-                <img src={userIconUrl} alt="" className={styles.profileIcon} />
-              </span>
-              <button type="button" className={styles.searchButton} aria-label="Search site">
-                <img src={searchIconUrl} alt="" className={styles.searchButtonIcon} />
-              </button>
-            </div>
-          )}
-        </div>
-      </header>
+      <Box component="main" className={styles.contentArea}>
+        <Outlet
+          context={{
+            openSignUpDrawer: handleSignUpClick,
+          }}
+        />
+      </Box>
 
-      <main className={styles.contentArea}>
-        <Outlet />
-      </main>
+      <PublicFooter showContactLink={!isLoginPage} />
 
-      <footer className={styles.footerBar}>
-        <div className={styles.footerInner}>
-          <div className={styles.footerBrandBlock}>
-            <img
-              src={skillsMineLogo}
-              alt="SkillsMine"
-              className={styles.logoFooter}
-            />
-            <p className={styles.copyrightText}>© 2026</p>
-          </div>
-          <div className={styles.footerLinks}>
-            <p className={styles.footerLinkText}>Privacy</p>
-            <p className={styles.footerLinkText}>Terms and Conditions</p>
-            {!isLoginPage ? (
-              <p className={styles.footerLinkText}>Contact</p>
-            ) : null}
-          </div>
-        </div>
-      </footer>
-    </div>
+      <CandidateSignUpDrawer
+        open={isSignUpDrawerOpen}
+        onClose={handleSignUpDrawerClose}
+      />
+    </Box>
   );
 };

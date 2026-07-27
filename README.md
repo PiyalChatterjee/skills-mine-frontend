@@ -24,6 +24,12 @@ npm install
 npm run dev
 ```
 
+Google OAuth setup for landing sign-up drawer:
+
+1. Add `VITE_GOOGLE_CLIENT_ID` to your local `.env` file.
+2. Use a Web client ID from Google Cloud Console.
+3. Backend token exchange is still pending and marked as TODO in the drawer component.
+
 Useful scripts:
 
 ```bash
