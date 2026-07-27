@@ -37,6 +37,7 @@ Also available:
 - `VITE_API_BASE_URL`
 - `VITE_AUTH_LOGIN_ENDPOINT`
 - `VITE_AUTH_SIGNUP_ENDPOINT`
+- `VITE_RECRUITER_REGISTER_ENDPOINT`
 - `VITE_AUTH_ME_ENDPOINT`
 - `VITE_AUTH_LOGOUT_ENDPOINT`
 - `VITE_REQUEST_TIMEOUT_MS`
@@ -54,6 +55,12 @@ npm run test:coverage
 ```
 
 ## What Changed Recently
+
+### Recruiter Sign-Up Flow
+
+- Added `recruiterSignup` method to `authApi` that calls `POST /recruiters/register` (`VITE_RECRUITER_REGISTER_ENDPOINT`), separate from the candidate sign-up endpoint.
+- `useRecruiterSignUpForm` now submits to the recruiter-specific endpoint instead of the shared candidate endpoint.
+- The "Find Candidates" hero CTA on the landing page now opens `RecruiterSignUpDrawer` when the page is in `startHiring` mode. `PublicLayout` already conditionally renders the correct drawer based on landing mode, so no layout changes were required.
 
 ### Authentication and OAuth
 
