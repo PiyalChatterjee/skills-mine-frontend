@@ -12,20 +12,20 @@ import { SignUpForm } from "@/modules/public/components/SignUpForm";
 import { SignUpGoogleButton } from "@/modules/public/components/SignUpGoogleButton";
 import { SignUpSuccess } from "@/modules/public/components/SignUpSuccess";
 import { useCandidateGoogleAuthState } from "@/modules/public/hooks/useCandidateGoogleAuthState";
-import { useCandidateSignUpForm } from "@/modules/public/hooks/useCandidateSignUpForm";
+import { useRecruiterSignUpForm } from "@/modules/public/hooks/useRecruiterSignUpForm";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import closeIconSrc from "@/assets/icons/close-icon.svg";
 import styles from "./CandidateSignUpDrawer.module.css";
 
-type CandidateSignUpDrawerProps = {
+type RecruiterSignUpDrawerProps = {
   open: boolean;
   onClose: () => void;
 };
 
-export const CandidateSignUpDrawer = ({
+export const RecruiterSignUpDrawer = ({
   open,
   onClose,
-}: CandidateSignUpDrawerProps) => {
+}: RecruiterSignUpDrawerProps) => {
   const [signUpSuccess, setSignUpSuccess] = useState(false);
   const [snackbarErrorOpen, setSnackbarErrorOpen] = useState(false);
   const {
@@ -34,7 +34,7 @@ export const CandidateSignUpDrawer = ({
     errors,
     isSubmitting,
     submitForm,
-  } = useCandidateSignUpForm();
+  } = useRecruiterSignUpForm();
   const {
     hasGoogleClientId,
     pendingGoogleAuth,
@@ -84,7 +84,9 @@ export const CandidateSignUpDrawer = ({
           >
             <img src={closeIconSrc} alt="" aria-hidden="true" className={styles.closeIcon} />
           </IconButton>
-          <SignUpSuccess navigateTo={ROUTE_PATHS.candidateDashboard} />
+          <SignUpSuccess
+            navigateTo={ROUTE_PATHS.login}
+          />
         </>
       ) : (
         <Box className={styles.drawerContent}>
@@ -96,9 +98,14 @@ export const CandidateSignUpDrawer = ({
             <img src={closeIconSrc} alt="" aria-hidden="true" className={styles.closeIcon} />
           </IconButton>
 
-          <Typography component="h2" className={styles.title}>
-            Sign up to search roles.
-          </Typography>
+          <Box className={styles.titleBlock}>
+            <Typography component="h2" className={styles.title}>
+              Sign up to start recruiting.
+            </Typography>
+            <Typography className={styles.subtitle}>
+              Your recruitment manager will share your login credentials.
+            </Typography>
+          </Box>
 
           <Divider className={styles.sectionDivider} />
 

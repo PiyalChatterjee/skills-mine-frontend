@@ -131,6 +131,16 @@ export const authApi = {
       status: response.status,
     }
   },
+  async recruiterSignup(payload: SignUpRequest): Promise<SignUpResponse> {
+    const response = await apiClient.post<MockLoginApiResponse>(
+      import.meta.env.VITE_RECRUITER_REGISTER_ENDPOINT,
+      payload,
+    )
+
+    return {
+      status: response.status,
+    }
+  },
   refresh: () =>
     apiClient.post<JwtTokens>(import.meta.env.VITE_AUTH_ME_ENDPOINT),
   logout: () =>
