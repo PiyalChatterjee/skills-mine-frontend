@@ -1,8 +1,8 @@
 # SkillsMine Frontend
 
-Enterprise React foundation for SkillsMine, built for scale-first development rather than feature-first prototyping.
+Enterprise React foundation for SkillsMine, built for scale-first development with production-minded auth and reusable UI primitives.
 
-This repository currently provides the application shell, route composition, auth boundaries, state management, API contracts, workflow engine, theming, and testing setup. Business screens and feature implementations are intentionally placeholder-only at this stage.
+This repository provides the application shell, route composition, auth boundaries, state management, API contracts, workflow engine, theming, and test setup. It now also includes implemented public and candidate-facing authentication UX (email sign-up flow scaffolding and Google OAuth sign-up entry), plus improved shared navigation and layout components.
 
 ## Stack
 
@@ -14,6 +14,7 @@ This repository currently provides the application shell, route composition, aut
 - React Router v7
 - Axios
 - Material UI
+- Google OAuth (`@react-oauth/google`)
 - React Hook Form + Zod
 - Vitest + React Testing Library
 
@@ -24,11 +25,25 @@ npm install
 npm run dev
 ```
 
-Google OAuth setup for landing sign-up drawer:
+Create a local `.env` from `.env.example` and set the required values.
+
+Required:
 
 1. Add `VITE_GOOGLE_CLIENT_ID` to your local `.env` file.
 2. Use a Web client ID from Google Cloud Console.
-3. Backend token exchange is still pending and marked as TODO in the drawer component.
+
+Also available:
+
+- `VITE_API_BASE_URL`
+- `VITE_AUTH_LOGIN_ENDPOINT`
+- `VITE_AUTH_SIGNUP_ENDPOINT`
+- `VITE_RECRUITER_REGISTER_ENDPOINT`
+- `VITE_AUTH_ME_ENDPOINT`
+- `VITE_AUTH_LOGOUT_ENDPOINT`
+- `VITE_REQUEST_TIMEOUT_MS`
+- `VITE_MOCK_ERROR_RATE`
+- `VITE_MOCK_DELAY_MIN_MS`
+- `VITE_MOCK_DELAY_MAX_MS`
 
 Useful scripts:
 
@@ -38,6 +53,54 @@ npm run test
 npm run test:watch
 npm run test:coverage
 ```
+
+## What Changed Recently
+
+### Recruiter Sign-Up Flow
+
+- Added `recruiterSignup` method to `authApi` that calls `POST /recruiters/register` (`VITE_RECRUITER_REGISTER_ENDPOINT`), separate from the candidate sign-up endpoint.
+- `useRecruiterSignUpForm` now submits to the recruiter-specific endpoint instead of the shared candidate endpoint.
+- The "Find Candidates" hero CTA on the landing page now opens `RecruiterSignUpDrawer` when the page is in `startHiring` mode. `PublicLayout` already conditionally renders the correct drawer based on landing mode, so no layout changes were required.
+
+### Authentication and OAuth
+
+- Added Google OAuth support with conditional provider registration in app providers. If `VITE_GOOGLE_CLIENT_ID` is missing, the app still runs and the Google sign-up action gracefully falls back.
+- Refactored auth persistence so both JWT tokens and authenticated user data are stored and cleared together via session storage.
+- `AuthProvider` now hydrates state from storage on boot, clears invalid sessions, and persists user data on login.
+- JWT expiry checks are stricter: tokens without an `exp` claim are treated as expired.
+
+### Public/Candidate Layout and Navigation
+
+- Candidate layout now uses shared public header/footer composition.
+- Header navigation is generated from role-aware presets and supports protected links that redirect unauthenticated users to login.
+- Added profile menu behavior (profile settings + sign out), notification affordance, and improved logo routing for authenticated users.
+
+### Form UX and Validation
+
+- Added candidate sign-up schema with field-level validation for:
+  - name fields
+  - email
+  - South African 9-digit phone format
+  - minimum password length
+  - confirm-password match
+  - required password hint
+  - required terms acceptance
+- Added reusable password visibility adornment for password inputs.
+
+### Reusable Hooks and Utilities
+
+- Added `useDebouncedValue` for delayed value updates.
+- Added `useSearchQueryState` to unify search input state, normalization, debounce handling, and min-character query gating.
+
+### Branding and Styling
+
+- Updated favicon and typography loading.
+- Refined public layout styling for navigation, action buttons, profile menu, and responsive behavior.
+
+### Dependency and Script Cleanup
+
+- Added `@react-oauth/google`.
+- Removed unused `httpyac` tooling/scripts.
 
 ## Architecture Overview
 
@@ -140,9 +203,10 @@ This means feature pages do not import their own layouts directly. Route composi
 Current auth foundation includes:
 
 - `AuthContext` and `useAuth()`
-- JWT token helpers
+- JWT token helpers with expiry-first validation
 - Axios request interceptor
 - Route-level auth and authorization guards
+- Session storage-backed token + user persistence
 
 Supported roles:
 
@@ -162,7 +226,7 @@ Supported permissions:
 - `CRM_EDIT`
 - `REPORT_VIEW`
 
-Note: the current token storage implementation is a scaffold. For production, prefer refresh tokens in `HttpOnly` cookies and short-lived access tokens in memory.
+Note: current persistence uses browser session storage for both tokens and user profile. For hardened production environments, prefer refresh tokens in `HttpOnly` cookies and short-lived access tokens in memory.
 
 ### 4. State management
 
@@ -265,6 +329,8 @@ routes/
 | `/exco` | Role: `exco` or `admin` | `ExcoLayout` | `ExcoPage` |
 | `/dashboard` | Role: `admin` | `AdminLayout` | `DashboardEntryPage` |
 
+Candidate and public header behavior is role-aware and route-aware, and protected navigation entries trigger login redirects when no valid auth session exists.
+
 ## Testing
 
 Vitest is configured through `vite.config.ts` and uses:
@@ -275,24 +341,11 @@ Vitest is configured through `vite.config.ts` and uses:
 
 The first sample test lives under the placeholder component test suite and proves the base setup is working.
 
-## Learning Sandbox
 
-This repository includes a local-only learning area:
+## Known Gaps / Next Steps
 
-- `.learning-workspace/`
-
-It is ignored by Git and intended for:
-
-- personal notes
-- scratch experiments
-- architecture practice before changing `src/`
-
-## Next Implementation Steps
-
-When feature development starts, the next expected additions are:
-
-1. Real login and session refresh flow
-2. Module-level route registries
-3. Feature service implementations behind the API contracts
-4. Shared `renderWithProviders` test helper
-5. CV builder schemas, preview contracts, and PDF export flow
+1. Complete backend token exchange and callback handling for Google OAuth sign-up/login flows.
+2. Add refresh-token lifecycle and silent session renewal.
+3. Expand module-level route registries and feature service implementations.
+4. Add a shared `renderWithProviders` test helper and increase integration test coverage for auth + navigation flows.
+5. Continue CV builder schemas, preview contracts, and PDF export flow.

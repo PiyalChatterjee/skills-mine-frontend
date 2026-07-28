@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { TokenResponse } from "@react-oauth/google";
-import type { GoogleAuthStatus } from "@/modules/public/components/CandidateSignUpDrawer.types";
+import type { GoogleAuthStatus } from "@/modules/public/components/SignUpDrawer.types";
 
 export const useCandidateGoogleAuthState = () => {
   const [pendingGoogleAuth, setPendingGoogleAuth] = useState(false);

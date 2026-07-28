@@ -130,6 +130,28 @@
   background: #2B96D9;
 }
 
+.googleButton,
+.googleButton:global(.MuiButton-root) {
+  min-height: 48px;
+  border-radius: 999px;
+  border-color: #d9e2ec;
+  color: #1f2933;
+  text-transform: none;
+  font-weight: 500;
+  font-size: 16px;
+  letter-spacing: 0.1px;
+}
+
+.googleButton:global(.MuiButton-root):hover {
+  border-color: #bcccdc;
+  background: #f8fafc;
+}
+
+.googleIcon {
+  width: 20px;
+  height: 20px;
+}
+
 
 @media (min-width: 900px) {
   .heroSection {

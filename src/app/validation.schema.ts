@@ -31,3 +31,31 @@ export const candidateSignUpSchema = z
 	})
 
 export type CandidateSignUpSchemaValues = z.infer<typeof candidateSignUpSchema>
+
+export const recruiterSignUpSchema = z
+	.object({
+		firstName: z.string().trim().min(1, 'First name is required'),
+		lastName: z.string().trim().min(1, 'Last name is required'),
+		email: emailSchema,
+		phoneNumber: z
+			.string()
+			.trim()
+			.min(1, 'Phone number is required')
+			.regex(/^\d{9}$/, 'Enter a valid South African phone number (9 digits)'),
+		password: z
+			.string()
+			.min(8, 'Password must be at least 8 characters long'),
+		confirmPassword: z.string().min(1, 'Please confirm your password'),
+		passwordHint: z.string().trim().min(1, 'Password hint is required'),
+		termsAccepted: z
+			.boolean()
+			.refine((value) => value === true, {
+				message: 'You must accept the terms and privacy policy',
+			}),
+	})
+	.refine((values) => values.password === values.confirmPassword, {
+		path: ['confirmPassword'],
+		message: 'Passwords do not match',
+	})
+
+export type RecruiterSignUpSchemaValues = z.infer<typeof recruiterSignUpSchema>
