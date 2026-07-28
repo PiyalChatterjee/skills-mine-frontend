@@ -6,6 +6,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import { useGoogleLogin, type TokenResponse } from "@react-oauth/google";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/app/auth/AuthContext";
 import { PasswordVisibilityAdornment } from "@/components/PasswordVisibilityAdornment";
@@ -13,6 +14,7 @@ import { useZodForm } from "@/hooks/useZodForm";
 import { loginSchema, type LoginFormValues } from "@/modules/auth/types";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import { authApi, mapLoginResponseToSession } from "@/services/api/authApi";
+import googleLogoUrl from "@/assets/public-layout/google-logo.png";
 import loginFaceImage from "@/assets/login-face-img.jpg";
 import loginVectorImage from "@/assets/login-vector.svg";
 import styles from "./LoginPage.module.css";
@@ -21,7 +23,10 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [googleAuthError, setGoogleAuthError] = useState<string | null>(null);
+  const [pendingGoogleAuth, setPendingGoogleAuth] = useState(false);
   const [isPasswordVisible, setPasswordVisible] = useState(false);
+  const hasGoogleClientId = Boolean(import.meta.env.VITE_GOOGLE_CLIENT_ID?.trim());
   const {
     register,
     handleSubmit,
@@ -35,6 +40,37 @@ const LoginPage = () => {
   });
   const passwordValue = watch("password");
   const hasPasswordValue = Boolean(passwordValue?.length);
+
+  const handleGoogleAuthSuccess = (tokenResponse: TokenResponse) => {
+    setPendingGoogleAuth(false);
+    setGoogleAuthError(null);
+    // TODO: Exchange tokenResponse.access_token with backend auth endpoint for Google login.
+    console.info("Google token response", tokenResponse);
+  };
+
+  const handleGoogleAuthError = () => {
+    setPendingGoogleAuth(false);
+    setGoogleAuthError("Google sign-in failed. Please try again.");
+  };
+
+  const startGoogleLogin = useGoogleLogin({
+    flow: "implicit",
+    onSuccess: handleGoogleAuthSuccess,
+    onError: handleGoogleAuthError,
+  });
+
+  const handleGoogleLogin = () => {
+    setSubmitError(null);
+
+    if (!hasGoogleClientId) {
+      setGoogleAuthError("Google Client ID is missing. Please set VITE_GOOGLE_CLIENT_ID.");
+      return;
+    }
+
+    setGoogleAuthError(null);
+    setPendingGoogleAuth(true);
+    startGoogleLogin();
+  };
 
   const onSubmit = async (values: LoginFormValues) => {
     try {
@@ -78,6 +114,7 @@ const LoginPage = () => {
 
         <Box component="form" className={styles.formFields} onSubmit={handleSubmit(onSubmit)}>
           {submitError ? <Alert severity="error">{submitError}</Alert> : null}
+          {googleAuthError ? <Alert severity="error">{googleAuthError}</Alert> : null}
 
           <Box className={styles.fieldGroup}>
             <Typography className={styles.fieldLabel}>Email</Typography>
@@ -124,10 +161,29 @@ const LoginPage = () => {
             type="submit"
             variant="contained"
             size="large"
-            disabled={isSubmitting}
+            disabled={isSubmitting || pendingGoogleAuth}
             className={styles.submitButton}
           >
             {isSubmitting ? "Signing in..." : "Log In"}
+          </Button>
+
+          <Button
+            type="button"
+            variant="outlined"
+            className={styles.googleButton}
+            onClick={handleGoogleLogin}
+            disabled={isSubmitting || pendingGoogleAuth}
+            startIcon={
+              <Box
+                component="img"
+                src={googleLogoUrl}
+                alt=""
+                aria-hidden="true"
+                className={styles.googleIcon}
+              />
+            }
+          >
+            {pendingGoogleAuth ? "Opening Google..." : "Sign in with Google"}
           </Button>
         </Box>
       </Box>
