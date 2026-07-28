@@ -537,7 +537,6 @@
     padding: 24px;
     display: flex;
     flex-direction: column;
-    gap: 32px;
     box-shadow: 0 2px 8px rgba(42, 49, 50, 0.08);
 }
 
@@ -550,7 +549,7 @@
 }
 
 .jobCardShort {
-    min-height: 368px;
+    min-height: 326px;
 }
 
 .cardTop {

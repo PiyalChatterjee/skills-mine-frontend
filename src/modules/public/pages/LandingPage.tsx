@@ -11,7 +11,6 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
 import aiIconUrl from "@/assets/landing-page/ai-icon.svg";
-import bookmarkIconUrl from "@/assets/landing-page/bookmark-icon.svg";
 import chartIconUrl from "@/assets/landing-page/chart-icon.svg";
 import patternOneUrl from "@/assets/landing-page/pattern-one.svg";
 import patternThreeUrl from "@/assets/landing-page/pattern-three.svg";
@@ -24,7 +23,7 @@ import {
   heroContent,
   type HeroMode,
 } from "@/modules/public/constants/landingPage.constants";
-import { useOpportunitiesSearch } from "@/modules/public/hooks/useOpportunitiesSearch";
+import { useJobsSearch } from "@/modules/public/hooks/useJobsSearch";
 import { useSearchQueryState } from "@/hooks/useSearchQueryState";
 import type { PublicLayoutOutletContext } from "@/layouts/PublicLayout";
 import { setLandingMode } from "@/store/slices/uiSlice";
@@ -72,6 +71,11 @@ const metrics: Metric[] = [
   },
 ];
 
+const toCityFromLocation = (location: string) => {
+  const [city] = location.split(",");
+  return city?.trim() || "Unknown";
+};
+
 const LandingPage = () => {
   const { openSignUpDrawer } = useOutletContext<PublicLayoutOutletContext>();
   const dispatch = useDispatch();
@@ -94,11 +98,11 @@ const LandingPage = () => {
   const startHiringButtonRef = useRef<HTMLButtonElement | null>(null);
 
   const {
-    allOpportunities,
-    visibleOpportunities,
-    isOpportunitiesError,
-    opportunitiesError,
-  } = useOpportunitiesSearch({
+    allJobs,
+    visibleJobs,
+    isJobsError,
+    jobsError,
+  } = useJobsSearch({
     normalizedSearchTerm,
     shouldFilter: shouldFilterOpportunities,
     shouldUseDebouncedQuery: shouldUseApiSearch,
@@ -149,10 +153,6 @@ const LandingPage = () => {
   };
 
   const handleHeroSecondaryCtaClick = () => {
-    // TODO: Implement action
-  };
-
-  const handleBookmarkClick = () => {
     // TODO: Implement action
   };
 
@@ -412,22 +412,22 @@ const LandingPage = () => {
             </Box>
           </Box>
 
-          {isOpportunitiesError ? (
+          {isJobsError ? (
             <Typography
               component="p"
               className={styles.sectionSubtitle}
               sx={{ mt: 2, mb: 0 }}
             >
-              {opportunitiesError?.message || "Failed to load opportunities."}
+              {jobsError?.message || "Failed to load jobs."}
             </Typography>
-          ) : allOpportunities ? (
-            visibleOpportunities.length > 0 ? (
+          ) : allJobs ? (
+            visibleJobs.length > 0 ? (
                 <Box className={styles.cardGrid}>
-                  {visibleOpportunities.map((job) => (
+                  {visibleJobs.map((job) => (
                     <Card
                       component="article"
-                      key={job.id}
-                      className={`${styles.jobCard} ${job.tallCard ? styles.jobCardTall : styles.jobCardShort}`}
+                      key={job.jobId}
+                      className={`${styles.jobCard} ${styles.jobCardShort}`}
                       elevation={0}
                     >
                       <Box className={styles.cardTop}>
@@ -439,11 +439,10 @@ const LandingPage = () => {
                           >
                             {job.title}
                           </Typography>
-                          <IconButton
+                          {/* <IconButton
                             type="button"
                             className={styles.bookmarkButton}
                             aria-label={`Save ${job.title}`}
-                            onClick={handleBookmarkClick}
                             disableRipple
                           >
                             <img
@@ -452,7 +451,7 @@ const LandingPage = () => {
                               className={styles.bookmarkIcon}
                               aria-hidden="true"
                             />
-                          </IconButton>
+                          </IconButton> */}
                         </Box>
                         <Box className={styles.cardRule} />
                       </Box>
@@ -461,9 +460,9 @@ const LandingPage = () => {
                         <Box className={styles.cardContentColumn}>
                           <Box className={styles.tagAndCopy}>
                             <Box className={styles.tagRow}>
-                              {job.tags.map((tag) => (
+                              {[toCityFromLocation(job.location), job.industry, job.employmentType].map((tag) => (
                                 <Chip
-                                  key={tag}
+                                  key={`${job.jobId}-${tag}`}
                                   label={tag}
                                   variant="outlined"
                                   className={styles.tagChip}
@@ -489,7 +488,7 @@ const LandingPage = () => {
                           </Button>
                         </Box>
 
-                        <Box className={styles.companyThumb} aria-hidden="true">
+                        {/* <Box className={styles.companyThumb} aria-hidden="true">
                           <Box
                             className={`${styles.companyOrbImage} ${styles.companyOrbImageBlurred}`}
                             style={{
@@ -504,7 +503,7 @@ const LandingPage = () => {
                           >
                             {job.employerName}
                           </Typography>
-                        </Box>
+                        </Box> */}
                       </Box>
                     </Card>
                   ))}
@@ -516,8 +515,8 @@ const LandingPage = () => {
                 sx={{ mt: 2, mb: 0 }}
               >
                 {shouldFilterOpportunities
-                  ? "No opportunities found for your search."
-                  : "No opportunities available right now."}
+                  ? "No jobs found for your search."
+                  : "No jobs available right now."}
               </Typography>
             )
           ) : null}
@@ -528,3 +527,4 @@ const LandingPage = () => {
 };
 
 export default LandingPage;
+
