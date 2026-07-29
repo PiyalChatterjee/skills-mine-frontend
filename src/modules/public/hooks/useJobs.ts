@@ -1,10 +1,10 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { jobsApi } from "@/services/api/jobsApi";
 import type { ApiError, Job, JobsResponse } from "@/types";
+import { DEFAULT_JOBS_PAGE_SIZE } from "../constants/landingPage.constants";
 
 export type { Job, JobsResponse };
 
-export const DEFAULT_JOBS_PAGE_SIZE = 6;
 
 export const useJobs = (
   searchQuery?: string,

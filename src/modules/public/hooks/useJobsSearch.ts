@@ -1,9 +1,6 @@
 import { useMemo } from "react";
-import {
-  DEFAULT_JOBS_PAGE_SIZE,
-  useJobs,
-  type Job,
-} from "@/modules/public/hooks/useJobs";
+import { useJobs, type Job } from "@/modules/public/hooks/useJobs";
+import { DEFAULT_JOBS_PAGE_SIZE } from "../constants/landingPage.constants";
 
 const filterByTitle = (items: Job[], normalizedSearchTerm: string) => {
   const term = normalizedSearchTerm.toLowerCase();

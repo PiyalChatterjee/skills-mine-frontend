@@ -24,3 +24,5 @@ export const heroContent = {
 } as const;
 
 export type HeroMode = keyof typeof heroContent;
+
+export const DEFAULT_JOBS_PAGE_SIZE = 6;
