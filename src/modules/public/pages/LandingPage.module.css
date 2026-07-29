@@ -40,7 +40,7 @@
     height: 644.148px;
     left: 886.71px;
     top: 367.4px;
-    transform: rotate(-149deg);
+    transform: rotate(-150deg);
     transform-origin: center;
 }
 
@@ -516,17 +516,34 @@
     margin-right: 7px;
 }
 
-.searchIconImage {
-    width: 20px;
-    height: 20px;
-    object-fit: contain;
-}
-
 .cardGrid {
     margin-top: 40px;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 24px;
+}
+
+.jobsLoadTriggerWrap {
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.jobsLoadTrigger {
+    width: 100%;
+    height: 1px;
+}
+
+.jobsLoadText,
+.jobsLoadText:global(.MuiTypography-root) {
+    color: #03478c;
+    font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    letter-spacing: 0.1px;
 }
 
 .jobCard {
@@ -537,7 +554,6 @@
     padding: 24px;
     display: flex;
     flex-direction: column;
-    gap: 32px;
     box-shadow: 0 2px 8px rgba(42, 49, 50, 0.08);
 }
 
@@ -550,7 +566,7 @@
 }
 
 .jobCardShort {
-    min-height: 368px;
+    min-height: 326px;
 }
 
 .cardTop {
@@ -915,6 +931,7 @@
     .cardBody {
         flex-direction: column;
         align-items: flex-start;
+        padding-top: 24px;
     }
 }
 

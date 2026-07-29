@@ -38,4 +38,17 @@ export const appTheme = createTheme({
   shape: {
     borderRadius: spacing.sm,
   },
+  components: {
+    MuiInputBase: {
+      styleOverrides: {
+        input: {
+          color: '#2A3132',
+          '&.Mui-disabled': {
+            color: '#B0B4B8',
+            WebkitTextFillColor: '#B0B4B8',
+          },
+        },
+      },
+    },
+  },
 })

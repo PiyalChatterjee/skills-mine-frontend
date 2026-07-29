@@ -280,13 +280,21 @@
 }
 
 .applicationEntry {
-  padding: 28px 0 24px;
+  padding: 16px 0 0;
+}
+
+.applicationEntry:first-child {
+  padding-top: 24px;
+}
+
+.applicationEntry:last-child {
+  padding-bottom: 24px;
 }
 
 .applicationDivider {
   height: 1px;
   background: #e2e8f0;
-  margin-bottom: 28px;
+  margin-bottom: 16px;
 }
 
 .applicationHeader {

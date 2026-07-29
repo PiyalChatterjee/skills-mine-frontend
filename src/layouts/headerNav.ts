@@ -12,6 +12,13 @@ export type HeaderNavKey =
   | 'candidateCvBuilder'
   | 'candidateSkillsBuild'
   | 'candidateBlog'
+  | 'recruiterDashboard'
+  | 'recruiterLatestOpenings'
+  | 'recruiterJobApplications'
+  | 'recruiterSavedJobPosts'
+  | 'recruiterCvBuilder'
+  | 'recruiterSkillsBuild'
+  | 'recruiterBlog'
 
 export type HeaderNavActionId =
   | 'jobApplications'
@@ -19,6 +26,7 @@ export type HeaderNavActionId =
   | 'cvBuilder'
   | 'skillsBuild'
   | 'blog'
+  | 'latestOpenings'
 
 type HeaderNavDefinition = {
   label: string
@@ -82,6 +90,35 @@ const HEADER_NAV_DEFINITIONS: Record<HeaderNavKey, HeaderNavDefinition> = {
     label: 'Blog',
     actionId: 'blog',
   },
+  recruiterDashboard: {
+    label: 'Dashboard',
+    to: ROUTE_PATHS.recruiter,
+    requiresAuth: true,
+  },
+  recruiterLatestOpenings: {
+    label: 'Latest Openings',
+    actionId: 'latestOpenings',
+  },
+  recruiterJobApplications: {
+    label: 'Job Applications',
+    actionId: 'jobApplications',
+  },
+  recruiterSavedJobPosts: {
+    label: 'Saved Job Posts',
+    actionId: 'savedJobPosts',
+  },
+  recruiterCvBuilder: {
+    label: 'CV Builder',
+    actionId: 'cvBuilder',
+  },
+  recruiterSkillsBuild: {
+    label: 'Skills Build',
+    actionId: 'skillsBuild',
+  },
+  recruiterBlog: {
+    label: 'Blog',
+    actionId: 'blog',
+  },
 }
 
 export const PUBLIC_HEADER_NAV_PRESETS = {
@@ -97,6 +134,15 @@ const ROLE_HEADER_NAV_PRESETS: Partial<Record<Role, readonly HeaderNavKey[]>> = 
     'candidateCvBuilder',
     'candidateSkillsBuild',
     'candidateBlog',
+  ],
+  recruiter: [
+    'recruiterDashboard',
+    'recruiterLatestOpenings',
+    'recruiterJobApplications',
+    'recruiterSavedJobPosts',
+    'recruiterCvBuilder',
+    'recruiterSkillsBuild',
+    'recruiterBlog',
   ],
 }
 

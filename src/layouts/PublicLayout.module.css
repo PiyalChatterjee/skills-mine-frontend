@@ -420,7 +420,7 @@
   .navGroup {
     width: 100%;
     flex-wrap: wrap;
-    justify-content: flex-start;
+    justify-content: flex-end;
     gap: 16px;
   }
 
