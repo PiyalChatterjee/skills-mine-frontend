@@ -1,5 +1,9 @@
 import { useMemo } from "react";
-import { useJobs, type Job } from "@/modules/public/hooks/useJobs";
+import {
+  DEFAULT_JOBS_PAGE_SIZE,
+  useJobs,
+  type Job,
+} from "@/modules/public/hooks/useJobs";
 
 const filterByTitle = (items: Job[], normalizedSearchTerm: string) => {
   const term = normalizedSearchTerm.toLowerCase();
@@ -23,13 +27,27 @@ export const useJobsSearch = ({
     ? debouncedSearchTerm
     : undefined;
 
-  const {
-    data: jobsResponse,
-    isError: isJobsError,
-    error: jobsError,
-  } = useJobs(activeSearchQuery, true);
+  const jobsQuery = useJobs(activeSearchQuery, true, DEFAULT_JOBS_PAGE_SIZE);
 
-  const allJobs = jobsResponse?.jobs ?? [];
+  const pages = jobsQuery.data?.pages ?? [];
+
+  const allJobs = useMemo(() => {
+    const seenJobIds = new Set<string>();
+    const mergedJobs: Job[] = [];
+
+    pages.forEach((page) => {
+      page.jobs.forEach((job) => {
+        if (seenJobIds.has(job.jobId)) {
+          return;
+        }
+
+        seenJobIds.add(job.jobId);
+        mergedJobs.push(job);
+      });
+    });
+
+    return mergedJobs;
+  }, [pages]);
 
   const visibleJobs = useMemo(() => {
     if (!shouldFilter) {
@@ -40,10 +58,14 @@ export const useJobsSearch = ({
   }, [allJobs, normalizedSearchTerm, shouldFilter]);
 
   return {
-    jobsResponse,
+    jobsResponse: pages.at(-1),
     allJobs,
     visibleJobs,
-    isJobsError,
-    jobsError,
+    isJobsError: jobsQuery.isError,
+    jobsError: jobsQuery.error,
+    hasNextPage: Boolean(jobsQuery.hasNextPage),
+    isFetchingNextPage: jobsQuery.isFetchingNextPage,
+    fetchNextPage: jobsQuery.fetchNextPage,
+    isJobsLoading: jobsQuery.isLoading,
   };
 };

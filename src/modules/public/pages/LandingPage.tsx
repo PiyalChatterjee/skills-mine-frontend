@@ -15,6 +15,7 @@ import chartIconUrl from "@/assets/landing-page/chart-icon.svg";
 import patternOneUrl from "@/assets/landing-page/pattern-one.svg";
 import patternThreeUrl from "@/assets/landing-page/pattern-three.svg";
 import patternTwoUrl from "@/assets/landing-page/pattern-two.svg";
+import searchClearIconUrl from "@/assets/landing-page/search-clear-icon.svg";
 import searchIconUrl from "@/assets/landing-page/search-icon.svg";
 import shieldIconUrl from "@/assets/landing-page/shield-icon.svg";
 import starIconUrl from "@/assets/landing-page/star-icon.svg";
@@ -79,9 +80,7 @@ const toCityFromLocation = (location: string) => {
 const LandingPage = () => {
   const { openSignUpDrawer } = useOutletContext<PublicLayoutOutletContext>();
   const dispatch = useDispatch();
-  const [activeHeroMode, setActiveHeroMode] = useState<HeroMode>("findJob");
-  const [heroSwitchActiveWidth, setHeroSwitchActiveWidth] = useState("111px");
-  const [heroSwitchActiveX, setHeroSwitchActiveX] = useState("4px");
+  const [activeHeroMode] = useState<HeroMode>("findJob");
   const {
     inputValue: searchInputValue,
     normalizedValue: normalizedSearchTerm,
@@ -94,38 +93,22 @@ const LandingPage = () => {
     minCharacters: 3,
     debounceMs: 250,
   });
-  const findJobButtonRef = useRef<HTMLButtonElement | null>(null);
-  const startHiringButtonRef = useRef<HTMLButtonElement | null>(null);
+  const jobsLoadTriggerRef = useRef<HTMLDivElement | null>(null);
 
-  const { allJobs, visibleJobs, isJobsError, jobsError } = useJobsSearch({
+  const {
+    allJobs,
+    visibleJobs,
+    isJobsError,
+    jobsError,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = useJobsSearch({
     normalizedSearchTerm,
     shouldFilter: shouldFilterOpportunities,
     shouldUseDebouncedQuery: shouldUseApiSearch,
     debouncedSearchTerm,
   });
-
-  useEffect(() => {
-    const updateHeroSwitchMetrics = () => {
-      const activeButton =
-        activeHeroMode === "findJob"
-          ? findJobButtonRef.current
-          : startHiringButtonRef.current;
-
-      if (!activeButton) {
-        return;
-      }
-
-      setHeroSwitchActiveWidth(`${activeButton.offsetWidth}px`);
-      setHeroSwitchActiveX(`${activeButton.offsetLeft}px`);
-    };
-
-    updateHeroSwitchMetrics();
-    window.addEventListener("resize", updateHeroSwitchMetrics);
-
-    return () => {
-      window.removeEventListener("resize", updateHeroSwitchMetrics);
-    };
-  }, [activeHeroMode]);
 
   useEffect(() => {
     dispatch(setLandingMode(activeHeroMode));
@@ -135,13 +118,47 @@ const LandingPage = () => {
     };
   }, [activeHeroMode, dispatch]);
 
-  const handleFindJobClick = () => {
+  useEffect(() => {
+    if (!hasNextPage || isFetchingNextPage || isJobsError || visibleJobs.length === 0) {
+      return;
+    }
+
+    const triggerNode = jobsLoadTriggerRef.current;
+    if (!triggerNode) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+
+        if (!entry?.isIntersecting) {
+          return;
+        }
+
+        void fetchNextPage();
+      },
+      {
+        root: null,
+        rootMargin: "240px 0px",
+        threshold: 0,
+      },
+    );
+
+    observer.observe(triggerNode);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage, isJobsError, visibleJobs.length]);
+
+ /*  const handleFindJobClick = () => {
     setActiveHeroMode("findJob");
   };
 
   const handleStartHiringClick = () => {
     setActiveHeroMode("startHiring");
-  };
+  }; */
 
   const handleHeroCtaClick = () => {
     openSignUpDrawer();
@@ -195,7 +212,7 @@ const LandingPage = () => {
             </Typography>
           </Box>
 
-          <Box
+          {/* <Box
             className={`${styles.heroSwitch} ${
               activeHeroMode === "findJob"
                 ? styles.heroSwitchFindJob
@@ -236,7 +253,7 @@ const LandingPage = () => {
             >
               Start hiring
             </Button>
-          </Box>
+          </Box> */}
 
           <Box className={styles.heroTextBlock}>
             <Typography
@@ -376,20 +393,11 @@ const LandingPage = () => {
                             onClick={handleClearSearch}
                             className={styles.searchIconButton}
                           >
-                            <svg
-                              viewBox="0 0 20 20"
-                              width="20"
-                              height="20"
-                              className={styles.searchIconImage}
+                            <img
+                              src={searchClearIconUrl}
+                              alt=""
                               aria-hidden="true"
-                            >
-                              <path
-                                d="M6 6l8 8M14 6l-8 8"
-                                stroke="#B0B4B8"
-                                strokeWidth="1.8"
-                                strokeLinecap="round"
-                              />
-                            </svg>
+                            />
                           </IconButton>
                         ) : (
                           <Box
@@ -399,7 +407,7 @@ const LandingPage = () => {
                             <img
                               src={searchIconUrl}
                               alt=""
-                              className={styles.searchIconImage}
+                              aria-hidden="true"
                             />
                           </Box>
                         )}
@@ -421,96 +429,106 @@ const LandingPage = () => {
             </Typography>
           ) : allJobs ? (
             visibleJobs.length > 0 ? (
-              <Box className={styles.cardGrid}>
-                {visibleJobs.map((job) => (
-                  <Card
-                    component="article"
-                    key={job.jobId}
-                    className={`${styles.jobCard} ${styles.jobCardShort}`}
-                    elevation={0}
-                  >
-                    <Box className={styles.cardTop}>
-                      <Box className={styles.cardHeader}>
-                        <Typography
-                          component="h3"
-                          className={styles.cardTitle}
-                          sx={{ m: 0 }}
-                        >
-                          {job.title}
-                        </Typography>
-                        {/* <IconButton
-                            type="button"
-                            className={styles.bookmarkButton}
-                            aria-label={`Save ${job.title}`}
-                            disableRipple
+              <>
+                <Box className={styles.cardGrid}>
+                  {visibleJobs.map((job) => (
+                    <Card
+                      component="article"
+                      key={job.jobId}
+                      className={`${styles.jobCard} ${styles.jobCardShort}`}
+                      elevation={0}
+                    >
+                      <Box className={styles.cardTop}>
+                        <Box className={styles.cardHeader}>
+                          <Typography
+                            component="h3"
+                            className={styles.cardTitle}
+                            sx={{ m: 0 }}
                           >
-                            <img
-                              src={bookmarkIconUrl}
-                              alt=""
-                              className={styles.bookmarkIcon}
-                              aria-hidden="true"
-                            />
-                          </IconButton> */}
-                      </Box>
-                      <Box className={styles.cardRule} />
-                    </Box>
-
-                    <Box className={styles.cardBody}>
-                      <Box className={styles.cardContentColumn}>
-                        <Box className={styles.tagAndCopy}>
-                          <Box className={styles.tagRow}>
-                            {[
-                              job.industry,
-                              toCityFromLocation(job.location),
-                              job.employmentType,
-                            ].map((tag) => (
-                              <Chip
-                                key={`${job.jobId}-${tag}`}
-                                label={tag}
-                                variant="outlined"
-                                className={styles.tagChip}
+                            {job.title}
+                          </Typography>
+                          {/* <IconButton
+                              type="button"
+                              className={styles.bookmarkButton}
+                              aria-label={`Save ${job.title}`}
+                              disableRipple
+                            >
+                              <img
+                                src={bookmarkIconUrl}
+                                alt=""
+                                className={styles.bookmarkIcon}
+                                aria-hidden="true"
                               />
-                            ))}
+                            </IconButton> */}
+                        </Box>
+                        <Box className={styles.cardRule} />
+                      </Box>
+
+                      <Box className={styles.cardBody}>
+                        <Box className={styles.cardContentColumn}>
+                          <Box className={styles.tagAndCopy}>
+                            <Box className={styles.tagRow}>
+                              {[
+                                job.industry,
+                                toCityFromLocation(job.location),
+                                job.employmentType,
+                              ].map((tag) => (
+                                <Chip
+                                  key={`${job.jobId}-${tag}`}
+                                  label={tag}
+                                  variant="outlined"
+                                  className={styles.tagChip}
+                                />
+                              ))}
+                            </Box>
+
+                            <Typography
+                              component="p"
+                              className={styles.cardDescription}
+                              sx={{ m: 0 }}
+                            >
+                              {job.description}
+                            </Typography>
                           </Box>
 
-                          <Typography
-                            component="p"
-                            className={styles.cardDescription}
-                            sx={{ m: 0 }}
+                          <Button
+                            variant="contained"
+                            className={styles.cardCta}
+                            onClick={handleCardCtaClick}
                           >
-                            {job.description}
-                          </Typography>
+                            Sign Up to View
+                          </Button>
                         </Box>
 
-                        <Button
-                          variant="contained"
-                          className={styles.cardCta}
-                          onClick={handleCardCtaClick}
-                        >
-                          Sign Up to View
-                        </Button>
+                        {/* <Box className={styles.companyThumb} aria-hidden="true">
+                            <Box
+                              className={`${styles.companyOrbImage} ${styles.companyOrbImageBlurred}`}
+                              style={{
+                                ["--orb-core" as string]: job.employerOrbColor,
+                                ["--orb-glow" as string]: job.employerOrbGlow,
+                              }}
+                            />
+                            <Typography
+                              component="span"
+                              className={`${styles.companyName} ${styles.companyNameBlurred}`}
+                              sx={{ m: 0 }}
+                            >
+                              {job.employerName}
+                            </Typography>
+                          </Box> */}
                       </Box>
-
-                      {/* <Box className={styles.companyThumb} aria-hidden="true">
-                          <Box
-                            className={`${styles.companyOrbImage} ${styles.companyOrbImageBlurred}`}
-                            style={{
-                              ["--orb-core" as string]: job.employerOrbColor,
-                              ["--orb-glow" as string]: job.employerOrbGlow,
-                            }}
-                          />
-                          <Typography
-                            component="span"
-                            className={`${styles.companyName} ${styles.companyNameBlurred}`}
-                            sx={{ m: 0 }}
-                          >
-                            {job.employerName}
-                          </Typography>
-                        </Box> */}
-                    </Box>
-                  </Card>
-                ))}
-              </Box>
+                    </Card>
+                  ))}
+                </Box>
+                {hasNextPage ? (
+                  <Box className={styles.jobsLoadTriggerWrap} aria-live="polite">
+                    <Box ref={jobsLoadTriggerRef} className={styles.jobsLoadTrigger} aria-hidden="true" />
+                    <Typography component="p" className={styles.jobsLoadText} sx={{ m: 0 }}>
+                      {isFetchingNextPage ? "Loading more opportunities..." : "Scroll to load more opportunities"}
+                    </Typography>
+                  </Box>
+                ) : null}
+              </>
             ) : (
               <Typography
                 component="p"

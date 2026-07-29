@@ -3,6 +3,10 @@ import type { ApiResponse, Job, JobsResponse } from '@/types'
 
 const JOBS_ENDPOINT = import.meta.env.VITE_JOBS_ENDPOINT ?? '/jobs'
 const JOBS_QUERY_PARAM = import.meta.env.VITE_JOBS_QUERY_PARAM ?? 'query'
+const JOBS_PAGE_PARAM = import.meta.env.VITE_JOBS_PAGE_PARAM ?? 'page'
+const JOBS_PAGE_SIZE_PARAM =
+  import.meta.env.VITE_JOBS_PAGE_SIZE_PARAM ?? 'pageSize'
+const JOBS_LIMIT_PARAM = import.meta.env.VITE_JOBS_LIMIT_PARAM ?? 'limit'
 
 const isJobsResponse = (data: unknown): data is JobsResponse =>
   typeof data === 'object' && data !== null && 'jobs' in data
@@ -45,7 +49,11 @@ const normalizeJobsResponse = (payload: unknown): JobsResponse => {
 }
 
 export const jobsApi = {
-  async list(searchQuery?: string): Promise<JobsResponse> {
+  async list(
+    searchQuery?: string,
+    page = 1,
+    pageSize?: number,
+  ): Promise<JobsResponse> {
     const normalizedSearchQuery = searchQuery?.trim() ?? ''
 
     const response = await apiClient.get<ApiResponse<JobsResponse> | JobsResponse | Job[]>(
@@ -54,6 +62,13 @@ export const jobsApi = {
         params: {
           ...(normalizedSearchQuery
             ? { [JOBS_QUERY_PARAM]: normalizedSearchQuery }
+            : {}),
+          [JOBS_PAGE_PARAM]: page,
+          ...(typeof pageSize === 'number' && pageSize > 0
+            ? {
+                [JOBS_PAGE_SIZE_PARAM]: pageSize,
+                [JOBS_LIMIT_PARAM]: pageSize,
+              }
             : {}),
         },
       },
