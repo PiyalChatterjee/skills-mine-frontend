@@ -11,11 +11,11 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
 import aiIconUrl from "@/assets/landing-page/ai-icon.svg";
-import bookmarkIconUrl from "@/assets/landing-page/bookmark-icon.svg";
 import chartIconUrl from "@/assets/landing-page/chart-icon.svg";
 import patternOneUrl from "@/assets/landing-page/pattern-one.svg";
 import patternThreeUrl from "@/assets/landing-page/pattern-three.svg";
 import patternTwoUrl from "@/assets/landing-page/pattern-two.svg";
+import searchClearIconUrl from "@/assets/landing-page/search-clear-icon.svg";
 import searchIconUrl from "@/assets/landing-page/search-icon.svg";
 import shieldIconUrl from "@/assets/landing-page/shield-icon.svg";
 import starIconUrl from "@/assets/landing-page/star-icon.svg";
@@ -24,7 +24,7 @@ import {
   heroContent,
   type HeroMode,
 } from "@/modules/public/constants/landingPage.constants";
-import { useOpportunitiesSearch } from "@/modules/public/hooks/useOpportunitiesSearch";
+import { useJobsSearch } from "@/modules/public/hooks/useJobsSearch";
 import { useSearchQueryState } from "@/hooks/useSearchQueryState";
 import type { PublicLayoutOutletContext } from "@/layouts/PublicLayout";
 import { setLandingMode } from "@/store/slices/uiSlice";
@@ -72,12 +72,15 @@ const metrics: Metric[] = [
   },
 ];
 
+const toCityFromLocation = (location: string) => {
+  const [city] = location.split(",");
+  return city?.trim() || "Unknown";
+};
+
 const LandingPage = () => {
   const { openSignUpDrawer } = useOutletContext<PublicLayoutOutletContext>();
   const dispatch = useDispatch();
-  const [activeHeroMode, setActiveHeroMode] = useState<HeroMode>("findJob");
-  const [heroSwitchActiveWidth, setHeroSwitchActiveWidth] = useState("111px");
-  const [heroSwitchActiveX, setHeroSwitchActiveX] = useState("4px");
+  const [activeHeroMode] = useState<HeroMode>("findJob");
   const {
     inputValue: searchInputValue,
     normalizedValue: normalizedSearchTerm,
@@ -90,43 +93,22 @@ const LandingPage = () => {
     minCharacters: 3,
     debounceMs: 250,
   });
-  const findJobButtonRef = useRef<HTMLButtonElement | null>(null);
-  const startHiringButtonRef = useRef<HTMLButtonElement | null>(null);
+  const jobsLoadTriggerRef = useRef<HTMLDivElement | null>(null);
 
   const {
-    allOpportunities,
-    visibleOpportunities,
-    isOpportunitiesError,
-    opportunitiesError,
-  } = useOpportunitiesSearch({
+    allJobs,
+    visibleJobs,
+    isJobsError,
+    jobsError,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = useJobsSearch({
     normalizedSearchTerm,
     shouldFilter: shouldFilterOpportunities,
     shouldUseDebouncedQuery: shouldUseApiSearch,
     debouncedSearchTerm,
   });
-
-  useEffect(() => {
-    const updateHeroSwitchMetrics = () => {
-      const activeButton =
-        activeHeroMode === "findJob"
-          ? findJobButtonRef.current
-          : startHiringButtonRef.current;
-
-      if (!activeButton) {
-        return;
-      }
-
-      setHeroSwitchActiveWidth(`${activeButton.offsetWidth}px`);
-      setHeroSwitchActiveX(`${activeButton.offsetLeft}px`);
-    };
-
-    updateHeroSwitchMetrics();
-    window.addEventListener("resize", updateHeroSwitchMetrics);
-
-    return () => {
-      window.removeEventListener("resize", updateHeroSwitchMetrics);
-    };
-  }, [activeHeroMode]);
 
   useEffect(() => {
     dispatch(setLandingMode(activeHeroMode));
@@ -136,23 +118,53 @@ const LandingPage = () => {
     };
   }, [activeHeroMode, dispatch]);
 
-  const handleFindJobClick = () => {
+  useEffect(() => {
+    if (!hasNextPage || isFetchingNextPage || isJobsError || visibleJobs.length === 0) {
+      return;
+    }
+
+    const triggerNode = jobsLoadTriggerRef.current;
+    if (!triggerNode) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+
+        if (!entry?.isIntersecting) {
+          return;
+        }
+
+        void fetchNextPage();
+      },
+      {
+        root: null,
+        rootMargin: "240px 0px",
+        threshold: 0,
+      },
+    );
+
+    observer.observe(triggerNode);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage, isJobsError, visibleJobs.length]);
+
+ /*  const handleFindJobClick = () => {
     setActiveHeroMode("findJob");
   };
 
   const handleStartHiringClick = () => {
     setActiveHeroMode("startHiring");
-  };
+  }; */
 
   const handleHeroCtaClick = () => {
     openSignUpDrawer();
   };
 
   const handleHeroSecondaryCtaClick = () => {
-    // TODO: Implement action
-  };
-
-  const handleBookmarkClick = () => {
     // TODO: Implement action
   };
 
@@ -200,7 +212,7 @@ const LandingPage = () => {
             </Typography>
           </Box>
 
-          <Box
+          {/* <Box
             className={`${styles.heroSwitch} ${
               activeHeroMode === "findJob"
                 ? styles.heroSwitchFindJob
@@ -241,7 +253,7 @@ const LandingPage = () => {
             >
               Start hiring
             </Button>
-          </Box>
+          </Box> */}
 
           <Box className={styles.heroTextBlock}>
             <Typography
@@ -252,11 +264,12 @@ const LandingPage = () => {
               <Box component="span" className={styles.heroTitleStrong}>
                 {currentHeroContent.titleStrong}
               </Box>{" "}
-              {"titleLight" in currentHeroContent && currentHeroContent.titleLight && (
-                <Box component="span" className={styles.heroTitleLight}>
-                  {currentHeroContent.titleLight}
-                </Box>
-              )}
+              {"titleLight" in currentHeroContent &&
+                currentHeroContent.titleLight && (
+                  <Box component="span" className={styles.heroTitleLight}>
+                    {currentHeroContent.titleLight}
+                  </Box>
+                )}
             </Typography>
 
             <Box className={styles.heroCopy}>
@@ -380,27 +393,21 @@ const LandingPage = () => {
                             onClick={handleClearSearch}
                             className={styles.searchIconButton}
                           >
-                            <svg
-                              viewBox="0 0 20 20"
-                              width="20"
-                              height="20"
-                              className={styles.searchIconImage}
+                            <img
+                              src={searchClearIconUrl}
+                              alt=""
                               aria-hidden="true"
-                            >
-                              <path
-                                d="M6 6l8 8M14 6l-8 8"
-                                stroke="#B0B4B8"
-                                strokeWidth="1.8"
-                                strokeLinecap="round"
-                              />
-                            </svg>
+                            />
                           </IconButton>
                         ) : (
-                          <Box className={styles.searchIconShell} aria-hidden="true">
+                          <Box
+                            className={styles.searchIconShell}
+                            aria-hidden="true"
+                          >
                             <img
                               src={searchIconUrl}
                               alt=""
-                              className={styles.searchIconImage}
+                              aria-hidden="true"
                             />
                           </Box>
                         )}
@@ -412,22 +419,23 @@ const LandingPage = () => {
             </Box>
           </Box>
 
-          {isOpportunitiesError ? (
+          {isJobsError ? (
             <Typography
               component="p"
               className={styles.sectionSubtitle}
               sx={{ mt: 2, mb: 0 }}
             >
-              {opportunitiesError?.message || "Failed to load opportunities."}
+              {jobsError?.message || "Failed to load jobs."}
             </Typography>
-          ) : allOpportunities ? (
-            visibleOpportunities.length > 0 ? (
+          ) : allJobs ? (
+            visibleJobs.length > 0 ? (
+              <>
                 <Box className={styles.cardGrid}>
-                  {visibleOpportunities.map((job) => (
+                  {visibleJobs.map((job) => (
                     <Card
                       component="article"
-                      key={job.id}
-                      className={`${styles.jobCard} ${job.tallCard ? styles.jobCardTall : styles.jobCardShort}`}
+                      key={job.jobId}
+                      className={`${styles.jobCard} ${styles.jobCardShort}`}
                       elevation={0}
                     >
                       <Box className={styles.cardTop}>
@@ -439,20 +447,19 @@ const LandingPage = () => {
                           >
                             {job.title}
                           </Typography>
-                          <IconButton
-                            type="button"
-                            className={styles.bookmarkButton}
-                            aria-label={`Save ${job.title}`}
-                            onClick={handleBookmarkClick}
-                            disableRipple
-                          >
-                            <img
-                              src={bookmarkIconUrl}
-                              alt=""
-                              className={styles.bookmarkIcon}
-                              aria-hidden="true"
-                            />
-                          </IconButton>
+                          {/* <IconButton
+                              type="button"
+                              className={styles.bookmarkButton}
+                              aria-label={`Save ${job.title}`}
+                              disableRipple
+                            >
+                              <img
+                                src={bookmarkIconUrl}
+                                alt=""
+                                className={styles.bookmarkIcon}
+                                aria-hidden="true"
+                              />
+                            </IconButton> */}
                         </Box>
                         <Box className={styles.cardRule} />
                       </Box>
@@ -461,9 +468,13 @@ const LandingPage = () => {
                         <Box className={styles.cardContentColumn}>
                           <Box className={styles.tagAndCopy}>
                             <Box className={styles.tagRow}>
-                              {job.tags.map((tag) => (
+                              {[
+                                job.industry,
+                                toCityFromLocation(job.location),
+                                job.employmentType,
+                              ].map((tag) => (
                                 <Chip
-                                  key={tag}
+                                  key={`${job.jobId}-${tag}`}
                                   label={tag}
                                   variant="outlined"
                                   className={styles.tagChip}
@@ -489,26 +500,35 @@ const LandingPage = () => {
                           </Button>
                         </Box>
 
-                        <Box className={styles.companyThumb} aria-hidden="true">
-                          <Box
-                            className={`${styles.companyOrbImage} ${styles.companyOrbImageBlurred}`}
-                            style={{
-                              ["--orb-core" as string]: job.employerOrbColor,
-                              ["--orb-glow" as string]: job.employerOrbGlow,
-                            }}
-                          />
-                          <Typography
-                            component="span"
-                            className={`${styles.companyName} ${styles.companyNameBlurred}`}
-                            sx={{ m: 0 }}
-                          >
-                            {job.employerName}
-                          </Typography>
-                        </Box>
+                        {/* <Box className={styles.companyThumb} aria-hidden="true">
+                            <Box
+                              className={`${styles.companyOrbImage} ${styles.companyOrbImageBlurred}`}
+                              style={{
+                                ["--orb-core" as string]: job.employerOrbColor,
+                                ["--orb-glow" as string]: job.employerOrbGlow,
+                              }}
+                            />
+                            <Typography
+                              component="span"
+                              className={`${styles.companyName} ${styles.companyNameBlurred}`}
+                              sx={{ m: 0 }}
+                            >
+                              {job.employerName}
+                            </Typography>
+                          </Box> */}
                       </Box>
                     </Card>
                   ))}
                 </Box>
+                {hasNextPage ? (
+                  <Box className={styles.jobsLoadTriggerWrap} aria-live="polite">
+                    <Box ref={jobsLoadTriggerRef} className={styles.jobsLoadTrigger} aria-hidden="true" />
+                    <Typography component="p" className={styles.jobsLoadText} sx={{ m: 0 }}>
+                      {isFetchingNextPage ? "Loading more opportunities..." : "Scroll to load more opportunities"}
+                    </Typography>
+                  </Box>
+                ) : null}
+              </>
             ) : (
               <Typography
                 component="p"
@@ -516,8 +536,8 @@ const LandingPage = () => {
                 sx={{ mt: 2, mb: 0 }}
               >
                 {shouldFilterOpportunities
-                  ? "No opportunities found for your search."
-                  : "No opportunities available right now."}
+                  ? "No jobs found for your search."
+                  : "No jobs available right now."}
               </Typography>
             )
           ) : null}

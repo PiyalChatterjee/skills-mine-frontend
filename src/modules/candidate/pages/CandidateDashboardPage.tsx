@@ -78,8 +78,6 @@ const PLACEHOLDER_APPLICATIONS: Application[] = [
     statusLabel: 'Shortlisted',
     pipelineStage: 'shortlisted',
     message: 'Good news! You have been shortlisted for this position.',
-    messageLink: '#',
-    messageLinkText: 'Find out more',
   },
   {
     id: '3',
