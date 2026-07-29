@@ -67,7 +67,7 @@ export const ProfileTextField = <TFieldValues extends FieldValues>({
     <Controller
       control={control}
       name={name}
-      render={({ field }) => (
+      render={({ field, fieldState }) => (
         <TextField
           variant="outlined"
           fullWidth
@@ -78,6 +78,8 @@ export const ProfileTextField = <TFieldValues extends FieldValues>({
           inputRef={field.ref}
           placeholder={placeholder ?? label}
           disabled={disabled}
+          error={Boolean(fieldState.error)}
+          helperText={fieldState.error?.message}
           className={`${inputClassName} ${disabled ? disabledClassName : ""}`}
           slotProps={slotProps}
         />
@@ -104,7 +106,7 @@ export const ProfileSelectField = <TFieldValues extends FieldValues>({
     <Controller
       control={control}
       name={name}
-      render={({ field }) => {
+      render={({ field, fieldState }) => {
         const placeholderText = placeholder ?? label;
         const selectedValue =
           typeof field.value === "string" ? field.value : "";
@@ -119,6 +121,8 @@ export const ProfileSelectField = <TFieldValues extends FieldValues>({
             onBlur={field.onBlur}
             inputRef={field.ref}
             disabled={disabled}
+            error={Boolean(fieldState.error)}
+            helperText={fieldState.error?.message}
             className={`${inputClassName} ${disabled ? disabledClassName : ""}`}
             slotProps={{
               select: {

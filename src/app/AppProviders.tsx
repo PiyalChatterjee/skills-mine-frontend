@@ -5,6 +5,7 @@ import type { PropsWithChildren } from 'react'
 import { BrowserRouter } from 'react-router-dom'
 import { GoogleOAuthProvider } from '@react-oauth/google'
 import { AuthProvider } from '@/app/auth/AuthContext'
+import { NotificationToaster } from '@/components/NotificationToaster'
 import { queryClient } from '@/app/queryClient'
 import { store } from '@/store'
 import { appTheme } from '@/theme/theme'
@@ -20,6 +21,7 @@ export const AppProviders = ({ children }: PropsWithChildren) => {
             <ThemeProvider theme={appTheme}>
               <CssBaseline />
               {children}
+              <NotificationToaster />
             </ThemeProvider>
           </QueryClientProvider>
         </AuthProvider>

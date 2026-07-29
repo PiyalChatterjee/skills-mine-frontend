@@ -1,19 +1,20 @@
 import {
-  Alert,
   Box,
   Divider,
   Drawer,
   IconButton,
-  Snackbar,
   Typography,
 } from "@mui/material";
 import { useState } from "react";
+import { useDispatch } from "react-redux";
 import { SignUpForm } from "@/modules/public/components/SignUpForm";
 import { SignUpGoogleButton } from "@/modules/public/components/SignUpGoogleButton";
 import { SignUpSuccess } from "@/modules/public/components/SignUpSuccess";
 import { useCandidateGoogleAuthState } from "@/modules/public/hooks/useCandidateGoogleAuthState";
 import { useRecruiterSignUpForm } from "@/modules/public/hooks/useRecruiterSignUpForm";
 import { ROUTE_PATHS } from "@/routes/routePaths";
+import type { AppDispatch } from "@/store";
+import { pushNotification } from "@/store/slices/notificationSlice";
 import closeIconSrc from "@/assets/icons/close-icon.svg";
 import styles from "./CandidateSignUpDrawer.module.css";
 
@@ -26,8 +27,8 @@ export const RecruiterSignUpDrawer = ({
   open,
   onClose,
 }: RecruiterSignUpDrawerProps) => {
+  const dispatch = useDispatch<AppDispatch>();
   const [signUpSuccess, setSignUpSuccess] = useState(false);
-  const [snackbarErrorOpen, setSnackbarErrorOpen] = useState(false);
   const {
     register,
     control,
@@ -58,9 +59,26 @@ export const RecruiterSignUpDrawer = ({
       const success = await submitForm();
       if (success) {
         setSignUpSuccess(true);
+        dispatch(
+          pushNotification({
+            title: "Sign up successful",
+            message: "Your recruiter account request was submitted.",
+            level: "success",
+          }),
+        );
       }
-    } catch {
-      setSnackbarErrorOpen(true);
+    } catch (error) {
+      const message =
+        typeof error === "string"
+          ? error
+          : "Sign up failed. Please try again.";
+      dispatch(
+        pushNotification({
+          title: "Sign up failed",
+          message,
+          level: "error",
+        }),
+      );
     }
   };
 
@@ -143,18 +161,6 @@ export const RecruiterSignUpDrawer = ({
         </Box>
       )}
 
-      <Snackbar
-        open={snackbarErrorOpen}
-        autoHideDuration={3000}
-        onClose={() => {
-          setSnackbarErrorOpen(false);
-        }}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-      >
-        <Alert severity="error" variant="filled" sx={{ width: "100%" }}>
-          Sign up failed. Please try again.
-        </Alert>
-      </Snackbar>
     </Drawer>
   );
 };
