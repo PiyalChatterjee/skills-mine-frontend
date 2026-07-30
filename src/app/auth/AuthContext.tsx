@@ -9,6 +9,9 @@ import {
 } from 'react'
 import { tokenStorage } from '@/app/auth/tokenStorage'
 import { isJwtExpired } from '@/app/auth/jwt'
+import { store } from '@/store'
+import { clearCandidateProfile } from '@/store/slices/candidateProfileSlice'
+import { clearCandidateApplications } from '@/store/slices/candidateApplicationsSlice'
 import type {
   AuthSession,
   AuthUser,
@@ -73,6 +76,8 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
 
   const logout = useCallback(() => {
     tokenStorage.clearAuth()
+    store.dispatch(clearCandidateProfile())
+    store.dispatch(clearCandidateApplications())
     setSession(defaultState)
   }, [])
 

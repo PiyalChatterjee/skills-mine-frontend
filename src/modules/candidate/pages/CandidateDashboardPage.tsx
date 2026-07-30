@@ -1,10 +1,12 @@
 import { useEffect } from 'react'
-import { Box, ButtonBase, Link, Typography } from '@mui/material'
+import { Box, ButtonBase, CircularProgress, Link, Typography } from '@mui/material'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/app/auth/AuthContext'
 import type { AppDispatch, RootState } from '@/store'
 import { fetchCandidateProfileById } from '@/store/slices/candidateProfileSlice'
+import { fetchCandidateApplications } from '@/store/slices/candidateApplicationsSlice'
+import type { CandidateApplication } from '@/store/slices/candidateApplicationsSlice'
 import bardLineIcon from '@/assets/candidate-dashboard/bard-line.svg'
 import expandCirclePlusIcon from '@/assets/candidate-dashboard/expand-circle-plus.svg'
 import bookmarkLineIcon from '@/assets/candidate-dashboard/bookmark-line.svg'
@@ -18,17 +20,11 @@ import styles from './CandidateDashboardPage.module.css'
 
 type PipelineStage = 'applied' | 'screening' | 'assessment' | 'interview' | 'shortlisted' | 'offer'
 
-type ApplicationStatus =
-  | 'applied'
-  | 'shortlisted'
-  | 'in_review'
-  | 'unsuccessful'
-
 type Application = {
   id: string
   title: string
   company: string
-  status: ApplicationStatus
+  status: ApplicationStatusKey
   statusLabel: string
   pipelineStage: PipelineStage
   message: string
@@ -63,42 +59,61 @@ const PIPELINE_STAGE_INDEX: Record<PipelineStage, number> = {
   offer: 5,
 }
 
-const PLACEHOLDER_APPLICATIONS: Application[] = [
-  {
-    id: '1',
-    title: 'UX/UI Designer at PwC',
-    company: 'PwC',
-    status: 'applied',
-    statusLabel: 'Applied',
-    pipelineStage: 'applied',
-    message:
-      'Your job application has been successfully submitted and is now with the recruiter.',
-  },
-  {
-    id: '2',
-    title: 'Front-end Web Designer at IBM',
-    company: 'IBM',
-    status: 'shortlisted',
-    statusLabel: 'Shortlisted',
-    pipelineStage: 'shortlisted',
-    message: 'Good news! You have been shortlisted for this position.',
-  },
-  {
-    id: '3',
-    title: 'UX/UI Designer at Helm',
-    company: 'Helm',
-    status: 'in_review',
-    statusLabel: 'In review',
-    pipelineStage: 'screening',
-    message: 'The recruiter is currently reviewing your application.',
-  },
-]
+export type ApplicationStatusKey =
+  | 'applied'
+  | 'screening'
+  | 'interview'
+  | 'rejected'
+  | 'offer_extended'
+  | 'shortlisted'
 
-const STATUS_CSS: Record<ApplicationStatus, string> = {
-  applied: styles.pillApplied,
-  shortlisted: styles.pillShortlisted,
-  in_review: styles.pillInReview,
-  unsuccessful: styles.pillUnsuccessful,
+export type ApplicationStatusConfig = {
+  label: string
+  color: string
+}
+
+export const APPLICATION_STATUS_CONFIG: Record<ApplicationStatusKey, ApplicationStatusConfig> = {
+  applied:        { label: 'Applied',        color: '#72c4e0' },
+  screening:      { label: 'Screening',      color: '#4db8c8' },
+  interview:      { label: 'Interview',      color: '#7c5cd8' },
+  rejected:       { label: 'Rejected',       color: '#e07070' },
+  offer_extended: { label: 'Offer extended', color: '#5bbf8a' },
+  shortlisted:    { label: 'Shortlisted',    color: '#e085c2' },
+}
+
+const mapCurrentStageToPipelineStage = (stage: string): PipelineStage => {
+  const stageMap: Record<string, PipelineStage> = {
+    applied: 'applied',
+    screening: 'screening',
+    assessment: 'assessment',
+    interview: 'interview',
+    shortlisted: 'shortlisted',
+    offer: 'offer',
+  }
+  return stageMap[stage.toLowerCase()] || 'applied'
+}
+
+const mapCurrentStageToStatusKey = (stage: string): ApplicationStatusKey => {
+  const lowerStage = stage.toLowerCase()
+  if (lowerStage === 'shortlisted') return 'shortlisted'
+  if (lowerStage === 'interview') return 'interview'
+  if (lowerStage === 'screening' || lowerStage === 'assessment') return 'screening'
+  if (lowerStage === 'offer' || lowerStage === 'offer_extended') return 'offer_extended'
+  if (lowerStage === 'rejected' || lowerStage === 'unsuccessful') return 'rejected'
+  return 'applied'
+}
+
+const transformApplicationToDisplay = (app: CandidateApplication): Application => {
+  const statusKey = mapCurrentStageToStatusKey(app.currentStage)
+  return {
+    id: app.applicationId,
+    title: `${app.jobTitle} at ${app.company}`,
+    company: app.company,
+    status: statusKey,
+    statusLabel: APPLICATION_STATUS_CONFIG[statusKey].label,
+    pipelineStage: mapCurrentStageToPipelineStage(app.currentStage),
+    message: app.coverLetter || `Applied on ${new Date(app.appliedDate).toLocaleDateString()}`,
+  }
 }
 
 type QuickAction = {
@@ -116,6 +131,8 @@ const CandidateDashboardPage = () => {
   const dispatch = useDispatch<AppDispatch>()
   const { user } = useAuth()
   const profile = useSelector((state: RootState) => state.candidateProfile.profile)
+  const storedApplications = useSelector((state: RootState) => state.candidateApplications.applications)
+  const applicationsLoading = useSelector((state: RootState) => state.candidateApplications.isLoading)
 
   useEffect(() => {
     const candidateId = user?.id
@@ -123,7 +140,19 @@ const CandidateDashboardPage = () => {
     void dispatch(fetchCandidateProfileById(candidateId))
   }, [dispatch, user?.id, profile])
 
-  const firstName = user?.displayName?.split(' ')[0] ?? 'there'
+  useEffect(() => {
+    const applicationIds = profile?.applications
+    if (!applicationIds?.length || storedApplications.length) return
+    void dispatch(fetchCandidateApplications(applicationIds))
+  }, [dispatch, profile?.applications, storedApplications.length])
+
+  const firstName = profile?.fullName?.split(' ')[0] ?? user?.displayName?.split(' ')[0] ?? 'there'
+  const successfulApplicationsCount = storedApplications.filter(
+    (app) => app.currentStage.toLowerCase() === 'offer',
+  ).length
+  const inProgressApplicationsCount = storedApplications.filter((app) =>
+    ['screening', 'assessment', 'interview', 'shortlisted'].includes(app.currentStage.toLowerCase()),
+  ).length
 
   const handleExploreJobs = () => navigate(ROUTE_PATHS.jobs)
   const handleSavedJobs = () => navigate(ROUTE_PATHS.jobs)
@@ -189,7 +218,7 @@ const CandidateDashboardPage = () => {
           <Box className={styles.statsRow}>
             <Box className={`${styles.statCard} ${styles.statCardBlue}`}>
               <Box className={styles.statCardTop}>
-                <Typography component="p" className={styles.statValue}>20</Typography>
+                <Typography component="p" className={styles.statValue}>{storedApplications.length}</Typography>
                 <Box className={styles.statIcon} aria-hidden="true">
                   <Box component="img" src={fileList2LineIcon} alt="" className={styles.statIconImage} />
                 </Box>
@@ -202,7 +231,7 @@ const CandidateDashboardPage = () => {
 
             <Box className={`${styles.statCard} ${styles.statCardGreen}`}>
               <Box className={styles.statCardTop}>
-                <Typography component="p" className={styles.statValue}>3</Typography>
+                <Typography component="p" className={styles.statValue}>{successfulApplicationsCount}</Typography>
                 <Box className={styles.statIcon} aria-hidden="true">
                   <Box component="img" src={verifiedBadgeLineIcon} alt="" className={styles.statIconImage} />
                 </Box>
@@ -215,7 +244,7 @@ const CandidateDashboardPage = () => {
 
             <Box className={`${styles.statCard} ${styles.statCardTealMuted}`}>
               <Box className={styles.statCardTop}>
-                <Typography component="p" className={styles.statValue}>8</Typography>
+                <Typography component="p" className={styles.statValue}>{inProgressApplicationsCount}</Typography>
                 <Box className={styles.statIcon} aria-hidden="true">
                   <Box component="img" src={progress5LineIcon} alt="" className={styles.statIconImage} />
                 </Box>
@@ -264,56 +293,72 @@ const CandidateDashboardPage = () => {
           My applications
         </Typography>
         <Box className={styles.applicationsList}>
-          {PLACEHOLDER_APPLICATIONS.map((app, index) => (
-            <Box key={app.id} className={styles.applicationEntry}>
-              {index > 0 && <Box className={styles.applicationDivider} />}
-              <Box className={styles.applicationHeader}>
-                <Box className={styles.applicationTitleRow}>
-                  <Typography component="h3" className={styles.applicationTitle}>
-                    {app.title}
-                  </Typography>
-                  <ButtonBase
-                    type="button"
-                    className={styles.expandButton}
-                    aria-label={`View details for ${app.title}`}
-                    onClick={handleExpandApplication}
-                    disableRipple
-                  >
-                    <Box component="img" src={expandCirclePlusIcon} alt="" className={styles.expandButtonIcon} aria-hidden="true" />
-                  </ButtonBase>
-                </Box>
-                <Box className={`${styles.statusPill} ${STATUS_CSS[app.status]}`}>
-                  {app.statusLabel}
-                </Box>
-              </Box>
-
-              <Box className={styles.pipelineWrap}>
-                <Box className={styles.pipelineLabels}>
-                  {PIPELINE_STAGES.map((stage) => (
-                    <span key={stage} className={styles.pipelineLabel}>
-                      {PIPELINE_STAGE_LABELS[stage]}
-                    </span>
-                  ))}
-                </Box>
-                <Box className={styles.pipelineTrack}>
-                  <Box
-                    className={`${styles.pipelineFill} ${styles[`pipelineFill${PIPELINE_STAGE_INDEX[app.pipelineStage]}`]}`}
-                  />
-                </Box>
-              </Box>
-
-              <Typography component="p" className={styles.applicationMessage}>
-                {app.message}
-                {app.messageLink && (
-                  <>
-                    <Link href={app.messageLink} className={styles.applicationMessageLink}>
-                      {app.messageLinkText}
-                    </Link>
-                  </>
-                )}
-              </Typography>
+          {applicationsLoading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '300px' }}>
+              <CircularProgress />
             </Box>
-          ))}
+          ) : storedApplications.length === 0 ? (
+            <Typography component="p" sx={{ textAlign: 'center', py: 4, color: '#9CA3AF' }}>
+              No applications yet. Start applying to jobs!
+            </Typography>
+          ) : (
+            storedApplications.map((apiApp, index) => {
+              const app = transformApplicationToDisplay(apiApp)
+              return (
+                <Box key={app.id} className={styles.applicationEntry}>
+                  {index > 0 && <Box className={styles.applicationDivider} />}
+                  <Box className={styles.applicationHeader}>
+                    <Box className={styles.applicationTitleRow}>
+                      <Typography component="h3" className={styles.applicationTitle}>
+                        {app.title}
+                      </Typography>
+                      <ButtonBase
+                        type="button"
+                        className={styles.expandButton}
+                        aria-label={`View details for ${app.title}`}
+                        onClick={handleExpandApplication}
+                        disableRipple
+                      >
+                        <Box component="img" src={expandCirclePlusIcon} alt="" className={styles.expandButtonIcon} aria-hidden="true" />
+                      </ButtonBase>
+                    </Box>
+                    <Box
+                      className={styles.statusPill}
+                      sx={{ backgroundColor: APPLICATION_STATUS_CONFIG[app.status].color, color: '#ffffff' }}
+                    >
+                      {app.statusLabel}
+                    </Box>
+                  </Box>
+
+                  <Box className={styles.pipelineWrap}>
+                    <Box className={styles.pipelineLabels}>
+                      {PIPELINE_STAGES.map((stage) => (
+                        <span key={stage} className={styles.pipelineLabel}>
+                          {PIPELINE_STAGE_LABELS[stage]}
+                        </span>
+                      ))}
+                    </Box>
+                    <Box className={styles.pipelineTrack}>
+                      <Box
+                        className={`${styles.pipelineFill} ${styles[`pipelineFill${PIPELINE_STAGE_INDEX[app.pipelineStage]}`]}`}
+                      />
+                    </Box>
+                  </Box>
+
+                  <Typography component="p" className={styles.applicationMessage}>
+                    {app.message}
+                    {app.messageLink && (
+                      <>
+                        <Link href={app.messageLink} className={styles.applicationMessageLink}>
+                          {app.messageLinkText}
+                        </Link>
+                      </>
+                    )}
+                  </Typography>
+                </Box>
+              )
+            })
+          )}
         </Box>
       </Box>
     </Box>
