@@ -1,6 +1,10 @@
+import { useEffect } from 'react'
 import { Box, ButtonBase, Link, Typography } from '@mui/material'
+import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/app/auth/AuthContext'
+import type { AppDispatch, RootState } from '@/store'
+import { fetchCandidateProfileById } from '@/store/slices/candidateProfileSlice'
 import bardLineIcon from '@/assets/candidate-dashboard/bard-line.svg'
 import expandCirclePlusIcon from '@/assets/candidate-dashboard/expand-circle-plus.svg'
 import bookmarkLineIcon from '@/assets/candidate-dashboard/bookmark-line.svg'
@@ -109,7 +113,15 @@ type QuickAction = {
 
 const CandidateDashboardPage = () => {
   const navigate = useNavigate()
+  const dispatch = useDispatch<AppDispatch>()
   const { user } = useAuth()
+  const profile = useSelector((state: RootState) => state.candidateProfile.profile)
+
+  useEffect(() => {
+    const candidateId = user?.id
+    if (!candidateId || profile) return
+    void dispatch(fetchCandidateProfileById(candidateId))
+  }, [dispatch, user?.id, profile])
 
   const firstName = user?.displayName?.split(' ')[0] ?? 'there'
 
