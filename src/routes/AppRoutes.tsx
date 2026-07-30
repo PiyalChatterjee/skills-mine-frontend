@@ -7,6 +7,7 @@ import { MancoLayout } from '@/layouts/MancoLayout'
 import { PublicLayout } from '@/layouts/PublicLayout'
 import { RecruiterLayout } from '@/layouts/RecruiterLayout'
 import LoginPage from '@/modules/auth/pages/LoginPage'
+import SignupPage from '@/modules/auth/pages/SignupPage'
 import LandingPage from '@/modules/public/pages/LandingPage'
 import { PortalRoute } from '@/routes/PortalRoute'
 import { PermissionGuard } from '@/routes/guards/PermissionGuard'
@@ -36,6 +37,7 @@ export const AppRoutes = () => {
         <Route element={<PublicLayout />}>
           <Route path={ROUTE_PATHS.landing} element={<LandingPage />} />
           <Route path={ROUTE_PATHS.login} element={<LoginPage />} />
+          <Route path={ROUTE_PATHS.signup} element={<SignupPage />} />
         </Route>
 
         <Route element={<ProtectedRoute />}>
