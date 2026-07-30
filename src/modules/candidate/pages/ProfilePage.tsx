@@ -127,10 +127,10 @@ const ProfilePage = () => {
 
   useEffect(() => {
     const candidateId = user?.id;
-    if (!candidateId) return;
+    if (!candidateId || candidateProfile) return;
 
     void dispatch(fetchCandidateProfileById(candidateId));
-  }, [dispatch, user?.id]);
+  }, [dispatch, user?.id, candidateProfile]);
 
   useEffect(() => {
     reset(getProfileFormValues(candidateProfile));
