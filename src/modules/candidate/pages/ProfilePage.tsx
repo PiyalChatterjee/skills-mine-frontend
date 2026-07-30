@@ -1,24 +1,34 @@
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
-import { Box, Button, Divider, Stack, TextField, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  Divider,
+  Stack,
+  TextField,
+  Typography,
+} from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
-import { Controller, useFieldArray, useForm } from "react-hook-form";
+import { Controller, useFieldArray } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/app/auth/AuthContext";
 import { PasswordVisibilityAdornment } from "@/components/PasswordVisibilityAdornment";
+import { useZodForm } from "@/hooks/useZodForm";
 import { ROUTE_PATHS } from "@/routes/routePaths";
-import { candidateApi } from "@/services/api/candidateApi";
 import type { AppDispatch, RootState } from "@/store";
 import {
-  fetchCandidateProfileFailure,
-  fetchCandidateProfileStart,
-  fetchCandidateProfileSuccess,
-  getCandidateProfileErrorMessage,
+  fetchCandidateProfileById,
+  updateCandidateProfileById,
 } from "@/store/slices/candidateProfileSlice";
-import { ProfileSelectField, ProfileTextField } from "@/modules/candidate/components/ProfileFormFields";
+import { pushNotification } from "@/store/slices/notificationSlice";
 import {
+  ProfileSelectField,
+  ProfileTextField,
+} from "@/modules/candidate/components/ProfileFormFields";
+import {
+  getCandidateProfileUpdatePayload,
   getProfileFormValues,
   PROFILE_SELECT_OPTIONS,
-  type ProfileFormValues,
+  profileFormSchema,
 } from "@/modules/candidate/pages/profileForm.config";
 import cameraPlaceholderIconSrc from "@/assets/icons/camera-placeholder.svg";
 import eyeOffIconSrc from "@/assets/icons/eye-off.svg";
@@ -40,11 +50,22 @@ type SectionCardProps = {
   children: React.ReactNode;
 };
 
-const SectionCard = ({ iconSrc, title, showEdit = true, onEdit, children }: SectionCardProps) => (
+const SectionCard = ({
+  iconSrc,
+  title,
+  showEdit = true,
+  onEdit,
+  children,
+}: SectionCardProps) => (
   <Box className={styles.sectionCard}>
     <Box className={styles.sectionCardHeader}>
       <Box className={styles.sectionCardTitleGroup}>
-        <img src={iconSrc} alt="" aria-hidden="true" className={styles.sectionIcon} />
+        <img
+          src={iconSrc}
+          alt=""
+          aria-hidden="true"
+          className={styles.sectionIcon}
+        />
         <Typography className={styles.sectionCardTitle}>{title}</Typography>
       </Box>
       {showEdit && (
@@ -53,7 +74,12 @@ const SectionCard = ({ iconSrc, title, showEdit = true, onEdit, children }: Sect
           className={styles.editButton}
           onClick={onEdit}
           startIcon={
-            <img src={pencilLineIconSrc} alt="" aria-hidden="true" className={styles.editButtonIcon} />
+            <img
+              src={pencilLineIconSrc}
+              alt=""
+              aria-hidden="true"
+              className={styles.editButtonIcon}
+            />
           }
         >
           Edit
@@ -71,45 +97,39 @@ const ProfilePage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
   const { user } = useAuth();
-  const candidateProfile = useSelector((state: RootState) => state.candidateProfile.profile);
-  const { control, formState: { isDirty }, reset, watch } = useForm<ProfileFormValues>({
+  const candidateProfile = useSelector(
+    (state: RootState) => state.candidateProfile.profile,
+  );
+  const {
+    control,
+    formState: { isDirty },
+    getValues,
+    reset,
+    trigger,
+    watch,
+  } = useZodForm(profileFormSchema, {
     defaultValues: getProfileFormValues(null),
   });
-  const { fields: certificationFields, append: appendCertificationField } = useFieldArray({
-    control,
-    name: "certifications",
-  });
+  const { fields: certificationFields, append: appendCertificationField } =
+    useFieldArray({
+      control,
+      name: "certifications",
+    });
   const [isPasswordDisabled, setIsPasswordDisabled] = useState(true);
   const [isPasswordVisible, setPasswordVisible] = useState(false);
   const [isPersonalEditing, setIsPersonalEditing] = useState(false);
   const [isDesiredEditing, setIsDesiredEditing] = useState(false);
   const [isEducationEditing, setIsEducationEditing] = useState(false);
-  const [profilePhotoPreviewUrl, setProfilePhotoPreviewUrl] = useState<string | null>(null);
+  const [profilePhotoPreviewUrl, setProfilePhotoPreviewUrl] = useState<
+    string | null
+  >(null);
   const profilePhotoInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     const candidateId = user?.id;
     if (!candidateId) return;
 
-    let active = true;
-
-    const loadCandidateProfile = async () => {
-      dispatch(fetchCandidateProfileStart());
-      try {
-        const profile = await candidateApi.getById(candidateId);
-        if (!active) return;
-        dispatch(fetchCandidateProfileSuccess(profile));
-      } catch (error) {
-        if (!active) return;
-        dispatch(fetchCandidateProfileFailure(getCandidateProfileErrorMessage(error)));
-      }
-    };
-
-    void loadCandidateProfile();
-
-    return () => {
-      active = false;
-    };
+    void dispatch(fetchCandidateProfileById(candidateId));
   }, [dispatch, user?.id]);
 
   useEffect(() => {
@@ -162,15 +182,64 @@ const ProfilePage = () => {
     };
   }, [profilePhotoPreviewUrl]);
 
-  const handleDashboard = () => {
+  const handleDashboard = async () => {
     if (isDirty) {
-      // TODO: Save profile changes when update endpoint is available.
+      const isFormValid = await trigger();
+      if (!isFormValid) {
+        return;
+      }
+
+      const candidateId = user?.id;
+      if (!candidateId) {
+        return;
+      }
+
+      const payload = getCandidateProfileUpdatePayload(
+        getValues(),
+        candidateProfile,
+      );
+
+      try {
+        const updatedProfile = await dispatch(
+          updateCandidateProfileById({ candidateId, payload }),
+        ).unwrap();
+
+        reset(getProfileFormValues(updatedProfile));
+        setIsPersonalEditing(false);
+        setIsDesiredEditing(false);
+        setIsEducationEditing(false);
+        setIsPasswordDisabled(true);
+        setPasswordVisible(false);
+        dispatch(
+          pushNotification({
+            title: "Profile updated",
+            message: "Your changes were saved successfully.",
+            level: "success",
+          }),
+        );
+        navigate(ROUTE_PATHS.candidateDashboard);
+      } catch (error) {
+        const message =
+          typeof error === "string"
+            ? error
+            : "Unable to save your profile. Please try again.";
+        dispatch(
+          pushNotification({
+            title: "Save failed",
+            message,
+            level: "error",
+          }),
+        );
+        return;
+      }
+
       return;
     }
     navigate(ROUTE_PATHS.candidateDashboard);
   };
 
-  const activeProfilePhotoUrl = profilePhotoPreviewUrl ?? candidateProfile?.profilePhotoUrl ?? null;
+  const activeProfilePhotoUrl =
+    profilePhotoPreviewUrl ?? candidateProfile?.profilePhotoUrl ?? null;
   const passwordValue = watch("password");
   const hasPasswordValue = Boolean(passwordValue?.length);
 
@@ -184,7 +253,6 @@ const ProfilePage = () => {
       <Box className={styles.layout}>
         {/* ── Left: Form sections ── */}
         <Stack className={styles.formStack}>
-
           {/* ── Personal details ── */}
           <SectionCard
             iconSrc={iconPersonalSrc}
@@ -192,9 +260,25 @@ const ProfilePage = () => {
             onEdit={handleEditPersonal}
           >
             <Box className={styles.fieldsGrid}>
-              <ProfileTextField control={control} name="fullName" label="Full name" fullWidth disabled={!isPersonalEditing} />
-              <ProfileTextField control={control} name="email" label="Email address" disabled={!isPersonalEditing} />
-              <ProfileTextField control={control} name="phoneNumber" label="Phone number" disabled={!isPersonalEditing} />
+              <ProfileTextField
+                control={control}
+                name="fullName"
+                label="Full name"
+                fullWidth
+                disabled={!isPersonalEditing}
+              />
+              <ProfileTextField
+                control={control}
+                name="email"
+                label="Email address"
+                disabled={!isPersonalEditing}
+              />
+              <ProfileTextField
+                control={control}
+                name="phoneNumber"
+                label="Phone number"
+                disabled={!isPersonalEditing}
+              />
               <ProfileSelectField
                 control={control}
                 name="residentialLocation"
@@ -212,7 +296,12 @@ const ProfilePage = () => {
             onEdit={handleEditDesired}
           >
             <Box className={styles.fieldsGrid}>
-              <ProfileTextField control={control} name="preferredJobTitle" label="Preferred job title" disabled={!isDesiredEditing} />
+              <ProfileTextField
+                control={control}
+                name="preferredJobTitle"
+                label="Preferred job title"
+                disabled={!isDesiredEditing}
+              />
               <ProfileSelectField
                 control={control}
                 name="targetedIndustries"
@@ -253,7 +342,9 @@ const ProfilePage = () => {
             <Box className={styles.educationBody}>
               {/* Cert grid: label + 3 cert rows + add button — all full-width */}
               <Box className={styles.certGrid}>
-                <Typography className={styles.certLabel}>Relevant certifications</Typography>
+                <Typography className={styles.certLabel}>
+                  Relevant certifications
+                </Typography>
                 {certificationFields.map((field, index) => (
                   <Controller
                     key={field.id}
@@ -302,10 +393,22 @@ const ProfilePage = () => {
             showEdit={false}
           >
             <Box className={styles.fieldsGrid}>
-              <ProfileTextField control={control} name="currentJobTitle" label="Current job title" placeholder="Current job title" />
-              <ProfileTextField control={control} name="currentEmployer" label="Current employer" placeholder="Current employer" />
+              <ProfileTextField
+                control={control}
+                name="currentJobTitle"
+                label="Current job title"
+                placeholder="Current job title"
+              />
+              <ProfileTextField
+                control={control}
+                name="currentEmployer"
+                label="Current employer"
+                placeholder="Current employer"
+              />
               <Box className={styles.fieldBlock}>
-                <Typography className={styles.fieldLabel}>Total years of work experience</Typography>
+                <Typography className={styles.fieldLabel}>
+                  Total years of work experience
+                </Typography>
                 <Controller
                   control={control}
                   name="totalYearsOfExperience"
@@ -342,7 +445,11 @@ const ProfilePage = () => {
                     <TextField
                       variant="outlined"
                       fullWidth
-                      type={hasPasswordValue && isPasswordVisible ? "text" : "password"}
+                      type={
+                        hasPasswordValue && isPasswordVisible
+                          ? "text"
+                          : "password"
+                      }
                       value={field.value ?? ""}
                       onChange={field.onChange}
                       onBlur={field.onBlur}
@@ -352,24 +459,27 @@ const ProfilePage = () => {
                       className={`${styles.readonlyInput} ${isPasswordDisabled ? styles.readonlyInputDisabled : ""}`}
                       slotProps={{
                         input: {
-                          endAdornment: hasPasswordValue
-                            ? isPasswordDisabled
-                              ? (
-                                  <Box className={styles.eyeIcon}>
-                                    <img src={eyeOffIconSrc} alt="" aria-hidden="true" className={styles.passwordToggleIcon} />
-                                  </Box>
-                                )
-                              : (
-                                <PasswordVisibilityAdornment
-                                  visible={isPasswordVisible}
-                                  onToggle={() => {
-                                    setPasswordVisible((previous) => !previous);
-                                  }}
-                                  buttonClassName={styles.passwordToggleButton}
-                                  iconClassName={styles.passwordToggleIcon}
+                          endAdornment: hasPasswordValue ? (
+                            isPasswordDisabled ? (
+                              <Box className={styles.eyeIcon}>
+                                <img
+                                  src={eyeOffIconSrc}
+                                  alt=""
+                                  aria-hidden="true"
+                                  className={styles.passwordToggleIcon}
                                 />
-                              )
-                            : null,
+                              </Box>
+                            ) : (
+                              <PasswordVisibilityAdornment
+                                visible={isPasswordVisible}
+                                onToggle={() => {
+                                  setPasswordVisible((previous) => !previous);
+                                }}
+                                buttonClassName={styles.passwordToggleButton}
+                                iconClassName={styles.passwordToggleIcon}
+                              />
+                            )
+                          ) : null,
                         },
                       }}
                     />
@@ -397,13 +507,15 @@ const ProfilePage = () => {
               {isDirty ? "Save Changes" : "Go to Your Dashboard"}
             </Button>
           </Box>
-
         </Stack>
 
         {/* ── Right: Profile photo sidebar ── */}
         <Box className={styles.sidebar}>
           <Box className={styles.photoCard}>
-            <Box className={styles.avatarFrame} aria-label="Profile photo frame">
+            <Box
+              className={styles.avatarFrame}
+              aria-label="Profile photo frame"
+            >
               {activeProfilePhotoUrl ? (
                 <img
                   src={activeProfilePhotoUrl}
@@ -412,7 +524,11 @@ const ProfilePage = () => {
                 />
               ) : (
                 <Box className={styles.avatarPlaceholderIcon}>
-                  <img src={cameraPlaceholderIconSrc} alt="" aria-hidden="true" />
+                  <img
+                    src={cameraPlaceholderIconSrc}
+                    alt=""
+                    aria-hidden="true"
+                  />
                 </Box>
               )}
             </Box>
