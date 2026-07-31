@@ -5,6 +5,7 @@ export const ROUTE_PATHS = {
   portal: '/portal',
   dashboard: '/dashboard',
   candidateDashboard: '/candidate/dashboard',
+  cvBuilder: '/candidate/cv-builder',
   jobs: '/jobs',
   profile: '/profile',
   recruiter: '/recruiter',

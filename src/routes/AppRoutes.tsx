@@ -21,6 +21,7 @@ const DashboardEntryPage = lazy(
 const CandidateDashboardPage = lazy(
   () => import('@/modules/candidate/pages/CandidateDashboardPage'),
 )
+const CvBuilderPage = lazy(() => import('@/modules/cv-builder/pages/CvBuilderPage'))
 const JobsPage = lazy(() => import('@/modules/candidate/pages/JobsPage'))
 const ProfilePage = lazy(() => import('@/modules/candidate/pages/ProfilePage'))
 const RecruiterPage = lazy(() => import('@/modules/recruiter/pages/RecruiterPage'))
@@ -48,6 +49,7 @@ export const AppRoutes = () => {
           <Route element={<CandidateLayout />}>
             <Route element={<RoleGuard allowedRoles={['candidate']} fallbackPath={ROUTE_PATHS.dashboard} />}>
               <Route path={ROUTE_PATHS.candidateDashboard} element={<CandidateDashboardPage />} />
+              <Route path={ROUTE_PATHS.cvBuilder} element={<CvBuilderPage />} />
             </Route>
             <Route path={ROUTE_PATHS.jobs} element={<JobsPage />} />
             <Route path={ROUTE_PATHS.profile} element={<ProfilePage />} />

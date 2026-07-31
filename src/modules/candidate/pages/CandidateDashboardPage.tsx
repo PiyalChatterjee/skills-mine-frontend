@@ -232,7 +232,7 @@ const CandidateDashboardPage = () => {
 
   const handleNavigateJobs = () => navigate(ROUTE_PATHS.jobs)
   const handleBuildCv = () => {
-    // TODO: Navigate to CV builder when route is available
+    navigate(ROUTE_PATHS.cvBuilder)
   }
   const handleExpandApplication = () => {
     // TODO: Navigate to application detail when route is available
