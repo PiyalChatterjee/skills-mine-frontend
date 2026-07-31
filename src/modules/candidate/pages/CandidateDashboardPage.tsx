@@ -1,7 +1,8 @@
 import { Box, ButtonBase, CircularProgress, Link, Typography } from '@mui/material'
+import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/app/auth/AuthContext'
-import type { CandidateApplication } from '@/store/slices/candidateApplicationsSlice'
+import type { CandidateApplication } from '@/modules/candidate/types'
 import {
   useCandidateApplicationsQuery,
   useCandidateProfileQuery,
@@ -15,6 +16,10 @@ import fileList2LineIcon from '@/assets/candidate-dashboard/file-list-2-line.svg
 import progress5LineIcon from '@/assets/candidate-dashboard/progress-5-line.svg'
 import verifiedBadgeLineIcon from '@/assets/candidate-dashboard/verified-badge-line.svg'
 import { ROUTE_PATHS } from '@/routes/routePaths'
+import {
+  selectCandidateApplications,
+  selectCandidateProfile,
+} from '@/store/selectors/candidateSelectors'
 import styles from './CandidateDashboardPage.module.css'
 
 // ── Types ─────────────────────────────────────────────────────────────
@@ -184,15 +189,11 @@ const CandidateDashboardPage = () => {
   const navigate = useNavigate()
   const { user } = useAuth()
   const candidateId = user?.id
-  const {
-    data: profile,
-    isLoading: profileLoading,
-  } = useCandidateProfileQuery(candidateId)
+  const profile = useSelector(selectCandidateProfile)
+  const storedApplications = useSelector(selectCandidateApplications)
+  const { isLoading: profileLoading } = useCandidateProfileQuery(candidateId)
   const applicationIds = profile?.applications ?? []
-  const {
-    data: storedApplications = [],
-    isLoading: applicationsLoading,
-  } = useCandidateApplicationsQuery(applicationIds)
+  const { isLoading: applicationsLoading } = useCandidateApplicationsQuery(applicationIds)
 
   const firstName = profile?.fullName?.split(' ')[0] ?? user?.displayName?.split(' ')[0] ?? 'there'
 

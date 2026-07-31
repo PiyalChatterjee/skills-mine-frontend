@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { emailSchema } from "@/app/validation.schema";
-import type { CandidateProfile } from "@/store/slices/candidateProfileSlice";
+import type { CandidateProfile } from "@/modules/candidate/types";
 
 const requiredField = (label: string) =>
   z.string().trim().min(1, `${label} is required`);

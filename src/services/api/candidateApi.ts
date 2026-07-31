@@ -1,8 +1,10 @@
 import { z } from 'zod'
 import { apiClient } from '@/services/api/axios'
 import type { ApiResponse, PaginatedResponse } from '@/types/api'
-import type { CandidateProfile } from '@/store/slices/candidateProfileSlice'
-import type { CandidateApplication } from '@/store/slices/candidateApplicationsSlice'
+import type {
+  CandidateApplication,
+  CandidateProfile,
+} from '@/modules/candidate/types'
 
 const candidateEducationSchema = z.object({
   institution: z.string(),

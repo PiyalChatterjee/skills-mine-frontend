@@ -7,7 +7,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Controller, useFieldArray } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/app/auth/AuthContext";
@@ -19,6 +19,7 @@ import {
 } from "@/modules/candidate/hooks/useCandidateQueries";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import type { AppDispatch } from "@/store";
+import { selectCandidateProfile } from "@/store/selectors/candidateSelectors";
 import { pushNotification } from "@/store/slices/notificationSlice";
 import {
   ProfileSelectField,
@@ -98,7 +99,8 @@ const ProfilePage = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { user } = useAuth();
   const candidateId = user?.id;
-  const { data: candidateProfile } = useCandidateProfileQuery(candidateId);
+  useCandidateProfileQuery(candidateId);
+  const candidateProfile = useSelector(selectCandidateProfile);
   const updateCandidateProfileMutation = useUpdateCandidateProfileMutation();
   const resolvedCandidateProfile = candidateProfile ?? null;
   const {
