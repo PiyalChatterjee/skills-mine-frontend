@@ -17,6 +17,7 @@ import progress5LineIcon from '@/assets/candidate-dashboard/progress-5-line.svg'
 import verifiedBadgeLineIcon from '@/assets/candidate-dashboard/verified-badge-line.svg'
 import { ROUTE_PATHS } from '@/routes/routePaths'
 import {
+  selectCandidateApplicationIds,
   selectCandidateApplications,
   selectCandidateProfile,
 } from '@/store/selectors/candidateSelectors'
@@ -190,9 +191,9 @@ const CandidateDashboardPage = () => {
   const { user } = useAuth()
   const candidateId = user?.id
   const profile = useSelector(selectCandidateProfile)
+  const applicationIds = useSelector(selectCandidateApplicationIds)
   const storedApplications = useSelector(selectCandidateApplications)
   const { isLoading: profileLoading } = useCandidateProfileQuery(candidateId)
-  const applicationIds = profile?.applications ?? []
   const { isLoading: applicationsLoading } = useCandidateApplicationsQuery(applicationIds)
 
   const firstName = profile?.fullName?.split(' ')[0] ?? user?.displayName?.split(' ')[0] ?? 'there'

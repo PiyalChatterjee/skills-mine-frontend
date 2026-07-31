@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react'
 import { useMutation, useQueryClient, type UseMutationOptions } from '@tanstack/react-query'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { useStandardQuery } from '@/hooks/useStandardQuery'
 import {
   candidateApi,
@@ -8,6 +8,7 @@ import {
 } from '@/services/api/candidateApi'
 import type { CandidateApplication, CandidateProfile } from '@/modules/candidate/types'
 import type { AppDispatch } from '@/store'
+import { selectCandidateApplications } from '@/store/selectors/candidateSelectors'
 import { setCandidateApplications } from '@/store/slices/candidateApplicationsSlice'
 import { setCandidateProfile } from '@/store/slices/candidateProfileSlice'
 import type { ApiError } from '@/types'
@@ -43,16 +44,17 @@ export const useCandidateApplicationsQuery = (
   enabled = true,
 ) => {
   const dispatch = useDispatch<AppDispatch>()
+  const storedApplications = useSelector(selectCandidateApplications)
   const normalizedApplicationIds = useMemo(
     () => applicationIds.filter(Boolean),
     [applicationIds],
   )
 
   useEffect(() => {
-    if (!normalizedApplicationIds.length) {
+    if (!normalizedApplicationIds.length && storedApplications.length) {
       dispatch(setCandidateApplications([]))
     }
-  }, [dispatch, normalizedApplicationIds])
+  }, [dispatch, normalizedApplicationIds, storedApplications.length])
 
   return useStandardQuery<CandidateApplication[]>(
     candidateQueryKeys.applications(normalizedApplicationIds),
