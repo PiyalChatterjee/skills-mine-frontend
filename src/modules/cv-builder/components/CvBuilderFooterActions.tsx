@@ -1,4 +1,5 @@
 import { Box, Button } from '@mui/material'
+import arrowRight from '@/assets/cv-builder/arrow-right.svg'
 import styles from '../pages/CvBuilderPage.module.css'
 
 type CvBuilderFooterActionsProps = {
@@ -11,12 +12,12 @@ const CvBuilderFooterActions = ({ onBack, onNext, isNextDisabled }: CvBuilderFoo
   <Box className={styles.footerBar}>
     <Box className={styles.footerBarInner}>
       <Button type="button" onClick={onBack} className={styles.backButton}>
-        <span className={styles.buttonArrow} aria-hidden="true">&larr;</span>
+        <Box component="img" src={arrowRight} alt="" className={styles.buttonArrowBack} aria-hidden="true" />
         Back
       </Button>
       <Button type="button" onClick={onNext} className={styles.nextButton} disabled={isNextDisabled}>
         Next
-        <span className={styles.buttonArrow} aria-hidden="true">&rarr;</span>
+        <Box component="img" src={arrowRight} alt="" className={styles.buttonArrowNext} aria-hidden="true" />
       </Button>
     </Box>
   </Box>

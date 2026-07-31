@@ -1,6 +1,7 @@
 import { Box } from '@mui/material'
 import settingsIcon from '@/assets/cv-builder/settings-4-line.svg'
 import uploadIcon from '@/assets/cv-builder/upload-2-line.svg'
+import CvBuilderCareerHistoryForm from '../components/CvBuilderCareerHistoryForm'
 import CvBuilderFooterActions from '../components/CvBuilderFooterActions'
 import CvBuilderHeroSection from '../components/CvBuilderHeroSection'
 import CvBuilderLauncher from '../components/CvBuilderLauncher'
@@ -17,6 +18,7 @@ const CvBuilderPage = () => {
     selectedUploadFile,
     currentStepId,
     formValues,
+    careerHistory,
     canGoNext,
     handleUploadFileSelect,
     openUploadPicker,
@@ -25,6 +27,12 @@ const CvBuilderPage = () => {
     handleSelectFieldChange,
     goBack,
     goNext,
+    addPosition,
+    updatePosition,
+    addTask,
+    updateTask,
+    addProject,
+    updateProject,
   } = useCvBuilder()
 
   const actionCards: CvActionCard[] = [
@@ -60,7 +68,7 @@ const CvBuilderPage = () => {
         aria-hidden="true"
       />
 
-      <CvBuilderHeroSection />
+      <CvBuilderHeroSection totalSteps={CV_BUILDER_STEPS.length} activeStepId={activeView === 'launcher' ? 1 : currentStepId} />
 
       <Box component="section" className={styles.contentSection}>
         {activeView === 'launcher' ? (
@@ -68,11 +76,26 @@ const CvBuilderPage = () => {
         ) : (
           <Box className={styles.contentLayout}>
             <CvBuilderProgressRail steps={CV_BUILDER_STEPS} activeStepId={currentStepId} />
-            <CvBuilderPersonalDetailsForm
-              values={formValues}
-              onTextFieldChange={handleTextFieldChange}
-              onSelectFieldChange={handleSelectFieldChange}
-            />
+            <Box key={currentStepId}>
+              {currentStepId === 1 && (
+                <CvBuilderPersonalDetailsForm
+                  values={formValues}
+                  onTextFieldChange={handleTextFieldChange}
+                  onSelectFieldChange={handleSelectFieldChange}
+                />
+              )}
+              {currentStepId === 2 && (
+                <CvBuilderCareerHistoryForm
+                  entries={careerHistory}
+                  onUpdatePosition={updatePosition}
+                  onAddTask={addTask}
+                  onUpdateTask={updateTask}
+                  onAddProject={addProject}
+                  onUpdateProject={updateProject}
+                  onAddPosition={addPosition}
+                />
+              )}
+            </Box>
           </Box>
         )}
       </Box>

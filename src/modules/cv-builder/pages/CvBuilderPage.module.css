@@ -277,10 +277,22 @@
   font-weight: 500;
 }
 
+@keyframes stepEnter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .formPanel {
   display: flex;
   flex-direction: column;
   align-items: stretch;
+  animation: stepEnter 280ms cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
 }
 
 .formHeader {
@@ -303,6 +315,8 @@
 .formIcon {
   width: 24px;
   height: 24px;
+  /* white SVG → #03478C */
+  filter: brightness(0) saturate(100%) invert(17%) sepia(97%) saturate(632%) hue-rotate(194deg) brightness(99%) contrast(104%);
 }
 
 .sectionTitle,
@@ -420,6 +434,107 @@
   justify-content: space-between;
 }
 
+/* ─── Career history ─────────────────────────────────────────────────────── */
+
+.positionCard {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 24px;
+  margin-bottom: 32px;
+  background-color: #fff;
+  border: 1px solid #e1e3e6;
+  border-radius: 12px;
+}
+
+.positionLabel,
+.positionLabel:global(.MuiTypography-root) {
+  color: #2b96d9;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
+}
+
+.positionRowGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+}
+
+.dynamicListSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dynamicListLabel,
+.dynamicListLabel:global(.MuiTypography-root) {
+  color: #2a3132;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
+  margin-bottom: 4px;
+}
+
+.dynamicListField {
+  margin-bottom: 0;
+}
+
+.addDashedButton,
+.addDashedButton:global(.MuiButton-root) {
+  min-width: 0;
+  height: 48px;
+  padding: 0 16px;
+  border: 1.5px dashed #b0b4b8;
+  border-radius: 8px;
+  background-color: transparent;
+  color: #2a3132;
+  text-transform: none;
+  box-shadow: none;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
+  justify-content: center;
+  margin-top: 4px;
+}
+
+.addDashedButton:global(.MuiButton-root):hover {
+  background-color: #f6f7f8;
+  border-color: #2b96d9;
+  color: #2b96d9;
+}
+
+.addPositionButton,
+.addPositionButton:global(.MuiButton-root) {
+  min-width: 0;
+  height: 52px;
+  padding: 0 24px;
+  border-radius: 8px;
+  background: linear-gradient(63.37deg, #2b96d9 0%, #32abbf 100%);
+  color: #fff;
+  text-transform: none;
+  box-shadow: none;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.addPositionButton:global(.MuiButton-root):hover {
+  box-shadow: 0 4px 12px rgba(43, 150, 217, 0.3);
+}
+
+/* ─── Footer ─────────────────────────────────────────────────────────────── */
+
 .backButton,
 .backButton:global(.MuiButton-root) {
   min-width: 0;
@@ -430,6 +545,7 @@
   color: #2a3132;
   text-transform: none;
   box-shadow: none;
+  gap: 10px;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
   font-size: 16px;
   font-weight: 400;
@@ -442,10 +558,11 @@
   min-width: 0;
   padding: 12px 30px;
   border-radius: 999px;
-  background-color: #e1e3e6;
-  color: #b0b4b8;
+  background-color: #32abbf;
+  color: #fff;
   text-transform: none;
   box-shadow: none;
+  gap: 10px;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
   font-size: 16px;
   font-weight: 400;
@@ -458,18 +575,30 @@
   color: #b0b4b8;
 }
 
-.buttonArrow {
-  display: inline-flex;
-  align-items: center;
-  font-size: 16px;
+.backButton,
+.backButton:global(.MuiButton-root) {
+  gap: 10px;
 }
 
-.backButton .buttonArrow {
-  margin-right: 10px;
+.buttonArrowBack {
+  display: block;
+  width: 16px;
+  height: 16px;
+  transform: rotate(180deg);
+  /* tint to match charcoal text */
+  filter: brightness(0) saturate(100%) invert(19%) sepia(9%) saturate(487%) hue-rotate(137deg) brightness(90%) contrast(89%);
 }
 
-.nextButton .buttonArrow {
-  margin-left: 10px;
+.nextButton .buttonArrowNext,
+.nextButton:global(.MuiButton-root) .buttonArrowNext {
+  display: block;
+  width: 16px;
+  height: 16px;
+  filter: brightness(0) invert(1);
+}
+
+.nextButton:global(.MuiButton-root):global(.Mui-disabled) .buttonArrowNext {
+  filter: brightness(0) saturate(100%) invert(76%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(100%);
 }
 
 @media (max-width: 900px) {
@@ -527,6 +656,10 @@
   .fieldGroupTwo,
   .fieldGroupOne {
     grid-column: 1 / -1;
+  }
+
+  .positionRowGrid {
+    grid-template-columns: 1fr;
   }
 
   .contentSection {

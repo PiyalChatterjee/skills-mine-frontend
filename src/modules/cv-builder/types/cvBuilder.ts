@@ -53,3 +53,29 @@ export const GENDER_OPTIONS = ['Male', 'Female', 'Non-binary', 'Prefer not to sa
 export const DISABILITY_OPTIONS = ['No', 'Yes', 'Prefer not to say']
 export const LOCATION_OPTIONS = ['Johannesburg', 'Cape Town', 'Durban', 'Pretoria', 'Remote']
 export const NOTICE_PERIOD_OPTIONS = ['Immediately', '2 weeks', '1 month', '2 months', '3 months']
+
+// ─── Career History ───────────────────────────────────────────────────────────
+
+export type CareerHistoryEntry = {
+  id: string
+  companyName: string
+  positionHeld: string
+  startDate: string
+  endDate: string
+  isCurrentRole: boolean
+  tasks: string[]
+  projects: string[]
+}
+
+export const createCareerHistoryEntry = (index: number): CareerHistoryEntry => ({
+  id: `${Date.now()}-${index}`,
+  companyName: '',
+  positionHeld: '',
+  startDate: '',
+  endDate: '',
+  isCurrentRole: false,
+  tasks: [''],
+  projects: [''],
+})
+
+export const CAREER_HISTORY_INITIAL: CareerHistoryEntry[] = [createCareerHistoryEntry(0)]

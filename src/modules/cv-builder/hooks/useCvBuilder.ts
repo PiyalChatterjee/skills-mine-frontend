@@ -1,9 +1,12 @@
 import { type ChangeEvent, useRef, useState } from 'react'
 import {
+  CAREER_HISTORY_INITIAL,
   CV_BUILDER_STEPS,
   PERSONAL_DETAILS_INITIAL_VALUES,
-  type PersonalDetailsFormState,
+  createCareerHistoryEntry,
+  type CareerHistoryEntry,
   type CvBuilderView,
+  type PersonalDetailsFormState,
 } from '../types/cvBuilder'
 
 const FIRST_STEP = 1
@@ -15,6 +18,7 @@ const useCvBuilder = () => {
   const [selectedUploadFile, setSelectedUploadFile] = useState<File | null>(null)
   const [currentStepId, setCurrentStepId] = useState<number>(FIRST_STEP)
   const [formValues, setFormValues] = useState<PersonalDetailsFormState>(PERSONAL_DETAILS_INITIAL_VALUES)
+  const [careerHistory, setCareerHistory] = useState<CareerHistoryEntry[]>(CAREER_HISTORY_INITIAL)
 
   const handleUploadFileSelect = (event: ChangeEvent<HTMLInputElement>) => {
     const nextFile = event.target.files?.[0] ?? null
@@ -66,12 +70,67 @@ const useCvBuilder = () => {
     setCurrentStepId((prevStepId) => prevStepId + 1)
   }
 
+  // ─── Career History ─────────────────────────────────────────────────────────
+
+  const addPosition = () => {
+    setCareerHistory((prev) => [...prev, createCareerHistoryEntry(prev.length)])
+  }
+
+  const updatePosition = (
+    entryId: string,
+    field: keyof Omit<CareerHistoryEntry, 'id' | 'tasks' | 'projects'>,
+    value: string | boolean,
+  ) => {
+    setCareerHistory((prev) =>
+      prev.map((entry) => (entry.id === entryId ? { ...entry, [field]: value } : entry)),
+    )
+  }
+
+  const addTask = (entryId: string) => {
+    setCareerHistory((prev) =>
+      prev.map((entry) =>
+        entry.id === entryId ? { ...entry, tasks: [...entry.tasks, ''] } : entry,
+      ),
+    )
+  }
+
+  const updateTask = (entryId: string, taskIndex: number, value: string) => {
+    setCareerHistory((prev) =>
+      prev.map((entry) => {
+        if (entry.id !== entryId) return entry
+        const nextTasks = [...entry.tasks]
+        nextTasks[taskIndex] = value
+        return { ...entry, tasks: nextTasks }
+      }),
+    )
+  }
+
+  const addProject = (entryId: string) => {
+    setCareerHistory((prev) =>
+      prev.map((entry) =>
+        entry.id === entryId ? { ...entry, projects: [...entry.projects, ''] } : entry,
+      ),
+    )
+  }
+
+  const updateProject = (entryId: string, projectIndex: number, value: string) => {
+    setCareerHistory((prev) =>
+      prev.map((entry) => {
+        if (entry.id !== entryId) return entry
+        const nextProjects = [...entry.projects]
+        nextProjects[projectIndex] = value
+        return { ...entry, projects: nextProjects }
+      }),
+    )
+  }
+
   return {
     uploadInputRef,
     activeView,
     selectedUploadFile,
     currentStepId,
     formValues,
+    careerHistory,
     canGoNext,
     handleUploadFileSelect,
     openUploadPicker,
@@ -80,6 +139,12 @@ const useCvBuilder = () => {
     handleSelectFieldChange,
     goBack,
     goNext,
+    addPosition,
+    updatePosition,
+    addTask,
+    updateTask,
+    addProject,
+    updateProject,
   }
 }
 
