@@ -1,12 +1,11 @@
-import { useEffect } from 'react'
 import { Box, ButtonBase, CircularProgress, Link, Typography } from '@mui/material'
-import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/app/auth/AuthContext'
-import type { AppDispatch, RootState } from '@/store'
-import { fetchCandidateProfileById } from '@/store/slices/candidateProfileSlice'
-import { fetchCandidateApplications } from '@/store/slices/candidateApplicationsSlice'
 import type { CandidateApplication } from '@/store/slices/candidateApplicationsSlice'
+import {
+  useCandidateApplicationsQuery,
+  useCandidateProfileQuery,
+} from '@/modules/candidate/hooks/useCandidateQueries'
 import bardLineIcon from '@/assets/candidate-dashboard/bard-line.svg'
 import expandCirclePlusIcon from '@/assets/candidate-dashboard/expand-circle-plus.svg'
 import bookmarkLineIcon from '@/assets/candidate-dashboard/bookmark-line.svg'
@@ -183,24 +182,17 @@ const ApplicationEntry = ({ app, isFirst, onExpand }: ApplicationEntryProps) => 
 
 const CandidateDashboardPage = () => {
   const navigate = useNavigate()
-  const dispatch = useDispatch<AppDispatch>()
   const { user } = useAuth()
-  const profile = useSelector((state: RootState) => state.candidateProfile.profile)
-  const profileLoading = useSelector((state: RootState) => state.candidateProfile.isLoading)
-  const storedApplications = useSelector((state: RootState) => state.candidateApplications.applications)
-  const applicationsLoading = useSelector((state: RootState) => state.candidateApplications.isLoading)
-
-  useEffect(() => {
-    const candidateId = user?.id
-    if (!candidateId || profile) return
-    void dispatch(fetchCandidateProfileById(candidateId))
-  }, [dispatch, user?.id, profile])
-
-  useEffect(() => {
-    const applicationIds = profile?.applications
-    if (!applicationIds?.length || storedApplications.length) return
-    void dispatch(fetchCandidateApplications(applicationIds))
-  }, [dispatch, profile?.applications, storedApplications.length])
+  const candidateId = user?.id
+  const {
+    data: profile,
+    isLoading: profileLoading,
+  } = useCandidateProfileQuery(candidateId)
+  const applicationIds = profile?.applications ?? []
+  const {
+    data: storedApplications = [],
+    isLoading: applicationsLoading,
+  } = useCandidateApplicationsQuery(applicationIds)
 
   const firstName = profile?.fullName?.split(' ')[0] ?? user?.displayName?.split(' ')[0] ?? 'there'
 

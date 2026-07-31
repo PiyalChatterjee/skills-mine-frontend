@@ -7,18 +7,18 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { Controller, useFieldArray } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/app/auth/AuthContext";
 import { PasswordVisibilityAdornment } from "@/components/PasswordVisibilityAdornment";
 import { useZodForm } from "@/hooks/useZodForm";
-import { ROUTE_PATHS } from "@/routes/routePaths";
-import type { AppDispatch, RootState } from "@/store";
 import {
-  fetchCandidateProfileById,
-  updateCandidateProfileById,
-} from "@/store/slices/candidateProfileSlice";
+  useCandidateProfileQuery,
+  useUpdateCandidateProfileMutation,
+} from "@/modules/candidate/hooks/useCandidateQueries";
+import { ROUTE_PATHS } from "@/routes/routePaths";
+import type { AppDispatch } from "@/store";
 import { pushNotification } from "@/store/slices/notificationSlice";
 import {
   ProfileSelectField,
@@ -97,9 +97,10 @@ const ProfilePage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
   const { user } = useAuth();
-  const candidateProfile = useSelector(
-    (state: RootState) => state.candidateProfile.profile,
-  );
+  const candidateId = user?.id;
+  const { data: candidateProfile } = useCandidateProfileQuery(candidateId);
+  const updateCandidateProfileMutation = useUpdateCandidateProfileMutation();
+  const resolvedCandidateProfile = candidateProfile ?? null;
   const {
     control,
     formState: { isDirty },
@@ -126,15 +127,8 @@ const ProfilePage = () => {
   const profilePhotoInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
-    const candidateId = user?.id;
-    if (!candidateId || candidateProfile) return;
-
-    void dispatch(fetchCandidateProfileById(candidateId));
-  }, [dispatch, user?.id, candidateProfile]);
-
-  useEffect(() => {
-    reset(getProfileFormValues(candidateProfile));
-  }, [candidateProfile, reset]);
+    reset(getProfileFormValues(resolvedCandidateProfile));
+  }, [resolvedCandidateProfile, reset]);
 
   const handleEditPersonal = () => {
     setIsPersonalEditing(true);
@@ -189,20 +183,20 @@ const ProfilePage = () => {
         return;
       }
 
-      const candidateId = user?.id;
       if (!candidateId) {
         return;
       }
 
       const payload = getCandidateProfileUpdatePayload(
         getValues(),
-        candidateProfile,
+        resolvedCandidateProfile,
       );
 
       try {
-        const updatedProfile = await dispatch(
-          updateCandidateProfileById({ candidateId, payload }),
-        ).unwrap();
+        const updatedProfile = await updateCandidateProfileMutation.mutateAsync({
+          candidateId,
+          payload,
+        });
 
         reset(getProfileFormValues(updatedProfile));
         setIsPersonalEditing(false);
@@ -239,7 +233,7 @@ const ProfilePage = () => {
   };
 
   const activeProfilePhotoUrl =
-    profilePhotoPreviewUrl ?? candidateProfile?.profilePhotoUrl ?? null;
+    profilePhotoPreviewUrl ?? resolvedCandidateProfile?.profilePhotoUrl ?? null;
   const passwordValue = watch("password");
   const hasPasswordValue = Boolean(passwordValue?.length);
 
