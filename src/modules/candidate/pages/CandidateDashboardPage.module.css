@@ -4,6 +4,20 @@
   padding: 40px 80px 48px;
 }
 
+.loadingContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 60vh;
+}
+
+.applicationsLoadingContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+}
+
 /* ── Welcome Banner ─────────────────────────────────────────────────── */
 .welcomeBanner {
   width: 100%;
@@ -369,26 +383,20 @@
   letter-spacing: 0;
   white-space: nowrap;
   flex-shrink: 0;
-}
-
-.pillApplied {
-  background: #72c4e0;
   color: #ffffff;
 }
 
-.pillShortlisted {
-  background: #5bbf8a;
-  color: #ffffff;
-}
+.statusPill[data-status='applied']        { background: #72c4e0; }
+.statusPill[data-status='screening']      { background: #4db8c8; }
+.statusPill[data-status='interview']      { background: #7c5cd8; }
+.statusPill[data-status='rejected']       { background: #e07070; }
+.statusPill[data-status='offer_extended'] { background: #5bbf8a; }
+.statusPill[data-status='shortlisted']    { background: #e085c2; }
 
-.pillInReview {
-  background: #e085c2;
-  color: #ffffff;
-}
-
-.pillUnsuccessful {
-  background: #e07070;
-  color: #ffffff;
+.emptyApplications {
+  text-align: center;
+  padding: 32px 0;
+  color: #9CA3AF;
 }
 
 /* ── Pipeline Progress Bar ───────────────────────────────────────────── */

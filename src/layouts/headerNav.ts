@@ -80,7 +80,8 @@ const HEADER_NAV_DEFINITIONS: Record<HeaderNavKey, HeaderNavDefinition> = {
   },
   candidateCvBuilder: {
     label: 'CV Builder',
-    actionId: 'cvBuilder',
+    to: ROUTE_PATHS.cvBuilder,
+    requiresAuth: true,
   },
   candidateSkillsBuild: {
     label: 'Skills Build',

@@ -35,6 +35,55 @@
 .sidebar {
   flex-shrink: 0;
   width: 258px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── Application Status Legend ──────────────────────────────────────────── */
+
+.statusLegendCard {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 20px 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border: 2px dashed #7c5cd8;
+}
+
+.statusLegendTitle,
+.statusLegendTitle:global(.MuiTypography-root) {
+  margin: 0;
+  color: #03478c;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0.1px;
+}
+
+.statusLegendList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.statusLegendPill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  padding: 0 20px;
+  border-radius: 999px;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  color: #ffffff;
+  white-space: nowrap;
+  align-self: flex-start;
+  min-width: 120px;
 }
 
 .photoCard {

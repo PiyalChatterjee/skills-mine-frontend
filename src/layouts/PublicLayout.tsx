@@ -23,6 +23,7 @@ export const PublicLayout = () => {
   const navigate = useNavigate();
   const { isAuthenticated, tokens } = useAuth();
   const isLoginPage = location.pathname === ROUTE_PATHS.login;
+  const isSignupPage = location.pathname === ROUTE_PATHS.signup;
   const landingMode = useSelector((state: RootState) => state.ui.landingMode);
   const isLandingPage = location.pathname === ROUTE_PATHS.landing;
   const isHiringLandingMode = isLandingPage && landingMode === "startHiring";
@@ -60,6 +61,11 @@ export const PublicLayout = () => {
 
   const navItems = isLoginPage
     ? []
+    : isSignupPage
+      ? buildHeaderNavItems({
+          keys: PUBLIC_HEADER_NAV_PRESETS.landing,
+          pathname: location.pathname,
+        })
     : isLandingPage
       ? buildHeaderNavItems({
           keys: PUBLIC_HEADER_NAV_PRESETS.landing,
@@ -82,9 +88,13 @@ export const PublicLayout = () => {
         onSignUpClick={handleSignUpClick}
         onSearchClick={handleSearchClick}
         showHelpButton={isLoginPage}
-        showProfileBadge={!isLoginPage && !isLandingPage && !isHiringLandingMode}
-        showSearchButton={!isLoginPage && !isLandingPage && !isHiringLandingMode}
-        showSignUp={!isLoginPage}
+        showProfileBadge={
+          !isLoginPage && !isSignupPage && !isLandingPage && !isHiringLandingMode
+        }
+        showSearchButton={
+          !isLoginPage && !isSignupPage && !isLandingPage && !isHiringLandingMode
+        }
+        showSignUp={!isLoginPage && !isSignupPage}
       />
 
       <Box component="main" className={styles.contentArea}>
