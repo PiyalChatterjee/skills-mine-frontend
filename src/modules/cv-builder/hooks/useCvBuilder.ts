@@ -3,10 +3,13 @@ import {
   CAREER_HISTORY_INITIAL,
   CV_BUILDER_STEPS,
   PERSONAL_DETAILS_INITIAL_VALUES,
+  SKILLS_INITIAL,
   createCareerHistoryEntry,
+  createSkillEntry,
   type CareerHistoryEntry,
   type CvBuilderView,
   type PersonalDetailsFormState,
+  type SkillEntry,
 } from '../types/cvBuilder'
 
 const FIRST_STEP = 1
@@ -19,6 +22,7 @@ const useCvBuilder = () => {
   const [currentStepId, setCurrentStepId] = useState<number>(FIRST_STEP)
   const [formValues, setFormValues] = useState<PersonalDetailsFormState>(PERSONAL_DETAILS_INITIAL_VALUES)
   const [careerHistory, setCareerHistory] = useState<CareerHistoryEntry[]>(CAREER_HISTORY_INITIAL)
+  const [skills, setSkills] = useState<SkillEntry[]>(SKILLS_INITIAL)
 
   const handleUploadFileSelect = (event: ChangeEvent<HTMLInputElement>) => {
     const nextFile = event.target.files?.[0] ?? null
@@ -124,6 +128,22 @@ const useCvBuilder = () => {
     )
   }
 
+  // ─── Skills ─────────────────────────────────────────────────────────────────
+
+  const addSkill = () => {
+    setSkills((prev) => [...prev, createSkillEntry()])
+  }
+
+  const updateSkill = (skillId: string, value: string) => {
+    setSkills((prev) =>
+      prev.map((skill) => (skill.id === skillId ? { ...skill, name: value } : skill)),
+    )
+  }
+
+  const removeSkill = (skillId: string) => {
+    setSkills((prev) => prev.filter((skill) => skill.id !== skillId))
+  }
+
   return {
     uploadInputRef,
     activeView,
@@ -131,6 +151,7 @@ const useCvBuilder = () => {
     currentStepId,
     formValues,
     careerHistory,
+    skills,
     canGoNext,
     handleUploadFileSelect,
     openUploadPicker,
@@ -145,6 +166,9 @@ const useCvBuilder = () => {
     updateTask,
     addProject,
     updateProject,
+    addSkill,
+    updateSkill,
+    removeSkill,
   }
 }
 

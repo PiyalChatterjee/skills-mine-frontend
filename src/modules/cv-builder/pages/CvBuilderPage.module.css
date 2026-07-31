@@ -1,6 +1,8 @@
 .pageRoot {
   min-height: 100vh;
   background-color: #fff;
+  display: flex;
+  flex-direction: column;
 }
 
 .hiddenFileInput {
@@ -81,6 +83,8 @@
 }
 
 .contentSection {
+  flex: 1;
+  width: 100%;
   max-width: 1248px;
   margin: 0 auto;
   padding: 34px 16px 120px;
@@ -531,6 +535,128 @@
 
 .addPositionButton:global(.MuiButton-root):hover {
   box-shadow: 0 4px 12px rgba(43, 150, 217, 0.3);
+}
+
+/* ─── Skills ─────────────────────────────────────────────────────────────── */
+
+.skillsFormHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 32px;
+  gap: 16px;
+}
+
+.skillsFormHeader .formHeader {
+  margin-bottom: 0;
+}
+
+.generateButton,
+.generateButton:global(.MuiButton-root) {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 30px;
+  border-radius: 100px;
+  border: 2px solid transparent;
+  background:
+    linear-gradient(#fff, #fff) padding-box,
+    linear-gradient(225deg, #32abbf 0%, #2b96d9 100%) border-box;
+  color: #32abbf;
+  text-transform: none;
+  box-shadow: none;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
+  white-space: nowrap;
+}
+
+.generateButton:global(.MuiButton-root):hover {
+  background:
+    linear-gradient(#f0fafd, #f0fafd) padding-box,
+    linear-gradient(225deg, #32abbf 0%, #2b96d9 100%) border-box;
+}
+
+.generateButtonIcon {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.skillsSubHeading,
+.skillsSubHeading:global(.MuiTypography-root) {
+  color: #2b96d9;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
+  margin-bottom: 8px;
+}
+
+.skillsList {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.skillRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.addSkillButton,
+.addSkillButton:global(.MuiButton-root) {
+  min-width: 0;
+  height: 48px;
+  padding: 0 30px;
+  border-radius: 100px;
+  border: 1px solid #b0b4b8;
+  background-color: #f6f7f8;
+  color: #2a3132;
+  text-transform: none;
+  box-shadow: none;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
+  justify-content: center;
+}
+
+.addSkillButton:global(.MuiButton-root):hover {
+  background-color: #2b96d9;
+  border-color: #2b96d9;
+  color: #fff;
+}
+
+.skillRow .fieldControl {
+  flex: 1;
+}
+
+.removeSkillButton,
+.removeSkillButton:global(.MuiIconButton-root) {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  color: #b0b4b8;
+  border-radius: 8px;
+  transition: color 160ms ease, background-color 160ms ease;
+}
+
+.removeSkillButton:global(.MuiIconButton-root):hover {
+  color: #d64545;
+  background-color: rgba(214, 69, 69, 0.08);
+}
+
+.removeSkillIcon {
+  font-size: 14px;
+  font-style: normal;
+  line-height: 1;
 }
 
 /* ─── Footer ─────────────────────────────────────────────────────────────── */

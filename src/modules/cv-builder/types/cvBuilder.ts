@@ -79,3 +79,17 @@ export const createCareerHistoryEntry = (index: number): CareerHistoryEntry => (
 })
 
 export const CAREER_HISTORY_INITIAL: CareerHistoryEntry[] = [createCareerHistoryEntry(0)]
+
+// ─── Skills ───────────────────────────────────────────────────────────────────
+
+export type SkillEntry = {
+  id: string
+  name: string
+}
+
+export const createSkillEntry = (): SkillEntry => ({
+  id: `${Date.now()}-${Math.random()}`,
+  name: '',
+})
+
+export const SKILLS_INITIAL: SkillEntry[] = [createSkillEntry()]

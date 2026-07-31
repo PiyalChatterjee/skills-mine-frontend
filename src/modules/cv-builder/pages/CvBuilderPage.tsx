@@ -7,6 +7,7 @@ import CvBuilderHeroSection from '../components/CvBuilderHeroSection'
 import CvBuilderLauncher from '../components/CvBuilderLauncher'
 import CvBuilderPersonalDetailsForm from '../components/CvBuilderPersonalDetailsForm'
 import CvBuilderProgressRail from '../components/CvBuilderProgressRail'
+import CvBuilderSkillsForm from '../components/CvBuilderSkillsForm'
 import useCvBuilder from '../hooks/useCvBuilder'
 import { CV_BUILDER_STEPS, type CvActionCard } from '../types/cvBuilder'
 import styles from './CvBuilderPage.module.css'
@@ -19,6 +20,7 @@ const CvBuilderPage = () => {
     currentStepId,
     formValues,
     careerHistory,
+    skills,
     canGoNext,
     handleUploadFileSelect,
     openUploadPicker,
@@ -33,6 +35,9 @@ const CvBuilderPage = () => {
     updateTask,
     addProject,
     updateProject,
+    addSkill,
+    updateSkill,
+    removeSkill,
   } = useCvBuilder()
 
   const actionCards: CvActionCard[] = [
@@ -93,6 +98,14 @@ const CvBuilderPage = () => {
                   onAddProject={addProject}
                   onUpdateProject={updateProject}
                   onAddPosition={addPosition}
+                />
+              )}
+              {currentStepId === 3 && (
+                <CvBuilderSkillsForm
+                  skills={skills}
+                  onUpdateSkill={updateSkill}
+                  onAddSkill={addSkill}
+                  onRemoveSkill={removeSkill}
                 />
               )}
             </Box>
