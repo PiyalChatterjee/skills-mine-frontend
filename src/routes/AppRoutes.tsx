@@ -7,6 +7,7 @@ import { MancoLayout } from '@/layouts/MancoLayout'
 import { PublicLayout } from '@/layouts/PublicLayout'
 import { RecruiterLayout } from '@/layouts/RecruiterLayout'
 import LoginPage from '@/modules/auth/pages/LoginPage'
+import SignupPage from '@/modules/auth/pages/SignupPage'
 import LandingPage from '@/modules/public/pages/LandingPage'
 import { PortalRoute } from '@/routes/PortalRoute'
 import { PermissionGuard } from '@/routes/guards/PermissionGuard'
@@ -20,6 +21,7 @@ const DashboardEntryPage = lazy(
 const CandidateDashboardPage = lazy(
   () => import('@/modules/candidate/pages/CandidateDashboardPage'),
 )
+const CvBuilderPage = lazy(() => import('@/modules/cv-builder/pages/CvBuilderPage'))
 const JobsPage = lazy(() => import('@/modules/candidate/pages/JobsPage'))
 const ProfilePage = lazy(() => import('@/modules/candidate/pages/ProfilePage'))
 const RecruiterPage = lazy(() => import('@/modules/recruiter/pages/RecruiterPage'))
@@ -36,6 +38,7 @@ export const AppRoutes = () => {
         <Route element={<PublicLayout />}>
           <Route path={ROUTE_PATHS.landing} element={<LandingPage />} />
           <Route path={ROUTE_PATHS.login} element={<LoginPage />} />
+          <Route path={ROUTE_PATHS.signup} element={<SignupPage />} />
         </Route>
 
         <Route element={<ProtectedRoute />}>
@@ -46,6 +49,7 @@ export const AppRoutes = () => {
           <Route element={<CandidateLayout />}>
             <Route element={<RoleGuard allowedRoles={['candidate']} fallbackPath={ROUTE_PATHS.dashboard} />}>
               <Route path={ROUTE_PATHS.candidateDashboard} element={<CandidateDashboardPage />} />
+              <Route path={ROUTE_PATHS.cvBuilder} element={<CvBuilderPage />} />
             </Route>
             <Route path={ROUTE_PATHS.jobs} element={<JobsPage />} />
             <Route path={ROUTE_PATHS.profile} element={<ProfilePage />} />

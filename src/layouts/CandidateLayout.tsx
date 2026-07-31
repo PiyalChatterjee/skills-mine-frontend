@@ -43,7 +43,7 @@ export const CandidateLayout = () => {
   }
 
   const handleCvBuilderClick = () => {
-    // TODO: Implement CV builder navigation
+    navigate(ROUTE_PATHS.cvBuilder)
   }
 
   const handleSkillsBuildClick = () => {
