@@ -2,6 +2,7 @@ import { type ChangeEvent, useRef, useState } from 'react'
 import {
   CAREER_HISTORY_INITIAL,
   CV_BUILDER_STEPS,
+  LANGUAGES_INITIAL,
   PERSONAL_DETAILS_INITIAL_VALUES,
   SECONDARY_EDUCATION_INITIAL,
   SKILLS_INITIAL,
@@ -12,6 +13,7 @@ import {
   createTertiaryEntry,
   type CareerHistoryEntry,
   type CvBuilderView,
+  type Language,
   type PersonalDetailsFormState,
   type SecondaryEducationEntry,
   type SkillEntry,
@@ -31,6 +33,7 @@ const useCvBuilder = () => {
   const [skills, setSkills] = useState<SkillEntry[]>(SKILLS_INITIAL)
   const [tertiaryEducation, setTertiaryEducation] = useState<TertiaryEducationEntry[]>(TERTIARY_EDUCATION_INITIAL)
   const [secondaryEducation, setSecondaryEducation] = useState<SecondaryEducationEntry[]>(SECONDARY_EDUCATION_INITIAL)
+  const [selectedLanguages, setSelectedLanguages] = useState<Set<Language>>(LANGUAGES_INITIAL)
 
   const handleUploadFileSelect = (event: ChangeEvent<HTMLInputElement>) => {
     const nextFile = event.target.files?.[0] ?? null
@@ -190,6 +193,20 @@ const useCvBuilder = () => {
     setSecondaryEducation((prev) => prev.filter((entry) => entry.id !== entryId))
   }
 
+  // ─── Languages ──────────────────────────────────────────────────────────────
+
+  const toggleLanguage = (language: Language) => {
+    setSelectedLanguages((prev) => {
+      const next = new Set(prev)
+      if (next.has(language)) {
+        next.delete(language)
+      } else {
+        next.add(language)
+      }
+      return next
+    })
+  }
+
   return {
     uploadInputRef,
     activeView,
@@ -223,6 +240,8 @@ const useCvBuilder = () => {
     addSecondaryEntry,
     updateSecondaryEntry,
     removeSecondaryEntry,
+    selectedLanguages,
+    toggleLanguage,
   }
 }
 

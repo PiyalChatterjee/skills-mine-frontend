@@ -73,7 +73,7 @@
   left: 50%;
   margin: 0;
   color: #fff;
-  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: "Red Hat Display", "Inclusive Sans", "Ubuntu", sans-serif;
   font-size: 32px;
   font-weight: 600;
   line-height: 1.5;
@@ -96,7 +96,7 @@
   margin: 0 auto 48px;
   color: #03478c;
   text-align: center;
-  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: "Red Hat Display", "Inclusive Sans", "Ubuntu", sans-serif;
   font-size: 32px;
   font-weight: 600;
   line-height: 1.5;
@@ -132,7 +132,9 @@
   align-items: center;
   justify-content: center;
   gap: 20px;
-  transition: transform 160ms ease, box-shadow 160ms ease;
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease;
 }
 
 .cardButton:hover,
@@ -176,7 +178,7 @@
   margin: 0;
   color: #e36c6c;
   text-align: center;
-  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: "Red Hat Display", "Inclusive Sans", "Ubuntu", sans-serif;
   font-size: 18px;
   font-weight: 500;
   line-height: 1.5;
@@ -195,7 +197,7 @@
   color: #2a3132;
   text-align: center;
   text-wrap: balance;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
   font-size: 16px;
   font-weight: 400;
   line-height: 1.5;
@@ -258,7 +260,7 @@
 .progressNumber,
 .progressNumber:global(.MuiTypography-root) {
   color: #2b96d9;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
   font-size: 14px;
   font-weight: 600;
   line-height: 1.5;
@@ -268,7 +270,7 @@
 .progressLabel,
 .progressLabel:global(.MuiTypography-root) {
   color: #2a3132;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
   font-size: 16px;
   font-weight: 400;
   line-height: 1.5;
@@ -320,13 +322,14 @@
   width: 24px;
   height: 24px;
   /* white SVG → #03478C */
-  filter: brightness(0) saturate(100%) invert(17%) sepia(97%) saturate(632%) hue-rotate(194deg) brightness(99%) contrast(104%);
+  filter: brightness(0) saturate(100%) invert(17%) sepia(97%) saturate(632%)
+    hue-rotate(194deg) brightness(99%) contrast(104%);
 }
 
 .sectionTitle,
 .sectionTitle:global(.MuiTypography-root) {
   color: #03478c;
-  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: "Red Hat Display", "Inclusive Sans", "Ubuntu", sans-serif;
   font-size: 24px;
   font-weight: 500;
   line-height: 1.5;
@@ -360,7 +363,7 @@
 .fieldLabel,
 .fieldLabel:global(.MuiTypography-root) {
   color: #2a3132;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
   font-size: 16px;
   font-weight: 400;
   line-height: 1.5;
@@ -375,7 +378,7 @@
   min-height: 48px;
   border-radius: 8px;
   background-color: #fff;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
   font-size: 16px;
   line-height: 1.5;
 }
@@ -384,11 +387,13 @@
   border-color: #b0b4b8;
 }
 
-.fieldControl :global(.MuiInputBase-root:hover .MuiOutlinedInput-notchedOutline) {
+.fieldControl
+  :global(.MuiInputBase-root:hover .MuiOutlinedInput-notchedOutline) {
   border-color: #b0b4b8;
 }
 
-.fieldControl :global(.MuiInputBase-root.Mui-focused .MuiOutlinedInput-notchedOutline) {
+.fieldControl
+  :global(.MuiInputBase-root.Mui-focused .MuiOutlinedInput-notchedOutline) {
   border-color: #2b96d9;
   border-width: 1px;
 }
@@ -398,7 +403,7 @@
   box-sizing: border-box;
   padding: 12px 10px;
   color: #2a3132;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
   font-size: 16px;
   font-weight: 400;
   line-height: 1.5;
@@ -451,7 +456,7 @@
 .positionLabel,
 .positionLabel:global(.MuiTypography-root) {
   color: #2b96d9;
-  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: "Red Hat Display", "Inclusive Sans", "Ubuntu", sans-serif;
   font-size: 18px;
   font-weight: 500;
   line-height: 1.5;
@@ -473,7 +478,7 @@
 .dynamicListLabel,
 .dynamicListLabel:global(.MuiTypography-root) {
   color: #2a3132;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
   font-size: 16px;
   font-weight: 400;
   line-height: 1.5;
@@ -498,14 +503,17 @@
   color: #2a3132;
   text-transform: none;
   box-shadow: none;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
   font-size: 16px;
   font-weight: 400;
   line-height: 1.5;
   letter-spacing: 0.1px;
   justify-content: center;
   margin-top: 4px;
-  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
 }
 
 .addDashedButton:global(.MuiButton-root):hover {
@@ -524,7 +532,7 @@
   color: #fff;
   text-transform: none;
   box-shadow: none;
-  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: "Red Hat Display", "Inclusive Sans", "Ubuntu", sans-serif;
   font-size: 16px;
   font-weight: 500;
   line-height: 1.5;
@@ -568,7 +576,7 @@
   color: #32abbf;
   text-transform: none;
   box-shadow: none;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
   font-size: 16px;
   font-weight: 500;
   line-height: 1.5;
@@ -591,7 +599,7 @@
 .skillsSubHeading,
 .skillsSubHeading:global(.MuiTypography-root) {
   color: #2b96d9;
-  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: "Red Hat Display", "Inclusive Sans", "Ubuntu", sans-serif;
   font-size: 18px;
   font-weight: 500;
   line-height: 1.5;
@@ -628,13 +636,16 @@
   color: #2a3132;
   text-transform: none;
   box-shadow: none;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
   font-size: 16px;
   font-weight: 400;
   line-height: 1.5;
   letter-spacing: 0.1px;
   justify-content: center;
-  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
 }
 
 .addMutedPillButton:global(.MuiButton-root):hover,
@@ -660,7 +671,9 @@
   height: 40px;
   color: #b0b4b8;
   border-radius: 8px;
-  transition: color 160ms ease, background-color 160ms ease;
+  transition:
+    color 160ms ease,
+    background-color 160ms ease;
 }
 
 .inlineRemoveButton:global(.MuiIconButton-root):hover,
@@ -695,7 +708,7 @@
 .educationSubHeading,
 .educationSubHeading:global(.MuiTypography-root) {
   color: #2b96d9;
-  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: "Red Hat Display", "Inclusive Sans", "Ubuntu", sans-serif;
   font-size: 18px;
   font-weight: 500;
   line-height: 1.5;
@@ -719,7 +732,7 @@
 .educationEntryLabel,
 .educationEntryLabel:global(.MuiTypography-root) {
   color: #2b96d9;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
   font-size: 16px;
   font-weight: 500;
   line-height: 1.5;
@@ -730,6 +743,98 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 24px;
+}
+
+/* ─── Languages ──────────────────────────────────────────────────────────── */
+
+.languagesGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.languageCheckItem,
+.languageCheckItem:global(.MuiButtonBase-root) {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  background-color: #ffffff;
+  border: 1px solid transparent;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease;
+}
+
+.languageCheckItem:hover,
+.languageCheckItem:global(.MuiButtonBase-root):hover {
+  border-color: #32abbf;
+  background-color: #d6eef2;
+}
+
+.languageCheckItem:hover .languageCheckLabel,
+.languageCheckItem:hover .languageCheckLabel:global(.MuiTypography-root),
+.languageCheckItem:global(.MuiButtonBase-root):hover .languageCheckLabel,
+.languageCheckItem:global(.MuiButtonBase-root):hover .languageCheckLabel:global(.MuiTypography-root) {
+  color: #2a3132;
+}
+
+
+.languageCheckItemSelected,
+.languageCheckItemSelected:global(.MuiButtonBase-root) {
+  border-color: #d6eef2;
+  background-color: #d6eef2;
+}
+
+.languageCheckItemSelected .languageCheckLabel,
+.languageCheckItemSelected .languageCheckLabel:global(.MuiTypography-root) {
+  color: #2a3132;
+}
+
+.languageCheckbox {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  border: 1px solid #e1e3e6;
+  background-color: #ffffff;
+  display: grid;
+  place-items: center;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease;
+}
+
+.languageCheckboxChecked {
+  background-color: #32abbf;
+  border-color: #32abbf;
+}
+
+.languageCheckmark {
+  color: #ffffff;
+  font-size: 12px;
+  line-height: 1;
+  font-style: normal;
+}
+
+.languageCheckLabel,
+.languageCheckLabel:global(.MuiTypography-root) {
+  color: #2a3132;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
+  flex: 1;
+}
+
+.languageCheckLabel:hover,
+.languageCheckLabel:global(.MuiButtonBase-root):hover {
+  color: #2a3132;
 }
 
 /* ─── Footer ─────────────────────────────────────────────────────────────── */
@@ -745,12 +850,15 @@
   text-transform: none;
   box-shadow: none;
   gap: 10px;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
   font-size: 16px;
   font-weight: 400;
   line-height: 1.5;
   letter-spacing: 0.1px;
-  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
 }
 
 .backButton:global(.MuiButton-root):hover {
@@ -769,7 +877,7 @@
   text-transform: none;
   box-shadow: none;
   gap: 10px;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
   font-size: 16px;
   font-weight: 400;
   line-height: 1.5;
@@ -797,7 +905,8 @@
   height: 16px;
   transform: rotate(180deg);
   /* tint to match charcoal text */
-  filter: brightness(0) saturate(100%) invert(19%) sepia(9%) saturate(487%) hue-rotate(137deg) brightness(90%) contrast(89%);
+  filter: brightness(0) saturate(100%) invert(19%) sepia(9%) saturate(487%)
+    hue-rotate(137deg) brightness(90%) contrast(89%);
 }
 
 .nextButton .buttonArrowNext,
@@ -809,7 +918,8 @@
 }
 
 .nextButton:global(.MuiButton-root):global(.Mui-disabled) .buttonArrowNext {
-  filter: brightness(0) saturate(100%) invert(76%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(100%);
+  filter: brightness(0) saturate(100%) invert(76%) sepia(0%) saturate(0%)
+    hue-rotate(0deg) brightness(100%) contrast(100%);
 }
 
 @media (max-width: 900px) {
@@ -870,7 +980,8 @@
   }
 
   .positionRowGrid,
-  .educationGrid {
+  .educationGrid,
+  .languagesGrid {
     grid-template-columns: 1fr;
   }
 

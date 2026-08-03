@@ -126,3 +126,25 @@ export const createSecondaryEntry = (): SecondaryEducationEntry => ({
 
 export const TERTIARY_EDUCATION_INITIAL: TertiaryEducationEntry[] = [createTertiaryEntry()]
 export const SECONDARY_EDUCATION_INITIAL: SecondaryEducationEntry[] = [createSecondaryEntry()]
+
+// ─── Languages ────────────────────────────────────────────────────────────────
+
+export const LANGUAGES_LIST = [
+  'Afrikaans',
+  'Southern Sotho',
+  'Swati',
+  'English',
+  'Northern Sotho',
+  'Ndebele',
+  'Xhosa',
+  'Venda',
+  'Tsonga',
+  'Zulu',
+  'Tswana',
+  'South African Sign',
+  'Other',
+] as const
+
+export type Language = (typeof LANGUAGES_LIST)[number]
+
+export const LANGUAGES_INITIAL: Set<Language> = new Set()

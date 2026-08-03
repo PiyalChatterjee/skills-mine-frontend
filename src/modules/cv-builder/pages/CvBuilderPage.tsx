@@ -8,6 +8,7 @@ import CvBuilderHeroSection from '../components/CvBuilderHeroSection'
 import CvBuilderLauncher from '../components/CvBuilderLauncher'
 import CvBuilderPersonalDetailsForm from '../components/CvBuilderPersonalDetailsForm'
 import CvBuilderProgressRail from '../components/CvBuilderProgressRail'
+import CvBuilderLanguagesForm from '../components/CvBuilderLanguagesForm'
 import CvBuilderSkillsForm from '../components/CvBuilderSkillsForm'
 import useCvBuilder from '../hooks/useCvBuilder'
 import { CV_BUILDER_STEPS, type CvActionCard } from '../types/cvBuilder'
@@ -47,6 +48,8 @@ const CvBuilderPage = () => {
     addSecondaryEntry,
     updateSecondaryEntry,
     removeSecondaryEntry,
+    selectedLanguages,
+    toggleLanguage,
   } = useCvBuilder()
 
   const actionCards: CvActionCard[] = [
@@ -127,6 +130,12 @@ const CvBuilderPage = () => {
                   onUpdateSecondary={updateSecondaryEntry}
                   onAddSecondary={addSecondaryEntry}
                   onRemoveSecondary={removeSecondaryEntry}
+                />
+              )}
+              {currentStepId === 5 && (
+                <CvBuilderLanguagesForm
+                  selectedLanguages={selectedLanguages}
+                  onToggleLanguage={toggleLanguage}
                 />
               )}
             </Box>
