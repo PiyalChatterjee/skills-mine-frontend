@@ -6,9 +6,17 @@ type CvBuilderFooterActionsProps = {
   onBack: () => void
   onNext: () => void
   isNextDisabled: boolean
+  nextLabel?: string
+  showNextIcon?: boolean
 }
 
-const CvBuilderFooterActions = ({ onBack, onNext, isNextDisabled }: CvBuilderFooterActionsProps) => (
+const CvBuilderFooterActions = ({
+  onBack,
+  onNext,
+  isNextDisabled,
+  nextLabel = 'Next',
+  showNextIcon = true,
+}: CvBuilderFooterActionsProps) => (
   <Box className={styles.footerBar}>
     <Box className={styles.footerBarInner}>
       <Button type="button" onClick={onBack} className={styles.backButton}>
@@ -16,8 +24,10 @@ const CvBuilderFooterActions = ({ onBack, onNext, isNextDisabled }: CvBuilderFoo
         Back
       </Button>
       <Button type="button" onClick={onNext} className={styles.nextButton} disabled={isNextDisabled}>
-        Next
-        <Box component="img" src={arrowRight} alt="" className={styles.buttonArrowNext} aria-hidden="true" />
+        {nextLabel}
+        {showNextIcon ? (
+          <Box component="img" src={arrowRight} alt="" className={styles.buttonArrowNext} aria-hidden="true" />
+        ) : null}
       </Button>
     </Box>
   </Box>

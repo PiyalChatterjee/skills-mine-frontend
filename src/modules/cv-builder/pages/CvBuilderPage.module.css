@@ -238,14 +238,14 @@
 .progressConnector {
   width: 1px;
   height: 16px;
-  background-color: #b0b4b8;
+  background-color: #d6dbe0;
   margin: 4px 0 4px 11px;
 }
 
 .progressCircle {
   width: 24px;
   height: 24px;
-  border: 1px solid #2b96d9;
+  border: 1px solid #3098dc;
   border-radius: 999px;
   background-color: #fff;
   display: grid;
@@ -257,9 +257,14 @@
   background-color: #d5eaf7;
 }
 
+.progressCircleCompleted {
+  background-color: #3098dc;
+  border-color: #3098dc;
+}
+
 .progressNumber,
 .progressNumber:global(.MuiTypography-root) {
-  color: #2b96d9;
+  color: #3098dc;
   font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
   font-size: 14px;
   font-weight: 600;
@@ -267,9 +272,23 @@
   letter-spacing: 0.1px;
 }
 
+.progressCheck,
+.progressCheck:global(svg) {
+  width: 12px;
+  height: 12px;
+}
+
+.progressCheck path {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .progressLabel,
 .progressLabel:global(.MuiTypography-root) {
-  color: #2a3132;
+  color: #3098dc;
   font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
   font-size: 16px;
   font-weight: 400;
@@ -280,6 +299,13 @@
 
 .progressLabelActive,
 .progressLabelActive:global(.MuiTypography-root) {
+  color: #2A3132;
+  font-weight: 400;
+}
+
+.progressLabelCompleted,
+.progressLabelCompleted:global(.MuiTypography-root) {
+  color: #3098dc;
   font-weight: 500;
 }
 
@@ -288,6 +314,7 @@
     opacity: 0;
     transform: translateY(12px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -322,8 +349,7 @@
   width: 24px;
   height: 24px;
   /* white SVG → #03478C */
-  filter: brightness(0) saturate(100%) invert(17%) sepia(97%) saturate(632%)
-    hue-rotate(194deg) brightness(99%) contrast(104%);
+  filter: brightness(0) saturate(100%) invert(17%) sepia(97%) saturate(632%) hue-rotate(194deg) brightness(99%) contrast(104%);
 }
 
 .sectionTitle,
@@ -387,13 +413,11 @@
   border-color: #b0b4b8;
 }
 
-.fieldControl
-  :global(.MuiInputBase-root:hover .MuiOutlinedInput-notchedOutline) {
+.fieldControl :global(.MuiInputBase-root:hover .MuiOutlinedInput-notchedOutline) {
   border-color: #b0b4b8;
 }
 
-.fieldControl
-  :global(.MuiInputBase-root.Mui-focused .MuiOutlinedInput-notchedOutline) {
+.fieldControl :global(.MuiInputBase-root.Mui-focused .MuiOutlinedInput-notchedOutline) {
   border-color: #2b96d9;
   border-width: 1px;
 }
@@ -837,6 +861,632 @@
   color: #2a3132;
 }
 
+/* ─── Review Screen ───────────────────────────────────────────────────────── */
+
+.reviewLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 240px;
+  gap: 48px;
+  align-items: start;
+  max-width: 1060px;
+  margin: 0 auto;
+}
+
+.reviewMainColumn {
+  min-width: 0;
+}
+
+.reviewTitle,
+.reviewTitle:global(.MuiTypography-root) {
+  margin: 0;
+  color: #03478c;
+  font-family: "Red Hat Display", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 32px;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0.1px;
+}
+
+.reviewDescription,
+.reviewDescription:global(.MuiTypography-root) {
+  margin: 8px 0 24px;
+  color: #2a3132;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.reviewSectionsList {
+  border-top: 1px solid #e1e3e6;
+}
+
+.reviewSectionItem {
+  border-bottom: 1px solid #e1e3e6;
+}
+
+.reviewSectionToggle,
+.reviewSectionToggle:global(.MuiButton-root) {
+  width: 100%;
+  min-width: 0;
+  padding: 16px 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: #03478c;
+  text-transform: none;
+  box-shadow: none;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 16px;
+}
+
+.reviewSectionToggle:global(.MuiButton-root):hover {
+  background: transparent;
+}
+
+.reviewSectionIconBadge {
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  background-color: #d5eaf7;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.reviewSectionIcon {
+  width: 20px;
+  height: 20px;
+}
+
+.reviewSectionLabel,
+.reviewSectionLabel:global(.MuiTypography-root) {
+  color: #03478c;
+  font-family: "Red Hat Display", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 30px;
+  font-weight: 500;
+  line-height: 1.35;
+  letter-spacing: 0.1px;
+  margin-right: auto;
+  text-align: left;
+}
+
+.reviewSectionExpandIcon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.reviewSectionContent {
+  padding: 0 0 24px;
+}
+
+.reviewEmbeddedSectionContent .formPanel {
+  animation: none;
+}
+
+.reviewEmbeddedSectionContent .formHeader,
+.reviewEmbeddedSectionContent .skillsFormHeader,
+.reviewEmbeddedSectionContent .sectionTitle {
+  display: none;
+}
+
+.reviewEmbeddedSectionContent .positionCard {
+  background-color: #fff;
+}
+
+.reviewPreviewColumn {
+  position: sticky;
+  top: 104px;
+}
+
+.reviewPreviewCard {
+  border: 1px solid #dce7f0;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 3px 10px rgba(3, 71, 140, 0.16);
+  padding: 12px;
+}
+
+.reviewPreviewHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.reviewPreviewTitle,
+.reviewPreviewTitle:global(.MuiTypography-root) {
+  color: #03478c;
+  font-family: "Red Hat Display", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.reviewPreviewButton,
+.reviewPreviewButton:global(.MuiButton-root) {
+  min-width: 0;
+  border: 1px solid #d5dbe1;
+  border-radius: 6px;
+  background: #fff;
+  color: #99a0a6;
+  text-transform: none;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.2;
+  padding: 3px 10px;
+}
+
+.reviewPreviewPaper {
+  border: 1px solid #e1e3e6;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.reviewPreviewBanner {
+  min-height: 44px;
+  padding: 8px;
+  background: linear-gradient(90deg, #2b96d9 0%, #32abbf 100%);
+  display: flex;
+  align-items: center;
+}
+
+.reviewPreviewBannerText,
+.reviewPreviewBannerText:global(.MuiTypography-root) {
+  color: #fff;
+  font-family: "Red Hat Display", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.reviewPreviewBody {
+  padding: 10px;
+}
+
+.reviewPreviewName,
+.reviewPreviewName:global(.MuiTypography-root) {
+  color: #03478c;
+  font-family: "Red Hat Display", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.reviewPreviewMeta,
+.reviewPreviewMeta:global(.MuiTypography-root) {
+  color: #2a3132;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 10px;
+  line-height: 1.35;
+  margin-bottom: 8px;
+}
+
+.reviewPreviewSectionHeading,
+.reviewPreviewSectionHeading:global(.MuiTypography-root) {
+  color: #2b96d9;
+  font-family: "Red Hat Display", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.4;
+  margin: 8px 0 4px;
+}
+
+.reviewPreviewList {
+  margin: 0;
+  padding-left: 14px;
+}
+
+.reviewPreviewList li {
+  color: #2a3132;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.reviewPreviewMiniViewport {
+  border: 1px solid #e1e3e6;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #fff;
+  height: 210px;
+}
+
+.reviewPreviewMiniScale {
+  width: 600px;
+  transform: scale(0.36);
+  transform-origin: top left;
+  pointer-events: none;
+}
+
+.previewPageOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 71, 140, 0.86);
+  z-index: 100;
+  overflow-y: scroll;
+  padding: 20px 24px 28px;
+  height: 100dvh;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.previewPageContainer {
+  width: min(600px, 100%);
+  position: relative;
+  margin: 0 auto;
+}
+
+.previewPageCloseButton,
+.previewPageCloseButton:global(.MuiButton-root) {
+  position: absolute;
+  top: -18px;
+  right: -52px;
+  min-width: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  padding: 0;
+}
+
+.previewPageCloseIcon {
+  width: 24px;
+  height: 24px;
+}
+
+.previewPageDocument {
+  background: #fff;
+  border-radius: 2px;
+  overflow: hidden;
+  overflow-y: visible;
+}
+
+.previewPageDocumentCompact {
+  border-radius: 0;
+}
+
+.previewPageHeroCard {
+  margin: 12px 30px 0;
+}
+
+.previewPageHeaderImage {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.previewPageHeader {
+  min-height: 154px;
+  padding: 0 14px;
+  background: linear-gradient(90deg, #1f77b6 0%, #1f77b6 31%, #35a4d8 56%, #54b9cc 100%);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.previewPageHeaderLogoCard {
+  width: 156px;
+  min-height: 154px;
+  border-radius: 0 0 42px 42px;
+  background: #fff;
+  box-shadow: 0 4px 8px rgba(3, 71, 140, 0.16);
+  display: grid;
+  place-items: center;
+  padding: 14px;
+}
+
+.previewPageHeaderLogo {
+  width: 118px;
+  height: auto;
+}
+
+.previewPageHeaderCopy {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.previewPageHeaderTitle,
+.previewPageHeaderTitle:global(.MuiTypography-root) {
+  color: #0f4f8f;
+  font-family: "Red Hat Display", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.02;
+  letter-spacing: 0.1px;
+  max-width: 206px;
+}
+
+.previewPageHeaderTitleLight {
+  color: #ffffff;
+}
+
+.previewPageHeaderSubTitle,
+.previewPageHeaderSubTitle:global(.MuiTypography-root) {
+  margin-top: 8px;
+  color: #b8e8ff;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 7px;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.previewPageHeaderContactRow {
+  background: #1e6ca7;
+  padding: 2px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.previewPageHeaderContactItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+}
+
+.previewPageHeaderContactDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #fff;
+  opacity: 0.95;
+  flex-shrink: 0;
+}
+
+.previewPageHeaderContactRow :global(.MuiTypography-root) {
+  color: #c8e8ff;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 6px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.previewPageBody {
+  padding: 12px 30px 28px;
+}
+
+.previewPageCvTitle,
+.previewPageCvTitle:global(.MuiTypography-root) {
+  margin: 0;
+  color: #2b96d9;
+  font-family: "Red Hat Display", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.15;
+  text-align: center;
+}
+
+.previewPageName,
+.previewPageName:global(.MuiTypography-root) {
+  margin: 3px 0 10px;
+  color: #2a3132;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.previewPageSectionTitle,
+.previewPageSectionTitle:global(.MuiTypography-root) {
+  margin: 14px 0 10px;
+  color: #2b96d9;
+  font-family: "Red Hat Display", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.18;
+}
+
+.previewPageSubTitle,
+.previewPageSubTitle:global(.MuiTypography-root) {
+  margin: 8px 0;
+  color: #03478c;
+  font-family: "Red Hat Display", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.previewPageCareerBlock {
+  margin-bottom: 14px;
+}
+
+.previewPageGrid {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  column-gap: 14px;
+  row-gap: 5px;
+  margin-bottom: 4px;
+}
+
+.previewPageGrid :global(.MuiTypography-root) {
+  color: #2a3132;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.previewPageGrid :global(.MuiTypography-root):nth-child(odd) {
+  font-weight: 700;
+}
+
+.previewPageOverviewLines :global(.MuiTypography-root) {
+  margin: 0 0 6px;
+  color: #2a3132;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.previewPageOverviewLines :global(strong) {
+  font-weight: 700;
+}
+
+.previewPageEducationHeadingRow {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr 1.8fr;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.previewPageEducationHeadingRow :global(.MuiTypography-root) {
+  color: #2a3132;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.previewPageEducationRow {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr 1.8fr;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.previewPageEducationRow :global(.MuiTypography-root) {
+  color: #2a3132;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.previewModalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 71, 140, 0.82);
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.previewModalContainer {
+  width: min(760px, 100%);
+  position: relative;
+}
+
+.previewModalCloseButton,
+.previewModalCloseButton:global(.MuiButton-root) {
+  position: absolute;
+  top: -18px;
+  right: -18px;
+  min-width: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  padding: 0;
+}
+
+.previewModalCloseIcon {
+  width: 24px;
+  height: 24px;
+}
+
+.previewModalDocument {
+  background: #fff;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.previewModalHeader {
+  min-height: 124px;
+  padding: 20px 24px;
+  background: linear-gradient(90deg, #2b96d9 0%, #32abbf 100%);
+  display: flex;
+  align-items: flex-end;
+}
+
+.previewModalRole,
+.previewModalRole:global(.MuiTypography-root) {
+  color: #fff;
+  font-family: "Red Hat Display", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.2;
+  max-width: 540px;
+}
+
+.previewModalBody {
+  padding: 20px 28px 28px;
+}
+
+.previewModalCvTitle,
+.previewModalCvTitle:global(.MuiTypography-root) {
+  margin: 0;
+  color: #2b96d9;
+  font-family: "Red Hat Display", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1.15;
+  text-align: center;
+}
+
+.previewModalName,
+.previewModalName:global(.MuiTypography-root) {
+  margin: 2px 0 18px;
+  color: #2a3132;
+  font-family: "Red Hat Display", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.previewModalSectionTitle,
+.previewModalSectionTitle:global(.MuiTypography-root) {
+  margin: 14px 0 8px;
+  color: #2b96d9;
+  font-family: "Red Hat Display", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.previewModalGrid {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  column-gap: 18px;
+  row-gap: 8px;
+}
+
+.previewModalGrid :global(.MuiTypography-root) {
+  color: #2a3132;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.previewModalGrid :global(.MuiTypography-root):nth-child(odd) {
+  font-weight: 600;
+}
+
+.previewModalList {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.previewModalList li {
+  color: #2a3132;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
 /* ─── Footer ─────────────────────────────────────────────────────────────── */
 
 .backButton,
@@ -905,8 +1555,7 @@
   height: 16px;
   transform: rotate(180deg);
   /* tint to match charcoal text */
-  filter: brightness(0) saturate(100%) invert(19%) sepia(9%) saturate(487%)
-    hue-rotate(137deg) brightness(90%) contrast(89%);
+  filter: brightness(0) saturate(100%) invert(19%) sepia(9%) saturate(487%) hue-rotate(137deg) brightness(90%) contrast(89%);
 }
 
 .nextButton .buttonArrowNext,
@@ -918,8 +1567,7 @@
 }
 
 .nextButton:global(.MuiButton-root):global(.Mui-disabled) .buttonArrowNext {
-  filter: brightness(0) saturate(100%) invert(76%) sepia(0%) saturate(0%)
-    hue-rotate(0deg) brightness(100%) contrast(100%);
+  filter: brightness(0) saturate(100%) invert(76%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(100%);
 }
 
 @media (max-width: 900px) {
@@ -943,6 +1591,38 @@
 
   .footerBarInner {
     padding-top: 16px;
+  }
+
+  .reviewLayout {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .reviewPreviewColumn {
+    position: static;
+  }
+
+  .previewModalHeader {
+    min-height: 100px;
+  }
+
+  .previewModalRole,
+  .previewModalRole:global(.MuiTypography-root) {
+    font-size: 22px;
+  }
+
+  .previewModalCvTitle,
+  .previewModalCvTitle:global(.MuiTypography-root) {
+    font-size: 30px;
+  }
+
+  .previewModalName,
+  .previewModalName:global(.MuiTypography-root) {
+    font-size: 22px;
+  }
+
+  .previewModalGrid {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -992,6 +1672,24 @@
   .cardsGrid {
     grid-template-columns: 1fr;
     row-gap: 32px;
+  }
+
+  .reviewTitle,
+  .reviewTitle:global(.MuiTypography-root) {
+    font-size: 28px;
+  }
+
+  .reviewSectionLabel,
+  .reviewSectionLabel:global(.MuiTypography-root) {
+    font-size: 24px;
+  }
+
+  .previewModalOverlay {
+    padding: 12px;
+  }
+
+  .previewModalBody {
+    padding: 16px;
   }
 }
 

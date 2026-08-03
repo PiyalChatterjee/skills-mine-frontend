@@ -21,6 +21,7 @@ import {
 } from '../types/cvBuilder'
 
 const FIRST_STEP = 1
+const LAST_STEP = CV_BUILDER_STEPS.length
 
 const useCvBuilder = () => {
   const uploadInputRef = useRef<HTMLInputElement | null>(null)
@@ -50,6 +51,14 @@ const useCvBuilder = () => {
     setCurrentStepId(FIRST_STEP)
   }
 
+  const openPreview = () => {
+    setActiveView('preview')
+  }
+
+  const closePreview = () => {
+    setActiveView('review')
+  }
+
   const handleTextFieldChange =
     (field: keyof PersonalDetailsFormState) => (event: ChangeEvent<HTMLInputElement>) => {
       setFormValues((currentValues) => ({
@@ -67,6 +76,17 @@ const useCvBuilder = () => {
     }
 
   const goBack = () => {
+    if (activeView === 'preview') {
+      setActiveView('review')
+      return
+    }
+
+    if (activeView === 'review') {
+      setActiveView('form')
+      setCurrentStepId(LAST_STEP)
+      return
+    }
+
     if (currentStepId > FIRST_STEP) {
       setCurrentStepId((prevStepId) => prevStepId - 1)
       return
@@ -75,14 +95,25 @@ const useCvBuilder = () => {
     setActiveView('launcher')
   }
 
-  const canGoNext = currentStepId < CV_BUILDER_STEPS.length
+  const canGoNext = activeView === 'review' ? true : activeView === 'preview' ? false : currentStepId <= LAST_STEP
 
   const goNext = () => {
-    if (!canGoNext) {
+    if (activeView === 'preview') {
       return
     }
 
-    setCurrentStepId((prevStepId) => prevStepId + 1)
+    if (activeView === 'review') {
+      setActiveView('launcher')
+      setCurrentStepId(FIRST_STEP)
+      return
+    }
+
+    if (currentStepId < LAST_STEP) {
+      setCurrentStepId((prevStepId) => prevStepId + 1)
+      return
+    }
+
+    setActiveView('review')
   }
 
   // ─── Career History ─────────────────────────────────────────────────────────
@@ -221,6 +252,8 @@ const useCvBuilder = () => {
     handleUploadFileSelect,
     openUploadPicker,
     openBuildFlow,
+    openPreview,
+    closePreview,
     handleTextFieldChange,
     handleSelectFieldChange,
     goBack,

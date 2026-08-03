@@ -8,6 +8,8 @@ import CvBuilderHeroSection from '../components/CvBuilderHeroSection'
 import CvBuilderLauncher from '../components/CvBuilderLauncher'
 import CvBuilderPersonalDetailsForm from '../components/CvBuilderPersonalDetailsForm'
 import CvBuilderProgressRail from '../components/CvBuilderProgressRail'
+import CvBuilderPreviewPage from '../components/CvBuilderPreviewPage'
+import CvBuilderReviewScreen from '../components/CvBuilderReviewScreen'
 import CvBuilderLanguagesForm from '../components/CvBuilderLanguagesForm'
 import CvBuilderSkillsForm from '../components/CvBuilderSkillsForm'
 import useCvBuilder from '../hooks/useCvBuilder'
@@ -29,6 +31,8 @@ const CvBuilderPage = () => {
     handleUploadFileSelect,
     openUploadPicker,
     openBuildFlow,
+    openPreview,
+    closePreview,
     handleTextFieldChange,
     handleSelectFieldChange,
     goBack,
@@ -90,6 +94,44 @@ const CvBuilderPage = () => {
       <Box component="section" className={styles.contentSection}>
         {activeView === 'launcher' ? (
           <CvBuilderLauncher cards={actionCards} />
+        ) : activeView === 'preview' ? (
+          <CvBuilderPreviewPage
+            formValues={formValues}
+            careerHistory={careerHistory}
+            skills={skills}
+            tertiaryEducation={tertiaryEducation}
+            secondaryEducation={secondaryEducation}
+            selectedLanguages={selectedLanguages}
+            onClose={closePreview}
+          />
+        ) : activeView === 'review' ? (
+          <CvBuilderReviewScreen
+            formValues={formValues}
+            careerHistory={careerHistory}
+            skills={skills}
+            tertiaryEducation={tertiaryEducation}
+            secondaryEducation={secondaryEducation}
+            selectedLanguages={selectedLanguages}
+            onTextFieldChange={handleTextFieldChange}
+            onSelectFieldChange={handleSelectFieldChange}
+            onUpdatePosition={updatePosition}
+            onAddTask={addTask}
+            onUpdateTask={updateTask}
+            onAddProject={addProject}
+            onUpdateProject={updateProject}
+            onAddPosition={addPosition}
+            onUpdateSkill={updateSkill}
+            onAddSkill={addSkill}
+            onRemoveSkill={removeSkill}
+            onUpdateTertiary={updateTertiaryEntry}
+            onAddTertiary={addTertiaryEntry}
+            onRemoveTertiary={removeTertiaryEntry}
+            onUpdateSecondary={updateSecondaryEntry}
+            onAddSecondary={addSecondaryEntry}
+            onRemoveSecondary={removeSecondaryEntry}
+            onToggleLanguage={toggleLanguage}
+            onPreview={openPreview}
+          />
         ) : (
           <Box className={styles.contentLayout}>
             <CvBuilderProgressRail steps={CV_BUILDER_STEPS} activeStepId={currentStepId} />
@@ -145,6 +187,16 @@ const CvBuilderPage = () => {
 
       {activeView === 'form' && (
         <CvBuilderFooterActions onBack={goBack} onNext={goNext} isNextDisabled={!canGoNext} />
+      )}
+
+      {activeView === 'review' && (
+        <CvBuilderFooterActions
+          onBack={goBack}
+          onNext={goNext}
+          isNextDisabled={false}
+          nextLabel="Done"
+          showNextIcon={false}
+        />
       )}
     </Box>
   )
