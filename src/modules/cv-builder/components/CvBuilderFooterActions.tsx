@@ -19,11 +19,11 @@ const CvBuilderFooterActions = ({
 }: CvBuilderFooterActionsProps) => (
   <Box className={styles.footerBar}>
     <Box className={styles.footerBarInner}>
-      <Button type="button" onClick={onBack} className={styles.backButton}>
+      <Button type="button" onClick={onBack} className={styles.backButton} disableRipple>
         <Box component="img" src={arrowRight} alt="" className={styles.buttonArrowBack} aria-hidden="true" />
         Back
       </Button>
-      <Button type="button" onClick={onNext} className={styles.nextButton} disabled={isNextDisabled}>
+      <Button type="button" onClick={onNext} className={styles.nextButton} disabled={isNextDisabled} disableRipple>
         {nextLabel}
         {showNextIcon ? (
           <Box component="img" src={arrowRight} alt="" className={styles.buttonArrowNext} aria-hidden="true" />

@@ -81,7 +81,7 @@ const CvBuilderPersonalDetailsForm = ({
         options={LOCATION_OPTIONS}
         span="full"
         allowEmptyOption={false}
-        displayEmpty={false}
+        displayEmpty={true}
       />
 
       <CvBuilderLabeledField label="Current company" span="full">

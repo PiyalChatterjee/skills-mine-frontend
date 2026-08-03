@@ -436,7 +436,21 @@
 
 .fieldControl :global(.MuiSelect-icon) {
   color: #2a3132;
-  right: 10px;
+  right: 14px;
+  width: 15px;
+  height: 15px;
+  top: calc(50% - 7.5px);
+  transition: transform 180ms ease;
+}
+
+.fieldControl :global(.MuiSelect-icon svg) {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.fieldControl :global(.MuiSelect-iconOpen) {
+  transform: translateY(0) rotate(180deg);
 }
 
 .fieldControl :global(.MuiInputBase-input::placeholder) {
@@ -1330,7 +1344,15 @@
   line-height: 1.45;
 }
 
-.previewPageOverviewLines :global(strong) {
+.previewPageOverviewRow {
+  display: grid;
+  grid-template-columns: 170px 1fr;
+  column-gap: 14px;
+  row-gap: 0;
+}
+
+.previewPageOverviewLabel,
+.previewPageOverviewLabel:global(.MuiTypography-root) {
   font-weight: 700;
 }
 

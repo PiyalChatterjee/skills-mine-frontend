@@ -39,6 +39,18 @@ const spanClassNameMap: Record<FieldSpan, string> = {
 const renderSelectValue = (value: unknown, emptyLabel: string) =>
   value ? String(value) : <span className={styles.placeholderText}>{emptyLabel}</span>
 
+type SelectChevronIconProps = {
+  className?: string
+}
+
+export const SelectChevronIcon = ({ className }: SelectChevronIconProps) => (
+  <Box component="span" className={className} aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M5 9L12 16L19 9" stroke="currentColor" strokeWidth="2.75" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  </Box>
+)
+
 export const CvBuilderFormPanel = ({ children }: CvBuilderFormPanelProps) => (
   <Box className={styles.formPanel}>{children}</Box>
 )
@@ -85,16 +97,17 @@ export const CvBuilderSelectField = ({
       className={styles.fieldControl}
       variant="outlined"
       fullWidth
-      slotProps={
-        displayEmpty
-          ? {
-              select: {
+      slotProps={{
+        select: {
+          IconComponent: SelectChevronIcon,
+          ...(displayEmpty
+            ? {
                 displayEmpty: true,
-                renderValue: (selectedValue) => renderSelectValue(selectedValue, emptyLabel),
-              },
-            }
-          : undefined
-      }
+                renderValue: (selectedValue: unknown) => renderSelectValue(selectedValue, emptyLabel),
+              }
+            : {}),
+        },
+      }}
     >
       {allowEmptyOption ? <MenuItem value=""><span className={styles.placeholderText}>{emptyLabel}</span></MenuItem> : null}
       {options.map((option) => (
