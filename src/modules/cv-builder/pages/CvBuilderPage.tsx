@@ -2,6 +2,7 @@ import { Box } from '@mui/material'
 import settingsIcon from '@/assets/cv-builder/settings-4-line.svg'
 import uploadIcon from '@/assets/cv-builder/upload-2-line.svg'
 import CvBuilderCareerHistoryForm from '../components/CvBuilderCareerHistoryForm'
+import CvBuilderEducationForm from '../components/CvBuilderEducationForm'
 import CvBuilderFooterActions from '../components/CvBuilderFooterActions'
 import CvBuilderHeroSection from '../components/CvBuilderHeroSection'
 import CvBuilderLauncher from '../components/CvBuilderLauncher'
@@ -21,6 +22,8 @@ const CvBuilderPage = () => {
     formValues,
     careerHistory,
     skills,
+    tertiaryEducation,
+    secondaryEducation,
     canGoNext,
     handleUploadFileSelect,
     openUploadPicker,
@@ -38,6 +41,12 @@ const CvBuilderPage = () => {
     addSkill,
     updateSkill,
     removeSkill,
+    addTertiaryEntry,
+    updateTertiaryEntry,
+    removeTertiaryEntry,
+    addSecondaryEntry,
+    updateSecondaryEntry,
+    removeSecondaryEntry,
   } = useCvBuilder()
 
   const actionCards: CvActionCard[] = [
@@ -106,6 +115,18 @@ const CvBuilderPage = () => {
                   onUpdateSkill={updateSkill}
                   onAddSkill={addSkill}
                   onRemoveSkill={removeSkill}
+                />
+              )}
+              {currentStepId === 4 && (
+                <CvBuilderEducationForm
+                  tertiaryEntries={tertiaryEducation}
+                  secondaryEntries={secondaryEducation}
+                  onUpdateTertiary={updateTertiaryEntry}
+                  onAddTertiary={addTertiaryEntry}
+                  onRemoveTertiary={removeTertiaryEntry}
+                  onUpdateSecondary={updateSecondaryEntry}
+                  onAddSecondary={addSecondaryEntry}
+                  onRemoveSecondary={removeSecondaryEntry}
                 />
               )}
             </Box>
