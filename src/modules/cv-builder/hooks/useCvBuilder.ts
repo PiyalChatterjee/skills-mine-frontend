@@ -3,13 +3,19 @@ import {
   CAREER_HISTORY_INITIAL,
   CV_BUILDER_STEPS,
   PERSONAL_DETAILS_INITIAL_VALUES,
+  SECONDARY_EDUCATION_INITIAL,
   SKILLS_INITIAL,
+  TERTIARY_EDUCATION_INITIAL,
   createCareerHistoryEntry,
+  createSecondaryEntry,
   createSkillEntry,
+  createTertiaryEntry,
   type CareerHistoryEntry,
   type CvBuilderView,
   type PersonalDetailsFormState,
+  type SecondaryEducationEntry,
   type SkillEntry,
+  type TertiaryEducationEntry,
 } from '../types/cvBuilder'
 
 const FIRST_STEP = 1
@@ -23,6 +29,8 @@ const useCvBuilder = () => {
   const [formValues, setFormValues] = useState<PersonalDetailsFormState>(PERSONAL_DETAILS_INITIAL_VALUES)
   const [careerHistory, setCareerHistory] = useState<CareerHistoryEntry[]>(CAREER_HISTORY_INITIAL)
   const [skills, setSkills] = useState<SkillEntry[]>(SKILLS_INITIAL)
+  const [tertiaryEducation, setTertiaryEducation] = useState<TertiaryEducationEntry[]>(TERTIARY_EDUCATION_INITIAL)
+  const [secondaryEducation, setSecondaryEducation] = useState<SecondaryEducationEntry[]>(SECONDARY_EDUCATION_INITIAL)
 
   const handleUploadFileSelect = (event: ChangeEvent<HTMLInputElement>) => {
     const nextFile = event.target.files?.[0] ?? null
@@ -144,6 +152,44 @@ const useCvBuilder = () => {
     setSkills((prev) => prev.filter((skill) => skill.id !== skillId))
   }
 
+  // ─── Education ──────────────────────────────────────────────────────────────
+
+  const addTertiaryEntry = () => {
+    setTertiaryEducation((prev) => [...prev, createTertiaryEntry()])
+  }
+
+  const updateTertiaryEntry = (
+    entryId: string,
+    field: keyof Omit<TertiaryEducationEntry, 'id'>,
+    value: string,
+  ) => {
+    setTertiaryEducation((prev) =>
+      prev.map((entry) => (entry.id === entryId ? { ...entry, [field]: value } : entry)),
+    )
+  }
+
+  const removeTertiaryEntry = (entryId: string) => {
+    setTertiaryEducation((prev) => prev.filter((entry) => entry.id !== entryId))
+  }
+
+  const addSecondaryEntry = () => {
+    setSecondaryEducation((prev) => [...prev, createSecondaryEntry()])
+  }
+
+  const updateSecondaryEntry = (
+    entryId: string,
+    field: keyof Omit<SecondaryEducationEntry, 'id'>,
+    value: string,
+  ) => {
+    setSecondaryEducation((prev) =>
+      prev.map((entry) => (entry.id === entryId ? { ...entry, [field]: value } : entry)),
+    )
+  }
+
+  const removeSecondaryEntry = (entryId: string) => {
+    setSecondaryEducation((prev) => prev.filter((entry) => entry.id !== entryId))
+  }
+
   return {
     uploadInputRef,
     activeView,
@@ -152,6 +198,8 @@ const useCvBuilder = () => {
     formValues,
     careerHistory,
     skills,
+    tertiaryEducation,
+    secondaryEducation,
     canGoNext,
     handleUploadFileSelect,
     openUploadPicker,
@@ -169,6 +217,12 @@ const useCvBuilder = () => {
     addSkill,
     updateSkill,
     removeSkill,
+    addTertiaryEntry,
+    updateTertiaryEntry,
+    removeTertiaryEntry,
+    addSecondaryEntry,
+    updateSecondaryEntry,
+    removeSecondaryEntry,
   }
 }
 
