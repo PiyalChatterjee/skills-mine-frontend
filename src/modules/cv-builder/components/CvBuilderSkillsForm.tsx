@@ -3,6 +3,7 @@ import type { ChangeEvent } from 'react'
 import skillsGenerateIcon from '@/assets/cv-builder/skills-generate.svg'
 import skillsSparkleIcon from '@/assets/cv-builder/skills-sparkle.svg'
 import styles from '../pages/CvBuilderPage.module.css'
+import { CvBuilderFormPanel, CvBuilderSectionHeader } from './CvBuilderFormPrimitives'
 import type { SkillEntry } from '../types/cvBuilder'
 
 type CvBuilderSkillsFormProps = {
@@ -18,16 +19,9 @@ const CvBuilderSkillsForm = ({
   onAddSkill,
   onRemoveSkill,
 }: CvBuilderSkillsFormProps) => (
-  <Box className={styles.formPanel}>
+  <CvBuilderFormPanel>
     <Box className={styles.skillsFormHeader}>
-      <Box className={styles.formHeader} sx={{ mb: 0 }}>
-        <Box className={styles.formIconBadge} aria-hidden="true">
-          <Box component="img" src={skillsSparkleIcon} alt="" className={styles.formIcon} />
-        </Box>
-        <Typography component="h2" className={styles.sectionTitle}>
-          Your skills
-        </Typography>
-      </Box>
+      <CvBuilderSectionHeader iconSrc={skillsSparkleIcon} title="Your skills" />
 
       <Button type="button" className={styles.generateButton} disableRipple>
         Generate
@@ -54,7 +48,7 @@ const CvBuilderSkillsForm = ({
             <IconButton
               type="button"
               onClick={() => onRemoveSkill(skill.id)}
-              className={styles.removeSkillButton}
+              className={styles.inlineRemoveButton}
               aria-label={`Remove skill ${index + 1}`}
               disableRipple
             >
@@ -69,14 +63,14 @@ const CvBuilderSkillsForm = ({
       <Button
         type="button"
         onClick={onAddSkill}
-        className={styles.addSkillButton}
+        className={styles.addMutedPillButton}
         disableRipple
         fullWidth
       >
         Add skill
       </Button>
     </Box>
-  </Box>
+  </CvBuilderFormPanel>
 )
 
 export default CvBuilderSkillsForm

@@ -446,9 +446,6 @@
   gap: 20px;
   padding: 24px;
   margin-bottom: 32px;
-  background-color: #fff;
-  border: 1px solid #e1e3e6;
-  border-radius: 12px;
 }
 
 .positionLabel,
@@ -490,12 +487,14 @@
 
 .addDashedButton,
 .addDashedButton:global(.MuiButton-root) {
+  display: inline-flex;
+  align-items: center;
   min-width: 0;
   height: 48px;
-  padding: 0 16px;
-  border: 1.5px dashed #b0b4b8;
-  border-radius: 8px;
-  background-color: transparent;
+  padding: 12px 30px;
+  border: 1px solid #bfc5cc;
+  border-radius: 100px;
+  background-color: #fff;
   color: #2a3132;
   text-transform: none;
   box-shadow: none;
@@ -506,12 +505,13 @@
   letter-spacing: 0.1px;
   justify-content: center;
   margin-top: 4px;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
 }
 
 .addDashedButton:global(.MuiButton-root):hover {
-  background-color: #f6f7f8;
+  background-color: #2b96d9;
   border-color: #2b96d9;
-  color: #2b96d9;
+  color: #ffffff;
 }
 
 .addPositionButton,
@@ -519,8 +519,8 @@
   min-width: 0;
   height: 52px;
   padding: 0 24px;
-  border-radius: 8px;
-  background: linear-gradient(63.37deg, #2b96d9 0%, #32abbf 100%);
+  border-radius: 100px;
+  background-color: #165293;
   color: #fff;
   text-transform: none;
   box-shadow: none;
@@ -531,10 +531,12 @@
   letter-spacing: 0.1px;
   justify-content: center;
   margin-top: 8px;
+  transition: background-color 160ms ease;
 }
 
 .addPositionButton:global(.MuiButton-root):hover {
-  box-shadow: 0 4px 12px rgba(43, 150, 217, 0.3);
+  background-color: #2b96d9;
+  box-shadow: none;
 }
 
 /* ─── Skills ─────────────────────────────────────────────────────────────── */
@@ -609,11 +611,17 @@
   gap: 8px;
 }
 
+.addMutedPillButton,
+.addMutedPillButton:global(.MuiButton-root),
 .addSkillButton,
-.addSkillButton:global(.MuiButton-root) {
+.addSkillButton:global(.MuiButton-root),
+.addPillButton,
+.addPillButton:global(.MuiButton-root) {
+  display: inline-flex;
+  align-items: center;
   min-width: 0;
   height: 48px;
-  padding: 0 30px;
+  padding: 12px 30px;
   border-radius: 100px;
   border: 1px solid #b0b4b8;
   background-color: #f6f7f8;
@@ -626,20 +634,27 @@
   line-height: 1.5;
   letter-spacing: 0.1px;
   justify-content: center;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
 }
 
-.addSkillButton:global(.MuiButton-root):hover {
+.addMutedPillButton:global(.MuiButton-root):hover,
+.addSkillButton:global(.MuiButton-root):hover,
+.addPillButton:global(.MuiButton-root):hover {
   background-color: #2b96d9;
   border-color: #2b96d9;
-  color: #fff;
+  color: #ffffff;
 }
 
 .skillRow .fieldControl {
   flex: 1;
 }
 
+.inlineRemoveButton,
+.inlineRemoveButton:global(.MuiIconButton-root),
 .removeSkillButton,
-.removeSkillButton:global(.MuiIconButton-root) {
+.removeSkillButton:global(.MuiIconButton-root),
+.removeEntryButton,
+.removeEntryButton:global(.MuiIconButton-root) {
   flex-shrink: 0;
   width: 40px;
   height: 40px;
@@ -648,7 +663,9 @@
   transition: color 160ms ease, background-color 160ms ease;
 }
 
-.removeSkillButton:global(.MuiIconButton-root):hover {
+.inlineRemoveButton:global(.MuiIconButton-root):hover,
+.removeSkillButton:global(.MuiIconButton-root):hover,
+.removeEntryButton:global(.MuiIconButton-root):hover {
   color: #d64545;
   background-color: rgba(214, 69, 69, 0.08);
 }
@@ -657,6 +674,62 @@
   font-size: 14px;
   font-style: normal;
   line-height: 1;
+}
+
+/* ─── Education ──────────────────────────────────────────────────────────── */
+
+/* Outer wrapper: 48px gap between Tertiary and Secondary sections */
+.educationSections {
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+}
+
+/* Each section (sub-heading + grid + add button): 24px gap */
+.educationSection {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.educationSubHeading,
+.educationSubHeading:global(.MuiTypography-root) {
+  color: #2b96d9;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: 0;
+  margin: 0;
+}
+
+/* When multiple entries exist, each entry + its meta row */
+.educationEntryWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.educationEntryMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.educationEntryLabel,
+.educationEntryLabel:global(.MuiTypography-root) {
+  color: #2b96d9;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
+}
+
+.educationGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
 }
 
 /* ─── Footer ─────────────────────────────────────────────────────────────── */
@@ -677,6 +750,13 @@
   font-weight: 400;
   line-height: 1.5;
   letter-spacing: 0.1px;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.backButton:global(.MuiButton-root):hover {
+  background-color: #f0f4f7;
+  border-color: #9ba5ae;
+  color: #2a3132;
 }
 
 .nextButton,
@@ -694,6 +774,11 @@
   font-weight: 400;
   line-height: 1.5;
   letter-spacing: 0.1px;
+  transition: background-color 160ms ease;
+}
+
+.nextButton:global(.MuiButton-root):hover {
+  background-color: #2b96d9;
 }
 
 .nextButton:global(.MuiButton-root):global(.Mui-disabled) {
@@ -784,7 +869,8 @@
     grid-column: 1 / -1;
   }
 
-  .positionRowGrid {
+  .positionRowGrid,
+  .educationGrid {
     grid-template-columns: 1fr;
   }
 

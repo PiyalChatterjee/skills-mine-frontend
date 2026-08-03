@@ -93,3 +93,36 @@ export const createSkillEntry = (): SkillEntry => ({
 })
 
 export const SKILLS_INITIAL: SkillEntry[] = [createSkillEntry()]
+
+// ─── Education ────────────────────────────────────────────────────────────────
+
+export type TertiaryEducationEntry = {
+  id: string
+  institutionName: string
+  degreeOrCertification: string
+  yearCompleted: string
+}
+
+export type SecondaryEducationEntry = {
+  id: string
+  institutionName: string
+  highestGradePassed: string
+  yearCompleted: string
+}
+
+export const createTertiaryEntry = (): TertiaryEducationEntry => ({
+  id: `tertiary-${Date.now()}-${Math.random()}`,
+  institutionName: '',
+  degreeOrCertification: '',
+  yearCompleted: '',
+})
+
+export const createSecondaryEntry = (): SecondaryEducationEntry => ({
+  id: `secondary-${Date.now()}-${Math.random()}`,
+  institutionName: '',
+  highestGradePassed: '',
+  yearCompleted: '',
+})
+
+export const TERTIARY_EDUCATION_INITIAL: TertiaryEducationEntry[] = [createTertiaryEntry()]
+export const SECONDARY_EDUCATION_INITIAL: SecondaryEducationEntry[] = [createSecondaryEntry()]

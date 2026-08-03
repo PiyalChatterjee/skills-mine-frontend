@@ -2,6 +2,11 @@ import { Box, Button, TextField, Typography } from '@mui/material'
 import type { ChangeEvent } from 'react'
 import buildingIcon from '@/assets/cv-builder/building-line.svg'
 import styles from '../pages/CvBuilderPage.module.css'
+import {
+  CvBuilderFormPanel,
+  CvBuilderLabeledField,
+  CvBuilderSectionHeader,
+} from './CvBuilderFormPrimitives'
 import type { CareerHistoryEntry } from '../types/cvBuilder'
 
 type CvBuilderCareerHistoryFormProps = {
@@ -18,6 +23,50 @@ type CvBuilderCareerHistoryFormProps = {
   onAddPosition: () => void
 }
 
+type DynamicListSectionProps = {
+  label: string
+  values: string[]
+  itemLabel: string
+  addButtonLabel: string
+  onUpdateValue: (index: number, value: string) => void
+  onAddValue: () => void
+}
+
+const DynamicListSection = ({
+  label,
+  values,
+  itemLabel,
+  addButtonLabel,
+  onUpdateValue,
+  onAddValue,
+}: DynamicListSectionProps) => (
+  <Box className={styles.dynamicListSection}>
+    <Typography component="p" className={styles.dynamicListLabel}>
+      {label}
+    </Typography>
+    {values.map((value, index) => (
+      <TextField
+        key={index}
+        value={value}
+        onChange={(event: ChangeEvent<HTMLInputElement>) => onUpdateValue(index, event.target.value)}
+        placeholder={`${itemLabel} ${index + 1}`}
+        className={`${styles.fieldControl} ${styles.dynamicListField}`}
+        variant="outlined"
+        fullWidth
+      />
+    ))}
+    <Button
+      type="button"
+      onClick={onAddValue}
+      className={styles.addDashedButton}
+      disableRipple
+      fullWidth
+    >
+      {addButtonLabel}
+    </Button>
+  </Box>
+)
+
 const CvBuilderCareerHistoryForm = ({
   entries,
   onUpdatePosition,
@@ -27,15 +76,8 @@ const CvBuilderCareerHistoryForm = ({
   onUpdateProject,
   onAddPosition,
 }: CvBuilderCareerHistoryFormProps) => (
-  <Box className={styles.formPanel}>
-    <Box className={styles.formHeader}>
-      <Box className={styles.formIconBadge} aria-hidden="true">
-        <Box component="img" src={buildingIcon} alt="" className={styles.formIcon} />
-      </Box>
-      <Typography component="h2" className={styles.sectionTitle}>
-        Career history
-      </Typography>
-    </Box>
+  <CvBuilderFormPanel>
+    <CvBuilderSectionHeader iconSrc={buildingIcon} title="Career history" />
 
     {entries.map((entry, positionIndex) => (
       <Box key={entry.id} className={styles.positionCard}>
@@ -43,11 +85,7 @@ const CvBuilderCareerHistoryForm = ({
           Position {positionIndex + 1}
         </Typography>
 
-        {/* Company name */}
-        <Box className={styles.fieldGroup}>
-          <Typography component="label" className={styles.fieldLabel}>
-            Company name
-          </Typography>
+        <CvBuilderLabeledField label="Company name">
           <TextField
             value={entry.companyName}
             onChange={(event: ChangeEvent<HTMLInputElement>) =>
@@ -58,14 +96,10 @@ const CvBuilderCareerHistoryForm = ({
             variant="outlined"
             fullWidth
           />
-        </Box>
+        </CvBuilderLabeledField>
 
-        {/* Position held / dates row */}
         <Box className={styles.positionRowGrid}>
-          <Box className={styles.fieldGroup}>
-            <Typography component="label" className={styles.fieldLabel}>
-              Position held
-            </Typography>
+          <CvBuilderLabeledField label="Position held">
             <TextField
               value={entry.positionHeld}
               onChange={(event: ChangeEvent<HTMLInputElement>) =>
@@ -76,12 +110,9 @@ const CvBuilderCareerHistoryForm = ({
               variant="outlined"
               fullWidth
             />
-          </Box>
+          </CvBuilderLabeledField>
 
-          <Box className={styles.fieldGroup}>
-            <Typography component="label" className={styles.fieldLabel}>
-              Employment start date
-            </Typography>
+          <CvBuilderLabeledField label="Employment start date">
             <TextField
               value={entry.startDate}
               onChange={(event: ChangeEvent<HTMLInputElement>) =>
@@ -92,12 +123,9 @@ const CvBuilderCareerHistoryForm = ({
               variant="outlined"
               fullWidth
             />
-          </Box>
+          </CvBuilderLabeledField>
 
-          <Box className={styles.fieldGroup}>
-            <Typography component="label" className={styles.fieldLabel}>
-              End date
-            </Typography>
+          <CvBuilderLabeledField label="End date">
             <TextField
               value={entry.endDate}
               onChange={(event: ChangeEvent<HTMLInputElement>) =>
@@ -108,66 +136,26 @@ const CvBuilderCareerHistoryForm = ({
               variant="outlined"
               fullWidth
             />
-          </Box>
+          </CvBuilderLabeledField>
         </Box>
 
-        {/* Tasks */}
-        <Box className={styles.dynamicListSection}>
-          <Typography component="p" className={styles.dynamicListLabel}>
-            List the tasks that you were responsible for
-          </Typography>
-          {entry.tasks.map((task, taskIndex) => (
-            <TextField
-              key={taskIndex}
-              value={task}
-              onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                onUpdateTask(entry.id, taskIndex, event.target.value)
-              }
-              placeholder={`Task ${taskIndex + 1}`}
-              className={`${styles.fieldControl} ${styles.dynamicListField}`}
-              variant="outlined"
-              fullWidth
-            />
-          ))}
-          <Button
-            type="button"
-            onClick={() => onAddTask(entry.id)}
-            className={styles.addDashedButton}
-            disableRipple
-            fullWidth
-          >
-            + Add a task
-          </Button>
-        </Box>
+        <DynamicListSection
+          label="List the tasks that you were responsible for"
+          values={entry.tasks}
+          itemLabel="Task"
+          addButtonLabel="+ Add a task"
+          onUpdateValue={(taskIndex, value) => onUpdateTask(entry.id, taskIndex, value)}
+          onAddValue={() => onAddTask(entry.id)}
+        />
 
-        {/* Projects */}
-        <Box className={styles.dynamicListSection}>
-          <Typography component="p" className={styles.dynamicListLabel}>
-            List some of the projects you were involved in
-          </Typography>
-          {entry.projects.map((project, projectIndex) => (
-            <TextField
-              key={projectIndex}
-              value={project}
-              onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                onUpdateProject(entry.id, projectIndex, event.target.value)
-              }
-              placeholder={`Project ${projectIndex + 1}`}
-              className={`${styles.fieldControl} ${styles.dynamicListField}`}
-              variant="outlined"
-              fullWidth
-            />
-          ))}
-          <Button
-            type="button"
-            onClick={() => onAddProject(entry.id)}
-            className={styles.addDashedButton}
-            disableRipple
-            fullWidth
-          >
-            + Add a project
-          </Button>
-        </Box>
+        <DynamicListSection
+          label="List some of the projects you were involved in"
+          values={entry.projects}
+          itemLabel="Project"
+          addButtonLabel="+ Add a project"
+          onUpdateValue={(projectIndex, value) => onUpdateProject(entry.id, projectIndex, value)}
+          onAddValue={() => onAddProject(entry.id)}
+        />
       </Box>
     ))}
 
@@ -180,7 +168,7 @@ const CvBuilderCareerHistoryForm = ({
     >
       + Add position
     </Button>
-  </Box>
+  </CvBuilderFormPanel>
 )
 
 export default CvBuilderCareerHistoryForm
