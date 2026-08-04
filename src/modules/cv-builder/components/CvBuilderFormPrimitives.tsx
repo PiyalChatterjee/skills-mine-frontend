@@ -1,5 +1,6 @@
 import { Box, MenuItem, TextField, Typography } from '@mui/material'
 import type { ChangeEvent, ReactNode } from 'react'
+import chevronDownIcon from '@/assets/cv-builder/chevron-down.svg'
 import styles from '../pages/CvBuilderPage.module.css'
 
 export type FieldSpan = 'full' | 'two' | 'one'
@@ -44,11 +45,7 @@ type SelectChevronIconProps = {
 }
 
 export const SelectChevronIcon = ({ className }: SelectChevronIconProps) => (
-  <Box component="span" className={className} aria-hidden="true">
-    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M5 9L12 16L19 9" stroke="currentColor" strokeWidth="2.75" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  </Box>
+  <Box component="img" src={chevronDownIcon} alt="" className={className} aria-hidden="true" />
 )
 
 export const CvBuilderFormPanel = ({ children }: CvBuilderFormPanelProps) => (

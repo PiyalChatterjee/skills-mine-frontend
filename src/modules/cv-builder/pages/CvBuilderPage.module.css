@@ -487,7 +487,6 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
-  padding: 24px;
   margin-bottom: 32px;
 }
 
@@ -535,9 +534,9 @@
   min-width: 0;
   height: 48px;
   padding: 12px 30px;
-  border: 1px solid #bfc5cc;
+  border: 1px solid #b0b4b8;
   border-radius: 100px;
-  background-color: #fff;
+  background-color: #f6f7f8;
   color: #2a3132;
   text-transform: none;
   box-shadow: none;
@@ -1123,7 +1122,7 @@
   inset: 0;
   background: rgba(3, 71, 140, 0.86);
   z-index: 100;
-  overflow-y: scroll;
+  overflow-y: auto;
   padding: 20px 24px 28px;
   height: 100dvh;
   overscroll-behavior: contain;
@@ -1134,6 +1133,52 @@
   width: min(600px, 100%);
   position: relative;
   margin: 0 auto;
+}
+
+.previewPageTopRow {
+  display: grid;
+  grid-template-columns: minmax(0, 620px) 1fr;
+  gap: 56px;
+  align-items: start;
+}
+
+.previewPageDocumentColumn {
+  width: 100%;
+}
+
+.previewPageFrame {
+  position: relative;
+  width: 100%;
+  background: #0b4a8d;
+  padding: 22px 22px 0;
+  min-height: 720px;
+}
+
+.previewPageActionsColumn {
+  display: flex;
+  justify-content: flex-start;
+  padding-top: 2px;
+}
+
+.previewPageDownloadButton,
+.previewPageDownloadButton:global(.MuiButton-root) {
+  min-width: 144px;
+  height: 46px;
+  border-radius: 6px;
+  border: none;
+  background: #ffffff;
+  color: #0b4a8d;
+  text-transform: none;
+  box-shadow: none;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.previewPageDownloadButton:global(.MuiButton-root):hover {
+  background: #f3f7fb;
+  box-shadow: none;
 }
 
 .previewPageCloseButton,
@@ -1159,7 +1204,6 @@
   background: #fff;
   border-radius: 2px;
   overflow: hidden;
-  overflow-y: visible;
 }
 
 .previewPageDocumentCompact {
@@ -1176,100 +1220,69 @@
   height: auto;
 }
 
-.previewPageHeader {
-  min-height: 154px;
-  padding: 0 14px;
-  background: linear-gradient(90deg, #1f77b6 0%, #1f77b6 31%, #35a4d8 56%, #54b9cc 100%);
-  display: flex;
-  align-items: center;
-  gap: 16px;
+.previewPageBody {
+  padding: 12px 30px 28px;
 }
-
-.previewPageHeaderLogoCard {
-  width: 156px;
-  min-height: 154px;
-  border-radius: 0 0 42px 42px;
-  background: #fff;
-  box-shadow: 0 4px 8px rgba(3, 71, 140, 0.16);
-  display: grid;
-  place-items: center;
-  padding: 14px;
-}
-
-.previewPageHeaderLogo {
-  width: 118px;
-  height: auto;
-}
-
-.previewPageHeaderCopy {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: flex-start;
-  text-align: left;
-}
-
-.previewPageHeaderTitle,
-.previewPageHeaderTitle:global(.MuiTypography-root) {
-  color: #0f4f8f;
-  font-family: "Red Hat Display", "Inclusive Sans", "Ubuntu", sans-serif;
-  font-size: 22px;
-  font-weight: 700;
-  line-height: 1.02;
-  letter-spacing: 0.1px;
-  max-width: 206px;
-}
-
-.previewPageHeaderTitleLight {
-  color: #ffffff;
-}
-
-.previewPageHeaderSubTitle,
-.previewPageHeaderSubTitle:global(.MuiTypography-root) {
-  margin-top: 8px;
-  color: #b8e8ff;
-  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
-  font-size: 7px;
-  font-weight: 500;
-  line-height: 1.35;
-}
-
-.previewPageHeaderContactRow {
-  background: #1e6ca7;
-  padding: 2px 10px;
+.previewPageActionStrip {
+  margin-top: -1px;
+  height: 56px;
+  background: #ffffff;
+  border-top: 1px solid #edf1f6;
+  border-bottom: 1px solid #edf1f6;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  padding: 0 120px;
 }
 
-.previewPageHeaderContactItem {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  min-width: 0;
-}
-
-.previewPageHeaderContactDot {
-  width: 6px;
-  height: 6px;
+.previewPageBackButton,
+.previewPageBackButton:global(.MuiButton-root) {
+  min-width: 90px;
+  height: 32px;
   border-radius: 999px;
-  background: #fff;
-  opacity: 0.95;
-  flex-shrink: 0;
-}
-
-.previewPageHeaderContactRow :global(.MuiTypography-root) {
-  color: #c8e8ff;
+  border: 1px solid #c9d2da;
+  background: #f5f7f9;
+  color: #2a3132;
+  text-transform: none;
+  box-shadow: none;
   font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
-  font-size: 6px;
+  font-size: 16px;
+  font-weight: 400;
   line-height: 1.2;
-  white-space: nowrap;
+  gap: 7px;
 }
 
-.previewPageBody {
-  padding: 12px 30px 28px;
+.previewPageBackButton:global(.MuiButton-root):hover {
+  background: #eef3f7;
+  box-shadow: none;
+}
+
+.previewPageBackArrow {
+  width: 12px;
+  height: 12px;
+  transform: rotate(180deg);
+  filter: brightness(0) saturate(100%) invert(19%) sepia(9%) saturate(487%) hue-rotate(137deg) brightness(90%) contrast(89%);
+}
+
+.previewPageSubmitButton,
+.previewPageSubmitButton:global(.MuiButton-root) {
+  min-width: 92px;
+  height: 32px;
+  border-radius: 999px;
+  border: none;
+  background: #32abbf;
+  color: #ffffff;
+  text-transform: none;
+  box-shadow: none;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.previewPageSubmitButton:global(.MuiButton-root):hover {
+  background: #2b96d9;
+  box-shadow: none;
 }
 
 .previewPageCvTitle,
@@ -1302,15 +1315,6 @@
   font-size: 24px;
   font-weight: 700;
   line-height: 1.18;
-}
-
-.previewPageSubTitle,
-.previewPageSubTitle:global(.MuiTypography-root) {
-  margin: 8px 0;
-  color: #03478c;
-  font-family: "Red Hat Display", "Inclusive Sans", "Ubuntu", sans-serif;
-  font-size: 18px;
-  font-weight: 600;
 }
 
 .previewPageCareerBlock {
@@ -1383,6 +1387,115 @@
   font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
   font-size: 11px;
   line-height: 1.45;
+}
+
+.previewPageDivider {
+  width: 100%;
+  height: 1px;
+  background: #d6dbe0;
+  margin: 10px 0 8px;
+}
+
+.previewPageCareerTableHeader,
+.previewPageCareerTableRow {
+  display: grid;
+  grid-template-columns: 1fr 0.9fr 1fr;
+  gap: 12px;
+}
+
+.previewPageCareerTableHeader {
+  margin-top: 10px;
+}
+
+.previewPageCareerTableHeader :global(.MuiTypography-root),
+.previewPageCareerTableRow :global(.MuiTypography-root) {
+  color: #2a3132;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.previewPageCareerTableHeader :global(.MuiTypography-root) {
+  font-weight: 700;
+}
+
+.previewPageCareerTableRow {
+  margin-top: 8px;
+}
+
+.previewPageSkillsList {
+  margin: 0;
+  padding-left: 12px;
+}
+
+.previewPageSkillsList li {
+  color: #2a3132;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.previewPageLanguageText,
+.previewPageLanguageText:global(.MuiTypography-root) {
+  color: #2a3132;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.previewPageWorkEntry {
+  margin-top: 14px;
+}
+
+.previewPageWorkMetaGrid {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  column-gap: 14px;
+  row-gap: 5px;
+}
+
+.previewPageWorkMetaGrid :global(.MuiTypography-root) {
+  color: #2a3132;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.previewPageWorkMetaLabel,
+.previewPageWorkMetaLabel:global(.MuiTypography-root) {
+  font-weight: 700;
+}
+
+.previewPageWorkDescriptionTitle,
+.previewPageWorkDescriptionTitle:global(.MuiTypography-root) {
+  margin-top: 8px;
+  color: #2a3132;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.previewPageWorkBulletList {
+  margin: 2px 0 0;
+  padding-left: 12px;
+}
+
+.previewPageWorkBulletList li {
+  color: #2a3132;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.previewPageDisclaimer,
+.previewPageDisclaimer:global(.MuiTypography-root) {
+  margin-top: 8px;
+  color: #7f8a94;
+  text-align: center;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 9px;
+  line-height: 1.35;
 }
 
 .previewModalOverlay {

@@ -24,7 +24,7 @@ const CvBuilderPreviewDocument = ({
 	size,
 	formValues,
 	careerHistory,
-	skills: _skills,
+	skills,
 	tertiaryEducation,
 	secondaryEducation,
 	selectedLanguages,
@@ -33,18 +33,49 @@ const CvBuilderPreviewDocument = ({
 	const previewRole = formValues.currentPosition || 'Role not provided'
 	const previewCompany = formValues.currentCompany || 'Company not provided'
 	const employmentEquityStatus = [formValues.race, formValues.gender].filter(Boolean).join(' ') || 'Not provided'
+	const normalizedCareerHistory = careerHistory
+		.map((entry) => ({
+			...entry,
+			tasks: entry.tasks.map((task) => task.trim()).filter(Boolean),
+			projects: entry.projects.map((project) => project.trim()).filter(Boolean),
+		}))
+		.filter(
+			(entry) =>
+				entry.companyName.trim() ||
+				entry.positionHeld.trim() ||
+				entry.startDate.trim() ||
+				entry.endDate.trim() ||
+				entry.tasks.length > 0 ||
+				entry.projects.length > 0,
+		)
 
-	const yearsOfExperience = `${Math.max(careerHistory.length, 1)} Years`
+	const normalizedSkills = skills
+		.map((entry) => entry.name.trim())
+		.filter(Boolean)
+	const fallbackWorkDescription = [
+		'No responsibilities provided yet.',
+		'No achievements provided yet.',
+	]
+	const previewFooterNote =
+		'PLEASE NOTE By receiving this Curriculum Vitae, you automatically agree to our Standard Terms and Conditions'
+
+	const yearsOfExperience = `${Math.max(normalizedCareerHistory.length, 1)} Years`
 	const highestQualification =
 		tertiaryEducation.find((entry) => entry.degreeOrCertification.trim())?.degreeOrCertification || 'Not provided'
 	const industryExperience =
-		careerHistory
+		normalizedCareerHistory
 			.flatMap((entry) => entry.projects)
 			.map((project) => project.trim())
 			.filter(Boolean)
 			.slice(0, 3)
 			.join(', ') || 'Not provided'
 	const languageSummary = Array.from(selectedLanguages).join(', ') || 'Not provided'
+
+	const formatPeriod = (startDate: string, endDate: string, isCurrentRole: boolean) => {
+		const start = startDate.trim() || 'N/A'
+		const end = isCurrentRole ? 'Current' : endDate.trim() || 'N/A'
+		return `${start} - ${end}`
+	}
 
 	const fullDocument = (
 		<Box className={`${styles.previewPageDocument} ${size === 'compact' ? styles.previewPageDocumentCompact : ''}`}>
@@ -125,6 +156,126 @@ const CvBuilderPreviewDocument = ({
 						<Typography>{entry.highestGradePassed || 'Not provided'}</Typography>
 					</Box>
 				))}
+
+				<Box className={styles.previewPageDivider} />
+
+				<Typography className={styles.previewPageSectionTitle}>Career Overview</Typography>
+				<Box className={styles.previewPageCareerTableHeader}>
+					<Typography>Company</Typography>
+					<Typography>Period</Typography>
+					<Typography>Position Held</Typography>
+				</Box>
+				{normalizedCareerHistory.length > 0 ? (
+					normalizedCareerHistory.map((entry) => (
+						<Box key={entry.id} className={styles.previewPageCareerTableRow}>
+							<Typography>{entry.companyName || 'Not provided'}</Typography>
+							<Typography>{formatPeriod(entry.startDate, entry.endDate, entry.isCurrentRole)}</Typography>
+							<Typography>{entry.positionHeld || 'Not provided'}</Typography>
+						</Box>
+					))
+				) : (
+					<Box className={styles.previewPageCareerTableRow}>
+						<Typography>Not provided</Typography>
+						<Typography>Not provided</Typography>
+						<Typography>Not provided</Typography>
+					</Box>
+				)}
+
+				<Typography className={styles.previewPageSectionTitle}>Key Skills</Typography>
+				{normalizedSkills.length > 0 ? (
+					<Box component="ul" className={styles.previewPageSkillsList}>
+						{normalizedSkills.map((skill) => (
+							<Box key={skill} component="li">
+								{skill}
+							</Box>
+						))}
+					</Box>
+				) : (
+					<Box component="ul" className={styles.previewPageSkillsList}>
+						<Box component="li">Not provided</Box>
+					</Box>
+				)}
+
+				<Typography className={styles.previewPageSectionTitle}>Languages</Typography>
+				<Typography className={styles.previewPageLanguageText}>{languageSummary}</Typography>
+
+				<Box className={styles.previewPageDivider} />
+
+				<Typography className={styles.previewPageSectionTitle}>Work Experience</Typography>
+				{normalizedCareerHistory.length > 0 ? (
+					normalizedCareerHistory.map((entry) => {
+						const descriptionItems = [
+							...entry.tasks,
+							...entry.projects.map((project) => `Project: ${project}`),
+						]
+
+						return (
+							<Box key={`${entry.id}-work`} className={styles.previewPageWorkEntry}>
+								<Box className={styles.previewPageWorkMetaGrid}>
+									<Typography className={styles.previewPageWorkMetaLabel}>Company Name</Typography>
+									<Typography>{entry.companyName || 'Not provided'}</Typography>
+									<Typography className={styles.previewPageWorkMetaLabel}>Position Held</Typography>
+									<Typography>{entry.positionHeld || 'Not provided'}</Typography>
+									<Typography className={styles.previewPageWorkMetaLabel}>Period</Typography>
+									<Typography>{formatPeriod(entry.startDate, entry.endDate, entry.isCurrentRole)}</Typography>
+								</Box>
+
+								<Typography className={styles.previewPageWorkDescriptionTitle}>Description:</Typography>
+								{descriptionItems.length > 0 ? (
+									<Box component="ul" className={styles.previewPageWorkBulletList}>
+										{descriptionItems.map((item, index) => (
+											<Box key={`${entry.id}-desc-${index}`} component="li">
+												{item}
+											</Box>
+										))}
+									</Box>
+								) : (
+									<Box component="ul" className={styles.previewPageWorkBulletList}>
+										{fallbackWorkDescription.map((item) => (
+											<Box key={`${entry.id}-${item}`} component="li">
+												{item}
+											</Box>
+										))}
+									</Box>
+								)}
+
+								<Typography className={styles.previewPageDisclaimer}>
+									Prepared by THE SKILLS MINE (PTY) LTD
+									<br />
+									{previewFooterNote}
+								</Typography>
+								<Box className={styles.previewPageDivider} />
+							</Box>
+						)
+					})
+				) : (
+					<Box className={styles.previewPageWorkEntry}>
+						<Box className={styles.previewPageWorkMetaGrid}>
+							<Typography className={styles.previewPageWorkMetaLabel}>Company Name</Typography>
+							<Typography>Not provided</Typography>
+							<Typography className={styles.previewPageWorkMetaLabel}>Position Held</Typography>
+							<Typography>Not provided</Typography>
+							<Typography className={styles.previewPageWorkMetaLabel}>Period</Typography>
+							<Typography>Not provided</Typography>
+						</Box>
+
+						<Typography className={styles.previewPageWorkDescriptionTitle}>Description:</Typography>
+						<Box component="ul" className={styles.previewPageWorkBulletList}>
+							{fallbackWorkDescription.map((item) => (
+								<Box key={`fallback-${item}`} component="li">
+									{item}
+								</Box>
+							))}
+						</Box>
+
+						<Typography className={styles.previewPageDisclaimer}>
+							Prepared by THE SKILLS MINE (PTY) LTD
+							<br />
+							{previewFooterNote}
+						</Typography>
+						<Box className={styles.previewPageDivider} />
+					</Box>
+				)}
 			</Box>
 		</Box>
 	)

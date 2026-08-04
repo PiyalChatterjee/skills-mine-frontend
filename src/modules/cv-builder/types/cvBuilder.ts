@@ -37,12 +37,12 @@ export const CV_BUILDER_STEPS: StepItem[] = [
 ]
 
 export const PERSONAL_DETAILS_INITIAL_VALUES: PersonalDetailsFormState = {
-  fullName: 'Michael Smith',
+  fullName: '',
   race: '',
   gender: '',
   disabilityStatus: '',
   nationality: '',
-  residentialLocation: 'Johannesburg',
+  residentialLocation: '',
   currentCompany: '',
   currentPosition: '',
   noticePeriod: '',

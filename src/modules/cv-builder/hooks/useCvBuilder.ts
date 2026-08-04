@@ -1,4 +1,4 @@
-import { type ChangeEvent, useRef, useState } from 'react'
+import { type ChangeEvent, useEffect, useRef, useState } from 'react'
 import {
   CAREER_HISTORY_INITIAL,
   CV_BUILDER_STEPS,
@@ -23,7 +23,9 @@ import {
 const FIRST_STEP = 1
 const LAST_STEP = CV_BUILDER_STEPS.length
 
-const useCvBuilder = () => {
+const isBlank = (value: string) => value.trim().length === 0
+
+const useCvBuilder = (profileDefaults?: Partial<PersonalDetailsFormState>) => {
   const uploadInputRef = useRef<HTMLInputElement | null>(null)
 
   const [activeView, setActiveView] = useState<CvBuilderView>('launcher')
@@ -35,6 +37,34 @@ const useCvBuilder = () => {
   const [tertiaryEducation, setTertiaryEducation] = useState<TertiaryEducationEntry[]>(TERTIARY_EDUCATION_INITIAL)
   const [secondaryEducation, setSecondaryEducation] = useState<SecondaryEducationEntry[]>(SECONDARY_EDUCATION_INITIAL)
   const [selectedLanguages, setSelectedLanguages] = useState<Set<Language>>(LANGUAGES_INITIAL)
+
+  useEffect(() => {
+    if (!profileDefaults) {
+      return
+    }
+
+    setFormValues((currentValues) => {
+      const nextValues: PersonalDetailsFormState = { ...currentValues }
+      let hasChanged = false
+
+      const assignIfEmpty = (field: keyof PersonalDetailsFormState) => {
+        const candidateValue = profileDefaults[field]
+        if (!candidateValue || !isBlank(currentValues[field])) {
+          return
+        }
+        nextValues[field] = candidateValue
+        hasChanged = true
+      }
+
+      assignIfEmpty('fullName')
+      assignIfEmpty('residentialLocation')
+      assignIfEmpty('currentCompany')
+      assignIfEmpty('currentPosition')
+      assignIfEmpty('noticePeriod')
+
+      return hasChanged ? nextValues : currentValues
+    })
+  }, [profileDefaults])
 
   const handleUploadFileSelect = (event: ChangeEvent<HTMLInputElement>) => {
     const nextFile = event.target.files?.[0] ?? null

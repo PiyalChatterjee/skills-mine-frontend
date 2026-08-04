@@ -1,6 +1,11 @@
 import { Box } from '@mui/material'
+import { useMemo } from 'react'
+import { useSelector } from 'react-redux'
+import { useAuth } from '@/app/auth/AuthContext'
 import settingsIcon from '@/assets/cv-builder/settings-4-line.svg'
 import uploadIcon from '@/assets/cv-builder/upload-2-line.svg'
+import { useCandidateProfileQuery } from '@/modules/candidate/hooks/useCandidateQueries'
+import { selectCandidateProfile } from '@/store/selectors/candidateSelectors'
 import CvBuilderCareerHistoryForm from '../components/CvBuilderCareerHistoryForm'
 import CvBuilderEducationForm from '../components/CvBuilderEducationForm'
 import CvBuilderFooterActions from '../components/CvBuilderFooterActions'
@@ -17,6 +22,22 @@ import { CV_BUILDER_STEPS, type CvActionCard } from '../types/cvBuilder'
 import styles from './CvBuilderPage.module.css'
 
 const CvBuilderPage = () => {
+  const { user } = useAuth()
+  const candidateId = user?.id
+  useCandidateProfileQuery(candidateId)
+  const candidateProfile = useSelector(selectCandidateProfile)
+
+  const profileDefaults = useMemo(
+    () => ({
+      fullName: candidateProfile?.fullName ?? '',
+      residentialLocation: candidateProfile?.location ?? '',
+      currentCompany: candidateProfile?.currentCompany ?? '',
+      currentPosition: candidateProfile?.currentTitle ?? '',
+      noticePeriod: '',
+    }),
+    [candidateProfile],
+  )
+
   const {
     uploadInputRef,
     activeView,
@@ -54,7 +75,7 @@ const CvBuilderPage = () => {
     removeSecondaryEntry,
     selectedLanguages,
     toggleLanguage,
-  } = useCvBuilder()
+  } = useCvBuilder(profileDefaults)
 
   const actionCards: CvActionCard[] = [
     {
