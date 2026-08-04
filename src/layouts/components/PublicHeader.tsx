@@ -10,7 +10,7 @@ import { useState, type MouseEvent } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import searchIcon from "@/assets/landing-page/search-icon.svg";
 import skillsMineLogo from "@/assets/skillsMine-logo.svg";
-import userIcon from "@/assets/public-layout/user-icon.svg";
+import userIconWhite from "@/assets/public-layout/user-icon-white.svg";
 import { useAuth } from "@/app/auth/AuthContext";
 import { isJwtExpired } from "@/app/auth/jwt";
 import type { HeaderNavItem } from "@/layouts/headerNav";
@@ -27,7 +27,10 @@ type PublicHeaderProps = {
   showNotificationButton?: boolean;
   canAccessProtectedRoutes: boolean;
   navItems?: HeaderNavItem[];
-  onProtectedNavClick: (event: MouseEvent<HTMLAnchorElement>, targetPath: string) => void;
+  onProtectedNavClick: (
+    event: MouseEvent<HTMLAnchorElement>,
+    targetPath: string,
+  ) => void;
   onHelpClick: () => void;
   onNotificationClick?: () => void;
   onSignUpClick: () => void;
@@ -57,12 +60,12 @@ export const PublicHeader = ({
   const isProfileMenuOpen = Boolean(profileAnchorEl);
   const accessToken = tokens?.accessToken;
   const hasValidAccessToken = accessToken ? !isJwtExpired(accessToken) : false;
-  const logoTarget = user && hasValidAccessToken
-    ? roleToDefaultRoute[user.role]
-    : ROUTE_PATHS.landing;
-  const logoAriaLabel = user && hasValidAccessToken
-    ? "Go to your dashboard"
-    : "Go to landing page";
+  const logoTarget =
+    user && hasValidAccessToken
+      ? roleToDefaultRoute[user.role]
+      : ROUTE_PATHS.landing;
+  const logoAriaLabel =
+    user && hasValidAccessToken ? "Go to your dashboard" : "Go to landing page";
 
   const handleProfileBadgeClick = (event: MouseEvent<HTMLButtonElement>) => {
     setProfileAnchorEl(event.currentTarget);
@@ -132,7 +135,9 @@ export const PublicHeader = ({
                     key={item.id}
                     component={NavLink}
                     to={targetPath}
-                    aria-disabled={item.requiresAuth && !canAccessProtectedRoutes}
+                    aria-disabled={
+                      item.requiresAuth && !canAccessProtectedRoutes
+                    }
                     onClick={(event) => {
                       if (item.requiresAuth) {
                         onProtectedNavClick(event, targetPath);
@@ -176,8 +181,17 @@ export const PublicHeader = ({
                 onClick={onNotificationClick}
                 className={styles.notificationButton}
               >
-                <Box className={styles.notificationBadgeDot} aria-hidden="true" />
-                <svg width="26" height="26" viewBox="0 0 26 26" fill="none" aria-hidden="true">
+                <Box
+                  className={styles.notificationBadgeDot}
+                  aria-hidden="true"
+                />
+                <svg
+                  width="26"
+                  height="26"
+                  viewBox="0 0 26 26"
+                  fill="none"
+                  aria-hidden="true"
+                >
                   <path
                     d="M13 4.75C10.3766 4.75 8.25 6.87665 8.25 9.5V11.8C8.25 12.5515 7.98966 13.2798 7.51338 13.8612L6.51256 15.0822C5.67818 16.1004 6.40231 17.625 7.71872 17.625H18.2813C19.5977 17.625 20.3218 16.1004 19.4874 15.0822L18.4866 13.8612C18.0103 13.2798 17.75 12.5515 17.75 11.8V9.5C17.75 6.87665 15.6234 4.75 13 4.75Z"
                     fill="#c8c8c8"
@@ -210,7 +224,7 @@ export const PublicHeader = ({
                   >
                     <Box
                       component="img"
-                      src={userIcon}
+                      src={userIconWhite}
                       alt=""
                       className={styles.profileIcon}
                     />
@@ -234,10 +248,13 @@ export const PublicHeader = ({
                   }}
                 >
                   <Box className={styles.profileMenuUserBlock}>
-                    <Box className={styles.profileMenuUserAvatar} aria-hidden="true">
+                    <Box
+                      className={styles.profileMenuUserAvatar}
+                      aria-hidden="true"
+                    >
                       <Box
                         component="img"
-                        src={userIcon}
+                        src={userIconWhite}
                         alt=""
                         className={styles.profileMenuUserAvatarIcon}
                       />
@@ -252,7 +269,10 @@ export const PublicHeader = ({
                     </Box>
                   </Box>
 
-                  <Box className={styles.profileMenuDivider} aria-hidden="true" />
+                  <Box
+                    className={styles.profileMenuDivider}
+                    aria-hidden="true"
+                  />
 
                   <MenuItem
                     onClick={handleProfileSettingsClick}

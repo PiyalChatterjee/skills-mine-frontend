@@ -7,19 +7,16 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Controller, useFieldArray } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/app/auth/AuthContext";
 import { PasswordVisibilityAdornment } from "@/components/PasswordVisibilityAdornment";
 import { useZodForm } from "@/hooks/useZodForm";
-import {
-  useCandidateProfileQuery,
-  useUpdateCandidateProfileMutation,
-} from "@/modules/candidate/hooks/useCandidateQueries";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import type { AppDispatch } from "@/store";
-import { pushNotification } from "@/store/slices/notificationSlice";
+import { apiSlice } from "@/store/api/apiSlice";
+import { saveProfileThunk } from "@/store/slices/candidateThunks";
 import {
   ProfileSelectField,
   ProfileTextField,
@@ -98,8 +95,9 @@ const ProfilePage = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { user } = useAuth();
   const candidateId = user?.id;
-  const { data: candidateProfile } = useCandidateProfileQuery(candidateId);
-  const updateCandidateProfileMutation = useUpdateCandidateProfileMutation();
+  const candidateProfile = useSelector(
+    apiSlice.endpoints.getCandidateProfile.select(candidateId ?? ''),
+  ).data;
   const resolvedCandidateProfile = candidateProfile ?? null;
   const {
     control,
@@ -193,10 +191,9 @@ const ProfilePage = () => {
       );
 
       try {
-        const updatedProfile = await updateCandidateProfileMutation.mutateAsync({
-          candidateId,
-          payload,
-        });
+        const updatedProfile = await dispatch(
+          saveProfileThunk({ candidateId, payload }),
+        ).unwrap();
 
         reset(getProfileFormValues(updatedProfile));
         setIsPersonalEditing(false);
@@ -204,26 +201,9 @@ const ProfilePage = () => {
         setIsEducationEditing(false);
         setIsPasswordDisabled(true);
         setPasswordVisible(false);
-        dispatch(
-          pushNotification({
-            title: "Profile updated",
-            message: "Your changes were saved successfully.",
-            level: "success",
-          }),
-        );
         navigate(ROUTE_PATHS.candidateDashboard);
-      } catch (error) {
-        const message =
-          typeof error === "string"
-            ? error
-            : "Unable to save your profile. Please try again.";
-        dispatch(
-          pushNotification({
-            title: "Save failed",
-            message,
-            level: "error",
-          }),
-        );
+      } catch {
+        // notification already dispatched by saveProfileThunk
         return;
       }
 
