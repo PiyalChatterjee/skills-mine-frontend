@@ -25,6 +25,7 @@ const CvBuilderPage = lazy(() => import('@/modules/cv-builder/pages/CvBuilderPag
 const JobsPage = lazy(() => import('@/modules/candidate/pages/JobsPage'))
 const ProfilePage = lazy(() => import('@/modules/candidate/pages/ProfilePage'))
 const RecruiterPage = lazy(() => import('@/modules/recruiter/pages/RecruiterPage'))
+const MandateDetailPage = lazy(() => import('@/modules/recruiter/pages/MandateDetailPage'))
 const CrmPage = lazy(() => import('@/modules/crm/pages/CrmPage'))
 const MancoPage = lazy(() => import('@/modules/manco/pages/MancoPage'))
 const ExcoPage = lazy(() => import('@/modules/exco/pages/ExcoPage'))
@@ -57,6 +58,7 @@ export const AppRoutes = () => {
 
           <Route element={<RecruiterLayout />}>
             <Route path={ROUTE_PATHS.recruiter} element={<RecruiterPage />} />
+            <Route path={ROUTE_PATHS.recruiterMandate} element={<MandateDetailPage />} />
             <Route
               element={
                 <PermissionGuard requiredPermissions={['CRM_VIEW']} />
