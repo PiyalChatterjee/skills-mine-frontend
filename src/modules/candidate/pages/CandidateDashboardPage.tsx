@@ -1,12 +1,12 @@
+import { useEffect, useMemo } from 'react'
 import { Box, ButtonBase, CircularProgress, Link, Typography } from '@mui/material'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/app/auth/AuthContext'
 import type { CandidateApplication } from '@/modules/candidate/types'
-import {
-  useCandidateApplicationsQuery,
-  useCandidateProfileQuery,
-} from '@/modules/candidate/hooks/useCandidateQueries'
+import type { AppDispatch } from '@/store'
+import { apiSlice } from '@/store/api/apiSlice'
+import { fetchCandidateApplicationsThunk } from '@/store/slices/candidateThunks'
 import bardLineIcon from '@/assets/candidate-dashboard/bard-line.svg'
 import expandCirclePlusIcon from '@/assets/candidate-dashboard/expand-circle-plus.svg'
 import bookmarkLineIcon from '@/assets/candidate-dashboard/bookmark-line.svg'
@@ -16,11 +16,6 @@ import fileList2LineIcon from '@/assets/candidate-dashboard/file-list-2-line.svg
 import progress5LineIcon from '@/assets/candidate-dashboard/progress-5-line.svg'
 import verifiedBadgeLineIcon from '@/assets/candidate-dashboard/verified-badge-line.svg'
 import { ROUTE_PATHS } from '@/routes/routePaths'
-import {
-  selectCandidateApplicationIds,
-  selectCandidateApplications,
-  selectCandidateProfile,
-} from '@/store/selectors/candidateSelectors'
 import styles from './CandidateDashboardPage.module.css'
 
 // ── Types ─────────────────────────────────────────────────────────────
@@ -188,13 +183,25 @@ const ApplicationEntry = ({ app, isFirst, onExpand }: ApplicationEntryProps) => 
 
 const CandidateDashboardPage = () => {
   const navigate = useNavigate()
+  const dispatch = useDispatch<AppDispatch>()
   const { user } = useAuth()
   const candidateId = user?.id
-  const profile = useSelector(selectCandidateProfile)
-  const applicationIds = useSelector(selectCandidateApplicationIds)
-  const storedApplications = useSelector(selectCandidateApplications)
-  const { isLoading: profileLoading } = useCandidateProfileQuery(candidateId)
-  const { isLoading: applicationsLoading } = useCandidateApplicationsQuery(applicationIds)
+
+  const { data: profile, isLoading: profileLoading } = useSelector(
+    apiSlice.endpoints.getCandidateProfile.select(candidateId ?? ''),
+  )
+
+  const applicationIds = useMemo(() => profile?.applications ?? [], [profile?.applications])
+
+  useEffect(() => {
+    if (candidateId && applicationIds.length > 0) {
+      dispatch(fetchCandidateApplicationsThunk(applicationIds))
+    }
+  }, [candidateId, applicationIds, dispatch])
+
+  const { data: storedApplications = [], isLoading: applicationsLoading } = useSelector(
+    apiSlice.endpoints.getCandidateApplications.select(applicationIds),
+  )
 
   const firstName = profile?.fullName?.split(' ')[0] ?? user?.displayName?.split(' ')[0] ?? 'there'
 

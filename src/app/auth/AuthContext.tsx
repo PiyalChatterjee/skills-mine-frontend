@@ -9,11 +9,8 @@ import {
 } from 'react'
 import { tokenStorage } from '@/app/auth/tokenStorage'
 import { isJwtExpired } from '@/app/auth/jwt'
-import { queryClient } from '@/app/queryClient'
-import { candidateQueryKeys } from '@/modules/candidate/hooks/useCandidateQueries'
 import { store } from '@/store'
-import { clearCandidateApplications } from '@/store/slices/candidateApplicationsSlice'
-import { clearCandidateProfile } from '@/store/slices/candidateProfileSlice'
+import { apiSlice } from '@/store/api/apiSlice'
 import type {
   AuthSession,
   AuthUser,
@@ -78,10 +75,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
 
   const logout = useCallback(() => {
     tokenStorage.clearAuth()
-    void queryClient.cancelQueries({ queryKey: candidateQueryKeys.all })
-    queryClient.removeQueries({ queryKey: candidateQueryKeys.all })
-    store.dispatch(clearCandidateApplications())
-    store.dispatch(clearCandidateProfile())
+    store.dispatch(apiSlice.util.resetApiState())
     setSession(defaultState)
   }, [])
 

@@ -398,7 +398,12 @@
 
 @media (max-width: 1120px) {
   .topBarInner {
-    padding: 20px 32px;
+    padding: 20px 8px;
+    gap: 12px;
+  }
+
+  .navGroup {
+    gap: 12px;
   }
 
   .footerInner {

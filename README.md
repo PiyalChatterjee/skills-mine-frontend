@@ -10,7 +10,7 @@ This repository provides the application shell, route composition, auth boundari
 - TypeScript
 - Vite
 - Redux Toolkit + React Redux
-- TanStack Query
+- RTK Query
 - React Router v7
 - Axios
 - Material UI
@@ -101,6 +101,15 @@ npm run test:coverage
 
 - Added `@react-oauth/google`.
 - Removed unused `httpyac` tooling/scripts.
+- Removed `@tanstack/react-query` after migrating server-state flows to RTK Query.
+
+### Server-State Architecture Migration
+
+- Migrated server-state operations to `RTK Query` with a centralized API slice at `src/store/api/apiSlice.ts`.
+- `apiSlice` now handles candidate profile queries, candidate applications queries, profile mutations, and paginated jobs reads.
+- Moved cache invalidation logic to tag-based policies (`providesTags` / `invalidatesTags`) and removed QueryClient cache management.
+- Logout now resets server cache using `apiSlice.util.resetApiState()`.
+- Candidate profile/application Redux mirror slices were removed to keep a single source of truth for server data.
 
 ## Architecture Overview
 
@@ -123,9 +132,8 @@ flowchart TD
     B --> B1[Redux Provider]
     B1 --> B2[BrowserRouter]
     B2 --> B3[AuthProvider]
-    B3 --> B4[QueryClientProvider]
-    B4 --> B5[ThemeProvider]
-    B5 --> C[App]
+    B3 --> B4[ThemeProvider]
+    B4 --> C[App]
     C --> D[AppRoutes]
 
     D --> E[Public Routes]
@@ -154,8 +162,9 @@ flowchart TD
     M --> M2[permissionSlice]
     M --> M3[uiSlice]
     M --> M4[notificationSlice]
+    M --> M5[apiSlice reducer]
 
-    B4 --> N[Query Client]
+    M5 --> N[RTK Query Cache]
     N --> O[API Layer]
     O --> O1[axios.ts]
     O --> O2[authApi.ts]
@@ -180,8 +189,7 @@ Provider order is:
 1. Redux Provider
 2. BrowserRouter
 3. AuthProvider
-4. QueryClientProvider
-5. Material UI ThemeProvider
+4. Material UI ThemeProvider
 
 This order matters because route guards need router context, feature code needs auth context, and all rendered UI needs theme context.
 
@@ -237,17 +245,18 @@ Redux is used for global cross-cutting UI and identity state:
 - `uiSlice`: layout/global loading/theme preference state
 - `notificationSlice`: global notification queue
 
-TanStack Query is used for server-state concerns:
+RTK Query is used for server-state concerns through `apiSlice`:
 
 - request lifecycle
 - caching
 - retries
-- future polling and stale-time control
+- invalidation via endpoint tags
+- lazy and standard generated hooks
 
 Rule of thumb:
 
-- Use Redux for app state.
-- Use Query for server state.
+- Use Redux slices for UI/app state.
+- Use RTK Query endpoints for server data.
 
 ### 5. API layer
 
@@ -255,6 +264,8 @@ Rule of thumb:
 
 - `axios.ts` creates the shared client and interceptors.
 - `authApi.ts`, `candidateApi.ts`, `mandateApi.ts`, `crmApi.ts`, `dashboardApi.ts` define typed request/response contracts.
+
+`store/api/apiSlice.ts` composes these service contracts into cache-aware, generated RTK Query hooks for page-level consumption.
 
 There is no business logic in this layer yet. That is deliberate.
 

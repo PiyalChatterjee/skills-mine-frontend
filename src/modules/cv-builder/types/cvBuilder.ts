@@ -1,4 +1,4 @@
-export type CvBuilderView = 'launcher' | 'form'
+export type CvBuilderView = 'launcher' | 'form' | 'review' | 'preview' | 'view-cv'
 
 export type StepItem = {
   id: number
@@ -37,12 +37,12 @@ export const CV_BUILDER_STEPS: StepItem[] = [
 ]
 
 export const PERSONAL_DETAILS_INITIAL_VALUES: PersonalDetailsFormState = {
-  fullName: 'Michael Smith',
+  fullName: '',
   race: '',
   gender: '',
   disabilityStatus: '',
   nationality: '',
-  residentialLocation: 'Johannesburg',
+  residentialLocation: '',
   currentCompany: '',
   currentPosition: '',
   noticePeriod: '',
@@ -126,3 +126,25 @@ export const createSecondaryEntry = (): SecondaryEducationEntry => ({
 
 export const TERTIARY_EDUCATION_INITIAL: TertiaryEducationEntry[] = [createTertiaryEntry()]
 export const SECONDARY_EDUCATION_INITIAL: SecondaryEducationEntry[] = [createSecondaryEntry()]
+
+// ─── Languages ────────────────────────────────────────────────────────────────
+
+export const LANGUAGES_LIST = [
+  'Afrikaans',
+  'Southern Sotho',
+  'Swati',
+  'English',
+  'Northern Sotho',
+  'Ndebele',
+  'Xhosa',
+  'Venda',
+  'Tsonga',
+  'Zulu',
+  'Tswana',
+  'South African Sign',
+  'Other',
+] as const
+
+export type Language = (typeof LANGUAGES_LIST)[number]
+
+export const LANGUAGES_INITIAL: Set<Language> = new Set()
