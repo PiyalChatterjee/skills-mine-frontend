@@ -1,7 +1,8 @@
-import { type ChangeEvent, useRef, useState } from 'react'
+import { type ChangeEvent, useEffect, useRef, useState } from 'react'
 import {
   CAREER_HISTORY_INITIAL,
   CV_BUILDER_STEPS,
+  LANGUAGES_INITIAL,
   PERSONAL_DETAILS_INITIAL_VALUES,
   SECONDARY_EDUCATION_INITIAL,
   SKILLS_INITIAL,
@@ -12,6 +13,7 @@ import {
   createTertiaryEntry,
   type CareerHistoryEntry,
   type CvBuilderView,
+  type Language,
   type PersonalDetailsFormState,
   type SecondaryEducationEntry,
   type SkillEntry,
@@ -19,8 +21,11 @@ import {
 } from '../types/cvBuilder'
 
 const FIRST_STEP = 1
+const LAST_STEP = CV_BUILDER_STEPS.length
 
-const useCvBuilder = () => {
+const isBlank = (value: string) => value.trim().length === 0
+
+const useCvBuilder = (profileDefaults?: Partial<PersonalDetailsFormState>) => {
   const uploadInputRef = useRef<HTMLInputElement | null>(null)
 
   const [activeView, setActiveView] = useState<CvBuilderView>('launcher')
@@ -31,6 +36,35 @@ const useCvBuilder = () => {
   const [skills, setSkills] = useState<SkillEntry[]>(SKILLS_INITIAL)
   const [tertiaryEducation, setTertiaryEducation] = useState<TertiaryEducationEntry[]>(TERTIARY_EDUCATION_INITIAL)
   const [secondaryEducation, setSecondaryEducation] = useState<SecondaryEducationEntry[]>(SECONDARY_EDUCATION_INITIAL)
+  const [selectedLanguages, setSelectedLanguages] = useState<Set<Language>>(LANGUAGES_INITIAL)
+
+  useEffect(() => {
+    if (!profileDefaults) {
+      return
+    }
+
+    setFormValues((currentValues) => {
+      const nextValues: PersonalDetailsFormState = { ...currentValues }
+      let hasChanged = false
+
+      const assignIfEmpty = (field: keyof PersonalDetailsFormState) => {
+        const candidateValue = profileDefaults[field]
+        if (!candidateValue || !isBlank(currentValues[field])) {
+          return
+        }
+        nextValues[field] = candidateValue
+        hasChanged = true
+      }
+
+      assignIfEmpty('fullName')
+      assignIfEmpty('residentialLocation')
+      assignIfEmpty('currentCompany')
+      assignIfEmpty('currentPosition')
+      assignIfEmpty('noticePeriod')
+
+      return hasChanged ? nextValues : currentValues
+    })
+  }, [profileDefaults])
 
   const handleUploadFileSelect = (event: ChangeEvent<HTMLInputElement>) => {
     const nextFile = event.target.files?.[0] ?? null
@@ -45,6 +79,14 @@ const useCvBuilder = () => {
   const openBuildFlow = () => {
     setActiveView('form')
     setCurrentStepId(FIRST_STEP)
+  }
+
+  const openPreview = () => {
+    setActiveView('preview')
+  }
+
+  const closePreview = () => {
+    setActiveView('review')
   }
 
   const handleTextFieldChange =
@@ -64,6 +106,22 @@ const useCvBuilder = () => {
     }
 
   const goBack = () => {
+    if (activeView === 'preview') {
+      setActiveView('review')
+      return
+    }
+
+    if (activeView === 'view-cv') {
+      setActiveView('review')
+      return
+    }
+
+    if (activeView === 'review') {
+      setActiveView('form')
+      setCurrentStepId(LAST_STEP)
+      return
+    }
+
     if (currentStepId > FIRST_STEP) {
       setCurrentStepId((prevStepId) => prevStepId - 1)
       return
@@ -72,14 +130,30 @@ const useCvBuilder = () => {
     setActiveView('launcher')
   }
 
-  const canGoNext = currentStepId < CV_BUILDER_STEPS.length
+  const canGoNext = activeView === 'review' ? true : activeView === 'preview' ? false : currentStepId <= LAST_STEP
 
   const goNext = () => {
-    if (!canGoNext) {
+    if (activeView === 'preview') {
       return
     }
 
-    setCurrentStepId((prevStepId) => prevStepId + 1)
+    if (activeView === 'review') {
+      setActiveView('view-cv')
+      return
+    }
+
+    if (activeView === 'view-cv') {
+      setActiveView('launcher')
+      setCurrentStepId(FIRST_STEP)
+      return
+    }
+
+    if (currentStepId < LAST_STEP) {
+      setCurrentStepId((prevStepId) => prevStepId + 1)
+      return
+    }
+
+    setActiveView('review')
   }
 
   // ─── Career History ─────────────────────────────────────────────────────────
@@ -190,6 +264,20 @@ const useCvBuilder = () => {
     setSecondaryEducation((prev) => prev.filter((entry) => entry.id !== entryId))
   }
 
+  // ─── Languages ──────────────────────────────────────────────────────────────
+
+  const toggleLanguage = (language: Language) => {
+    setSelectedLanguages((prev) => {
+      const next = new Set(prev)
+      if (next.has(language)) {
+        next.delete(language)
+      } else {
+        next.add(language)
+      }
+      return next
+    })
+  }
+
   return {
     uploadInputRef,
     activeView,
@@ -204,6 +292,8 @@ const useCvBuilder = () => {
     handleUploadFileSelect,
     openUploadPicker,
     openBuildFlow,
+    openPreview,
+    closePreview,
     handleTextFieldChange,
     handleSelectFieldChange,
     goBack,
@@ -223,6 +313,8 @@ const useCvBuilder = () => {
     addSecondaryEntry,
     updateSecondaryEntry,
     removeSecondaryEntry,
+    selectedLanguages,
+    toggleLanguage,
   }
 }
 

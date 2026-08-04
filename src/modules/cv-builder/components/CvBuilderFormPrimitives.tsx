@@ -1,5 +1,6 @@
 import { Box, MenuItem, TextField, Typography } from '@mui/material'
 import type { ChangeEvent, ReactNode } from 'react'
+import chevronDownIcon from '@/assets/cv-builder/chevron-down.svg'
 import styles from '../pages/CvBuilderPage.module.css'
 
 export type FieldSpan = 'full' | 'two' | 'one'
@@ -38,6 +39,14 @@ const spanClassNameMap: Record<FieldSpan, string> = {
 
 const renderSelectValue = (value: unknown, emptyLabel: string) =>
   value ? String(value) : <span className={styles.placeholderText}>{emptyLabel}</span>
+
+type SelectChevronIconProps = {
+  className?: string
+}
+
+export const SelectChevronIcon = ({ className }: SelectChevronIconProps) => (
+  <Box component="img" src={chevronDownIcon} alt="" className={className} aria-hidden="true" />
+)
 
 export const CvBuilderFormPanel = ({ children }: CvBuilderFormPanelProps) => (
   <Box className={styles.formPanel}>{children}</Box>
@@ -85,16 +94,17 @@ export const CvBuilderSelectField = ({
       className={styles.fieldControl}
       variant="outlined"
       fullWidth
-      slotProps={
-        displayEmpty
-          ? {
-              select: {
+      slotProps={{
+        select: {
+          IconComponent: SelectChevronIcon,
+          ...(displayEmpty
+            ? {
                 displayEmpty: true,
-                renderValue: (selectedValue) => renderSelectValue(selectedValue, emptyLabel),
-              },
-            }
-          : undefined
-      }
+                renderValue: (selectedValue: unknown) => renderSelectValue(selectedValue, emptyLabel),
+              }
+            : {}),
+        },
+      }}
     >
       {allowEmptyOption ? <MenuItem value=""><span className={styles.placeholderText}>{emptyLabel}</span></MenuItem> : null}
       {options.map((option) => (

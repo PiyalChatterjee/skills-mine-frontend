@@ -5,6 +5,10 @@
   flex-direction: column;
 }
 
+.pageRootViewCv {
+  background-color: #d6eef2;
+}
+
 .hiddenFileInput {
   display: none;
 }
@@ -73,7 +77,7 @@
   left: 50%;
   margin: 0;
   color: #fff;
-  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: "Red Hat Display", "Inclusive Sans", "Ubuntu", sans-serif;
   font-size: 32px;
   font-weight: 600;
   line-height: 1.5;
@@ -90,13 +94,19 @@
   padding: 34px 16px 120px;
 }
 
+.contentSectionViewCv {
+  padding-top: 20px;
+  padding-bottom: 16px;
+  display: flex;
+}
+
 .welcomeHeading,
 .welcomeHeading:global(.MuiTypography-root) {
   max-width: 721px;
   margin: 0 auto 48px;
   color: #03478c;
   text-align: center;
-  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: "Red Hat Display", "Inclusive Sans", "Ubuntu", sans-serif;
   font-size: 32px;
   font-weight: 600;
   line-height: 1.5;
@@ -132,7 +142,9 @@
   align-items: center;
   justify-content: center;
   gap: 20px;
-  transition: transform 160ms ease, box-shadow 160ms ease;
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease;
 }
 
 .cardButton:hover,
@@ -176,7 +188,7 @@
   margin: 0;
   color: #e36c6c;
   text-align: center;
-  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: "Red Hat Display", "Inclusive Sans", "Ubuntu", sans-serif;
   font-size: 18px;
   font-weight: 500;
   line-height: 1.5;
@@ -195,7 +207,7 @@
   color: #2a3132;
   text-align: center;
   text-wrap: balance;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
   font-size: 16px;
   font-weight: 400;
   line-height: 1.5;
@@ -236,14 +248,14 @@
 .progressConnector {
   width: 1px;
   height: 16px;
-  background-color: #b0b4b8;
+  background-color: #d6dbe0;
   margin: 4px 0 4px 11px;
 }
 
 .progressCircle {
   width: 24px;
   height: 24px;
-  border: 1px solid #2b96d9;
+  border: 1px solid #3098dc;
   border-radius: 999px;
   background-color: #fff;
   display: grid;
@@ -255,20 +267,39 @@
   background-color: #d5eaf7;
 }
 
+.progressCircleCompleted {
+  background-color: #3098dc;
+  border-color: #3098dc;
+}
+
 .progressNumber,
 .progressNumber:global(.MuiTypography-root) {
-  color: #2b96d9;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  color: #3098dc;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
   font-size: 14px;
   font-weight: 600;
   line-height: 1.5;
   letter-spacing: 0.1px;
 }
 
+.progressCheck,
+.progressCheck:global(svg) {
+  width: 12px;
+  height: 12px;
+}
+
+.progressCheck path {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .progressLabel,
 .progressLabel:global(.MuiTypography-root) {
-  color: #2a3132;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  color: #3098dc;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
   font-size: 16px;
   font-weight: 400;
   line-height: 1.5;
@@ -278,6 +309,13 @@
 
 .progressLabelActive,
 .progressLabelActive:global(.MuiTypography-root) {
+  color: #2A3132;
+  font-weight: 400;
+}
+
+.progressLabelCompleted,
+.progressLabelCompleted:global(.MuiTypography-root) {
+  color: #3098dc;
   font-weight: 500;
 }
 
@@ -286,6 +324,7 @@
     opacity: 0;
     transform: translateY(12px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -326,7 +365,7 @@
 .sectionTitle,
 .sectionTitle:global(.MuiTypography-root) {
   color: #03478c;
-  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: "Red Hat Display", "Inclusive Sans", "Ubuntu", sans-serif;
   font-size: 24px;
   font-weight: 500;
   line-height: 1.5;
@@ -360,7 +399,7 @@
 .fieldLabel,
 .fieldLabel:global(.MuiTypography-root) {
   color: #2a3132;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
   font-size: 16px;
   font-weight: 400;
   line-height: 1.5;
@@ -375,7 +414,7 @@
   min-height: 48px;
   border-radius: 8px;
   background-color: #fff;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
   font-size: 16px;
   line-height: 1.5;
 }
@@ -398,7 +437,7 @@
   box-sizing: border-box;
   padding: 12px 10px;
   color: #2a3132;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
   font-size: 16px;
   font-weight: 400;
   line-height: 1.5;
@@ -407,7 +446,21 @@
 
 .fieldControl :global(.MuiSelect-icon) {
   color: #2a3132;
-  right: 10px;
+  right: 14px;
+  width: 15px;
+  height: 15px;
+  top: calc(50% - 7.5px);
+  transition: transform 180ms ease;
+}
+
+.fieldControl :global(.MuiSelect-icon svg) {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.fieldControl :global(.MuiSelect-iconOpen) {
+  transform: translateY(0) rotate(180deg);
 }
 
 .fieldControl :global(.MuiInputBase-input::placeholder) {
@@ -444,14 +497,13 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
-  padding: 24px;
   margin-bottom: 32px;
 }
 
 .positionLabel,
 .positionLabel:global(.MuiTypography-root) {
   color: #2b96d9;
-  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: "Red Hat Display", "Inclusive Sans", "Ubuntu", sans-serif;
   font-size: 18px;
   font-weight: 500;
   line-height: 1.5;
@@ -473,7 +525,7 @@
 .dynamicListLabel,
 .dynamicListLabel:global(.MuiTypography-root) {
   color: #2a3132;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
   font-size: 16px;
   font-weight: 400;
   line-height: 1.5;
@@ -492,20 +544,23 @@
   min-width: 0;
   height: 48px;
   padding: 12px 30px;
-  border: 1px solid #bfc5cc;
+  border: 1px solid #b0b4b8;
   border-radius: 100px;
-  background-color: #fff;
+  background-color: #f6f7f8;
   color: #2a3132;
   text-transform: none;
   box-shadow: none;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
   font-size: 16px;
   font-weight: 400;
   line-height: 1.5;
   letter-spacing: 0.1px;
   justify-content: center;
   margin-top: 4px;
-  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
 }
 
 .addDashedButton:global(.MuiButton-root):hover {
@@ -524,7 +579,7 @@
   color: #fff;
   text-transform: none;
   box-shadow: none;
-  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: "Red Hat Display", "Inclusive Sans", "Ubuntu", sans-serif;
   font-size: 16px;
   font-weight: 500;
   line-height: 1.5;
@@ -568,7 +623,7 @@
   color: #32abbf;
   text-transform: none;
   box-shadow: none;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
   font-size: 16px;
   font-weight: 500;
   line-height: 1.5;
@@ -591,7 +646,7 @@
 .skillsSubHeading,
 .skillsSubHeading:global(.MuiTypography-root) {
   color: #2b96d9;
-  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: "Red Hat Display", "Inclusive Sans", "Ubuntu", sans-serif;
   font-size: 18px;
   font-weight: 500;
   line-height: 1.5;
@@ -628,13 +683,16 @@
   color: #2a3132;
   text-transform: none;
   box-shadow: none;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
   font-size: 16px;
   font-weight: 400;
   line-height: 1.5;
   letter-spacing: 0.1px;
   justify-content: center;
-  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
 }
 
 .addMutedPillButton:global(.MuiButton-root):hover,
@@ -660,7 +718,9 @@
   height: 40px;
   color: #b0b4b8;
   border-radius: 8px;
-  transition: color 160ms ease, background-color 160ms ease;
+  transition:
+    color 160ms ease,
+    background-color 160ms ease;
 }
 
 .inlineRemoveButton:global(.MuiIconButton-root):hover,
@@ -695,7 +755,7 @@
 .educationSubHeading,
 .educationSubHeading:global(.MuiTypography-root) {
   color: #2b96d9;
-  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: "Red Hat Display", "Inclusive Sans", "Ubuntu", sans-serif;
   font-size: 18px;
   font-weight: 500;
   line-height: 1.5;
@@ -719,7 +779,7 @@
 .educationEntryLabel,
 .educationEntryLabel:global(.MuiTypography-root) {
   color: #2b96d9;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
   font-size: 16px;
   font-weight: 500;
   line-height: 1.5;
@@ -730,6 +790,888 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 24px;
+}
+
+/* ─── Languages ──────────────────────────────────────────────────────────── */
+
+.languagesGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.languageCheckItem,
+.languageCheckItem:global(.MuiButtonBase-root) {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  background-color: #ffffff;
+  border: 1px solid transparent;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease;
+}
+
+.languageCheckItem:hover,
+.languageCheckItem:global(.MuiButtonBase-root):hover {
+  border-color: #32abbf;
+  background-color: #d6eef2;
+}
+
+.languageCheckItem:hover .languageCheckLabel,
+.languageCheckItem:hover .languageCheckLabel:global(.MuiTypography-root),
+.languageCheckItem:global(.MuiButtonBase-root):hover .languageCheckLabel,
+.languageCheckItem:global(.MuiButtonBase-root):hover .languageCheckLabel:global(.MuiTypography-root) {
+  color: #2a3132;
+}
+
+
+.languageCheckItemSelected,
+.languageCheckItemSelected:global(.MuiButtonBase-root) {
+  border-color: #d6eef2;
+  background-color: #d6eef2;
+}
+
+.languageCheckItemSelected .languageCheckLabel,
+.languageCheckItemSelected .languageCheckLabel:global(.MuiTypography-root) {
+  color: #2a3132;
+}
+
+.languageCheckbox {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  border: 1px solid #e1e3e6;
+  background-color: #ffffff;
+  display: grid;
+  place-items: center;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease;
+}
+
+.languageCheckboxChecked {
+  background-color: #32abbf;
+  border-color: #32abbf;
+}
+
+.languageCheckmark {
+  color: #ffffff;
+  font-size: 12px;
+  line-height: 1;
+  font-style: normal;
+}
+
+.languageCheckLabel,
+.languageCheckLabel:global(.MuiTypography-root) {
+  color: #2a3132;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
+  flex: 1;
+}
+
+.languageCheckLabel:hover,
+.languageCheckLabel:global(.MuiButtonBase-root):hover {
+  color: #2a3132;
+}
+
+/* ─── Review Screen ───────────────────────────────────────────────────────── */
+
+.reviewLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 240px;
+  gap: 48px;
+  align-items: start;
+  max-width: 1060px;
+  margin: 0 auto;
+}
+
+.reviewMainColumn {
+  min-width: 0;
+}
+
+.reviewTitle,
+.reviewTitle:global(.MuiTypography-root) {
+  margin: 0;
+  color: #03478c;
+  font-family: "Red Hat Display", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 32px;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0.1px;
+}
+
+.reviewDescription,
+.reviewDescription:global(.MuiTypography-root) {
+  margin: 8px 0 24px;
+  color: #2a3132;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.reviewSectionsList {
+  border-top: 1px solid #e1e3e6;
+}
+
+.reviewSectionItem {
+  border-bottom: 1px solid #e1e3e6;
+}
+
+.reviewSectionToggle,
+.reviewSectionToggle:global(.MuiButton-root) {
+  width: 100%;
+  min-width: 0;
+  padding: 16px 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: #03478c;
+  text-transform: none;
+  box-shadow: none;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 16px;
+}
+
+.reviewSectionToggle:global(.MuiButton-root):hover {
+  background: transparent;
+}
+
+.reviewSectionIconBadge {
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  background-color: #d5eaf7;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.reviewSectionIcon {
+  width: 20px;
+  height: 20px;
+}
+
+.reviewSectionLabel,
+.reviewSectionLabel:global(.MuiTypography-root) {
+  color: #03478c;
+  font-family: "Red Hat Display", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 30px;
+  font-weight: 500;
+  line-height: 1.35;
+  letter-spacing: 0.1px;
+  margin-right: auto;
+  text-align: left;
+}
+
+.reviewSectionExpandIcon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.reviewSectionContent {
+  padding: 0 0 24px;
+}
+
+.reviewEmbeddedSectionContent .formPanel {
+  animation: none;
+}
+
+.reviewEmbeddedSectionContent .formHeader,
+.reviewEmbeddedSectionContent .skillsFormHeader,
+.reviewEmbeddedSectionContent .sectionTitle {
+  display: none;
+}
+
+.reviewEmbeddedSectionContent .positionCard {
+  background-color: #fff;
+}
+
+.reviewPreviewColumn {
+  position: sticky;
+  top: 104px;
+}
+
+.reviewPreviewCard {
+  border: 1px solid #dce7f0;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 3px 10px rgba(3, 71, 140, 0.16);
+  padding: 12px;
+}
+
+.reviewPreviewHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.reviewPreviewTitle,
+.reviewPreviewTitle:global(.MuiTypography-root) {
+  color: #03478c;
+  font-family: "Red Hat Display", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.reviewPreviewButton,
+.reviewPreviewButton:global(.MuiButton-root) {
+  min-width: 0;
+  border: 1px solid #d5dbe1;
+  border-radius: 6px;
+  background: #fff;
+  color: #99a0a6;
+  text-transform: none;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.2;
+  padding: 3px 10px;
+}
+
+.reviewPreviewPaper {
+  border: 1px solid #e1e3e6;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.reviewPreviewBanner {
+  min-height: 44px;
+  padding: 8px;
+  background: linear-gradient(90deg, #2b96d9 0%, #32abbf 100%);
+  display: flex;
+  align-items: center;
+}
+
+.reviewPreviewBannerText,
+.reviewPreviewBannerText:global(.MuiTypography-root) {
+  color: #fff;
+  font-family: "Red Hat Display", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.reviewPreviewBody {
+  padding: 10px;
+}
+
+.reviewPreviewName,
+.reviewPreviewName:global(.MuiTypography-root) {
+  color: #03478c;
+  font-family: "Red Hat Display", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.reviewPreviewMeta,
+.reviewPreviewMeta:global(.MuiTypography-root) {
+  color: #2a3132;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 10px;
+  line-height: 1.35;
+  margin-bottom: 8px;
+}
+
+.reviewPreviewSectionHeading,
+.reviewPreviewSectionHeading:global(.MuiTypography-root) {
+  color: #2b96d9;
+  font-family: "Red Hat Display", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.4;
+  margin: 8px 0 4px;
+}
+
+.reviewPreviewList {
+  margin: 0;
+  padding-left: 14px;
+}
+
+.reviewPreviewList li {
+  color: #2a3132;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.reviewPreviewMiniViewport {
+  border: 1px solid #e1e3e6;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #fff;
+  height: 210px;
+}
+
+.reviewPreviewMiniScale {
+  width: 600px;
+  transform: scale(0.36);
+  transform-origin: top left;
+  pointer-events: none;
+}
+
+.viewCvPageWrap {
+  width: min(980px, 100%);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  padding: 22px;
+}
+
+.viewCvTopRow {
+  display: grid;
+  grid-template-columns: minmax(0, 620px) 180px;
+  gap: 56px;
+  align-items: start;
+  min-height: 0;
+  height: 100%;
+}
+
+.viewCvDocumentColumn {
+  min-height: 0;
+}
+
+.viewCvDocumentScrollArea {
+  height: 100%;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.viewCvActionColumn {
+  display: flex;
+  justify-content: flex-start;
+  padding-top: 2px;
+}
+
+.previewPageOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 71, 140, 0.86);
+  z-index: 100;
+  overflow-y: auto;
+  padding: 20px 24px 28px;
+  height: 100dvh;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.previewPageContainer {
+  width: min(600px, 100%);
+  position: relative;
+  margin: 0 auto;
+}
+
+.previewPageTopRow {
+  display: grid;
+  grid-template-columns: minmax(0, 620px) 1fr;
+  gap: 56px;
+  align-items: start;
+}
+
+.previewPageDocumentColumn {
+  width: 100%;
+}
+
+.previewPageFrame {
+  position: relative;
+  width: 100%;
+  background: #0b4a8d;
+  padding: 22px 22px 40px 22px;
+  min-height: 720px;
+}
+
+.previewPageActionsColumn {
+  display: flex;
+  justify-content: flex-start;
+  padding-top: 2px;
+}
+
+.previewPageDownloadButton,
+.previewPageDownloadButton:global(.MuiButton-root) {
+  min-width: 258px;
+  height: 58px;
+  border-radius: 6px;
+  border: none;
+  background: #ffffff;
+  color: #0b4a8d;
+  text-transform: none;
+  box-shadow: none;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.4;
+  width: 100%;
+}
+
+.previewPageDownloadButton:global(.MuiButton-root):hover {
+  background-color: #2b96d9;
+  border-color: #2b96d9;
+  color: #ffffff;
+}
+
+.previewPageCloseButton,
+.previewPageCloseButton:global(.MuiButton-root) {
+  position: absolute;
+  top: -18px;
+  right: -52px;
+  min-width: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  padding: 0;
+}
+
+.previewPageCloseIcon {
+  width: 24px;
+  height: 24px;
+}
+
+.previewPageDocument {
+  background: #fff;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.previewPageDocumentCompact {
+  border-radius: 0;
+}
+
+.previewPageHeroCard {
+  margin: 12px 30px 0;
+}
+
+.previewPageHeaderImage {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.previewPageBody {
+  padding: 30px 30px 28px;
+}
+
+.previewPageActionStrip {
+  margin-top: -1px;
+  height: 56px;
+  background: #ffffff;
+  border-top: 1px solid #edf1f6;
+  border-bottom: 1px solid #edf1f6;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 120px;
+}
+
+.previewPageBackButton,
+.previewPageBackButton:global(.MuiButton-root) {
+  min-width: 90px;
+  height: 32px;
+  border-radius: 999px;
+  border: 1px solid #c9d2da;
+  background: #f5f7f9;
+  color: #2a3132;
+  text-transform: none;
+  box-shadow: none;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.2;
+  gap: 7px;
+}
+
+.previewPageBackButton:global(.MuiButton-root):hover {
+  background: #eef3f7;
+  box-shadow: none;
+}
+
+.previewPageBackArrow {
+  width: 12px;
+  height: 12px;
+  transform: rotate(180deg);
+  filter: brightness(0) saturate(100%) invert(19%) sepia(9%) saturate(487%) hue-rotate(137deg) brightness(90%) contrast(89%);
+}
+
+.previewPageSubmitButton,
+.previewPageSubmitButton:global(.MuiButton-root) {
+  min-width: 92px;
+  height: 32px;
+  border-radius: 999px;
+  border: none;
+  background: #32abbf;
+  color: #ffffff;
+  text-transform: none;
+  box-shadow: none;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.previewPageSubmitButton:global(.MuiButton-root):hover {
+  background: #2b96d9;
+  box-shadow: none;
+}
+
+.previewPageCvTitle,
+.previewPageCvTitle:global(.MuiTypography-root) {
+  margin: 0;
+  color: #2b96d9;
+  font-family: "Red Hat Display", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1.15;
+  text-align: center;
+}
+
+.previewPageName,
+.previewPageName:global(.MuiTypography-root) {
+  margin: 3px 0 10px;
+  color: #2a3132;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.previewPageSectionTitle,
+.previewPageSectionTitle:global(.MuiTypography-root) {
+  margin: 20px 0 16px;
+  color: #2b96d9;
+  font-family: "Red Hat Display", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.18;
+}
+
+.previewPageCareerBlock {
+  margin-bottom: 14px;
+}
+
+.previewPageGrid {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  column-gap: 14px;
+  row-gap: 5px;
+  margin-bottom: 4px;
+}
+
+.previewPageGrid :global(.MuiTypography-root) {
+  color: #2a3132;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.previewPageGrid :global(.MuiTypography-root):nth-child(odd) {
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.previewPageOverviewLines :global(.MuiTypography-root) {
+  margin: 0 0 6px;
+  color: #2a3132;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.previewPageOverviewRow {
+  display: grid;
+  grid-template-columns: 170px 1fr;
+  column-gap: 14px;
+  row-gap: 0;
+}
+
+.previewPageOverviewLabel,
+.previewPageOverviewLabel:global(.MuiTypography-root) {
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.previewPageEducationHeadingRow {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr 1.8fr;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.previewPageEducationHeadingRow :global(.MuiTypography-root) {
+  color: #2a3132;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.previewPageEducationRow {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr 1.8fr;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.previewPageEducationRow :global(.MuiTypography-root) {
+  color: #2a3132;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.previewPageDivider {
+  width: 100%;
+  height: 1px;
+  background: #d6dbe0;
+  margin: 10px 0 8px;
+}
+
+.previewPageCareerTableHeader,
+.previewPageCareerTableRow {
+  display: grid;
+  grid-template-columns: 1fr 0.9fr 1fr;
+  gap: 12px;
+}
+
+.previewPageCareerTableHeader {
+  margin-top: 10px;
+}
+
+.previewPageCareerTableHeader :global(.MuiTypography-root),
+.previewPageCareerTableRow :global(.MuiTypography-root) {
+  color: #2a3132;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.previewPageCareerTableHeader :global(.MuiTypography-root) {
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.previewPageCareerTableRow {
+  margin-top: 8px;
+}
+
+.previewPageSkillsList {
+  margin: 0;
+  padding-left: 12px;
+}
+
+.previewPageSkillsList li {
+  color: #2a3132;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.previewPageLanguageText,
+.previewPageLanguageText:global(.MuiTypography-root) {
+  color: #2a3132;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.previewPageWorkEntry {
+  margin-top: 14px;
+}
+
+.previewPageWorkMetaGrid {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  column-gap: 14px;
+  row-gap: 5px;
+}
+
+.previewPageWorkMetaGrid :global(.MuiTypography-root) {
+  color: #2a3132;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.previewPageWorkMetaLabel,
+.previewPageWorkMetaLabel:global(.MuiTypography-root) {
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.previewPageWorkDescriptionTitle,
+.previewPageWorkDescriptionTitle:global(.MuiTypography-root) {
+  margin-top: 8px;
+  color: #2a3132;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.previewPageWorkBulletList {
+  margin: 2px 0 0;
+  padding-left: 12px;
+}
+
+.previewPageWorkBulletList li {
+  color: #2a3132;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.previewPageDisclaimer,
+.previewPageDisclaimer:global(.MuiTypography-root) {
+  margin-top: 40px;
+  color: #7f8a94;
+  text-align: center;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 9px;
+  line-height: 1.35;
+}
+
+.previewModalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 71, 140, 0.82);
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.previewModalContainer {
+  width: min(760px, 100%);
+  position: relative;
+}
+
+.previewModalCloseButton,
+.previewModalCloseButton:global(.MuiButton-root) {
+  position: absolute;
+  top: -18px;
+  right: -18px;
+  min-width: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  padding: 0;
+}
+
+.previewModalCloseIcon {
+  width: 24px;
+  height: 24px;
+}
+
+.previewModalDocument {
+  background: #fff;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.previewModalHeader {
+  min-height: 124px;
+  padding: 20px 24px;
+  background: linear-gradient(90deg, #2b96d9 0%, #32abbf 100%);
+  display: flex;
+  align-items: flex-end;
+}
+
+.previewModalRole,
+.previewModalRole:global(.MuiTypography-root) {
+  color: #fff;
+  font-family: "Red Hat Display", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.2;
+  max-width: 540px;
+}
+
+.previewModalBody {
+  padding: 20px 28px 28px;
+}
+
+.previewModalCvTitle,
+.previewModalCvTitle:global(.MuiTypography-root) {
+  margin: 0;
+  color: #2b96d9;
+  font-family: "Red Hat Display", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1.15;
+  text-align: center;
+}
+
+.previewModalName,
+.previewModalName:global(.MuiTypography-root) {
+  margin: 2px 0 18px;
+  color: #2a3132;
+  font-family: "Red Hat Display", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.previewModalSectionTitle,
+.previewModalSectionTitle:global(.MuiTypography-root) {
+  margin: 14px 0 8px;
+  color: #2b96d9;
+  font-family: "Red Hat Display", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.previewModalGrid {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  column-gap: 18px;
+  row-gap: 8px;
+}
+
+.previewModalGrid :global(.MuiTypography-root) {
+  color: #2a3132;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.previewModalGrid :global(.MuiTypography-root):nth-child(odd) {
+  font-weight: 600;
+}
+
+.previewModalList {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.previewModalList li {
+  color: #2a3132;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
 }
 
 /* ─── Footer ─────────────────────────────────────────────────────────────── */
@@ -745,12 +1687,15 @@
   text-transform: none;
   box-shadow: none;
   gap: 10px;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
   font-size: 16px;
   font-weight: 400;
   line-height: 1.5;
   letter-spacing: 0.1px;
-  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
 }
 
 .backButton:global(.MuiButton-root):hover {
@@ -769,7 +1714,7 @@
   text-transform: none;
   box-shadow: none;
   gap: 10px;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
   font-size: 16px;
   font-weight: 400;
   line-height: 1.5;
@@ -834,6 +1779,57 @@
   .footerBarInner {
     padding-top: 16px;
   }
+
+  .reviewLayout {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .reviewPreviewColumn {
+    position: static;
+  }
+
+  .contentSectionViewCv {
+    padding-top: 16px;
+    padding-bottom: 12px;
+  }
+
+  .viewCvTopRow {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .viewCvPageWrap {
+    padding: 16px;
+    border-radius: 18px;
+  }
+
+  .viewCvActionColumn {
+    justify-content: flex-end;
+  }
+
+  .previewModalHeader {
+    min-height: 100px;
+  }
+
+  .previewModalRole,
+  .previewModalRole:global(.MuiTypography-root) {
+    font-size: 22px;
+  }
+
+  .previewModalCvTitle,
+  .previewModalCvTitle:global(.MuiTypography-root) {
+    font-size: 30px;
+  }
+
+  .previewModalName,
+  .previewModalName:global(.MuiTypography-root) {
+    font-size: 22px;
+  }
+
+  .previewModalGrid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 640px) {
@@ -870,7 +1866,8 @@
   }
 
   .positionRowGrid,
-  .educationGrid {
+  .educationGrid,
+  .languagesGrid {
     grid-template-columns: 1fr;
   }
 
@@ -881,6 +1878,24 @@
   .cardsGrid {
     grid-template-columns: 1fr;
     row-gap: 32px;
+  }
+
+  .reviewTitle,
+  .reviewTitle:global(.MuiTypography-root) {
+    font-size: 28px;
+  }
+
+  .reviewSectionLabel,
+  .reviewSectionLabel:global(.MuiTypography-root) {
+    font-size: 24px;
+  }
+
+  .previewModalOverlay {
+    padding: 12px;
+  }
+
+  .previewModalBody {
+    padding: 16px;
   }
 }
 

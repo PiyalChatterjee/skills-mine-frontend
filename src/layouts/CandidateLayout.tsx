@@ -1,6 +1,8 @@
+import { useEffect } from 'react'
 import { Box } from '@mui/material'
 import type { MouseEvent } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { useDispatch } from 'react-redux'
 import { useAuth } from '@/app/auth/AuthContext'
 import { isJwtExpired } from '@/app/auth/jwt'
 import {
@@ -9,6 +11,8 @@ import {
   type HeaderNavActionMap,
 } from '@/layouts/headerNav'
 import { ROUTE_PATHS } from '@/routes/routePaths'
+import type { AppDispatch } from '@/store'
+import { fetchCandidateProfileThunk } from '@/store/slices/candidateThunks'
 import { PublicFooter } from './components/PublicFooter'
 import { PublicHeader } from './components/PublicHeader'
 import styles from './CandidateLayout.module.css'
@@ -16,7 +20,14 @@ import styles from './CandidateLayout.module.css'
 export const CandidateLayout = () => {
   const location = useLocation()
   const navigate = useNavigate()
+  const dispatch = useDispatch<AppDispatch>()
   const { isAuthenticated, tokens, user } = useAuth()
+
+  useEffect(() => {
+    if (user?.id) {
+      dispatch(fetchCandidateProfileThunk(user.id))
+    }
+  }, [user?.id, dispatch])
 
   const accessToken = tokens?.accessToken
   const hasValidAccessToken = accessToken ? !isJwtExpired(accessToken) : false
