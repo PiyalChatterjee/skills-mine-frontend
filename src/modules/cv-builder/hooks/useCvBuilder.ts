@@ -22,6 +22,13 @@ import {
 
 const FIRST_STEP = 1
 const LAST_STEP = CV_BUILDER_STEPS.length
+const FORM_FIELD_KEYS: (keyof PersonalDetailsFormState)[] = [
+  'fullName',
+  'residentialLocation',
+  'currentCompany',
+  'currentPosition',
+  'noticePeriod',
+]
 
 const isBlank = (value: string) => value.trim().length === 0
 
@@ -56,11 +63,7 @@ const useCvBuilder = (profileDefaults?: Partial<PersonalDetailsFormState>) => {
         hasChanged = true
       }
 
-      assignIfEmpty('fullName')
-      assignIfEmpty('residentialLocation')
-      assignIfEmpty('currentCompany')
-      assignIfEmpty('currentPosition')
-      assignIfEmpty('noticePeriod')
+      FORM_FIELD_KEYS.forEach(assignIfEmpty)
 
       return hasChanged ? nextValues : currentValues
     })
@@ -89,7 +92,7 @@ const useCvBuilder = (profileDefaults?: Partial<PersonalDetailsFormState>) => {
     setActiveView('review')
   }
 
-  const handleTextFieldChange =
+  const handleFormValueChange =
     (field: keyof PersonalDetailsFormState) => (event: ChangeEvent<HTMLInputElement>) => {
       setFormValues((currentValues) => ({
         ...currentValues,
@@ -97,21 +100,12 @@ const useCvBuilder = (profileDefaults?: Partial<PersonalDetailsFormState>) => {
       }))
     }
 
-  const handleSelectFieldChange =
-    (field: keyof PersonalDetailsFormState) => (event: ChangeEvent<HTMLInputElement>) => {
-      setFormValues((currentValues) => ({
-        ...currentValues,
-        [field]: event.target.value,
-      }))
-    }
+  const handleTextFieldChange = handleFormValueChange
+
+  const handleSelectFieldChange = handleFormValueChange
 
   const goBack = () => {
-    if (activeView === 'preview') {
-      setActiveView('review')
-      return
-    }
-
-    if (activeView === 'view-cv') {
+    if (activeView === 'preview' || activeView === 'view-cv') {
       setActiveView('review')
       return
     }
@@ -130,7 +124,7 @@ const useCvBuilder = (profileDefaults?: Partial<PersonalDetailsFormState>) => {
     setActiveView('launcher')
   }
 
-  const canGoNext = activeView === 'review' ? true : activeView === 'preview' ? false : currentStepId <= LAST_STEP
+  const canGoNext = activeView !== 'preview' && (activeView === 'review' || currentStepId <= LAST_STEP)
 
   const goNext = () => {
     if (activeView === 'preview') {

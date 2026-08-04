@@ -1,7 +1,8 @@
-import { Box, Button, IconButton, TextField, Typography } from '@mui/material'
+import { Box, Button, TextField, Typography } from '@mui/material'
 import type { ChangeEvent } from 'react'
 import educationIcon from '@/assets/cv-builder/education-line.svg'
 import styles from '../pages/CvBuilderPage.module.css'
+import CvBuilderRemoveItemButton from './CvBuilderRemoveItemButton'
 import {
   CvBuilderFormPanel,
   CvBuilderLabeledField,
@@ -67,15 +68,11 @@ const EducationSection = <TEntry extends BaseEducationEntry>({
             <Typography className={styles.educationEntryLabel}>
               {entryLabelPrefix} {index + 1}
             </Typography>
-            <IconButton
-              type="button"
+            <CvBuilderRemoveItemButton
+              canRemove={entries.length > 1}
+              ariaLabel={`Remove ${entryLabelPrefix.toLowerCase()} ${index + 1}`}
               onClick={() => onRemoveEntry(entry.id)}
-              className={styles.inlineRemoveButton}
-              aria-label={`Remove ${entryLabelPrefix.toLowerCase()} ${index + 1}`}
-              disableRipple
-            >
-              <Box component="span" className={styles.removeSkillIcon} aria-hidden="true">✕</Box>
-            </IconButton>
+            />
           </Box>
         )}
 
