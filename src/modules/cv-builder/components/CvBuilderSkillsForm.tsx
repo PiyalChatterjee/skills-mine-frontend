@@ -1,8 +1,9 @@
-import { Box, Button, IconButton, TextField, Typography } from '@mui/material'
+import { Box, Button, TextField, Typography } from '@mui/material'
 import type { ChangeEvent } from 'react'
 import skillsGenerateIcon from '@/assets/cv-builder/skills-generate.svg'
 import skillsSparkleIcon from '@/assets/cv-builder/skills-sparkle.svg'
 import styles from '../pages/CvBuilderPage.module.css'
+import CvBuilderRemoveItemButton from './CvBuilderRemoveItemButton'
 import { CvBuilderFormPanel, CvBuilderSectionHeader } from './CvBuilderFormPrimitives'
 import type { SkillEntry } from '../types/cvBuilder'
 
@@ -44,19 +45,11 @@ const CvBuilderSkillsForm = ({
             variant="outlined"
             fullWidth
           />
-          {skills.length > 1 && (
-            <IconButton
-              type="button"
-              onClick={() => onRemoveSkill(skill.id)}
-              className={styles.inlineRemoveButton}
-              aria-label={`Remove skill ${index + 1}`}
-              disableRipple
-            >
-              <Box component="span" className={styles.removeSkillIcon} aria-hidden="true">
-                ✕
-              </Box>
-            </IconButton>
-          )}
+          <CvBuilderRemoveItemButton
+            canRemove={skills.length > 1}
+            ariaLabel={`Remove skill ${index + 1}`}
+            onClick={() => onRemoveSkill(skill.id)}
+          />
         </Box>
       ))}
 
