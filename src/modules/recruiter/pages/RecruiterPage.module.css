@@ -1,0 +1,421 @@
+/* ── Shell (sidebar + content) ───────────────────────────────────────── */
+.shell {
+  display: flex;
+  align-items: stretch;
+  min-height: 100vh;
+  /* offset for the fixed sidebar */
+  margin-left: 240px;
+}
+
+/* ── Page Root ───────────────────────────────────────────────────────── */
+.pageRoot {
+  flex: 1;
+  background: #f0f4f8;
+  min-height: 100vh;
+  padding: 32px 40px 48px;
+  overflow-x: auto;
+}
+
+/* ── Page Header ─────────────────────────────────────────────────────── */
+.pageHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.pageTitle,
+:global(.MuiTypography-root).pageTitle,
+:global(.MuiTypography-root).pageTitle.pageTitle {
+  margin: 0;
+  color: #03478C;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: 0;
+}
+
+.newMandateBtn:global(.MuiButton-root) {
+  background: #03478C;
+  color: #ffffff;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+  border-radius: 999px;
+  padding: 10px 24px;
+  text-transform: none;
+  white-space: nowrap;
+  transition: background 0.15s ease;
+}
+
+.newMandateBtn:global(.MuiButton-root):hover {
+  background: #2470c2;
+}
+
+/* ── Welcome Banner ──────────────────────────────────────────────────── */
+.welcomeBanner {
+  background: #1a3a6b;
+  border-radius: 16px;
+  padding: 28px 28px 28px 32px;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  margin-bottom: 36px;
+}
+
+.welcomeTextCol {
+  flex: 0 0 auto;
+  min-width: 200px;
+  max-width: 240px;
+}
+
+.welcomeGreeting,
+:global(.MuiTypography-root).welcomeGreeting,
+:global(.MuiTypography-root).welcomeGreeting.welcomeGreeting {
+  margin: 0 0 8px;
+  color: rgba(255, 255, 255, 0.8);
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: 0;
+}
+
+.welcomeSubtitle,
+:global(.MuiTypography-root).welcomeSubtitle,
+:global(.MuiTypography-root).welcomeSubtitle.welcomeSubtitle {
+  margin: 0;
+  color: #ffffff;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0;
+}
+
+/* ── KPI Row ─────────────────────────────────────────────────────────── */
+.kpiRow {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.kpiCard {
+  border-radius: 12px;
+  padding: 20px 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-height: 160px;
+}
+
+.kpiBlue   { background: #3e8fd4; }
+.kpiPurple { background: #7c5cd8; }
+.kpiAmber  { background: #d4961a; }
+
+.kpiTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.kpiValue,
+:global(.MuiTypography-root).kpiValue,
+:global(.MuiTypography-root).kpiValue.kpiValue {
+  margin: 0;
+  color: #ffffff;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 52px;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.kpiIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.9);
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+
+.kpiLabel,
+:global(.MuiTypography-root).kpiLabel,
+:global(.MuiTypography-root).kpiLabel.kpiLabel {
+  margin: 8px 0 0;
+  color: rgba(255, 255, 255, 0.9);
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: 0;
+}
+
+.kpiSpacer {
+  flex: 1;
+}
+
+.kpiDivider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.35);
+  margin: 12px 0 10px;
+}
+
+.kpiViewBtn:global(.MuiButtonBase-root) {
+  color: rgba(255, 255, 255, 0.9);
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.4;
+  padding: 0;
+  text-align: left;
+  justify-content: flex-start;
+  transition: color 0.15s ease;
+}
+
+.kpiViewBtn:global(.MuiButtonBase-root):hover {
+  color: #ffffff;
+}
+
+/* ── Pipeline Section ────────────────────────────────────────────────── */
+.pipelineSection {
+  width: 100%;
+}
+
+.sectionTitle,
+:global(.MuiTypography-root).sectionTitle,
+:global(.MuiTypography-root).sectionTitle.sectionTitle {
+  margin: 0 0 4px;
+  color: #03478C;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: 0;
+}
+
+.sectionSubtitle,
+:global(.MuiTypography-root).sectionSubtitle,
+:global(.MuiTypography-root).sectionSubtitle.sectionSubtitle {
+  margin: 0 0 16px;
+  color: #03478C;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0;
+}
+
+/* ── Pipeline Board ──────────────────────────────────────────────────── */
+.pipelineBoard {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+  background: #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #d0dbe8;
+}
+
+/* ── Pipeline Column ─────────────────────────────────────────────────── */
+.pipelineColumn {
+  background: #f7f9fb;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* Column header colour bands — match image tones */
+.colHeader {
+  padding: 10px 10px 8px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.colInbound   { background: #b0cce0; }
+.colScreening { background: #b0cce0; }
+.colAssessment { background: #b0cce0; }
+.colInterview  { background: #b0cce0; }
+.colShortlist  { background: #b0cce0; }
+.colOffer      { background: #b0cce0; }
+.colClosed     { background: #b0cce0; }
+
+.colLabel,
+:global(.MuiTypography-root).colLabel,
+:global(.MuiTypography-root).colLabel.colLabel {
+  margin: 0;
+  color: #1a2b4a;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0;
+}
+
+.colCount,
+:global(.MuiTypography-root).colCount,
+:global(.MuiTypography-root).colCount.colCount {
+  margin: 0;
+  color: #486581;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: 0;
+}
+
+/* ── Pipeline Cards Container ────────────────────────────────────────── */
+.colCards {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 6px 4px;
+  flex: 1;
+}
+
+/* ── Pipeline Card ───────────────────────────────────────────────────── */
+.pipelineCard {
+  background: #ffffff;
+  border-radius: 6px;
+  padding: 8px 8px 6px;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.pipelineCardTitle,
+:global(.MuiTypography-root).pipelineCardTitle,
+:global(.MuiTypography-root).pipelineCardTitle.pipelineCardTitle {
+  margin: 0;
+  color: #1a2b4a;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pipelineCardCompany {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+
+.pipelineCardCompanyDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.pipelineCardCompanyName,
+:global(.MuiTypography-root).pipelineCardCompanyName {
+  color: #486581;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.pipelineCardActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.pipelineCardActionBtn:global(.MuiButtonBase-root) {
+  padding: 0;
+  font-size: 13px;
+  color: #486581;
+  min-width: 0;
+  line-height: 1;
+  transition: color 0.12s ease;
+}
+
+.pipelineCardActionBtn:global(.MuiButtonBase-root):hover {
+  color: #1a2b4a;
+}
+
+/* ── View More Button ────────────────────────────────────────────────── */
+.viewMoreBtn:global(.MuiButtonBase-root) {
+  display: block;
+  width: 100%;
+  padding: 8px 6px;
+  color: #1a73c5;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.4;
+  text-align: center;
+  border-top: 1px solid #e2e8f0;
+  border-radius: 0;
+  transition: background 0.12s ease;
+}
+
+.viewMoreBtn:global(.MuiButtonBase-root):hover {
+  background: #eef4fb;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────── */
+@media (max-width: 1200px) {
+  .pipelineBoard {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .pageRoot {
+    padding: 20px 20px 40px;
+  }
+
+  .welcomeBanner {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .welcomeTextCol {
+    max-width: none;
+  }
+
+  .kpiRow {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .pipelineBoard {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .pageRoot {
+    padding: 16px 12px 32px;
+  }
+
+  .kpiRow {
+    grid-template-columns: 1fr;
+  }
+
+  .pipelineBoard {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .kpiValue {
+    font-size: 40px;
+  }
+}
