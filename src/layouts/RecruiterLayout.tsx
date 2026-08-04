@@ -90,7 +90,7 @@ export const RecruiterLayout = () => {
 
   return (
     <Box className={styles.layoutRoot}>
-      <PublicHeader
+      {/* <PublicHeader
         canAccessProtectedRoutes={canAccessProtectedRoutes}
         navItems={recruiterNavItems}
         onProtectedNavClick={handleProtectedNavClick}
@@ -103,13 +103,13 @@ export const RecruiterLayout = () => {
         showNotificationButton={true}
         showProfileBadge={true}
         showSearchButton={true}
-      />
+      /> */}
 
       <Box component="main" className={styles.contentArea}>
         <Outlet />
       </Box>
 
-      <PublicFooter showContactLink={true} />
+      {/* <PublicFooter showContactLink={true} /> */}
     </Box>
   )
 }
