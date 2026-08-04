@@ -111,6 +111,11 @@ const useCvBuilder = (profileDefaults?: Partial<PersonalDetailsFormState>) => {
       return
     }
 
+    if (activeView === 'view-cv') {
+      setActiveView('review')
+      return
+    }
+
     if (activeView === 'review') {
       setActiveView('form')
       setCurrentStepId(LAST_STEP)
@@ -133,6 +138,11 @@ const useCvBuilder = (profileDefaults?: Partial<PersonalDetailsFormState>) => {
     }
 
     if (activeView === 'review') {
+      setActiveView('view-cv')
+      return
+    }
+
+    if (activeView === 'view-cv') {
       setActiveView('launcher')
       setCurrentStepId(FIRST_STEP)
       return

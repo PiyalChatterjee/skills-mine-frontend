@@ -18,6 +18,7 @@ import CvBuilderSkillsForm from '../components/CvBuilderSkillsForm'
 import useCvBuilder from '../hooks/useCvBuilder'
 import { CV_BUILDER_STEPS, type CvActionCard } from '../types/cvBuilder'
 import styles from './CvBuilderPage.module.css'
+import CvBuilderViewCvPage from '../components/CvBuilderViewCvPage'
 
 const CvBuilderPage = () => {
   const { user } = useAuth()
@@ -96,7 +97,7 @@ const CvBuilderPage = () => {
   ]
 
   return (
-    <Box className={styles.pageRoot}>
+    <Box className={`${styles.pageRoot} ${activeView === 'view-cv' ? styles.pageRootViewCv : ''}`}>
       <input
         ref={uploadInputRef}
         type="file"
@@ -107,9 +108,14 @@ const CvBuilderPage = () => {
         aria-hidden="true"
       />
 
-      <CvBuilderHeroSection totalSteps={CV_BUILDER_STEPS.length} activeStepId={activeView === 'launcher' ? 1 : currentStepId} />
+      {activeView !== 'view-cv' && (
+        <CvBuilderHeroSection totalSteps={CV_BUILDER_STEPS.length} activeStepId={activeView === 'launcher' ? 1 : currentStepId} />
+      )}
 
-      <Box component="section" className={styles.contentSection}>
+      <Box
+        component="section"
+        className={`${styles.contentSection} ${activeView === 'view-cv' ? styles.contentSectionViewCv : ''}`}
+      >
         {activeView === 'launcher' ? (
           <CvBuilderLauncher cards={actionCards} />
         ) : activeView === 'preview' ? (
@@ -149,6 +155,15 @@ const CvBuilderPage = () => {
             onRemoveSecondary={removeSecondaryEntry}
             onToggleLanguage={toggleLanguage}
             onPreview={openPreview}
+          />
+        ) : activeView === 'view-cv' ? (
+          <CvBuilderViewCvPage
+            formValues={formValues}
+            careerHistory={careerHistory}
+            skills={skills}
+            tertiaryEducation={tertiaryEducation}
+            secondaryEducation={secondaryEducation}
+            selectedLanguages={selectedLanguages}
           />
         ) : (
           <Box className={styles.contentLayout}>
@@ -208,6 +223,16 @@ const CvBuilderPage = () => {
       )}
 
       {activeView === 'review' && (
+        <CvBuilderFooterActions
+          onBack={goBack}
+          onNext={goNext}
+          isNextDisabled={false}
+          nextLabel="View CV"
+          showNextIcon={false}
+        />
+      )}
+
+      {activeView === 'view-cv' && (
         <CvBuilderFooterActions
           onBack={goBack}
           onNext={goNext}

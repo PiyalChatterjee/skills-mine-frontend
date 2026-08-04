@@ -1,4 +1,4 @@
-export type CvBuilderView = 'launcher' | 'form' | 'review' | 'preview'
+export type CvBuilderView = 'launcher' | 'form' | 'review' | 'preview' | 'view-cv'
 
 export type StepItem = {
   id: number

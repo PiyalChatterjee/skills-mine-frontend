@@ -5,6 +5,10 @@
   flex-direction: column;
 }
 
+.pageRootViewCv {
+  background-color: #d6eef2;
+}
+
 .hiddenFileInput {
   display: none;
 }
@@ -88,6 +92,12 @@
   max-width: 1248px;
   margin: 0 auto;
   padding: 34px 16px 120px;
+}
+
+.contentSectionViewCv {
+  padding-top: 20px;
+  padding-bottom: 16px;
+  display: flex;
 }
 
 .welcomeHeading,
@@ -1117,6 +1127,41 @@
   pointer-events: none;
 }
 
+.viewCvPageWrap {
+  width: min(980px, 100%);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  padding: 22px;
+}
+
+.viewCvTopRow {
+  display: grid;
+  grid-template-columns: minmax(0, 620px) 180px;
+  gap: 56px;
+  align-items: start;
+  min-height: 0;
+  height: 100%;
+}
+
+.viewCvDocumentColumn {
+  min-height: 0;
+}
+
+.viewCvDocumentScrollArea {
+  height: 100%;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.viewCvActionColumn {
+  display: flex;
+  justify-content: flex-start;
+  padding-top: 2px;
+}
+
 .previewPageOverlay {
   position: fixed;
   inset: 0;
@@ -1150,7 +1195,7 @@
   position: relative;
   width: 100%;
   background: #0b4a8d;
-  padding: 22px 22px 0;
+  padding: 22px 22px 40px 22px;
   min-height: 720px;
 }
 
@@ -1162,8 +1207,8 @@
 
 .previewPageDownloadButton,
 .previewPageDownloadButton:global(.MuiButton-root) {
-  min-width: 144px;
-  height: 46px;
+  min-width: 258px;
+  height: 58px;
   border-radius: 6px;
   border: none;
   background: #ffffff;
@@ -1171,14 +1216,16 @@
   text-transform: none;
   box-shadow: none;
   font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
-  font-size: 12px;
+  font-size: 16px;
   font-weight: 500;
   line-height: 1.4;
+  width: 100%;
 }
 
 .previewPageDownloadButton:global(.MuiButton-root):hover {
-  background: #f3f7fb;
-  box-shadow: none;
+  background-color: #2b96d9;
+  border-color: #2b96d9;
+  color: #ffffff;
 }
 
 .previewPageCloseButton,
@@ -1221,8 +1268,9 @@
 }
 
 .previewPageBody {
-  padding: 12px 30px 28px;
+  padding: 30px 30px 28px;
 }
+
 .previewPageActionStrip {
   margin-top: -1px;
   height: 56px;
@@ -1291,7 +1339,7 @@
   color: #2b96d9;
   font-family: "Red Hat Display", "Inclusive Sans", "Ubuntu", sans-serif;
   font-size: 26px;
-  font-weight: 700;
+  font-weight: 800;
   line-height: 1.15;
   text-align: center;
 }
@@ -1301,7 +1349,7 @@
   margin: 3px 0 10px;
   color: #2a3132;
   font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
-  font-size: 12px;
+  font-size: 20px;
   font-weight: 700;
   line-height: 1.35;
   text-align: center;
@@ -1309,7 +1357,7 @@
 
 .previewPageSectionTitle,
 .previewPageSectionTitle:global(.MuiTypography-root) {
-  margin: 14px 0 10px;
+  margin: 20px 0 16px;
   color: #2b96d9;
   font-family: "Red Hat Display", "Inclusive Sans", "Ubuntu", sans-serif;
   font-size: 24px;
@@ -1332,19 +1380,20 @@
 .previewPageGrid :global(.MuiTypography-root) {
   color: #2a3132;
   font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
-  font-size: 11px;
+  font-size: 14px;
   line-height: 1.45;
 }
 
 .previewPageGrid :global(.MuiTypography-root):nth-child(odd) {
   font-weight: 700;
+  font-size: 16px;
 }
 
 .previewPageOverviewLines :global(.MuiTypography-root) {
   margin: 0 0 6px;
   color: #2a3132;
   font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
-  font-size: 11px;
+  font-size: 14px;
   line-height: 1.45;
 }
 
@@ -1358,6 +1407,7 @@
 .previewPageOverviewLabel,
 .previewPageOverviewLabel:global(.MuiTypography-root) {
   font-weight: 700;
+  font-size: 16px;
 }
 
 .previewPageEducationHeadingRow {
@@ -1370,7 +1420,7 @@
 .previewPageEducationHeadingRow :global(.MuiTypography-root) {
   color: #2a3132;
   font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
-  font-size: 11px;
+  font-size: 16px;
   font-weight: 700;
   line-height: 1.45;
 }
@@ -1385,7 +1435,7 @@
 .previewPageEducationRow :global(.MuiTypography-root) {
   color: #2a3132;
   font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
-  font-size: 11px;
+  font-size: 14px;
   line-height: 1.45;
 }
 
@@ -1411,12 +1461,13 @@
 .previewPageCareerTableRow :global(.MuiTypography-root) {
   color: #2a3132;
   font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
-  font-size: 11px;
+  font-size: 14px;
   line-height: 1.45;
 }
 
 .previewPageCareerTableHeader :global(.MuiTypography-root) {
   font-weight: 700;
+  font-size: 16px;
 }
 
 .previewPageCareerTableRow {
@@ -1431,7 +1482,7 @@
 .previewPageSkillsList li {
   color: #2a3132;
   font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
-  font-size: 11px;
+  font-size: 14px;
   line-height: 1.45;
 }
 
@@ -1439,7 +1490,7 @@
 .previewPageLanguageText:global(.MuiTypography-root) {
   color: #2a3132;
   font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
-  font-size: 11px;
+  font-size: 14px;
   line-height: 1.45;
 }
 
@@ -1457,13 +1508,14 @@
 .previewPageWorkMetaGrid :global(.MuiTypography-root) {
   color: #2a3132;
   font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
-  font-size: 11px;
+  font-size: 14px;
   line-height: 1.45;
 }
 
 .previewPageWorkMetaLabel,
 .previewPageWorkMetaLabel:global(.MuiTypography-root) {
   font-weight: 700;
+  font-size: 16px;
 }
 
 .previewPageWorkDescriptionTitle,
@@ -1471,7 +1523,7 @@
   margin-top: 8px;
   color: #2a3132;
   font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
-  font-size: 11px;
+  font-size: 16px;
   font-weight: 700;
   line-height: 1.45;
 }
@@ -1484,13 +1536,13 @@
 .previewPageWorkBulletList li {
   color: #2a3132;
   font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
-  font-size: 11px;
+  font-size: 14px;
   line-height: 1.45;
 }
 
 .previewPageDisclaimer,
 .previewPageDisclaimer:global(.MuiTypography-root) {
-  margin-top: 8px;
+  margin-top: 40px;
   color: #7f8a94;
   text-align: center;
   font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
@@ -1735,6 +1787,25 @@
 
   .reviewPreviewColumn {
     position: static;
+  }
+
+  .contentSectionViewCv {
+    padding-top: 16px;
+    padding-bottom: 12px;
+  }
+
+  .viewCvTopRow {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .viewCvPageWrap {
+    padding: 16px;
+    border-radius: 18px;
+  }
+
+  .viewCvActionColumn {
+    justify-content: flex-end;
   }
 
   .previewModalHeader {
