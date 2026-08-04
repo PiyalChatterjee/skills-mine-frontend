@@ -1,36 +1,11 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { useSelector } from 'react-redux'
 import { Box, ButtonBase, Typography } from '@mui/material'
 import { RecruiterSidebar } from '@/modules/recruiter/components/RecruiterSidebar'
 import { ROUTE_PATHS } from '@/routes/routePaths'
+import type { RootState } from '@/store'
 import styles from './MandateDetailPage.module.css'
-
-// ── Static mock data ───────────────────────────────────────────────────
-
-const MOCK_META = {
-  company: 'Helm',
-  employmentType: 'Full time',
-  experience: '3 to 5 years',
-  salary: 'Negotiable',
-  jobPublished: '12 November 2025',
-  jobReference: '691495878',
-}
-
-const MOCK_CANDIDATES = [
-  { id: '1', name: 'Michael Smith',  title: 'UX/UI Designer',    match: 95 },
-  { id: '2', name: 'Themba Ndlovu',  title: 'UX/UI Designer',    match: 88 },
-  { id: '3', name: 'Thandiwe Nkosi', title: 'UX/UI Designer',    match: 72 },
-  { id: '4', name: 'Sipho Nkosi',    title: 'Web Designer',       match: 65 },
-  { id: '5', name: 'Kabelo Mokoena', title: 'Graphic Designer',   match: 80 },
-]
-
-const POSTED_ON = [
-  { name: 'Bizcommunity', color: '#e53935', label: 'Biz' },
-  { name: 'Careers25',    color: '#1565c0', label: '24' },
-  { name: 'Job Mail',     color: '#c62828', label: 'JM' },
-  { name: 'Linked In',    color: '#0077b5', label: 'in' },
-  { name: 'Pnet',         color: '#2e7d32', label: 'P' },
-]
 
 // ── Icons ──────────────────────────────────────────────────────────────
 
@@ -96,14 +71,56 @@ const ChevronRightIcon = () => (
   </svg>
 )
 
+const EmptyIcon = () => (
+  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <circle cx="12" cy="8" r="4" stroke="#b0bec5" strokeWidth="1.5"/>
+    <path d="M4 20c0-4 3.582-7 8-7s8 3 8 7" stroke="#b0bec5" strokeWidth="1.5" strokeLinecap="round"/>
+    <line x1="5" y1="5" x2="19" y2="19" stroke="#e57373" strokeWidth="1.5" strokeLinecap="round"/>
+  </svg>
+)
+
 // ── Main Component ─────────────────────────────────────────────────────
 
 const MandateDetailPage = () => {
   const navigate = useNavigate()
-  const { cardId } = useParams()
+  const { cardId } = useParams<{ cardId: string }>()
   const [jobDetailsOpen, setJobDetailsOpen] = useState(false)
 
-  void cardId // used for future API calls
+  // ── Load data from Redux store ──────────────────────────────────────
+  const mandate = useSelector((state: RootState) =>
+    state.recruiterPipeline.mandates.find(m => m.id === cardId)
+  )
+
+  const inboundCandidates = useSelector((state: RootState) =>
+    state.recruiterPipeline.candidates.filter(
+      c => c.mandateId === cardId && c.currentStage === 'Inbound'
+    )
+  )
+
+  // ── Navigate to Candidate Profile ──────────────────────────────────
+  const handleViewCandidate = (candidateId: string) => {
+    const path = ROUTE_PATHS.recruiterCandidate
+      .replace(':cardId', cardId ?? '')
+      .replace(':candidateId', candidateId)
+    navigate(path)
+  }
+
+  // ── Fallback if mandate not found ───────────────────────────────────
+  if (!mandate) {
+    return (
+      <Box className={styles.shell}>
+        <RecruiterSidebar />
+        <Box className={styles.pageRoot}>
+          <Box style={{ padding: '48px 32px', color: '#57606a' }}>
+            Mandate not found.{' '}
+            <ButtonBase onClick={() => navigate(ROUTE_PATHS.recruiter)} disableRipple style={{ color: '#03478C', textDecoration: 'underline' }}>
+              Back to Pipeline
+            </ButtonBase>
+          </Box>
+        </Box>
+      </Box>
+    )
+  }
 
   return (
     <Box className={styles.shell}>
@@ -122,9 +139,9 @@ const MandateDetailPage = () => {
           </ButtonBase>
           <Box className={styles.breadcrumbArrow}><ChevronRightIcon /></Box>
           <Typography component="span" className={styles.breadcrumbCurrent}>
-            Senior Developer
+            {mandate.title}
           </Typography>
-          <Box component="span" className={styles.statusBadgePill}>Posted</Box>
+          <Box component="span" className={styles.statusBadgePill}>{mandate.status}</Box>
         </Box>
 
         <Box className={styles.layout}>
@@ -137,21 +154,21 @@ const MandateDetailPage = () => {
               <Box className={styles.statsBanner}>
                 <Box className={`${styles.statCard} ${styles.statCardViews}`}>
                   <Box>
-                    <Typography component="p" className={styles.statValue}>120</Typography>
+                    <Typography component="p" className={styles.statValue}>{mandate.views}</Typography>
                     <Typography component="p" className={styles.statLabel}>Views</Typography>
                   </Box>
                   <Box className={styles.statIcon}><TrendIcon /></Box>
                 </Box>
                 <Box className={`${styles.statCard} ${styles.statCardApplicants}`}>
                   <Box>
-                    <Typography component="p" className={styles.statValue}>95</Typography>
+                    <Typography component="p" className={styles.statValue}>{mandate.applicants}</Typography>
                     <Typography component="p" className={styles.statLabel}>Applicants</Typography>
                   </Box>
                   <Box className={styles.statIcon}><ApplicantsIcon /></Box>
                 </Box>
                 <Box className={`${styles.statCard} ${styles.statCardTransformation}`}>
                   <Box>
-                    <Typography component="p" className={styles.statValue}>87</Typography>
+                    <Typography component="p" className={styles.statValue}>{mandate.transformationApplicants}</Typography>
                     <Typography component="p" className={styles.statLabel}>Transformation applicants</Typography>
                   </Box>
                   <Box className={styles.statIcon}><TransformationIcon /></Box>
@@ -176,6 +193,11 @@ const MandateDetailPage = () => {
                   </svg>
                 </Box>
               </Box>
+              {jobDetailsOpen && (
+                <Typography component="p" className={styles.jobDetailsBody}>
+                  {mandate.jobDetails}
+                </Typography>
+              )}
             </Box>
 
             {/* Top Candidates table */}
@@ -183,46 +205,56 @@ const MandateDetailPage = () => {
               <Typography component="p" className={styles.candidatesHeading}>
                 Top candidates for this post
               </Typography>
-              <table className={styles.table}>
-                <thead className={styles.tableHead}>
-                  <tr>
-                    <th className={styles.checkboxCell}></th>
-                    <th>Name</th>
-                    <th>Title</th>
-                    <th>Match</th>
-                    <th>Status</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {MOCK_CANDIDATES.map(c => (
-                    <tr key={c.id} className={styles.tableRow}>
-                      <td className={styles.checkboxCell}>
-                        <Box className={styles.checkboxIcon}><CheckIcon /></Box>
-                      </td>
-                      <td>
-                        <Typography component="span" className={styles.candidateName}>{c.name}</Typography>
-                      </td>
-                      <td>
-                        <Typography component="span" className={styles.candidateTitle}>{c.title}</Typography>
-                      </td>
-                      <td>
-                        <Box className={styles.matchBarTrack}>
-                          <Box className={styles.matchBarFill} style={{ width: `${c.match}%` }} />
-                        </Box>
-                      </td>
-                      <td>
-                        <Box component="span" className={styles.statusBadge}>Applied</Box>
-                      </td>
-                      <td>
-                        <ButtonBase className={styles.viewLink} disableRipple>
-                          View <ArrowIcon />
-                        </ButtonBase>
-                      </td>
+
+              {inboundCandidates.length === 0 ? (
+                <Box className={styles.emptyState}>
+                  <EmptyIcon />
+                  <Typography component="p" className={styles.emptyStateText}>
+                    No candidates in Inbound for this mandate yet.
+                  </Typography>
+                </Box>
+              ) : (
+                <table className={styles.table}>
+                  <thead className={styles.tableHead}>
+                    <tr>
+                      <th className={styles.checkboxCell}></th>
+                      <th>Name</th>
+                      <th>Title</th>
+                      <th>Match</th>
+                      <th>Status</th>
+                      <th></th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {inboundCandidates.map(c => (
+                      <tr key={c.id} className={styles.tableRow}>
+                        <td className={styles.checkboxCell}>
+                          <Box className={styles.checkboxIcon}><CheckIcon /></Box>
+                        </td>
+                        <td>
+                          <Typography component="span" className={styles.candidateName}>{c.name}</Typography>
+                        </td>
+                        <td>
+                          <Typography component="span" className={styles.candidateTitle}>{c.title}</Typography>
+                        </td>
+                        <td>
+                          <Box className={styles.matchBarTrack}>
+                            <Box className={styles.matchBarFill} style={{ width: `${c.matchScore}%` }} />
+                          </Box>
+                        </td>
+                        <td>
+                          <Box component="span" className={styles.statusBadge}>{c.currentStage}</Box>
+                        </td>
+                        <td>
+                          <ButtonBase className={styles.viewLink} disableRipple onClick={() => handleViewCandidate(c.id)}>
+                            View <ArrowIcon />
+                          </ButtonBase>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </Box>
           </Box>
 
@@ -238,34 +270,34 @@ const MandateDetailPage = () => {
             <Box className={styles.metaCard}>
               <Box className={styles.metaItem}>
                 <Typography component="p" className={styles.metaLabel}>Company</Typography>
-                <Typography component="p" className={styles.metaLink}>{MOCK_META.company}</Typography>
+                <Typography component="p" className={styles.metaLink}>{mandate.company}</Typography>
               </Box>
               <Box className={styles.metaItem}>
                 <Typography component="p" className={styles.metaLabel}>Employment type</Typography>
-                <Typography component="p" className={styles.metaValue}>{MOCK_META.employmentType}</Typography>
+                <Typography component="p" className={styles.metaValue}>{mandate.employmentType}</Typography>
               </Box>
               <Box className={styles.metaItem}>
                 <Typography component="p" className={styles.metaLabel}>Experience</Typography>
-                <Typography component="p" className={styles.metaValue}>{MOCK_META.experience}</Typography>
+                <Typography component="p" className={styles.metaValue}>{mandate.experience}</Typography>
               </Box>
               <Box className={styles.metaItem}>
                 <Typography component="p" className={styles.metaLabel}>Salary</Typography>
-                <Typography component="p" className={styles.metaValue}>{MOCK_META.salary}</Typography>
+                <Typography component="p" className={styles.metaValue}>{mandate.salary}</Typography>
               </Box>
               <Box className={styles.metaItem}>
                 <Typography component="p" className={styles.metaLabel}>Job published</Typography>
-                <Typography component="p" className={styles.metaValue}>{MOCK_META.jobPublished}</Typography>
+                <Typography component="p" className={styles.metaValue}>{mandate.jobPublished}</Typography>
               </Box>
               <Box className={styles.metaItem}>
                 <Typography component="p" className={styles.metaLabel}>Job Reference No.</Typography>
-                <Typography component="p" className={styles.metaValue}>{MOCK_META.jobReference}</Typography>
+                <Typography component="p" className={styles.metaValue}>{mandate.jobReference}</Typography>
               </Box>
             </Box>
 
             <Box className={styles.postedOnSection}>
               <Typography component="p" className={styles.postedOnLabel}>Posted on</Typography>
               <Box className={styles.postedOnList}>
-                {POSTED_ON.map(site => (
+                {mandate.postedOn.map(site => (
                   <Box key={site.name} className={styles.postedOnItem}>
                     <Box className={styles.postedOnIconBox} style={{ background: site.color }}>
                       {site.label}
