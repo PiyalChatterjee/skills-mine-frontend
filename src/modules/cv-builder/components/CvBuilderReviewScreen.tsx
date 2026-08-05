@@ -30,7 +30,7 @@ type CvBuilderReviewScreenProps = {
   personalDetailsErrors?: Partial<Record<keyof PersonalDetailsFormState, string>>
   careerHistoryErrors?: {
     form?: string
-    byEntryId: Partial<Record<string, Partial<Record<'companyName' | 'positionHeld' | 'startDate', string>>>>
+    byEntryId: Partial<Record<string, Partial<Record<'companyName' | 'positionHeld' | 'startDate' | 'endDate', string>>>>
   }
   skillsErrors?: {
     form?: string

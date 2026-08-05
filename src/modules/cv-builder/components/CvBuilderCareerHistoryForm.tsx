@@ -13,7 +13,7 @@ type CvBuilderCareerHistoryFormProps = {
   entries: CareerHistoryEntry[]
   formError?: string
   errorsByEntryId?: Partial<
-    Record<string, Partial<Record<'companyName' | 'positionHeld' | 'startDate', string>>>
+    Record<string, Partial<Record<'companyName' | 'positionHeld' | 'startDate' | 'endDate', string>>>
   >
   onUpdatePosition: (
     entryId: string,
@@ -152,7 +152,9 @@ const CvBuilderCareerHistoryForm = ({
               onChange={(event: ChangeEvent<HTMLInputElement>) =>
                 onUpdatePosition(entry.id, 'endDate', event.target.value)
               }
-              placeholder="Month, Year"
+              error={Boolean(entryErrors?.endDate)}
+              helperText={entryErrors?.endDate}
+              placeholder="Month, Year or Present"
               className={styles.fieldControl}
               variant="outlined"
               fullWidth

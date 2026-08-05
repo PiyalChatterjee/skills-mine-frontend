@@ -2,6 +2,7 @@ export interface CandidateEducation {
   institution: string
   qualification: string
   year: number
+  educationLevel?: 'tertiary' | 'secondary'
 }
 
 export interface CandidateExperience {
@@ -24,6 +25,11 @@ export interface CandidateProfile {
   phone: string
   profilePhotoUrl?: string
   password?: string
+  race?: string
+  gender?: string
+  disabilityStatus?: string
+  nationality?: string
+  noticePeriod?: string
   location: string
   currentTitle: string
   currentCompany: string

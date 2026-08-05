@@ -16,6 +16,7 @@ import CvBuilderReviewScreen from '../components/CvBuilderReviewScreen'
 import CvBuilderLanguagesForm from '../components/CvBuilderLanguagesForm'
 import CvBuilderSkillsForm from '../components/CvBuilderSkillsForm'
 import useCvBuilder from '../hooks/useCvBuilder'
+import { buildCvBuilderPrefillData, useCvBuilderDone } from '../hooks/useCvBuilderDone'
 import { CV_BUILDER_STEPS, type CvActionCard } from '../types/cvBuilder'
 import styles from './CvBuilderPage.module.css'
 import CvBuilderViewCvPage from '../components/CvBuilderViewCvPage'
@@ -25,14 +26,8 @@ const CvBuilderPage = () => {
   const candidateId = user?.id
   const { data: candidateProfile } = useCandidateProfileQuery(candidateId)
 
-  const profileDefaults = useMemo(
-    () => ({
-      fullName: candidateProfile?.fullName ?? '',
-      residentialLocation: candidateProfile?.location ?? '',
-      currentCompany: candidateProfile?.currentCompany ?? '',
-      currentPosition: candidateProfile?.currentTitle ?? '',
-      noticePeriod: '',
-    }),
+  const cvBuilderPrefillData = useMemo(
+    () => buildCvBuilderPrefillData(candidateProfile),
     [candidateProfile],
   )
 
@@ -82,28 +77,44 @@ const CvBuilderPage = () => {
     otherLanguage,
     toggleLanguage,
     updateOtherLanguage,
-  } = useCvBuilder(profileDefaults)
+  } = useCvBuilder(cvBuilderPrefillData)
 
-  const actionCards: CvActionCard[] = [
-    {
-      id: 'upload',
-      title: 'Upload my CV',
-      description: selectedUploadFile
-        ? `Selected file: ${selectedUploadFile.name}`
-        : 'Upload your CV directly from your computer.',
-      icon: uploadIcon,
-      tone: 'coral',
-      onClick: openUploadPicker,
-    },
-    {
-      id: 'build',
-      title: 'Build my CV',
-      description: 'Create a CV with The Skills Mine CV builder.',
-      icon: settingsIcon,
-      tone: 'teal',
-      onClick: openBuildFlow,
-    },
-  ]
+  const { handleDone, isSavingCandidateProfile } = useCvBuilderDone({
+    activeView,
+    goNext,
+    candidateId,
+    candidateProfile,
+    formValues,
+    careerHistory,
+    skills,
+    tertiaryEducation,
+    secondaryEducation,
+    selectedLanguageEntries,
+  })
+
+  const actionCards: CvActionCard[] = useMemo(
+    () => [
+      {
+        id: 'upload',
+        title: 'Upload my CV',
+        description: selectedUploadFile
+          ? `Selected file: ${selectedUploadFile.name}`
+          : 'Upload your CV directly from your computer.',
+        icon: uploadIcon,
+        tone: 'coral',
+        onClick: openUploadPicker,
+      },
+      {
+        id: 'build',
+        title: 'Build my CV',
+        description: 'Create a CV with The Skills Mine CV builder.',
+        icon: settingsIcon,
+        tone: 'teal',
+        onClick: openBuildFlow,
+      },
+    ],
+    [selectedUploadFile, openUploadPicker, openBuildFlow],
+  )
 
   return (
     <Box className={`${styles.pageRoot} ${activeView === 'view-cv' ? styles.pageRootViewCv : ''}`}>
@@ -263,8 +274,8 @@ const CvBuilderPage = () => {
       {activeView === 'view-cv' && (
         <CvBuilderFooterActions
           onBack={goBack}
-          onNext={goNext}
-          isNextDisabled={false}
+          onNext={handleDone}
+          isNextDisabled={isSavingCandidateProfile}
           nextLabel="Done"
           showNextIcon={false}
         />

@@ -1,4 +1,4 @@
-import { type ChangeEvent, useEffect, useRef, useState } from 'react'
+import { type ChangeEvent, useEffect, useMemo, useRef, useState } from 'react'
 import {
   CAREER_HISTORY_INITIAL,
   CV_BUILDER_STEPS,
@@ -25,6 +25,10 @@ const LAST_STEP = CV_BUILDER_STEPS.length
 const PERSONAL_DETAILS_STEP_ID = 1
 const FORM_FIELD_KEYS: (keyof PersonalDetailsFormState)[] = [
   'fullName',
+  'race',
+  'gender',
+  'disabilityStatus',
+  'nationality',
   'residentialLocation',
   'currentCompany',
   'currentPosition',
@@ -35,7 +39,7 @@ const isBlank = (value: string) => value.trim().length === 0
 const fullNamePattern = /^[a-zA-Z0-9 ]+$/
 
 type PersonalDetailsValidationErrors = Partial<Record<keyof PersonalDetailsFormState, string>>
-type CareerHistoryRequiredField = 'companyName' | 'positionHeld' | 'startDate'
+type CareerHistoryRequiredField = 'companyName' | 'positionHeld' | 'startDate' | 'endDate'
 type CareerHistoryEntryValidationErrors = Partial<Record<CareerHistoryRequiredField, string>>
 type CareerHistoryValidationErrors = {
   form?: string
@@ -65,6 +69,17 @@ type LanguagesValidationErrors = {
   otherLanguage?: string
 }
 
+type CvBuilderPrefillData = {
+  personalDetails?: Partial<PersonalDetailsFormState>
+  careerHistory?: CareerHistoryEntry[]
+  skills?: SkillEntry[]
+  tertiaryEducation?: TertiaryEducationEntry[]
+  secondaryEducation?: SecondaryEducationEntry[]
+  selectedLanguages?: Set<Language>
+  otherLanguage?: string
+}
+
+//#region Validation helpers
 const validatePersonalDetails = (values: PersonalDetailsFormState): PersonalDetailsValidationErrors => {
   const errors: PersonalDetailsValidationErrors = {}
 
@@ -114,6 +129,44 @@ const EMPTY_CAREER_HISTORY_ERRORS: CareerHistoryValidationErrors = {
   byEntryId: {},
 }
 
+const monthNames = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+] as const
+
+const monthYearPattern = /^(January|February|March|April|May|June|July|August|September|October|November|December),\s?(19|20)\d{2}$/i
+const currentRolePattern = /^(present|current)$/i
+const isoYearMonthPattern = /^(19|20)\d{2}-(0[1-9]|1[0-2])$/
+
+const normalizeCareerDateValue = (value: string): string => {
+  const normalized = value.trim()
+  const isoMatch = normalized.match(isoYearMonthPattern)
+
+  if (!isoMatch) {
+    return value
+  }
+
+  const year = normalized.slice(0, 4)
+  const monthIndex = Number(normalized.slice(5, 7)) - 1
+  const monthName = monthNames[monthIndex]
+
+  if (!monthName) {
+    return value
+  }
+
+  return `${monthName},${year}`
+}
+
 const validateCareerHistory = (
   values: PersonalDetailsFormState,
   entries: CareerHistoryEntry[],
@@ -144,6 +197,15 @@ const validateCareerHistory = (
 
     if (isBlank(entry.startDate)) {
       entryErrors.startDate = 'Employment start date is required'
+    } else if (!monthYearPattern.test(entry.startDate.trim())) {
+      entryErrors.startDate = 'Use format like April,2020'
+    }
+
+    if (!isBlank(entry.endDate)) {
+      const normalizedEndDate = entry.endDate.trim()
+      if (!monthYearPattern.test(normalizedEndDate) && !currentRolePattern.test(normalizedEndDate)) {
+        entryErrors.endDate = 'Use format like April,2020 or Present'
+      }
     }
 
     if (Object.keys(entryErrors).length > 0) {
@@ -303,7 +365,39 @@ const validateLanguages = (
 const hasLanguagesValidationErrors = (errors: LanguagesValidationErrors) =>
   Boolean(errors.form) || Boolean(errors.otherLanguage)
 
-const useCvBuilder = (profileDefaults?: Partial<PersonalDetailsFormState>) => {
+//#endregion
+
+//#region Pristine state helpers
+const isCareerHistoryPristine = (entries: CareerHistoryEntry[]) =>
+  entries.length === 1 &&
+  isBlank(entries[0].companyName) &&
+  isBlank(entries[0].positionHeld) &&
+  isBlank(entries[0].startDate) &&
+  isBlank(entries[0].endDate) &&
+  entries[0].tasks.length === 1 &&
+  isBlank(entries[0].tasks[0]) &&
+  entries[0].projects.length === 1 &&
+  isBlank(entries[0].projects[0])
+
+const isSkillsPristine = (entries: SkillEntry[]) =>
+  entries.length === 1 && isBlank(entries[0].name)
+
+const isTertiaryEducationPristine = (entries: TertiaryEducationEntry[]) =>
+  entries.length === 1 &&
+  isBlank(entries[0].institutionName) &&
+  isBlank(entries[0].degreeOrCertification) &&
+  isBlank(entries[0].yearCompleted)
+
+const isSecondaryEducationPristine = (entries: SecondaryEducationEntry[]) =>
+  entries.length === 1 &&
+  isBlank(entries[0].institutionName) &&
+  isBlank(entries[0].highestGradePassed) &&
+  isBlank(entries[0].yearCompleted)
+
+//#endregion
+
+const useCvBuilder = (prefillData?: CvBuilderPrefillData) => {
+  //#region State
   const uploadInputRef = useRef<HTMLInputElement | null>(null)
 
   const [activeView, setActiveView] = useState<CvBuilderView>('launcher')
@@ -327,31 +421,77 @@ const useCvBuilder = (profileDefaults?: Partial<PersonalDetailsFormState>) => {
   const [languagesErrors, setLanguagesErrors] = useState<LanguagesValidationErrors>(
     EMPTY_LANGUAGES_ERRORS,
   )
+  //#endregion
 
+  //#region Prefill hydration
   useEffect(() => {
-    if (!profileDefaults) {
+    if (!prefillData) {
       return
     }
 
-    setFormValues((currentValues) => {
-      const nextValues: PersonalDetailsFormState = { ...currentValues }
-      let hasChanged = false
+    const personalDefaults = prefillData.personalDetails
 
-      const assignIfEmpty = (field: keyof PersonalDetailsFormState) => {
-        const candidateValue = profileDefaults[field]
-        if (!candidateValue || !isBlank(currentValues[field])) {
-          return
+    if (personalDefaults) {
+      setFormValues((currentValues) => {
+        const nextValues: PersonalDetailsFormState = { ...currentValues }
+        let hasChanged = false
+
+        const assignIfEmpty = (field: keyof PersonalDetailsFormState) => {
+          const candidateValue = personalDefaults[field]
+          if (!candidateValue || !isBlank(currentValues[field])) {
+            return
+          }
+          nextValues[field] = candidateValue
+          hasChanged = true
         }
-        nextValues[field] = candidateValue
-        hasChanged = true
-      }
 
-      FORM_FIELD_KEYS.forEach(assignIfEmpty)
+        FORM_FIELD_KEYS.forEach(assignIfEmpty)
 
-      return hasChanged ? nextValues : currentValues
-    })
-  }, [profileDefaults])
+        return hasChanged ? nextValues : currentValues
+      })
+    }
 
+    if (prefillData.careerHistory && prefillData.careerHistory.length > 0) {
+      setCareerHistory((currentValues) =>
+        isCareerHistoryPristine(currentValues) ? prefillData.careerHistory ?? currentValues : currentValues,
+      )
+    }
+
+    if (prefillData.skills && prefillData.skills.length > 0) {
+      setSkills((currentValues) =>
+        isSkillsPristine(currentValues) ? prefillData.skills ?? currentValues : currentValues,
+      )
+    }
+
+    if (prefillData.tertiaryEducation && prefillData.tertiaryEducation.length > 0) {
+      setTertiaryEducation((currentValues) =>
+        isTertiaryEducationPristine(currentValues)
+          ? prefillData.tertiaryEducation ?? currentValues
+          : currentValues,
+      )
+    }
+
+    if (prefillData.secondaryEducation && prefillData.secondaryEducation.length > 0) {
+      setSecondaryEducation((currentValues) =>
+        isSecondaryEducationPristine(currentValues)
+          ? prefillData.secondaryEducation ?? currentValues
+          : currentValues,
+      )
+    }
+
+    if (prefillData.selectedLanguages && prefillData.selectedLanguages.size > 0) {
+      setSelectedLanguages((currentValues) =>
+        currentValues.size === 0 ? new Set(prefillData.selectedLanguages) : currentValues,
+      )
+    }
+
+    if (prefillData.otherLanguage && !isBlank(prefillData.otherLanguage)) {
+      setOtherLanguage((currentValue) => (isBlank(currentValue) ? prefillData.otherLanguage ?? currentValue : currentValue))
+    }
+  }, [prefillData])
+  //#endregion
+
+  //#region Launcher actions
   const handleUploadFileSelect = (event: ChangeEvent<HTMLInputElement>) => {
     const nextFile = event.target.files?.[0] ?? null
     setSelectedUploadFile(nextFile)
@@ -374,7 +514,9 @@ const useCvBuilder = (profileDefaults?: Partial<PersonalDetailsFormState>) => {
   const closePreview = () => {
     setActiveView('review')
   }
+  //#endregion
 
+  //#region Personal details handlers
   const handleFormValueChange =
     (field: keyof PersonalDetailsFormState) => (event: ChangeEvent<HTMLInputElement>) => {
       setFormValues((currentValues) => ({
@@ -396,12 +538,26 @@ const useCvBuilder = (profileDefaults?: Partial<PersonalDetailsFormState>) => {
   const handleTextFieldChange = handleFormValueChange
 
   const handleSelectFieldChange = handleFormValueChange
+  //#endregion
 
-  const personalDetailsValidation = validatePersonalDetails(formValues)
-  const careerHistoryValidation = validateCareerHistory(formValues, careerHistory)
-  const skillsValidation = validateSkills(skills)
-  const educationValidation = validateEducation(tertiaryEducation, secondaryEducation)
-  const languagesValidation = validateLanguages(selectedLanguages, otherLanguage)
+  //#region Derived validation state
+  const personalDetailsValidation = useMemo(
+    () => validatePersonalDetails(formValues),
+    [formValues],
+  )
+  const careerHistoryValidation = useMemo(
+    () => validateCareerHistory(formValues, careerHistory),
+    [formValues, careerHistory],
+  )
+  const skillsValidation = useMemo(() => validateSkills(skills), [skills])
+  const educationValidation = useMemo(
+    () => validateEducation(tertiaryEducation, secondaryEducation),
+    [tertiaryEducation, secondaryEducation],
+  )
+  const languagesValidation = useMemo(
+    () => validateLanguages(selectedLanguages, otherLanguage),
+    [selectedLanguages, otherLanguage],
+  )
 
   const isPersonalDetailsValid = !hasValidationErrors(personalDetailsValidation)
   const isCareerHistoryValid = !hasCareerHistoryValidationErrors(careerHistoryValidation)
@@ -415,7 +571,9 @@ const useCvBuilder = (profileDefaults?: Partial<PersonalDetailsFormState>) => {
     isSkillsValid &&
     isEducationValid &&
     isLanguagesValid
+  //#endregion
 
+  //#region Navigation
   const goBack = () => {
     if (activeView === 'preview' || activeView === 'view-cv') {
       setActiveView('review')
@@ -512,8 +670,9 @@ const useCvBuilder = (profileDefaults?: Partial<PersonalDetailsFormState>) => {
 
     setActiveView('review')
   }
+  //#endregion
 
-  // ─── Career History ─────────────────────────────────────────────────────────
+  //#region Career history
 
   const addPosition = () => {
     setCareerHistory((prev) => [...prev, createCareerHistoryEntry(prev.length)])
@@ -533,10 +692,41 @@ const useCvBuilder = (profileDefaults?: Partial<PersonalDetailsFormState>) => {
     value: string | boolean,
   ) => {
     setCareerHistory((prev) =>
-      prev.map((entry) => (entry.id === entryId ? { ...entry, [field]: value } : entry)),
+      prev.map((entry) => {
+        if (entry.id !== entryId) {
+          return entry
+        }
+
+        if ((field === 'startDate' || field === 'endDate') && typeof value === 'string') {
+          const normalizedDateValue = normalizeCareerDateValue(value)
+
+          if (field === 'endDate') {
+            return {
+              ...entry,
+              endDate: normalizedDateValue,
+              isCurrentRole: currentRolePattern.test(normalizedDateValue.trim()),
+            }
+          }
+
+          return {
+            ...entry,
+            startDate: normalizedDateValue,
+          }
+        }
+
+        if (field === 'endDate' && typeof value === 'string') {
+          return {
+            ...entry,
+            endDate: value,
+            isCurrentRole: currentRolePattern.test(value.trim()),
+          }
+        }
+
+        return { ...entry, [field]: value }
+      }),
     )
 
-    if (field === 'companyName' || field === 'positionHeld' || field === 'startDate') {
+    if (field === 'companyName' || field === 'positionHeld' || field === 'startDate' || field === 'endDate') {
       setCareerHistoryErrors((currentErrors) => {
         const entryErrors = currentErrors.byEntryId[entryId]
         if (!entryErrors?.[field]) {
@@ -598,8 +788,9 @@ const useCvBuilder = (profileDefaults?: Partial<PersonalDetailsFormState>) => {
       }),
     )
   }
+  //#endregion
 
-  // ─── Skills ─────────────────────────────────────────────────────────────────
+  //#region Skills
 
   const addSkill = () => {
     setSkills((prev) => [...prev, createSkillEntry()])
@@ -631,8 +822,9 @@ const useCvBuilder = (profileDefaults?: Partial<PersonalDetailsFormState>) => {
   const removeSkill = (skillId: string) => {
     setSkills((prev) => prev.filter((skill) => skill.id !== skillId))
   }
+  //#endregion
 
-  // ─── Education ──────────────────────────────────────────────────────────────
+  //#region Education
 
   const addTertiaryEntry = () => {
     setTertiaryEducation((prev) => [...prev, createTertiaryEntry()])
@@ -753,8 +945,9 @@ const useCvBuilder = (profileDefaults?: Partial<PersonalDetailsFormState>) => {
       }
     })
   }
+  //#endregion
 
-  // ─── Languages ──────────────────────────────────────────────────────────────
+  //#region Languages
 
   const toggleLanguage = (language: Language) => {
     setSelectedLanguages((prev) => {
@@ -792,7 +985,11 @@ const useCvBuilder = (profileDefaults?: Partial<PersonalDetailsFormState>) => {
     }
   }
 
-  const selectedLanguageEntries = buildLanguageEntries(selectedLanguages, otherLanguage)
+  const selectedLanguageEntries = useMemo(
+    () => buildLanguageEntries(selectedLanguages, otherLanguage),
+    [selectedLanguages, otherLanguage],
+  )
+  //#endregion
 
   return {
     uploadInputRef,
