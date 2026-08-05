@@ -60,8 +60,8 @@ const ArrowIcon = () => (
 )
 
 const BackArrowIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-    <path d="M7.9993 8.666V13.3327L2.666 7.9993L7.9993 2.666V7.3327H13.3327V8.666H7.9993Z" fill="#B0B4B8"/>
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path d="M19 12H5M5 12l7-7M5 12l7 7" stroke="#B0B4B8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
 )
 
@@ -85,6 +85,21 @@ const MandateDetailPage = () => {
   const navigate = useNavigate()
   const { cardId } = useParams<{ cardId: string }>()
   const [jobDetailsOpen, setJobDetailsOpen] = useState(false)
+  const [selectedCandidates, setSelectedCandidates] = useState<Set<string>>(new Set())
+
+  const toggleCandidate = (id: string) => {
+    setSelectedCandidates(prev => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+  }
+
+  const toggleAll = (ids: string[]) => {
+    setSelectedCandidates(prev =>
+      prev.size === ids.length ? new Set() : new Set(ids)
+    )
+  }
 
   // ── Load data from Redux store ──────────────────────────────────────
   const mandate = useSelector((state: RootState) =>
@@ -200,12 +215,13 @@ const MandateDetailPage = () => {
               )}
             </Box>
 
+            {/* Top Candidates heading — outside the white card */}
+            <Typography component="p" className={styles.candidatesHeading}>
+              Top candidates for this post
+            </Typography>
+
             {/* Top Candidates table */}
             <Box className={styles.candidatesCard}>
-              <Typography component="p" className={styles.candidatesHeading}>
-                Top candidates for this post
-              </Typography>
-
               {inboundCandidates.length === 0 ? (
                 <Box className={styles.emptyState}>
                   <EmptyIcon />
@@ -217,7 +233,16 @@ const MandateDetailPage = () => {
                 <table className={styles.table}>
                   <thead className={styles.tableHead}>
                     <tr>
-                      <th className={styles.checkboxCell}></th>
+                      <th className={styles.checkboxCell}>
+                        <ButtonBase
+                          className={`${styles.checkbox} ${selectedCandidates.size === inboundCandidates.length && inboundCandidates.length > 0 ? styles.checkboxChecked : ''}`}
+                          onClick={() => toggleAll(inboundCandidates.map(c => c.id))}
+                          disableRipple
+                          aria-label="Select all"
+                        >
+                          {selectedCandidates.size === inboundCandidates.length && inboundCandidates.length > 0 && <CheckIcon />}
+                        </ButtonBase>
+                      </th>
                       <th>Name</th>
                       <th>Title</th>
                       <th>Match</th>
@@ -229,7 +254,14 @@ const MandateDetailPage = () => {
                     {inboundCandidates.map(c => (
                       <tr key={c.id} className={styles.tableRow}>
                         <td className={styles.checkboxCell}>
-                          <Box className={styles.checkboxIcon}><CheckIcon /></Box>
+                          <ButtonBase
+                            className={`${styles.checkbox} ${selectedCandidates.has(c.id) ? styles.checkboxChecked : ''}`}
+                            onClick={() => toggleCandidate(c.id)}
+                            disableRipple
+                            aria-label={`Select ${c.name}`}
+                          >
+                            {selectedCandidates.has(c.id) && <CheckIcon />}
+                          </ButtonBase>
                         </td>
                         <td>
                           <Typography component="span" className={styles.candidateName}>{c.name}</Typography>

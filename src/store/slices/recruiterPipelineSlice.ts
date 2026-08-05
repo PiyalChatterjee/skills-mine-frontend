@@ -1,5 +1,5 @@
 import { createSlice, nanoid, type PayloadAction } from '@reduxjs/toolkit'
-import type { Candidate, Mandate, PipelineStage, RecruiterNote, StageCounts } from '@/modules/recruiter/types'
+import type { Candidate, CandidateDocument, Mandate, PipelineStage, RecruiterNote, StageCounts } from '@/modules/recruiter/types'
 import { MOCK_CANDIDATES, MOCK_MANDATES, INITIAL_STAGE_COUNTS } from '@/modules/recruiter/data/mockData'
 
 // ── State ──────────────────────────────────────────────────────────────
@@ -97,6 +97,20 @@ const recruiterPipelineSlice = createSlice({
       }
       candidate.recruiterNotes.push(note)
     },
+
+    // Add an uploaded document to a candidate
+    addDocument: (
+      state,
+      action: PayloadAction<{
+        candidateId: string
+        document: Omit<CandidateDocument, 'id'>
+      }>,
+    ) => {
+      const { candidateId, document } = action.payload
+      const candidate = state.candidates.find(c => c.id === candidateId)
+      if (!candidate) return
+      candidate.documents.push({ ...document, id: nanoid() })
+    },
   },
 })
 
@@ -105,6 +119,7 @@ export const {
   clearSelectedMandate,
   moveCandidateToStage,
   addRecruiterNote,
+  addDocument,
 } = recruiterPipelineSlice.actions
 
 export default recruiterPipelineSlice.reducer

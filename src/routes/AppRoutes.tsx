@@ -27,6 +27,7 @@ const ProfilePage = lazy(() => import('@/modules/candidate/pages/ProfilePage'))
 const RecruiterPage = lazy(() => import('@/modules/recruiter/pages/RecruiterPage'))
 const MandateDetailPage = lazy(() => import('@/modules/recruiter/pages/MandateDetailPage'))
 const CandidateProfilePage = lazy(() => import('@/modules/recruiter/pages/CandidateProfilePage'))
+const NewMandatePage = lazy(() => import('@/modules/recruiter/pages/NewMandatePage'))
 const CrmPage = lazy(() => import('@/modules/crm/pages/CrmPage'))
 const MancoPage = lazy(() => import('@/modules/manco/pages/MancoPage'))
 const ExcoPage = lazy(() => import('@/modules/exco/pages/ExcoPage'))
@@ -59,6 +60,7 @@ export const AppRoutes = () => {
 
           <Route element={<RecruiterLayout />}>
             <Route path={ROUTE_PATHS.recruiter} element={<RecruiterPage />} />
+            <Route path={ROUTE_PATHS.recruiterNewMandate} element={<NewMandatePage />} />
             <Route path={ROUTE_PATHS.recruiterMandate} element={<MandateDetailPage />} />
             <Route path={ROUTE_PATHS.recruiterCandidate} element={<CandidateProfilePage />} />
             <Route

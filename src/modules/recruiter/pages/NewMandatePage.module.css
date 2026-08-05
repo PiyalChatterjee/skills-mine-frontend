@@ -1,0 +1,151 @@
+/* ── Shell ────────────────────────────────────────────────────────────── */
+.shell {
+  display: flex;
+  align-items: stretch;
+  min-height: 100vh;
+  margin-left: 240px;
+}
+
+/* ── Page root ────────────────────────────────────────────────────────── */
+.pageRoot {
+  flex: 1;
+  background: #F2F9FD;
+  min-height: 100vh;
+  padding: 32px 40px 120px;
+  overflow-x: auto;
+}
+
+/* ── Page header ──────────────────────────────────────────────────────── */
+.pageHeader {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  color: #57606a;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  cursor: pointer;
+  transition: background 0.12s;
+  white-space: nowrap;
+}
+
+.backBtn:hover {
+  background: #f3f4f6;
+}
+
+.pageTitle {
+  margin: 0;
+  color: #03478C;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+/* ── Card ─────────────────────────────────────────────────────────────── */
+.card {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  padding: 32px 40px;
+  max-width: 1100px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+/* ── Cancel confirmation dialog ───────────────────────────────────────── */
+.dialogBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1300;
+}
+
+.dialog {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 28px 32px;
+  width: 420px;
+  max-width: calc(100vw - 32px);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.16);
+}
+
+.dialogTitle {
+  margin: 0;
+  color: #1f2328;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.dialogBody {
+  margin: 0;
+  color: #57606a;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.dialogBtns {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.dialogCancelBtn {
+  padding: 8px 20px;
+  border-radius: 999px;
+  border: 1.5px solid #d1d5db;
+  background: #ffffff;
+  color: #1f2328;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.dialogCancelBtn:hover { background: #f9fafb; }
+
+.dialogDiscardBtn {
+  padding: 8px 20px;
+  border-radius: 999px;
+  border: none;
+  background: #dc2626;
+  color: #ffffff;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.dialogDiscardBtn:hover { background: #b91c1c; }
+
+/* ── Responsive ───────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .shell { margin-left: 0; }
+  .pageRoot { padding: 20px 16px 100px; }
+  .card { padding: 20px 16px; }
+  .divider { margin: 0 -16px; }
+  .pageTitle { font-size: 22px; }
+}

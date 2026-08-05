@@ -1,5 +1,5 @@
 import { Box, ButtonBase, Typography } from '@mui/material'
-import { NavLink, useLocation } from 'react-router-dom'
+import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { ROUTE_PATHS } from '@/routes/routePaths'
 import styles from './RecruiterSidebar.module.css'
 
@@ -26,8 +26,9 @@ type NavItem = {
 export const RecruiterSidebar = () => {
   const location = useLocation()
 
+  const navigate = useNavigate()
   const handleNewMandateClick = () => {
-    // TODO: Navigate to new mandate page
+    navigate(ROUTE_PATHS.recruiterNewMandate)
   }
 
   const handleSettingsClick = () => {
