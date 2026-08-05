@@ -20,6 +20,66 @@ export interface StageHistoryEntry {
   note?: string
 }
 
+// ── Recruiter Note ─────────────────────────────────────────────────────
+export interface RecruiterNote {
+  id: string
+  text: string
+  timestamp: string
+  recruiterId: string
+  recruiterName: string
+}
+
+// ── Document ───────────────────────────────────────────────────────────
+export interface CandidateDocument {
+  id: string
+  name: string
+  type: 'CV' | 'Degree' | 'Portfolio' | 'Certificate' | 'Other'
+  url: string              // mock URL
+  uploadedBy: 'candidate' | 'recruiter'
+  uploadedAt: string
+}
+
+// ── Application ────────────────────────────────────────────────────────
+export interface CandidateApplication {
+  id: string
+  mandateId: string
+  jobTitle: string
+  company: string
+  currentStage: PipelineStage
+  stageColor: string       // badge color
+}
+
+// ── Education Entry ────────────────────────────────────────────────────
+export interface EducationEntry {
+  institution: string
+  qualification: string
+  field: string
+  year: string
+}
+
+// ── Experience Entry ───────────────────────────────────────────────────
+export interface ExperienceEntry {
+  company: string
+  role: string
+  period: string
+  description: string
+}
+
+// ── Certification ──────────────────────────────────────────────────────
+export interface Certification {
+  name: string
+  issuer: string
+  year: string
+}
+
+// ── Match Breakdown ────────────────────────────────────────────────────
+export interface MatchBreakdown {
+  overall: number
+  skills: number
+  experience: number
+  qualification: number
+}
+
 // ── Candidate ──────────────────────────────────────────────────────────
 export interface Candidate {
   id: string
@@ -28,25 +88,28 @@ export interface Candidate {
   email: string
   phone: string
   location: string
-  matchScore: number       // 0–100
+  matchScore: number
+  matchBreakdown: MatchBreakdown
   currentStage: PipelineStage
   closedReason: ClosedReason
   mandateId: string
   stageHistory: StageHistoryEntry[]
   recruiterNotes: RecruiterNote[]
+  // Profile sections
   cvSummary: string
   skills: string[]
+  educationList: EducationEntry[]
+  experienceList: ExperienceEntry[]
+  certifications: Certification[]
+  languages: string[]
+  desiredJob: string
+  references?: string
+  // Documents & Applications
+  documents: CandidateDocument[]
+  applications: CandidateApplication[]
+  // Legacy flat fields kept for backwards compat
   experience: string
   education: string
-}
-
-// ── Recruiter Note ─────────────────────────────────────────────────────
-export interface RecruiterNote {
-  id: string
-  text: string
-  timestamp: string
-  recruiterId: string
-  recruiterName: string
 }
 
 // ── Mandate ────────────────────────────────────────────────────────────
@@ -60,7 +123,7 @@ export interface Mandate {
   salary: string
   jobPublished: string
   jobReference: string
-  stage: PipelineStage        // mandate's own pipeline column
+  stage: PipelineStage
   status: 'Posted' | 'Draft' | 'Closed'
   views: number
   applicants: number

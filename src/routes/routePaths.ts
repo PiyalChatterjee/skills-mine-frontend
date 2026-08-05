@@ -11,6 +11,7 @@ export const ROUTE_PATHS = {
   recruiter: '/recruiter',
   recruiterMandate: '/recruiter/mandate/:cardId',
   recruiterCandidate: '/recruiter/mandate/:cardId/candidate/:candidateId',
+  recruiterNewMandate: '/recruiter/new-mandate',
   crm: '/crm',
   manco: '/manco',
   exco: '/exco',

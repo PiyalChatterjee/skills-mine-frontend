@@ -8,9 +8,9 @@
 
 .pageRoot {
   flex: 1;
-  background: #e8f0f8;
+  background: #E8F3FB;
   min-height: 100vh;
-  padding: 0 0 48px;
+  padding: 0 0 60px;
   overflow-x: auto;
 }
 
@@ -19,9 +19,9 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  background: #deeaf5;
+  background: #E8F3FB;
   padding: 14px 32px;
-  margin-bottom: 28px;
+  margin-bottom: 0;
   flex-wrap: wrap;
 }
 
@@ -39,7 +39,6 @@
   border: 1px solid #80C0E8;
   border-radius: 8px;
   background: #ffffff;
-  text-transform: none;
   white-space: nowrap;
   transition: background 0.15s ease;
 }
@@ -65,7 +64,6 @@
   padding: 0;
   background: none;
   border: none;
-  text-transform: none;
   transition: color 0.15s ease;
 }
 
@@ -88,13 +86,10 @@
 
 .stageBadge {
   display: inline-flex;
-  flex-direction: row;
   justify-content: center;
   align-items: center;
   padding: 2px 8px;
-  gap: 10px;
   border-radius: 100px;
-  background: #2B96D9;
   color: #ffffff;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
   font-size: 13px;
@@ -103,12 +98,126 @@
   white-space: nowrap;
 }
 
-/* ── Layout ──────────────────────────────────────────────────────────── */
+/* ── Hero card ───────────────────────────────────────────────────────── */
+.heroCard {
+  background: #BDD8EE;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 54px;
+  padding: 24px;
+  margin: 24px 32px 24px;
+  border-radius: 8px;
+}
+
+.avatarCircle {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: #b8d0e8;
+  border: 3px solid #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.avatarInitials {
+  color: #03478C;
+  font-family: 'Red Hat Display', sans-serif;
+  font-size: 36px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.heroInfoCol {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.heroInfoRow {
+  display: flex;
+  gap: 48px;
+  align-items: flex-start;
+}
+
+.heroInfoBlock {
+  min-width: 180px;
+}
+
+.heroInfoLabel,
+:global(.MuiTypography-root).heroInfoLabel {
+  margin: 0 0 2px;
+  color: #57606a;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.heroInfoValue,
+:global(.MuiTypography-root).heroInfoValue {
+  margin: 0;
+  color: #1f2328;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.heroInfoLink,
+:global(.MuiTypography-root).heroInfoLink {
+  color: #03478C;
+}
+
+/* ── Skills row in hero ──────────────────────────────────────────────── */
+.skillsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+/* Skill chips — common styles */
+.skillChip {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  padding: 4px 16px;
+  gap: 8px;
+  height: 29px;
+  border-radius: 100px;
+  flex: none;
+  flex-grow: 0;
+  border: none;
+  /* text — common */
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 150%;
+  letter-spacing: 0.1px;
+  color: #FFFFFF;
+}
+
+/* Per-chip background colors from Figma */
+.skillChip:nth-child(1) { background: #CABEE9; } /* User Experience Strategy */
+.skillChip:nth-child(2) { background: #EFB5B5; } /* Design Thinking */
+.skillChip:nth-child(3) { background: #80C0E8; gap: 10px; } /* Team Collaboration */
+.skillChip:nth-child(4) { background: #93CFAB; } /* Interaction Design */
+.skillChip:nth-child(5) { background: #6891BA; } /* User Research */
+.skillChip:nth-child(n+6) { background: #6891BA; } /* additional chips */
+
+/* ── Main layout ─────────────────────────────────────────────────────── */
 .layout {
   display: flex;
   gap: 24px;
   align-items: flex-start;
-  padding: 0 32px;
+  padding: 28px 32px 0;
 }
 
 .leftCol {
@@ -116,263 +225,466 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
 }
 
 .rightCol {
-  flex: 0 0 260px;
+  flex: 0 0 380px;
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-/* ── Profile header card ─────────────────────────────────────────────── */
-.profileCard {
-  background: #03478C;
+/* ── AI Next Actions ─────────────────────────────────────────────────── */
+.aiActionsSection {
+  background: #ffffff;
   border-radius: 12px;
-  padding: 24px;
-  display: flex;
-  align-items: center;
-  gap: 20px;
+  padding: 20px 24px;
 }
 
-.avatarCircle {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.2);
+.aiActionsHeading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+/* AI label — "AI" bold dark blue */
+.aiLabel {
+  color: #03478C;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.1px;
+}
+
+/* AI title — "Next Actions for this Candidate" aqua blue, Heading 4 */
+.aiTitle {
+  color: #2B96D9;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-style: normal;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 150%;
+  letter-spacing: 0.1px;
+}
+
+.aiActionBtns {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 12px;
+}
+
+.aiBtn:global(.MuiButtonBase-root) {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 20px;
+  border-radius: 999px;
+  background: #03478C;
   color: #ffffff;
-  font-family: 'Red Hat Display', sans-serif;
-  font-size: 20px;
-  font-weight: 600;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  white-space: nowrap;
+  transition: background 0.15s ease;
+}
+
+.aiBtn:global(.MuiButtonBase-root):hover { background: #023d78; }
+
+/* ── Profile sections ────────────────────────────────────────────────── */
+.profileSectionsWrapper {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 0 0 4px;
+  overflow: hidden;
+}
+
+/* "Profile" heading — Aqua Blue, Heading 4 */
+.profileSectionsTitle,
+:global(.MuiTypography-root).profileSectionsTitle {
+  margin: 0;
+  padding: 20px 24px 16px;
+  color: #2B96D9;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-style: normal;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 150%;
+  letter-spacing: 0.1px;
+}
+
+
+.profileTitleDivider {
+  height: 1px;
+  background: #e5e7eb;
+  margin: 0 24px;
+}
+
+.profileSectionsList {
+  display: flex;
+  flex-direction: column;
+}
+
+.profileSection {
+  position: relative;
+}
+
+.profileSection::after {
+  content: '';
+  display: block;
+  height: 1px;
+  background: #e5e7eb;
+  margin: 0 24px;
+}
+
+.profileSection:last-child::after { display: none; }
+
+.profileSectionHeader:global(.MuiButtonBase-root) {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 19px 24px;
+  background: none;
+  text-align: left;
+  transition: background 0.12s ease;
+}
+
+.profileSectionHeader:global(.MuiButtonBase-root):hover { background: #E8F3FB; }
+
+.profileSectionIconWrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #F2F9FD;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  letter-spacing: 1px;
 }
 
-.profileInfo {
+/* Section labels: Education / Desired job / Experience — Dark Blue, Heading 4 */
+.profileSectionLabel {
   flex: 1;
-  min-width: 0;
-}
-
-.profileName,
-:global(.MuiTypography-root).profileName {
-  margin: 0;
-  color: #ffffff;
-  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 22px;
-  font-weight: 600;
-  line-height: 1.3;
-}
-
-.profileTitle,
-:global(.MuiTypography-root).profileTitle {
-  margin: 4px 0 8px;
-  color: rgba(255,255,255,0.8);
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 15px;
-  font-weight: 400;
-}
-
-.profileMeta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.profileMetaItem,
-:global(.MuiTypography-root).profileMetaItem {
-  color: rgba(255,255,255,0.75);
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 13px;
-  font-weight: 400;
-}
-
-.matchBadge {
-  text-align: center;
-  background: rgba(255,255,255,0.15);
-  border-radius: 10px;
-  padding: 12px 16px;
-  flex-shrink: 0;
-}
-
-.matchScore,
-:global(.MuiTypography-root).matchScore {
-  margin: 0;
-  color: #ffffff;
-  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 28px;
-  font-weight: 600;
-  line-height: 1;
-}
-
-.matchLabel,
-:global(.MuiTypography-root).matchLabel {
-  margin: 4px 0 0;
-  color: rgba(255,255,255,0.75);
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 12px;
-  font-weight: 400;
-}
-
-/* ── Section cards ───────────────────────────────────────────────────── */
-.sectionCard {
-  background: #ffffff;
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
-  padding: 20px 24px;
-}
-
-.sectionTitle,
-:global(.MuiTypography-root).sectionTitle {
-  margin: 0 0 10px;
   color: #03478C;
   font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 16px;
+  font-style: normal;
+  font-size: 18px;
   font-weight: 500;
-  line-height: 1.4;
+  line-height: 150%;
+  letter-spacing: 0.1px;
 }
 
-.sectionBody,
-:global(.MuiTypography-root).sectionBody {
-  margin: 0;
-  color: #2A3132;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 15px;
-  font-weight: 400;
-  line-height: 1.7;
-}
-
-/* ── Skills ──────────────────────────────────────────────────────────── */
-.skillsList {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.skillChip {
+.profileSectionToggle {
   display: inline-flex;
   align-items: center;
-  padding: 4px 12px;
-  border-radius: 999px;
-  background: #e8f0f8;
   color: #03478C;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 13px;
-  font-weight: 500;
-  border: 1px solid #b8d4ee;
 }
 
-/* ── Stage history ───────────────────────────────────────────────────── */
-.historyList {
+.profileSectionBody {
+  padding: 4px 24px 20px 78px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
-}
-
-.historyItem {
-  display: flex;
   gap: 12px;
-  align-items: flex-start;
 }
 
-.historyDot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: #03478C;
-  flex-shrink: 0;
-  margin-top: 5px;
+/* ── Profile entries ─────────────────────────────────────────────────── */
+.profileEntry {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
-.historyContent { flex: 1; }
-
-.historyStage,
-:global(.MuiTypography-root).historyStage {
+.profileEntryTitle,
+:global(.MuiTypography-root).profileEntryTitle {
   margin: 0;
   color: #1f2328;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 500;
 }
 
-.historyMeta,
-:global(.MuiTypography-root).historyMeta {
-  margin: 2px 0 0;
+.profileEntryMeta,
+:global(.MuiTypography-root).profileEntryMeta {
+  margin: 0;
   color: #57606a;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 400;
 }
 
-/* ── Right column cards ──────────────────────────────────────────────── */
-.actionsCard,
-.notesCard,
-.confirmCard {
+.profileEntryBody,
+:global(.MuiTypography-root).profileEntryBody {
+  margin: 0;
+  color: #2A3132;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+/* ── Right section card ──────────────────────────────────────────────── */
+.rightSection {
   background: #ffffff;
   border-radius: 12px;
-  border: 1px solid #e5e7eb;
   padding: 20px;
   display: flex;
   flex-direction: column;
+  gap: 12px;
+}
+
+.rightSectionTitle,
+:global(.MuiTypography-root).rightSectionTitle {
+  margin: 0 0 4px;
+  color: #2B96D9;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-style: normal;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 150%;
+  letter-spacing: 0.1px;
+}
+
+/* ── Applications ────────────────────────────────────────────────────── */
+.applicationsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.applicationRow {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 16px 0;
+  gap: 24px;
+  isolation: isolate;
+  background: #FFFFFF;
+  border-bottom: 1px solid #E1E3E6;
+}
+
+.applicationRow:last-child { border-bottom: none; }
+
+.appJobTitle {
+  width: 160px;
+  flex-shrink: 0;
+  color: #2A3132;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-style: normal;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 150%;
+  letter-spacing: 0.1px;
+  z-index: 0;
+}
+
+.appCompany {
+  flex: 1;
+  color: #2A3132;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-style: normal;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 150%;
+  letter-spacing: 0.1px;
+}
+
+.appStageBadge {
+  display: inline-flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  padding: 0 8px;
+  gap: 10px;
+  height: 21px;
+  border-radius: 100px;
+  color: #ffffff;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  white-space: nowrap;
+  letter-spacing: 0.1px;
+  line-height: 150%;
+  flex-shrink: 0;
+  z-index: 3;
+}
+
+.appViewBtn:global(.MuiButtonBase-root) {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #03478C;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 150%;
+  letter-spacing: 0.1px;
+  padding: 0;
+  background: none;
+  border: none;
+  white-space: nowrap;
+  transition: color 0.12s;
+}
+
+.appViewBtn:global(.MuiButtonBase-root):hover { color: #2470c2; }
+
+/* ── Documents ───────────────────────────────────────────────────────── */
+.documentsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.uploadBtn:global(.MuiButtonBase-root) {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #2B96D9;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-style: normal;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 150%;
+  letter-spacing: 0.1px;
+  background: none;
+  border: none;
+  padding: 0;
+  flex: none;
+  flex-grow: 0;
+  transition: color 0.12s;
+}
+
+.uploadBtn:global(.MuiButtonBase-root):hover { color: #2470c2; }
+
+.documentsList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.documentRow {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 25px 16px;
+  gap: 16px;
+  isolation: isolate;
+  background: #F6F7F8;
+  border-radius: 8px;
+  align-self: stretch;
+}
+
+.docName {
+  flex: 1;
+  color: #2A3132;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 150%;
+  letter-spacing: 0.1px;
+}
+
+.docActions {
+  display: flex;
+  gap: 8px;
+}
+
+.docActionBtn:global(.MuiButtonBase-root) {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px;
+  border-radius: 6px;
+  transition: background 0.12s;
+}
+
+.docActionBtn:global(.MuiButtonBase-root):hover { background: #f0f4f8; }
+
+/* ── Match score bars ────────────────────────────────────────────────── */
+.matchBarRow {
+  display: flex;
+  align-items: center;
   gap: 10px;
 }
 
-.actionsTitle,
-:global(.MuiTypography-root).actionsTitle {
-  margin: 0 0 6px;
-  color: #03478C;
-  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 15px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 6px;
+.matchBarLabel {
+  width: 90px;
+  flex-shrink: 0;
+  color: #57606a;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 13px;
+  font-weight: 400;
 }
 
-/* ── Action buttons ──────────────────────────────────────────────────── */
-.actionBtn:global(.MuiButtonBase-root) {
+.matchBarTrack {
+  flex: 1;
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.matchBarFill {
+  height: 100%;
+  border-radius: 999px;
+  background: #03478C;
+}
+
+.matchBarPct {
+  width: 36px;
+  text-align: right;
+  color: #03478C;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* ── Recruitment action buttons ──────────────────────────────────────── */
+.recActionBtn:global(.MuiButtonBase-root) {
   display: inline-flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 8px;
+  justify-content: center;
   width: 100%;
+  padding: 10px 14px;
   border-radius: 8px;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
   font-size: 14px;
   font-weight: 500;
-  padding: 10px 14px;
   border: 1.5px solid transparent;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  transition: background 0.15s ease;
 }
 
-.actionBtnScreening:global(.MuiButtonBase-root) {
+.recActionBtnMove:global(.MuiButtonBase-root) {
   background: #e8f5e9;
   color: #2e7d32;
   border-color: #a5d6a7;
 }
-.actionBtnScreening:global(.MuiButtonBase-root):hover { background: #d0ead1; }
+.recActionBtnMove:global(.MuiButtonBase-root):hover { background: #d0ead1; }
 
-.actionBtnReject:global(.MuiButtonBase-root) {
+.recActionBtnAccept:global(.MuiButtonBase-root) {
+  background: #e3f2fd;
+  color: #1565c0;
+  border-color: #90caf9;
+}
+.recActionBtnAccept:global(.MuiButtonBase-root):hover { background: #d0e8fb; }
+
+.recActionBtnReject:global(.MuiButtonBase-root) {
   background: #fdecea;
   color: #c62828;
   border-color: #ef9a9a;
 }
-.actionBtnReject:global(.MuiButtonBase-root):hover { background: #fad6d3; }
+.recActionBtnReject:global(.MuiButtonBase-root):hover { background: #fad6d3; }
 
-.actionBtnHold:global(.MuiButtonBase-root) {
-  background: #fff8e1;
-  color: #f57f17;
-  border-color: #ffe082;
-}
-.actionBtnHold:global(.MuiButtonBase-root):hover { background: #fff0c2; }
-
-/* ── Confirm inline card ─────────────────────────────────────────────── */
+/* ── Confirm card ────────────────────────────────────────────────────── */
 .confirmCard {
-  border-color: #f0a800;
   background: #fffbf0;
+  border: 1px solid #f0a800;
+  border-radius: 10px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .confirmText,
@@ -417,6 +729,69 @@
 }
 .confirmNo:global(.MuiButtonBase-root):hover { background: #f7f8fa; }
 
+.rejectReasonInput {
+  width: 100%;
+  border: 1px solid #c8d0da;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 13px;
+  color: #1f2328;
+  resize: vertical;
+  outline: none;
+  box-sizing: border-box;
+}
+.rejectReasonInput:focus { border-color: #03478C; }
+
+/* ── Timeline ────────────────────────────────────────────────────────── */
+.timelineList {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.timelineItem {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.timelineDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 5px;
+}
+
+.timelineContent { flex: 1; }
+
+.timelineAction,
+:global(.MuiTypography-root).timelineAction {
+  margin: 0;
+  color: #1f2328;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.timelineMeta,
+:global(.MuiTypography-root).timelineMeta {
+  margin: 2px 0 0;
+  color: #57606a;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 12px;
+}
+
+.timelineNote,
+:global(.MuiTypography-root).timelineNote {
+  margin: 2px 0 0;
+  color: #57606a;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 12px;
+  font-style: italic;
+}
+
 /* ── Notes ───────────────────────────────────────────────────────────── */
 .notesEmpty,
 :global(.MuiTypography-root).notesEmpty {
@@ -424,7 +799,6 @@
   color: #57606a;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
   font-size: 13px;
-  font-weight: 400;
   font-style: italic;
 }
 
@@ -439,6 +813,9 @@
   border-radius: 8px;
   padding: 10px 12px;
   border-left: 3px solid #03478C;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .noteText,
@@ -451,13 +828,32 @@
   line-height: 1.5;
 }
 
-.noteMeta,
-:global(.MuiTypography-root).noteMeta {
-  margin: 4px 0 0;
+.noteMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.noteMetaText {
   color: #57606a;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
   font-size: 12px;
-  font-weight: 400;
+}
+
+.noteEditBtn:global(.MuiButtonBase-root) {
+  color: #03478C;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 0;
+  background: none;
+  border: none;
+}
+
+.noteEditActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
 }
 
 .noteInputRow {
@@ -474,12 +870,12 @@
   padding: 10px 12px;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
   font-size: 14px;
-  font-weight: 400;
   color: #1f2328;
   resize: vertical;
   outline: none;
   transition: border-color 0.15s ease;
   background: #ffffff;
+  box-sizing: border-box;
 }
 
 .noteInput:focus { border-color: #03478C; }
@@ -500,12 +896,20 @@
 .noteSendBtn:global(.MuiButtonBase-root):hover { background: #023d78; }
 
 /* ── Responsive ──────────────────────────────────────────────────────── */
+@media (max-width: 1100px) {
+  .rightCol { flex: 0 0 300px; }
+}
+
 @media (max-width: 900px) {
   .shell { margin-left: 0; }
   .pageRoot { padding: 0 0 40px; }
-  .layout { flex-direction: column; padding: 0 16px; }
+  .layout { flex-direction: column; padding: 16px 16px 0; }
   .rightCol { flex: none; width: 100%; }
+  .heroCard { flex-direction: column; padding: 20px 16px; gap: 16px; margin: 16px 16px 16px; border-radius: 10px; }
+  .heroInfoRow { flex-direction: column; gap: 12px; }
   .breadcrumbBar { padding: 12px 16px; gap: 6px; }
   .breadcrumbLink:global(.MuiButtonBase-root) { font-size: 18px; }
   .breadcrumbCurrent { font-size: 18px; }
+  .avatarCircle { width: 80px; height: 80px; }
+  .avatarInitials { font-size: 26px; }
 }

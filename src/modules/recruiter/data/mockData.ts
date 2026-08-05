@@ -122,20 +122,45 @@ export const MOCK_CANDIDATES: Candidate[] = [
     mandateId: 'c1',
     name: 'Michael Smith',
     title: 'UX/UI Designer',
-    email: 'michael.smith@email.com',
-    phone: '+27 82 123 4567',
-    location: 'Johannesburg, GP',
+    email: 'm.smith@gmail.com',
+    phone: '074 822 7664',
+    location: 'Johannesburg',
     matchScore: 95,
+    matchBreakdown: { overall: 95, skills: 92, experience: 96, qualification: 97 },
     currentStage: 'Inbound',
     closedReason: null,
-    skills: ['React', 'TypeScript', 'Node.js', 'AWS', 'PostgreSQL'],
-    experience: '5 years as a Full Stack Developer at various fintech startups. Led a team of 4 engineers to build a real-time payments platform processing R2B/month.',
-    education: 'BSc Computer Science – University of the Witwatersrand (2018)',
+    skills: ['User Experience Strategy', 'Design Thinking', 'Team Collaboration', 'Interaction Design', 'User Research'],
     cvSummary: 'Experienced full-stack developer with a strong background in React, TypeScript and cloud-native architectures. Passionate about building performant, scalable systems.',
+    desiredJob: 'Senior UX/UI Designer at a product-led company with opportunities for strategic input.',
+    educationList: [
+      { institution: 'University of the Witwatersrand', qualification: 'BSc', field: 'Computer Science', year: '2018' },
+    ],
+    experienceList: [
+      { company: 'Standard Bank', role: 'UX Lead', period: '2021 – Present', description: 'Led UX design for digital banking products serving 2M+ users.' },
+      { company: 'FNB', role: 'UX/UI Designer', period: '2018 – 2021', description: 'Designed and shipped 12 features across mobile and web banking.' },
+    ],
+    certifications: [
+      { name: 'Google UX Design Certificate', issuer: 'Google / Coursera', year: '2022' },
+      { name: 'Nielsen Norman UX Certification', issuer: 'NN/g', year: '2023' },
+    ],
+    languages: ['English', 'Afrikaans'],
+    references: 'Available on request',
+    documents: [
+      { id: 'doc-1', name: 'CV.doc',          type: 'CV',        url: '#', uploadedBy: 'candidate', uploadedAt: '2025-11-10T08:00:00Z' },
+      { id: 'doc-2', name: 'Degree.pdf',       type: 'Degree',    url: '#', uploadedBy: 'candidate', uploadedAt: '2025-11-10T08:05:00Z' },
+      { id: 'doc-3', name: 'Portfolio.pdf',    type: 'Portfolio', url: '#', uploadedBy: 'candidate', uploadedAt: '2025-11-10T08:10:00Z' },
+    ],
+    applications: [
+      { id: 'app-1', mandateId: 'c1', jobTitle: 'UX/UI Designer',    company: 'IBM',      currentStage: 'Interview',  stageColor: '#7A5DC7' },
+      { id: 'app-2', mandateId: 'c2', jobTitle: 'Graphic Designer',  company: 'TymeBank', currentStage: 'Shortlist',  stageColor: '#C64B8C' },
+      { id: 'app-3', mandateId: 'c3', jobTitle: 'Product Designer',  company: 'Airbnb',   currentStage: 'Screening',  stageColor: '#5BBCCC' },
+    ],
     recruiterNotes: [],
     stageHistory: [
       { from: 'Inbound', to: 'Inbound', timestamp: '2025-11-12T08:00:00Z', recruiterId: 'r1', recruiterName: 'Sarah Recruiter', note: 'Candidate applied via LinkedIn' },
     ],
+    experience: '5 years as a Full Stack Developer at various fintech startups.',
+    education: 'BSc Computer Science – University of the Witwatersrand (2018)',
   },
   {
     id: 'cand-2',
@@ -146,16 +171,34 @@ export const MOCK_CANDIDATES: Candidate[] = [
     phone: '+27 73 234 5678',
     location: 'Pretoria, GP',
     matchScore: 88,
+    matchBreakdown: { overall: 88, skills: 85, experience: 90, qualification: 88 },
     currentStage: 'Inbound',
     closedReason: null,
     skills: ['Java', 'Spring Boot', 'React', 'Docker', 'Kubernetes'],
-    experience: '4 years as a Java backend developer at a major South African bank. Delivered microservices architecture for core banking module.',
-    education: 'BEng Software Engineering – University of Pretoria (2019)',
     cvSummary: 'Backend-focused engineer with Java and cloud-native experience. Excellent team player with a track record of delivering enterprise-grade solutions.',
+    desiredJob: 'Senior Backend Engineer in fintech or banking sector.',
+    educationList: [
+      { institution: 'University of Pretoria', qualification: 'BEng', field: 'Software Engineering', year: '2019' },
+    ],
+    experienceList: [
+      { company: 'Absa', role: 'Java Backend Developer', period: '2019 – Present', description: 'Built microservices for core banking using Spring Boot and Kubernetes.' },
+    ],
+    certifications: [
+      { name: 'AWS Certified Developer', issuer: 'Amazon Web Services', year: '2023' },
+    ],
+    languages: ['English', 'Zulu'],
+    documents: [
+      { id: 'doc-4', name: 'CV.pdf', type: 'CV', url: '#', uploadedBy: 'candidate', uploadedAt: '2025-11-13T09:00:00Z' },
+    ],
+    applications: [
+      { id: 'app-4', mandateId: 'c1', jobTitle: 'Senior Developer', company: 'Standard Bank', currentStage: 'Inbound', stageColor: '#3aafb9' },
+    ],
     recruiterNotes: [],
     stageHistory: [
       { from: 'Inbound', to: 'Inbound', timestamp: '2025-11-13T09:30:00Z', recruiterId: 'r1', recruiterName: 'Sarah Recruiter', note: 'Applied via Pnet' },
     ],
+    experience: '4 years as a Java backend developer at a major South African bank.',
+    education: 'BEng Software Engineering – University of Pretoria (2019)',
   },
   {
     id: 'cand-3',
@@ -166,16 +209,32 @@ export const MOCK_CANDIDATES: Candidate[] = [
     phone: '+27 61 345 6789',
     location: 'Cape Town, WC',
     matchScore: 72,
+    matchBreakdown: { overall: 72, skills: 70, experience: 72, qualification: 75 },
     currentStage: 'Inbound',
     closedReason: null,
     skills: ['React', 'Vue.js', 'CSS', 'GraphQL', 'Figma'],
-    experience: '3 years as a frontend developer at a digital agency. Delivered 10+ client-facing web applications.',
-    education: 'BSc Information Technology – University of Cape Town (2020)',
-    cvSummary: 'Creative frontend developer with strong design sensibility. Proficient in React and Vue, with a keen eye for pixel-perfect UI implementation.',
+    cvSummary: 'Creative frontend developer with strong design sensibility. Proficient in React and Vue.',
+    desiredJob: 'Frontend Developer at a product company.',
+    educationList: [
+      { institution: 'University of Cape Town', qualification: 'BSc', field: 'Information Technology', year: '2020' },
+    ],
+    experienceList: [
+      { company: 'Digital Agency', role: 'Frontend Developer', period: '2020 – Present', description: 'Delivered 10+ client-facing web applications.' },
+    ],
+    certifications: [],
+    languages: ['English', 'Xhosa'],
+    documents: [
+      { id: 'doc-5', name: 'CV.pdf', type: 'CV', url: '#', uploadedBy: 'candidate', uploadedAt: '2025-11-14T10:00:00Z' },
+    ],
+    applications: [
+      { id: 'app-5', mandateId: 'c1', jobTitle: 'Senior Developer', company: 'Standard Bank', currentStage: 'Inbound', stageColor: '#3aafb9' },
+    ],
     recruiterNotes: [],
     stageHistory: [
       { from: 'Inbound', to: 'Inbound', timestamp: '2025-11-14T11:00:00Z', recruiterId: 'r1', recruiterName: 'Sarah Recruiter' },
     ],
+    experience: '3 years as a frontend developer at a digital agency.',
+    education: 'BSc Information Technology – University of Cape Town (2020)',
   },
   {
     id: 'cand-4',
@@ -186,16 +245,32 @@ export const MOCK_CANDIDATES: Candidate[] = [
     phone: '+27 84 456 7890',
     location: 'Durban, KZN',
     matchScore: 65,
+    matchBreakdown: { overall: 65, skills: 60, experience: 65, qualification: 70 },
     currentStage: 'Inbound',
     closedReason: null,
     skills: ['HTML', 'CSS', 'JavaScript', 'WordPress', 'Photoshop'],
-    experience: '2 years as a web designer at a marketing agency. Built and maintained 15+ WordPress sites.',
-    education: 'National Diploma: Graphic Design – Durban University of Technology (2021)',
-    cvSummary: 'Versatile web designer with a strong visual background. Looking to transition into front-end development with a focus on React.',
+    cvSummary: 'Versatile web designer with a strong visual background.',
+    desiredJob: 'Web Designer / Junior Frontend Developer.',
+    educationList: [
+      { institution: 'Durban University of Technology', qualification: 'National Diploma', field: 'Graphic Design', year: '2021' },
+    ],
+    experienceList: [
+      { company: 'Marketing Agency', role: 'Web Designer', period: '2021 – Present', description: 'Built and maintained 15+ WordPress sites.' },
+    ],
+    certifications: [],
+    languages: ['English', 'Zulu'],
+    documents: [
+      { id: 'doc-6', name: 'CV.pdf', type: 'CV', url: '#', uploadedBy: 'candidate', uploadedAt: '2025-11-14T13:00:00Z' },
+    ],
+    applications: [
+      { id: 'app-6', mandateId: 'c1', jobTitle: 'Senior Developer', company: 'Standard Bank', currentStage: 'Inbound', stageColor: '#3aafb9' },
+    ],
     recruiterNotes: [],
     stageHistory: [
       { from: 'Inbound', to: 'Inbound', timestamp: '2025-11-14T14:00:00Z', recruiterId: 'r1', recruiterName: 'Sarah Recruiter' },
     ],
+    experience: '2 years as a web designer at a marketing agency.',
+    education: 'National Diploma: Graphic Design – Durban University of Technology (2021)',
   },
   {
     id: 'cand-5',
@@ -206,18 +281,35 @@ export const MOCK_CANDIDATES: Candidate[] = [
     phone: '+27 79 567 8901',
     location: 'Johannesburg, GP',
     matchScore: 80,
+    matchBreakdown: { overall: 80, skills: 78, experience: 80, qualification: 82 },
     currentStage: 'Inbound',
     closedReason: null,
     skills: ['Figma', 'Adobe XD', 'Illustrator', 'React (basic)', 'CSS'],
-    experience: '4 years as a UI/UX designer at a product company. Drove redesign of mobile app resulting in 30% improvement in user retention.',
-    education: 'BA Visual Communication Design – University of Johannesburg (2019)',
-    cvSummary: 'Experienced UI/UX designer with solid visual design skills and growing technical front-end knowledge. Bridging the gap between design and development.',
+    cvSummary: 'Experienced UI/UX designer with solid visual design skills and growing technical front-end knowledge.',
+    desiredJob: 'Senior UI/UX Designer at a product company.',
+    educationList: [
+      { institution: 'University of Johannesburg', qualification: 'BA', field: 'Visual Communication Design', year: '2019' },
+    ],
+    experienceList: [
+      { company: 'Product Company', role: 'UI/UX Designer', period: '2019 – Present', description: 'Drove redesign of mobile app resulting in 30% improvement in user retention.' },
+    ],
+    certifications: [],
+    languages: ['English', 'Sotho'],
+    documents: [
+      { id: 'doc-7', name: 'CV.pdf',       type: 'CV',        url: '#', uploadedBy: 'candidate', uploadedAt: '2025-11-15T07:00:00Z' },
+      { id: 'doc-8', name: 'Portfolio.pdf', type: 'Portfolio', url: '#', uploadedBy: 'candidate', uploadedAt: '2025-11-15T07:05:00Z' },
+    ],
+    applications: [
+      { id: 'app-7', mandateId: 'c1', jobTitle: 'Senior Developer', company: 'Standard Bank', currentStage: 'Inbound', stageColor: '#3aafb9' },
+    ],
     recruiterNotes: [],
     stageHistory: [
       { from: 'Inbound', to: 'Inbound', timestamp: '2025-11-15T08:00:00Z', recruiterId: 'r1', recruiterName: 'Sarah Recruiter' },
     ],
+    experience: '4 years as a UI/UX designer at a product company.',
+    education: 'BA Visual Communication Design – University of Johannesburg (2019)',
   },
-  // ── Mandate c2 – Accounts Payable ─────────────────────────────────
+  // ── Mandate c2 ─────────────────────────────────────────────────────
   {
     id: 'cand-6',
     mandateId: 'c2',
@@ -227,16 +319,32 @@ export const MOCK_CANDIDATES: Candidate[] = [
     phone: '+27 82 678 9012',
     location: 'Johannesburg, GP',
     matchScore: 91,
+    matchBreakdown: { overall: 91, skills: 93, experience: 90, qualification: 90 },
     currentStage: 'Inbound',
     closedReason: null,
     skills: ['SAP', 'Excel', 'Pastel', 'Reconciliations', 'Invoice Processing'],
-    experience: '3 years AP clerk at a retail group. Processed 500+ invoices monthly with 99.8% accuracy.',
-    education: 'BCom Accounting – University of Johannesburg (2020)',
-    cvSummary: 'Detail-oriented AP specialist with strong SAP and reconciliation skills. Consistently meets payment deadlines and maintains accurate creditor ledgers.',
+    cvSummary: 'Detail-oriented AP specialist with strong SAP and reconciliation skills.',
+    desiredJob: 'Senior Accounts Payable Specialist.',
+    educationList: [
+      { institution: 'University of Johannesburg', qualification: 'BCom', field: 'Accounting', year: '2020' },
+    ],
+    experienceList: [
+      { company: 'Retail Group', role: 'AP Clerk', period: '2020 – Present', description: 'Processed 500+ invoices monthly with 99.8% accuracy.' },
+    ],
+    certifications: [],
+    languages: ['English', 'Sotho'],
+    documents: [
+      { id: 'doc-9', name: 'CV.pdf', type: 'CV', url: '#', uploadedBy: 'candidate', uploadedAt: '2025-11-10T08:00:00Z' },
+    ],
+    applications: [
+      { id: 'app-8', mandateId: 'c2', jobTitle: 'Accounts Payable', company: 'Wexford Search', currentStage: 'Inbound', stageColor: '#3aafb9' },
+    ],
     recruiterNotes: [],
     stageHistory: [
       { from: 'Inbound', to: 'Inbound', timestamp: '2025-11-10T09:00:00Z', recruiterId: 'r1', recruiterName: 'Sarah Recruiter' },
     ],
+    experience: '3 years AP clerk at a retail group.',
+    education: 'BCom Accounting – University of Johannesburg (2020)',
   },
   {
     id: 'cand-7',
@@ -247,18 +355,34 @@ export const MOCK_CANDIDATES: Candidate[] = [
     phone: '+27 73 789 0123',
     location: 'Pretoria, GP',
     matchScore: 76,
+    matchBreakdown: { overall: 76, skills: 74, experience: 76, qualification: 78 },
     currentStage: 'Inbound',
     closedReason: null,
     skills: ['Excel', 'SAGE', 'Creditors', 'Debtors', 'Bank Reconciliation'],
-    experience: '2 years as finance admin in a construction company. Handled both AP and AR functions.',
-    education: 'National Diploma: Finance – Tshwane University of Technology (2021)',
-    cvSummary: 'Energetic finance administrator with hands-on AP/AR experience. Quick learner with strong numeracy and attention to detail.',
+    cvSummary: 'Energetic finance administrator with hands-on AP/AR experience.',
+    desiredJob: 'Finance Administrator or AP Specialist.',
+    educationList: [
+      { institution: 'Tshwane University of Technology', qualification: 'National Diploma', field: 'Finance', year: '2021' },
+    ],
+    experienceList: [
+      { company: 'Construction Company', role: 'Finance Admin', period: '2021 – Present', description: 'Handled both AP and AR functions.' },
+    ],
+    certifications: [],
+    languages: ['English', 'Zulu'],
+    documents: [
+      { id: 'doc-10', name: 'CV.pdf', type: 'CV', url: '#', uploadedBy: 'candidate', uploadedAt: '2025-11-11T09:00:00Z' },
+    ],
+    applications: [
+      { id: 'app-9', mandateId: 'c2', jobTitle: 'Accounts Payable', company: 'Wexford Search', currentStage: 'Inbound', stageColor: '#3aafb9' },
+    ],
     recruiterNotes: [],
     stageHistory: [
       { from: 'Inbound', to: 'Inbound', timestamp: '2025-11-11T10:00:00Z', recruiterId: 'r1', recruiterName: 'Sarah Recruiter' },
     ],
+    experience: '2 years as finance admin in a construction company.',
+    education: 'National Diploma: Finance – Tshwane University of Technology (2021)',
   },
-  // ── Mandate c3 – Head of Transport ─────────────────────────────────
+  // ── Mandate c3 ─────────────────────────────────────────────────────
   {
     id: 'cand-8',
     mandateId: 'c3',
@@ -268,18 +392,36 @@ export const MOCK_CANDIDATES: Candidate[] = [
     phone: '+27 82 890 1234',
     location: 'Johannesburg, GP',
     matchScore: 89,
+    matchBreakdown: { overall: 89, skills: 88, experience: 91, qualification: 88 },
     currentStage: 'Inbound',
     closedReason: null,
     skills: ['Project Management', 'Civil Engineering', 'Logistics', 'AutoCAD', 'SANRAL Standards'],
-    experience: '10 years in transport infrastructure. Led R400M N3 road upgrade project as principal engineer.',
-    education: 'BEng Civil Engineering – Stellenbosch University (2013)',
-    cvSummary: 'Senior civil engineer with deep expertise in transport infrastructure. Strong leadership and stakeholder management track record.',
+    cvSummary: 'Senior civil engineer with deep expertise in transport infrastructure.',
+    desiredJob: 'Head of Transport or Senior Infrastructure Engineer.',
+    educationList: [
+      { institution: 'Stellenbosch University', qualification: 'BEng', field: 'Civil Engineering', year: '2013' },
+    ],
+    experienceList: [
+      { company: 'SANRAL', role: 'Principal Engineer', period: '2013 – Present', description: 'Led R400M N3 road upgrade project as principal engineer.' },
+    ],
+    certifications: [
+      { name: 'PMP', issuer: 'PMI', year: '2018' },
+    ],
+    languages: ['English', 'Afrikaans'],
+    documents: [
+      { id: 'doc-11', name: 'CV.pdf', type: 'CV', url: '#', uploadedBy: 'candidate', uploadedAt: '2025-11-08T07:00:00Z' },
+    ],
+    applications: [
+      { id: 'app-10', mandateId: 'c3', jobTitle: 'Head of Transport', company: 'GIBB Pty Ltd', currentStage: 'Inbound', stageColor: '#3aafb9' },
+    ],
     recruiterNotes: [],
     stageHistory: [
       { from: 'Inbound', to: 'Inbound', timestamp: '2025-11-08T08:00:00Z', recruiterId: 'r1', recruiterName: 'Sarah Recruiter' },
     ],
+    experience: '10 years in transport infrastructure.',
+    education: 'BEng Civil Engineering – Stellenbosch University (2013)',
   },
-  // ── Mandate c4 – Academic ──────────────────────────────────────────
+  // ── Mandate c4 ─────────────────────────────────────────────────────
   {
     id: 'cand-9',
     mandateId: 'c4',
@@ -289,18 +431,38 @@ export const MOCK_CANDIDATES: Candidate[] = [
     phone: '+27 61 901 2345',
     location: 'Durban, KZN',
     matchScore: 93,
+    matchBreakdown: { overall: 93, skills: 95, experience: 92, qualification: 93 },
     currentStage: 'Inbound',
     closedReason: null,
     skills: ['Curriculum Development', 'Research', 'SAQA', 'LMS', 'Distance Education'],
-    experience: '8 years lecturing Business Management at UKZN. Authored 12 peer-reviewed journal articles.',
-    education: 'PhD Business Management – University of KwaZulu-Natal (2017)',
-    cvSummary: 'Accomplished academic with extensive lecturing, research, and curriculum development experience in higher education.',
+    cvSummary: 'Accomplished academic with extensive lecturing, research, and curriculum development experience.',
+    desiredJob: 'Senior Lecturer or Academic Programme Manager.',
+    educationList: [
+      { institution: 'University of KwaZulu-Natal', qualification: 'PhD', field: 'Business Management', year: '2017' },
+      { institution: 'University of KwaZulu-Natal', qualification: 'MCom', field: 'Business Management', year: '2013' },
+    ],
+    experienceList: [
+      { company: 'UKZN', role: 'Senior Lecturer', period: '2017 – Present', description: 'Lecturing Business Management. Authored 12 peer-reviewed journal articles.' },
+    ],
+    certifications: [
+      { name: 'ETDP SETA Facilitator', issuer: 'ETDP SETA', year: '2019' },
+    ],
+    languages: ['English', 'Tamil', 'Zulu'],
+    documents: [
+      { id: 'doc-12', name: 'CV.pdf', type: 'CV', url: '#', uploadedBy: 'candidate', uploadedAt: '2025-11-05T07:00:00Z' },
+      { id: 'doc-13', name: 'PhD_Certificate.pdf', type: 'Degree', url: '#', uploadedBy: 'candidate', uploadedAt: '2025-11-05T07:05:00Z' },
+    ],
+    applications: [
+      { id: 'app-11', mandateId: 'c4', jobTitle: 'Academic: Bachelor', company: 'MANCOSA', currentStage: 'Inbound', stageColor: '#3aafb9' },
+    ],
     recruiterNotes: [],
     stageHistory: [
       { from: 'Inbound', to: 'Inbound', timestamp: '2025-11-05T08:00:00Z', recruiterId: 'r1', recruiterName: 'Sarah Recruiter' },
     ],
+    experience: '8 years lecturing Business Management at UKZN.',
+    education: 'PhD Business Management – University of KwaZulu-Natal (2017)',
   },
-  // ── Mandate c5 – Banking & Training ───────────────────────────────
+  // ── Mandate c5 ─────────────────────────────────────────────────────
   {
     id: 'cand-10',
     mandateId: 'c5',
@@ -310,16 +472,34 @@ export const MOCK_CANDIDATES: Candidate[] = [
     phone: '+27 79 012 3456',
     location: 'Johannesburg, GP',
     matchScore: 85,
+    matchBreakdown: { overall: 85, skills: 87, experience: 84, qualification: 84 },
     currentStage: 'Inbound',
     closedReason: null,
     skills: ['FAIS', 'FICA', 'Training Delivery', 'LMS', 'MS Office'],
-    experience: '5 years delivering financial literacy and compliance training at a JSE-listed bank. ETDP SETA accredited facilitator.',
-    education: 'BCom Banking – University of Johannesburg (2018)',
-    cvSummary: 'Energetic banking trainer with deep FAIS knowledge and a passion for developing financial competence across all levels.',
+    cvSummary: 'Energetic banking trainer with deep FAIS knowledge and a passion for developing financial competence.',
+    desiredJob: 'Senior Training Specialist in banking or financial services.',
+    educationList: [
+      { institution: 'University of Johannesburg', qualification: 'BCom', field: 'Banking', year: '2018' },
+    ],
+    experienceList: [
+      { company: 'JSE-listed Bank', role: 'Training Specialist', period: '2018 – Present', description: 'Delivering FAIS and compliance training. ETDP SETA accredited facilitator.' },
+    ],
+    certifications: [
+      { name: 'ETDP SETA Facilitator', issuer: 'ETDP SETA', year: '2020' },
+    ],
+    languages: ['English', 'Zulu', 'Sotho'],
+    documents: [
+      { id: 'doc-14', name: 'CV.pdf', type: 'CV', url: '#', uploadedBy: 'candidate', uploadedAt: '2025-11-03T08:00:00Z' },
+    ],
+    applications: [
+      { id: 'app-12', mandateId: 'c5', jobTitle: 'Banking and Training', company: 'Corporate Placements', currentStage: 'Inbound', stageColor: '#3aafb9' },
+    ],
     recruiterNotes: [],
     stageHistory: [
       { from: 'Inbound', to: 'Inbound', timestamp: '2025-11-03T09:00:00Z', recruiterId: 'r1', recruiterName: 'Sarah Recruiter' },
     ],
+    experience: '5 years delivering financial literacy and compliance training.',
+    education: 'BCom Banking – University of Johannesburg (2018)',
   },
 ]
 

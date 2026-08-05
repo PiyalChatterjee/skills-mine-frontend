@@ -1,0 +1,286 @@
+/* ── Section ──────────────────────────────────────────────────────────── */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.sectionTitle {
+  margin: 0 0 4px;
+  color: #2B96D9;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 150%;
+  letter-spacing: 0.1px;
+}
+
+/* ── Row (two-column) ────────────────────────────────────────────────── */
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 680px) {
+  .row { grid-template-columns: 1fr; }
+}
+
+/* ── Field ────────────────────────────────────────────────────────────── */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  color: #1f2328;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 150%;
+}
+
+/* ── Input / Select / Textarea ───────────────────────────────────────── */
+.input,
+.select,
+.textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 14px;
+  color: #1f2328;
+  background: #ffffff;
+  outline: none;
+  transition: border-color 0.12s;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: #9ca3af;
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  border-color: #2B96D9;
+}
+
+.input.hasError,
+.select.hasError,
+.textarea.hasError {
+  border-color: #dc2626;
+}
+
+/* ── Select wrapper (chevron icon) ───────────────────────────────────── */
+.selectWrap {
+  position: relative;
+}
+
+.selectWrap::after {
+  content: '';
+  pointer-events: none;
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 6px solid #57606a;
+}
+
+/* Date input — keep browser calendar icon visible */
+.input[type='date'] {
+  padding-right: 10px;
+}
+
+/* ── Number spinner input ────────────────────────────────────────────── */
+.numberWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.numberWrap .input {
+  padding-right: 32px;
+}
+
+/* ── Textarea ─────────────────────────────────────────────────────────── */
+.textarea {
+  resize: vertical;
+  min-height: 120px;
+  line-height: 1.6;
+}
+
+/* ── Error text ───────────────────────────────────────────────────────── */
+.errorText {
+  color: #dc2626;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 12px;
+  margin: 0;
+}
+
+/* ── Chip row ─────────────────────────────────────────────────────────── */
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 100px;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  color: #ffffff;
+  white-space: nowrap;
+}
+
+.chipRemove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: inherit;
+  opacity: 0.75;
+  line-height: 1;
+  transition: opacity 0.12s;
+}
+
+.chipRemove:hover { opacity: 1; }
+
+/* Skill chip colours cycle */
+.skillChip0 { background: #CABEE9; }
+.skillChip1 { background: #EFB5B5; }
+.skillChip2 { background: #80C0E8; }
+.skillChip3 { background: #93CFAB; }
+.skillChip4 { background: #6891BA; }
+
+/* Industry chip */
+.industryChip {
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  color: #1f2328;
+}
+
+.addChipBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 14px;
+  border-radius: 100px;
+  border: 1.5px dashed #9ca3af;
+  background: #ffffff;
+  color: #57606a;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color 0.12s, color 0.12s;
+}
+
+.addChipBtn:hover {
+  border-color: #2B96D9;
+  color: #2B96D9;
+}
+
+.chipInput {
+  border: none;
+  outline: none;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 13px;
+  color: #1f2328;
+  min-width: 120px;
+  background: transparent;
+  padding: 4px 0;
+}
+
+.chipInputWrap {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 100px;
+  border: 1.5px solid #2B96D9;
+  background: #f0f8ff;
+}
+
+/* ── Job board cards ──────────────────────────────────────────────────── */
+.jobBoardGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.jobBoardCard {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: 1.5px solid #e5e7eb;
+  background: #ffffff;
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1f2328;
+  min-width: 72px;
+  gap: 6px;
+}
+
+.jobBoardCard:hover {
+  border-color: #2B96D9;
+}
+
+.jobBoardCardSelected {
+  border-color: #2B96D9;
+  background: #e8f4fd;
+  color: #03478C;
+}
+
+.boardHelperText {
+  margin: 0 0 12px;
+  color: #57606a;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 13px;
+}
+
+/* ── Bullet textarea preview ─────────────────────────────────────────── */
+.bulletPreview {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border: 1px solid #d1d5db;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  background: #f9fafb;
+}
+
+.bulletItem {
+  display: flex;
+  gap: 8px;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 13px;
+  color: #57606a;
+}
+
+.bulletDot {
+  color: #9ca3af;
+  flex-shrink: 0;
+}

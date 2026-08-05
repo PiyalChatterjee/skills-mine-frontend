@@ -145,7 +145,6 @@
 .statsBanner {
   display: flex;
   gap: 12px;
-  overflow: hidden;
 }
 
 .statCard {
@@ -266,12 +265,16 @@
 :global(.MuiTypography-root).candidatesHeading,
 :global(.MuiTypography-root).candidatesHeading.candidatesHeading {
   margin: 0;
-  padding: 20px 24px 12px;
-  color: #03478C;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 15px;
+  padding: 0 0 12px;
+  color: #2B96D9;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-style: normal;
+  font-size: 18px;
   font-weight: 500;
-  line-height: 1.4;
+  line-height: 150%;
+  letter-spacing: 0.1px;
+  flex: none;
+  flex-grow: 0;
 }
 
 .table {
@@ -289,7 +292,7 @@
   letter-spacing: 0.5px;
   text-transform: uppercase;
   border-bottom: 1px solid #e5e7eb;
-  background: #f7f8fa;
+  background: #ffffff;
 }
 
 .tableHead th:first-child {
@@ -311,36 +314,61 @@
 }
 
 .checkboxCell {
-  width: 32px;
+  width: 40px;
 }
 
-.checkboxIcon {
-  width: 18px;
-  height: 18px;
+/* Unchecked state */
+.checkbox {
+  width: 20px;
+  height: 20px;
   border-radius: 4px;
-  background: #03478C;
+  border: 1.5px solid #d1d5db;
+  background: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s;
+  box-sizing: border-box;
+}
+
+.checkbox:hover {
+  border-color: #32ABBF;
+}
+
+/* Checked state — SM Teal Blue */
+.checkboxChecked {
+  background: #32ABBF;
+  border: 1px solid #32ABBF;
 }
 
 .candidateName,
 :global(.MuiTypography-root).candidateName {
   margin: 0;
-  color: #1f2328;
+  color: #2A3132;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-style: normal;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 400;
+  line-height: 150%;
+  letter-spacing: 0.1px;
+  flex: none;
+  flex-grow: 0;
 }
 
 .candidateTitle,
 :global(.MuiTypography-root).candidateTitle {
   margin: 0;
-  color: #57606a;
+  color: #2A3132;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-style: normal;
   font-size: 14px;
   font-weight: 400;
+  line-height: 150%;
+  letter-spacing: 0.1px;
+  flex: none;
+  flex-grow: 0;
 }
 
 /* ── Match bar ───────────────────────────────────────────────────────── */
@@ -361,15 +389,21 @@
 /* ── Status badge (table) ────────────────────────────────────────────── */
 .statusBadge {
   display: inline-flex;
+  flex-direction: row;
+  justify-content: center;
   align-items: center;
-  padding: 4px 12px;
-  border-radius: 999px;
-  background: #03478C;
+  padding: 0px 8px;
+  gap: 10px;
+  height: 21px;
+  border-radius: 100px;
+  background: #2B96D9;
   color: #ffffff;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
   font-size: 12px;
   font-weight: 500;
   white-space: nowrap;
+  flex: none;
+  flex-grow: 0;
 }
 
 /* ── View link ───────────────────────────────────────────────────────── */
@@ -377,19 +411,25 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  color: #03478C;
+  color: #2B96D9;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 13px;
-  font-weight: 500;
+  font-style: normal;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 150%;
+  letter-spacing: 0.1px;
+  text-decoration: underline;
   cursor: pointer;
   transition: color 0.15s ease;
   background: none;
   border: none;
   padding: 0;
+  flex: none;
+  flex-grow: 0;
 }
 
 .viewLink:hover {
-  color: #2470c2;
+  color: #1a7ab8;
 }
 
 /* ── Right column ────────────────────────────────────────────────────── */
@@ -427,10 +467,10 @@
   background: #ffffff;
   border-radius: 12px;
   border: 1px solid #e5e7eb;
-  padding: 20px;
+  padding: 16px 20px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 14px;
   margin-top: 4px;
 }
 
@@ -447,9 +487,9 @@
   color: #03478C;
   font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
   font-style: normal;
-  font-size: 18px;
-  font-weight: 500;
-  line-height: 150%;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
   letter-spacing: 0.1px;
 }
 
@@ -460,9 +500,9 @@
   color: #2A3132;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
   font-style: normal;
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 400;
-  line-height: 150%;
+  line-height: 1.4;
   letter-spacing: 0.1px;
 }
 
@@ -473,9 +513,9 @@
   color: #03478C;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
   font-style: normal;
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 400;
-  line-height: 150%;
+  line-height: 1.4;
   letter-spacing: 0.1px;
   text-decoration: underline;
   cursor: pointer;

@@ -1,0 +1,275 @@
+/* ── Backdrop ─────────────────────────────────────────────────────────── */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1300;
+}
+
+/* ── Modal panel ──────────────────────────────────────────────────────── */
+.modal {
+  background: #ffffff;
+  border-radius: 16px;
+  width: 520px;
+  max-width: calc(100vw - 32px);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+}
+
+/* ── Header ───────────────────────────────────────────────────────────── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 24px 20px;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.iconCircle {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #fce8e8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.title {
+  color: #E05252;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.3;
+  margin: 0;
+}
+
+.closeBtn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: #57606a;
+  transition: background 0.12s;
+  align-self: flex-start;
+}
+
+.closeBtn:hover {
+  background: #f3f4f6;
+}
+
+/* ── Divider ──────────────────────────────────────────────────────────── */
+.divider {
+  height: 1px;
+  background: #e5e7eb;
+  margin: 0;
+}
+
+/* ── Body ─────────────────────────────────────────────────────────────── */
+.body {
+  padding: 24px;
+}
+
+/* ── Drop zone ────────────────────────────────────────────────────────── */
+.dropZone {
+  border: 2px dashed #d1d5db;
+  border-radius: 12px;
+  background: #f9fafb;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 40px 24px;
+  transition: border-color 0.15s, background 0.15s;
+  cursor: default;
+}
+
+.dropZoneActive {
+  border-color: #2B96D9;
+  background: #f0f8ff;
+}
+
+.dropPrimary {
+  color: #1f2328;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  text-align: center;
+  margin: 0;
+}
+
+.dropSecondary {
+  color: #9ca3af;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  text-align: center;
+  margin: 0;
+}
+
+.browseBtn {
+  margin-top: 12px;
+  padding: 8px 28px;
+  border-radius: 999px;
+  border: 1.5px solid #d1d5db;
+  background: #ffffff;
+  color: #1f2328;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  transition: border-color 0.12s, background 0.12s;
+}
+
+.browseBtn:hover {
+  border-color: #9ca3af;
+  background: #f9fafb;
+}
+
+.errorText {
+  color: #dc2626;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 12px;
+  margin: 4px 0 0;
+  text-align: center;
+}
+
+/* ── Selected state ───────────────────────────────────────────────────── */
+.selectedState {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* Document name field */
+.docNameField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+
+.docNameLabel {
+  color: #1f2328;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.docNameInput {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 14px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 8px;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 14px;
+  color: #1f2328;
+  background: #ffffff;
+  outline: none;
+  transition: border-color 0.12s;
+}
+
+.docNameInput::placeholder {
+  color: #9ca3af;
+}
+
+.docNameInput:focus {
+  border-color: #2B96D9;
+}
+
+/* File card */
+.fileCard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #f3f4f6;
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-top: 16px;
+}
+
+.fileName {
+  flex: 1;
+  color: #1f2328;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.deleteBtn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  flex-shrink: 0;
+  transition: background 0.12s;
+}
+
+.deleteBtn:hover {
+  background: #fee2e2;
+}
+
+/* ── Footer ───────────────────────────────────────────────────────────── */
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+}
+
+.cancelBtn {
+  padding: 10px 28px;
+  border-radius: 999px;
+  border: 1.5px solid #d1d5db;
+  background: #ffffff;
+  color: #1f2328;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  transition: border-color 0.12s, background 0.12s;
+}
+
+.cancelBtn:hover {
+  border-color: #9ca3af;
+  background: #f9fafb;
+}
+
+.doneBtn {
+  padding: 10px 32px;
+  border-radius: 999px;
+  background: #d1d5db;
+  color: #ffffff;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: not-allowed;
+  transition: background 0.15s;
+}
+
+.doneBtnActive {
+  background: #03478C;
+  cursor: pointer;
+}
+
+.doneBtnActive:hover {
+  background: #023d78;
+}
