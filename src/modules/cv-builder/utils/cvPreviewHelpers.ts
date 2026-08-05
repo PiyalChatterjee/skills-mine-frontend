@@ -1,4 +1,4 @@
-import type { CareerHistoryEntry, SkillEntry } from '../types/cvBuilder'
+import type { CvBuilderFormValues } from '../types/cvBuilderSchema'
 
 export const NOT_PROVIDED_TEXT = 'Not provided'
 export const FALLBACK_WORK_DESCRIPTION = [
@@ -9,7 +9,7 @@ export const FALLBACK_WORK_DESCRIPTION = [
 export const getValueOrFallback = (value: string, fallback = NOT_PROVIDED_TEXT) =>
   value.trim() || fallback
 
-export const normalizeCareerHistory = (careerHistory: CareerHistoryEntry[]) =>
+export const normalizeCareerHistory = (careerHistory: CvBuilderFormValues['careerHistory']) =>
   careerHistory
     .map((entry) => ({
       ...entry,
@@ -26,7 +26,7 @@ export const normalizeCareerHistory = (careerHistory: CareerHistoryEntry[]) =>
         entry.projects.length > 0,
     )
 
-export const normalizeSkills = (skills: SkillEntry[]) =>
+export const normalizeSkills = (skills: CvBuilderFormValues['skills']) =>
   skills
     .map((entry) => entry.name.trim())
     .filter(Boolean)

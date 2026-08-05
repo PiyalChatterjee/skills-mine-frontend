@@ -14,6 +14,7 @@ import { PermissionGuard } from '@/routes/guards/PermissionGuard'
 import { ProtectedRoute } from '@/routes/guards/ProtectedRoute'
 import { RoleGuard } from '@/routes/guards/RoleGuard'
 import { ROUTE_PATHS } from '@/routes/routePaths'
+import styles from '@/routes/AppRoutes.module.css'
 
 const DashboardEntryPage = lazy(
   () => import('@/modules/dashboard/pages/DashboardEntryPage'),
@@ -32,7 +33,11 @@ const CrmPage = lazy(() => import('@/modules/crm/pages/CrmPage'))
 const MancoPage = lazy(() => import('@/modules/manco/pages/MancoPage'))
 const ExcoPage = lazy(() => import('@/modules/exco/pages/ExcoPage'))
 
-const RouteFallback = () => <div>Loading route...</div>
+const RouteFallback = () => (
+  <div className={styles.fallbackContainer}>
+    <span className={styles.loadingText}>Loading Content</span>
+  </div>
+)
 
 export const AppRoutes = () => {
   return (
