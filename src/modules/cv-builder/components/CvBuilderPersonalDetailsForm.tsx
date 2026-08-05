@@ -1,5 +1,5 @@
-import { Box, TextField } from '@mui/material'
-import type { ChangeEvent } from 'react'
+﻿import { Box, TextField } from '@mui/material'
+import { Controller, useFormContext } from 'react-hook-form'
 import userIcon from '@/assets/public-layout/user-icon.svg'
 import styles from '../pages/CvBuilderPage.module.css'
 import {
@@ -8,130 +8,167 @@ import {
   CvBuilderSectionHeader,
   CvBuilderSelectField,
 } from './CvBuilderFormPrimitives'
-import {
-  DISABILITY_OPTIONS,
-  GENDER_OPTIONS,
-  LOCATION_OPTIONS,
-  NOTICE_PERIOD_OPTIONS,
-  RACE_OPTIONS,
-  type PersonalDetailsFormState,
-} from '../types/cvBuilder'
+import { DISABILITY_OPTIONS, GENDER_OPTIONS, LOCATION_OPTIONS, NOTICE_PERIOD_OPTIONS, RACE_OPTIONS } from '../types/cvBuilder'
+import type { CvBuilderFormValues } from '../types/cvBuilderSchema'
 
-type CvBuilderPersonalDetailsFormProps = {
-  values: PersonalDetailsFormState
-  errors?: Partial<Record<keyof PersonalDetailsFormState, string>>
-  onTextFieldChange: (field: keyof PersonalDetailsFormState) => (event: ChangeEvent<HTMLInputElement>) => void
-  onSelectFieldChange: (field: keyof PersonalDetailsFormState) => (event: ChangeEvent<HTMLInputElement>) => void
+const CvBuilderPersonalDetailsForm = () => {
+  const { control } = useFormContext<CvBuilderFormValues>()
+
+  return (
+    <CvBuilderFormPanel>
+      <CvBuilderSectionHeader iconSrc={userIcon} title="Personal details" />
+
+      <Box className={styles.formGrid}>
+        <CvBuilderLabeledField label="Full name" span="full">
+          <Controller
+            name="personalDetails.fullName"
+            control={control}
+            render={({ field, fieldState }) => (
+              <TextField
+                {...field}
+                error={Boolean(fieldState.error)}
+                helperText={fieldState.error?.message}
+                className={styles.fieldControl}
+                variant="outlined"
+                fullWidth
+              />
+            )}
+          />
+        </CvBuilderLabeledField>
+
+        <Controller
+          name="personalDetails.race"
+          control={control}
+          render={({ field, fieldState }) => (
+            <CvBuilderSelectField
+              label="Race"
+              value={field.value}
+              onChange={field.onChange}
+              options={RACE_OPTIONS}
+              error={Boolean(fieldState.error)}
+              helperText={fieldState.error?.message}
+            />
+          )}
+        />
+
+        <Controller
+          name="personalDetails.gender"
+          control={control}
+          render={({ field, fieldState }) => (
+            <CvBuilderSelectField
+              label="Gender"
+              value={field.value}
+              onChange={field.onChange}
+              options={GENDER_OPTIONS}
+              error={Boolean(fieldState.error)}
+              helperText={fieldState.error?.message}
+            />
+          )}
+        />
+
+        <Controller
+          name="personalDetails.disabilityStatus"
+          control={control}
+          render={({ field, fieldState }) => (
+            <CvBuilderSelectField
+              label="Disability status"
+              value={field.value}
+              onChange={field.onChange}
+              options={DISABILITY_OPTIONS}
+              error={Boolean(fieldState.error)}
+              helperText={fieldState.error?.message}
+            />
+          )}
+        />
+
+        <CvBuilderLabeledField label="Nationality" span="full">
+          <Controller
+            name="personalDetails.nationality"
+            control={control}
+            render={({ field, fieldState }) => (
+              <TextField
+                {...field}
+                error={Boolean(fieldState.error)}
+                helperText={fieldState.error?.message}
+                placeholder="Nationality"
+                className={styles.fieldControl}
+                variant="outlined"
+                fullWidth
+              />
+            )}
+          />
+        </CvBuilderLabeledField>
+
+        <Controller
+          name="personalDetails.residentialLocation"
+          control={control}
+          render={({ field, fieldState }) => (
+            <CvBuilderSelectField
+              label="Residential location"
+              value={field.value}
+              onChange={field.onChange}
+              options={LOCATION_OPTIONS}
+              span="full"
+              allowEmptyOption={false}
+              displayEmpty={true}
+              error={Boolean(fieldState.error)}
+              helperText={fieldState.error?.message}
+            />
+          )}
+        />
+
+        <CvBuilderLabeledField label="Current company" span="full">
+          <Controller
+            name="personalDetails.currentCompany"
+            control={control}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                placeholder="Current company"
+                className={styles.fieldControl}
+                variant="outlined"
+                fullWidth
+              />
+            )}
+          />
+        </CvBuilderLabeledField>
+
+        <CvBuilderLabeledField label="Current position" span="two">
+          <Controller
+            name="personalDetails.currentPosition"
+            control={control}
+            render={({ field, fieldState }) => (
+              <TextField
+                {...field}
+                error={Boolean(fieldState.error)}
+                helperText={fieldState.error?.message}
+                placeholder="Current position"
+                className={styles.fieldControl}
+                variant="outlined"
+                fullWidth
+              />
+            )}
+          />
+        </CvBuilderLabeledField>
+
+        <Controller
+          name="personalDetails.noticePeriod"
+          control={control}
+          render={({ field, fieldState }) => (
+            <CvBuilderSelectField
+              label="Notice period"
+              value={field.value}
+              onChange={field.onChange}
+              options={NOTICE_PERIOD_OPTIONS}
+              span="one"
+              error={Boolean(fieldState.error)}
+              helperText={fieldState.error?.message}
+            />
+          )}
+        />
+      </Box>
+    </CvBuilderFormPanel>
+  )
 }
-
-const CvBuilderPersonalDetailsForm = ({
-  values,
-  errors,
-  onTextFieldChange,
-  onSelectFieldChange,
-}: CvBuilderPersonalDetailsFormProps) => (
-  <CvBuilderFormPanel>
-    <CvBuilderSectionHeader iconSrc={userIcon} title="Personal details" />
-
-    <Box className={styles.formGrid}>
-      <CvBuilderLabeledField label="Full name" span="full">
-        <TextField
-          value={values.fullName}
-          onChange={onTextFieldChange('fullName')}
-          error={Boolean(errors?.fullName)}
-          helperText={errors?.fullName}
-          className={styles.fieldControl}
-          variant="outlined"
-          fullWidth
-        />
-      </CvBuilderLabeledField>
-
-      <CvBuilderSelectField
-        label="Race"
-        value={values.race}
-        onChange={onSelectFieldChange('race')}
-        options={RACE_OPTIONS}
-        error={Boolean(errors?.race)}
-        helperText={errors?.race}
-      />
-
-      <CvBuilderSelectField
-        label="Gender"
-        value={values.gender}
-        onChange={onSelectFieldChange('gender')}
-        options={GENDER_OPTIONS}
-        error={Boolean(errors?.gender)}
-        helperText={errors?.gender}
-      />
-
-      <CvBuilderSelectField
-        label="Disability status"
-        value={values.disabilityStatus}
-        onChange={onSelectFieldChange('disabilityStatus')}
-        options={DISABILITY_OPTIONS}
-        error={Boolean(errors?.disabilityStatus)}
-        helperText={errors?.disabilityStatus}
-      />
-
-      <CvBuilderLabeledField label="Nationality" span="full">
-        <TextField
-          value={values.nationality}
-          onChange={onTextFieldChange('nationality')}
-          error={Boolean(errors?.nationality)}
-          helperText={errors?.nationality}
-          placeholder="Nationality"
-          className={styles.fieldControl}
-          variant="outlined"
-          fullWidth
-        />
-      </CvBuilderLabeledField>
-
-      <CvBuilderSelectField
-        label="Residential location"
-        value={values.residentialLocation}
-        onChange={onSelectFieldChange('residentialLocation')}
-        options={LOCATION_OPTIONS}
-        span="full"
-        allowEmptyOption={false}
-        displayEmpty={true}
-        error={Boolean(errors?.residentialLocation)}
-        helperText={errors?.residentialLocation}
-      />
-
-      <CvBuilderLabeledField label="Current company" span="full">
-        <TextField
-          value={values.currentCompany}
-          onChange={onTextFieldChange('currentCompany')}
-          placeholder="Current company"
-          className={styles.fieldControl}
-          variant="outlined"
-          fullWidth
-        />
-      </CvBuilderLabeledField>
-
-      <CvBuilderLabeledField label="Current position" span="two">
-        <TextField
-          value={values.currentPosition}
-          onChange={onTextFieldChange('currentPosition')}
-          error={Boolean(errors?.currentPosition)}
-          helperText={errors?.currentPosition}
-          placeholder="Current position"
-          className={styles.fieldControl}
-          variant="outlined"
-          fullWidth
-        />
-      </CvBuilderLabeledField>
-
-      <CvBuilderSelectField
-        label="Notice period"
-        value={values.noticePeriod}
-        onChange={onSelectFieldChange('noticePeriod')}
-        options={NOTICE_PERIOD_OPTIONS}
-        error={Boolean(errors?.noticePeriod)}
-        helperText={errors?.noticePeriod}
-      />
-    </Box>
-  </CvBuilderFormPanel>
-)
 
 export default CvBuilderPersonalDetailsForm

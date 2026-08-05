@@ -1,599 +1,176 @@
-import { type ChangeEvent, useEffect, useMemo, useRef, useState } from 'react'
+﻿import { type ChangeEvent, useEffect, useMemo, useRef, useState } from 'react'
+import { useForm, useWatch } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import {
-  CAREER_HISTORY_INITIAL,
-  CV_BUILDER_STEPS,
-  LANGUAGES_INITIAL,
-  PERSONAL_DETAILS_INITIAL_VALUES,
-  SECONDARY_EDUCATION_INITIAL,
-  SKILLS_INITIAL,
-  TERTIARY_EDUCATION_INITIAL,
-  createCareerHistoryEntry,
-  createSecondaryEntry,
-  createSkillEntry,
-  createTertiaryEntry,
-  type CareerHistoryEntry,
-  type CvBuilderView,
-  type Language,
-  type PersonalDetailsFormState,
-  type SecondaryEducationEntry,
-  type SkillEntry,
-  type TertiaryEducationEntry,
-} from '../types/cvBuilder'
+  cvBuilderSchema,
+  personalDetailsSchema,
+  careerHistoryEntrySchema,
+  tertiaryEntrySchema,
+  secondaryEntrySchema,
+  type CvBuilderFormValues,
+} from '../types/cvBuilderSchema'
+import { CV_BUILDER_STEPS, LANGUAGES_LIST, type CvBuilderView, type Language } from '../types/cvBuilder'
 
 const FIRST_STEP = 1
 const LAST_STEP = CV_BUILDER_STEPS.length
-const PERSONAL_DETAILS_STEP_ID = 1
-const FORM_FIELD_KEYS: (keyof PersonalDetailsFormState)[] = [
-  'fullName',
-  'race',
-  'gender',
-  'disabilityStatus',
-  'nationality',
-  'residentialLocation',
-  'currentCompany',
-  'currentPosition',
-  'noticePeriod',
-]
 
-const isBlank = (value: string) => value.trim().length === 0
-const fullNamePattern = /^[a-zA-Z0-9 ]+$/
-
-type PersonalDetailsValidationErrors = Partial<Record<keyof PersonalDetailsFormState, string>>
-type CareerHistoryRequiredField = 'companyName' | 'positionHeld' | 'startDate' | 'endDate'
-type CareerHistoryEntryValidationErrors = Partial<Record<CareerHistoryRequiredField, string>>
-type CareerHistoryValidationErrors = {
-  form?: string
-  byEntryId: Record<string, CareerHistoryEntryValidationErrors>
-}
-
-type SkillsValidationErrors = {
-  form?: string
-}
-
-type TertiaryEducationValidationErrors = Partial<
-  Record<'institutionName' | 'degreeOrCertification' | 'yearCompleted', string>
->
-
-type SecondaryEducationValidationErrors = Partial<
-  Record<'institutionName' | 'highestGradePassed' | 'yearCompleted', string>
->
-
-type EducationValidationErrors = {
-  form?: string
-  tertiaryByEntryId: Record<string, TertiaryEducationValidationErrors>
-  secondaryByEntryId: Record<string, SecondaryEducationValidationErrors>
-}
-
-type LanguagesValidationErrors = {
-  form?: string
-  otherLanguage?: string
-}
-
-type CvBuilderPrefillData = {
-  personalDetails?: Partial<PersonalDetailsFormState>
-  careerHistory?: CareerHistoryEntry[]
-  skills?: SkillEntry[]
-  tertiaryEducation?: TertiaryEducationEntry[]
-  secondaryEducation?: SecondaryEducationEntry[]
-  selectedLanguages?: Set<Language>
-  otherLanguage?: string
-}
-
-//#region Validation helpers
-const validatePersonalDetails = (values: PersonalDetailsFormState): PersonalDetailsValidationErrors => {
-  const errors: PersonalDetailsValidationErrors = {}
-
-  if (isBlank(values.fullName)) {
-    errors.fullName = 'Full name is required'
-  } else if (!fullNamePattern.test(values.fullName.trim())) {
-    errors.fullName = 'Full name must be alphanumeric'
-  }
-
-  if (isBlank(values.race)) {
-    errors.race = 'Race is required'
-  }
-
-  if (isBlank(values.gender)) {
-    errors.gender = 'Gender is required'
-  }
-
-  if (isBlank(values.disabilityStatus)) {
-    errors.disabilityStatus = 'Disability status is required'
-  }
-
-  if (isBlank(values.nationality)) {
-    errors.nationality = 'Nationality is required'
-  }
-
-  if (isBlank(values.residentialLocation)) {
-    errors.residentialLocation = 'Residential location is required'
-  }
-
-  if (!isBlank(values.currentCompany)) {
-    if (isBlank(values.currentPosition)) {
-      errors.currentPosition = 'Current position is required when current company is provided'
-    }
-
-    if (isBlank(values.noticePeriod)) {
-      errors.noticePeriod = 'Notice period is required when current company is provided'
-    }
-  }
-
-  return errors
-}
-
-const hasValidationErrors = (errors: PersonalDetailsValidationErrors) => Object.keys(errors).length > 0
-
-const EMPTY_CAREER_HISTORY_ERRORS: CareerHistoryValidationErrors = {
-  form: undefined,
-  byEntryId: {},
-}
+const isoYearMonthPattern = /^(19|20)\d{2}-(0[1-9]|1[0-2])$/
+const currentRolePattern = /^(present|current)$/i
 
 const monthNames = [
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December',
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
 ] as const
-
-const monthYearPattern = /^(January|February|March|April|May|June|July|August|September|October|November|December),\s?(19|20)\d{2}$/i
-const currentRolePattern = /^(present|current)$/i
-const isoYearMonthPattern = /^(19|20)\d{2}-(0[1-9]|1[0-2])$/
 
 const normalizeCareerDateValue = (value: string): string => {
   const normalized = value.trim()
   const isoMatch = normalized.match(isoYearMonthPattern)
-
-  if (!isoMatch) {
-    return value
-  }
-
+  if (!isoMatch) return value
   const year = normalized.slice(0, 4)
   const monthIndex = Number(normalized.slice(5, 7)) - 1
   const monthName = monthNames[monthIndex]
-
-  if (!monthName) {
-    return value
-  }
-
+  if (!monthName) return value
   return `${monthName},${year}`
 }
 
-const validateCareerHistory = (
-  values: PersonalDetailsFormState,
-  entries: CareerHistoryEntry[],
-): CareerHistoryValidationErrors => {
-  if (isBlank(values.currentPosition)) {
-    return EMPTY_CAREER_HISTORY_ERRORS
-  }
-
-  if (entries.length === 0) {
-    return {
-      form: 'At least one position is required when current position is provided',
-      byEntryId: {},
-    }
-  }
-
-  const byEntryId: Record<string, CareerHistoryEntryValidationErrors> = {}
-
-  entries.forEach((entry) => {
-    const entryErrors: CareerHistoryEntryValidationErrors = {}
-
-    if (isBlank(entry.companyName)) {
-      entryErrors.companyName = 'Company name is required'
-    }
-
-    if (isBlank(entry.positionHeld)) {
-      entryErrors.positionHeld = 'Position held is required'
-    }
-
-    if (isBlank(entry.startDate)) {
-      entryErrors.startDate = 'Employment start date is required'
-    } else if (!monthYearPattern.test(entry.startDate.trim())) {
-      entryErrors.startDate = 'Use format like April,2020'
-    }
-
-    if (!isBlank(entry.endDate)) {
-      const normalizedEndDate = entry.endDate.trim()
-      if (!monthYearPattern.test(normalizedEndDate) && !currentRolePattern.test(normalizedEndDate)) {
-        entryErrors.endDate = 'Use format like April,2020 or Present'
-      }
-    }
-
-    if (Object.keys(entryErrors).length > 0) {
-      byEntryId[entry.id] = entryErrors
-    }
-  })
-
-  return {
-    form: undefined,
-    byEntryId,
-  }
+const DEFAULT_FORM_VALUES: CvBuilderFormValues = {
+  personalDetails: {
+    fullName: '',
+    race: '',
+    gender: '',
+    disabilityStatus: '',
+    nationality: '',
+    residentialLocation: '',
+    currentCompany: '',
+    currentPosition: '',
+    noticePeriod: '',
+  },
+  careerHistory: [
+    { companyName: '', positionHeld: '', startDate: '', endDate: '', isCurrentRole: false, tasks: [''], projects: [''] },
+  ],
+  skills: [{ name: '' }],
+  tertiaryEducation: [{ institutionName: '', degreeOrCertification: '', yearCompleted: '' }],
+  secondaryEducation: [{ institutionName: '', highestGradePassed: '', yearCompleted: '' }],
+  languages: [],
+  otherLanguage: '',
 }
 
-const hasCareerHistoryValidationErrors = (errors: CareerHistoryValidationErrors) =>
-  Boolean(errors.form) || Object.keys(errors.byEntryId).length > 0
+const PERSONAL_FIELD_KEYS: (keyof CvBuilderFormValues['personalDetails'])[] = [
+  'fullName', 'race', 'gender', 'disabilityStatus', 'nationality',
+  'residentialLocation', 'currentCompany', 'currentPosition', 'noticePeriod',
+]
 
-const EMPTY_SKILLS_ERRORS: SkillsValidationErrors = {
-  form: undefined,
-}
+const isCareerPristine = (entries: CvBuilderFormValues['careerHistory']) =>
+  entries.length === 1 &&
+  !entries[0].companyName && !entries[0].positionHeld &&
+  !entries[0].startDate && !entries[0].endDate &&
+  entries[0].tasks.length === 1 && !entries[0].tasks[0] &&
+  entries[0].projects.length === 1 && !entries[0].projects[0]
 
-const validateSkills = (entries: SkillEntry[]): SkillsValidationErrors => {
-  const hasAtLeastOneSkill = entries.some((entry) => !isBlank(entry.name))
+const isSkillsPristine = (entries: CvBuilderFormValues['skills']) =>
+  entries.length === 1 && !entries[0].name
 
-  if (!hasAtLeastOneSkill) {
-    return {
-      form: 'At least one skill is required',
-    }
-  }
+const isTertiaryPristine = (entries: CvBuilderFormValues['tertiaryEducation']) =>
+  entries.length === 1 &&
+  !entries[0].institutionName && !entries[0].degreeOrCertification && !entries[0].yearCompleted
 
-  return EMPTY_SKILLS_ERRORS
-}
+const isSecondaryPristine = (entries: CvBuilderFormValues['secondaryEducation']) =>
+  entries.length === 1 &&
+  !entries[0].institutionName && !entries[0].highestGradePassed && !entries[0].yearCompleted
 
-const hasSkillsValidationErrors = (errors: SkillsValidationErrors) => Boolean(errors.form)
-
-const yearCompletedPattern = /^\d{4}$/
-
-const EMPTY_EDUCATION_ERRORS: EducationValidationErrors = {
-  form: undefined,
-  tertiaryByEntryId: {},
-  secondaryByEntryId: {},
-}
-
-const validateEducation = (
-  tertiaryEntries: TertiaryEducationEntry[],
-  secondaryEntries: SecondaryEducationEntry[],
-): EducationValidationErrors => {
-  if (tertiaryEntries.length + secondaryEntries.length < 1) {
-    return {
-      form: 'At least one education entry is required',
-      tertiaryByEntryId: {},
-      secondaryByEntryId: {},
-    }
-  }
-
-  const tertiaryByEntryId: Record<string, TertiaryEducationValidationErrors> = {}
-  const secondaryByEntryId: Record<string, SecondaryEducationValidationErrors> = {}
-
-  tertiaryEntries.forEach((entry) => {
-    const entryErrors: TertiaryEducationValidationErrors = {}
-
-    if (isBlank(entry.institutionName)) {
-      entryErrors.institutionName = 'Institution name is required'
-    }
-
-    if (isBlank(entry.degreeOrCertification)) {
-      entryErrors.degreeOrCertification = 'Degree or certification is required'
-    }
-
-    if (isBlank(entry.yearCompleted)) {
-      entryErrors.yearCompleted = 'Year completed is required'
-    } else if (!yearCompletedPattern.test(entry.yearCompleted.trim())) {
-      entryErrors.yearCompleted = 'Enter a valid year (YYYY)'
-    }
-
-    if (Object.keys(entryErrors).length > 0) {
-      tertiaryByEntryId[entry.id] = entryErrors
-    }
-  })
-
-  secondaryEntries.forEach((entry) => {
-    const entryErrors: SecondaryEducationValidationErrors = {}
-
-    if (isBlank(entry.institutionName)) {
-      entryErrors.institutionName = 'Institution name is required'
-    }
-
-    if (isBlank(entry.highestGradePassed)) {
-      entryErrors.highestGradePassed = 'Highest grade passed is required'
-    }
-
-    if (isBlank(entry.yearCompleted)) {
-      entryErrors.yearCompleted = 'Year completed is required'
-    } else if (!yearCompletedPattern.test(entry.yearCompleted.trim())) {
-      entryErrors.yearCompleted = 'Enter a valid year (YYYY)'
-    }
-
-    if (Object.keys(entryErrors).length > 0) {
-      secondaryByEntryId[entry.id] = entryErrors
-    }
-  })
-
-  return {
-    form: undefined,
-    tertiaryByEntryId,
-    secondaryByEntryId,
-  }
-}
-
-const hasEducationValidationErrors = (errors: EducationValidationErrors) =>
-  Boolean(errors.form) ||
-  Object.keys(errors.tertiaryByEntryId).length > 0 ||
-  Object.keys(errors.secondaryByEntryId).length > 0
-
-const OTHER_LANGUAGE_OPTION: Language = 'Other'
-
-const EMPTY_LANGUAGES_ERRORS: LanguagesValidationErrors = {
-  form: undefined,
-  otherLanguage: undefined,
-}
-
-const buildLanguageEntries = (
-  selectedLanguages: Set<Language>,
-  otherLanguage: string,
-): string[] => {
-  const entries: string[] = Array.from(selectedLanguages).filter(
-    (language) => language !== OTHER_LANGUAGE_OPTION,
-  )
-
-  if (selectedLanguages.has(OTHER_LANGUAGE_OPTION) && !isBlank(otherLanguage)) {
+const buildLanguageEntries = (languages: string[], otherLanguage: string): string[] => {
+  const entries = languages.filter((l) => l !== 'Other')
+  if (languages.includes('Other') && otherLanguage.trim()) {
     entries.push(otherLanguage.trim())
   }
-
   return entries
 }
 
-const validateLanguages = (
-  selectedLanguages: Set<Language>,
-  otherLanguage: string,
-): LanguagesValidationErrors => {
-  if (selectedLanguages.size === 0) {
-    return {
-      form: 'At least one language must be selected',
-      otherLanguage: undefined,
-    }
-  }
-
-  if (selectedLanguages.has(OTHER_LANGUAGE_OPTION) && isBlank(otherLanguage)) {
-    return {
-      form: undefined,
-      otherLanguage: 'Please enter the other language',
-    }
-  }
-
-  return EMPTY_LANGUAGES_ERRORS
-}
-
-const hasLanguagesValidationErrors = (errors: LanguagesValidationErrors) =>
-  Boolean(errors.form) || Boolean(errors.otherLanguage)
-
-//#endregion
-
-//#region Pristine state helpers
-const isCareerHistoryPristine = (entries: CareerHistoryEntry[]) =>
-  entries.length === 1 &&
-  isBlank(entries[0].companyName) &&
-  isBlank(entries[0].positionHeld) &&
-  isBlank(entries[0].startDate) &&
-  isBlank(entries[0].endDate) &&
-  entries[0].tasks.length === 1 &&
-  isBlank(entries[0].tasks[0]) &&
-  entries[0].projects.length === 1 &&
-  isBlank(entries[0].projects[0])
-
-const isSkillsPristine = (entries: SkillEntry[]) =>
-  entries.length === 1 && isBlank(entries[0].name)
-
-const isTertiaryEducationPristine = (entries: TertiaryEducationEntry[]) =>
-  entries.length === 1 &&
-  isBlank(entries[0].institutionName) &&
-  isBlank(entries[0].degreeOrCertification) &&
-  isBlank(entries[0].yearCompleted)
-
-const isSecondaryEducationPristine = (entries: SecondaryEducationEntry[]) =>
-  entries.length === 1 &&
-  isBlank(entries[0].institutionName) &&
-  isBlank(entries[0].highestGradePassed) &&
-  isBlank(entries[0].yearCompleted)
-
-//#endregion
+export type CvBuilderPrefillData = Partial<CvBuilderFormValues>
 
 const useCvBuilder = (prefillData?: CvBuilderPrefillData) => {
-  //#region State
   const uploadInputRef = useRef<HTMLInputElement | null>(null)
-
   const [activeView, setActiveView] = useState<CvBuilderView>('launcher')
   const [selectedUploadFile, setSelectedUploadFile] = useState<File | null>(null)
   const [currentStepId, setCurrentStepId] = useState<number>(FIRST_STEP)
-  const [formValues, setFormValues] = useState<PersonalDetailsFormState>(PERSONAL_DETAILS_INITIAL_VALUES)
-  const [careerHistory, setCareerHistory] = useState<CareerHistoryEntry[]>(CAREER_HISTORY_INITIAL)
-  const [skills, setSkills] = useState<SkillEntry[]>(SKILLS_INITIAL)
-  const [tertiaryEducation, setTertiaryEducation] = useState<TertiaryEducationEntry[]>(TERTIARY_EDUCATION_INITIAL)
-  const [secondaryEducation, setSecondaryEducation] = useState<SecondaryEducationEntry[]>(SECONDARY_EDUCATION_INITIAL)
-  const [selectedLanguages, setSelectedLanguages] = useState<Set<Language>>(LANGUAGES_INITIAL)
-  const [otherLanguage, setOtherLanguage] = useState<string>('')
-  const [personalDetailsErrors, setPersonalDetailsErrors] = useState<PersonalDetailsValidationErrors>({})
-  const [careerHistoryErrors, setCareerHistoryErrors] = useState<CareerHistoryValidationErrors>(
-    EMPTY_CAREER_HISTORY_ERRORS,
-  )
-  const [skillsErrors, setSkillsErrors] = useState<SkillsValidationErrors>(EMPTY_SKILLS_ERRORS)
-  const [educationErrors, setEducationErrors] = useState<EducationValidationErrors>(
-    EMPTY_EDUCATION_ERRORS,
-  )
-  const [languagesErrors, setLanguagesErrors] = useState<LanguagesValidationErrors>(
-    EMPTY_LANGUAGES_ERRORS,
-  )
-  //#endregion
 
-  //#region Prefill hydration
+  const form = useForm<CvBuilderFormValues>({
+    resolver: zodResolver(cvBuilderSchema) as never,
+    defaultValues: DEFAULT_FORM_VALUES,
+    mode: 'onSubmit',
+    reValidateMode: 'onChange',
+  })
+
   useEffect(() => {
-    if (!prefillData) {
-      return
-    }
+    if (!prefillData) return
 
-    const personalDefaults = prefillData.personalDetails
+    const { personalDetails: pd, careerHistory, skills, tertiaryEducation, secondaryEducation, languages, otherLanguage } = prefillData
 
-    if (personalDefaults) {
-      setFormValues((currentValues) => {
-        const nextValues: PersonalDetailsFormState = { ...currentValues }
-        let hasChanged = false
-
-        const assignIfEmpty = (field: keyof PersonalDetailsFormState) => {
-          const candidateValue = personalDefaults[field]
-          if (!candidateValue || !isBlank(currentValues[field])) {
-            return
-          }
-          nextValues[field] = candidateValue
-          hasChanged = true
+    if (pd) {
+      const current = form.getValues('personalDetails')
+      PERSONAL_FIELD_KEYS.forEach((field) => {
+        const value = pd[field]
+        if (value && !current[field]) {
+          form.setValue(`personalDetails.${field}`, value)
         }
-
-        FORM_FIELD_KEYS.forEach(assignIfEmpty)
-
-        return hasChanged ? nextValues : currentValues
       })
     }
-
-    if (prefillData.careerHistory && prefillData.careerHistory.length > 0) {
-      setCareerHistory((currentValues) =>
-        isCareerHistoryPristine(currentValues) ? prefillData.careerHistory ?? currentValues : currentValues,
-      )
+    if (careerHistory && careerHistory.length > 0 && isCareerPristine(form.getValues('careerHistory'))) {
+      form.setValue('careerHistory', careerHistory)
     }
-
-    if (prefillData.skills && prefillData.skills.length > 0) {
-      setSkills((currentValues) =>
-        isSkillsPristine(currentValues) ? prefillData.skills ?? currentValues : currentValues,
-      )
+    if (skills && skills.length > 0 && isSkillsPristine(form.getValues('skills'))) {
+      form.setValue('skills', skills)
     }
-
-    if (prefillData.tertiaryEducation && prefillData.tertiaryEducation.length > 0) {
-      setTertiaryEducation((currentValues) =>
-        isTertiaryEducationPristine(currentValues)
-          ? prefillData.tertiaryEducation ?? currentValues
-          : currentValues,
-      )
+    if (tertiaryEducation && tertiaryEducation.length > 0 && isTertiaryPristine(form.getValues('tertiaryEducation'))) {
+      form.setValue('tertiaryEducation', tertiaryEducation)
     }
-
-    if (prefillData.secondaryEducation && prefillData.secondaryEducation.length > 0) {
-      setSecondaryEducation((currentValues) =>
-        isSecondaryEducationPristine(currentValues)
-          ? prefillData.secondaryEducation ?? currentValues
-          : currentValues,
-      )
+    if (secondaryEducation && secondaryEducation.length > 0 && isSecondaryPristine(form.getValues('secondaryEducation'))) {
+      form.setValue('secondaryEducation', secondaryEducation)
     }
-
-    if (prefillData.selectedLanguages && prefillData.selectedLanguages.size > 0) {
-      setSelectedLanguages((currentValues) =>
-        currentValues.size === 0 ? new Set(prefillData.selectedLanguages) : currentValues,
-      )
+    if (languages && languages.length > 0 && form.getValues('languages').length === 0) {
+      form.setValue('languages', languages)
     }
-
-    if (prefillData.otherLanguage && !isBlank(prefillData.otherLanguage)) {
-      setOtherLanguage((currentValue) => (isBlank(currentValue) ? prefillData.otherLanguage ?? currentValue : currentValue))
+    if (otherLanguage && otherLanguage.trim() && !form.getValues('otherLanguage')) {
+      form.setValue('otherLanguage', otherLanguage)
     }
-  }, [prefillData])
-  //#endregion
+  }, [prefillData]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  //#region Launcher actions
-  const handleUploadFileSelect = (event: ChangeEvent<HTMLInputElement>) => {
-    const nextFile = event.target.files?.[0] ?? null
-    setSelectedUploadFile(nextFile)
-    event.target.value = ''
-  }
+  const personalDetailsValues = useWatch({ control: form.control, name: 'personalDetails' })
+  const careerHistoryValues = useWatch({ control: form.control, name: 'careerHistory' })
+  const skillsValues = useWatch({ control: form.control, name: 'skills' })
+  const tertiaryValues = useWatch({ control: form.control, name: 'tertiaryEducation' })
+  const secondaryValues = useWatch({ control: form.control, name: 'secondaryEducation' })
+  const languagesValues = useWatch({ control: form.control, name: 'languages' })
+  const otherLanguageValue = useWatch({ control: form.control, name: 'otherLanguage' })
 
-  const openUploadPicker = () => {
-    uploadInputRef.current?.click()
-  }
-
-  const openBuildFlow = () => {
-    setActiveView('form')
-    setCurrentStepId(FIRST_STEP)
-  }
-
-  const openPreview = () => {
-    setActiveView('preview')
-  }
-
-  const closePreview = () => {
-    setActiveView('review')
-  }
-  //#endregion
-
-  //#region Personal details handlers
-  const handleFormValueChange =
-    (field: keyof PersonalDetailsFormState) => (event: ChangeEvent<HTMLInputElement>) => {
-      setFormValues((currentValues) => ({
-        ...currentValues,
-        [field]: event.target.value,
-      }))
-
-      setPersonalDetailsErrors((currentErrors) => {
-        if (!currentErrors[field]) {
-          return currentErrors
-        }
-
-        const nextErrors = { ...currentErrors }
-        delete nextErrors[field]
-        return nextErrors
-      })
-    }
-
-  const handleTextFieldChange = handleFormValueChange
-
-  const handleSelectFieldChange = handleFormValueChange
-  //#endregion
-
-  //#region Derived validation state
-  const personalDetailsValidation = useMemo(
-    () => validatePersonalDetails(formValues),
-    [formValues],
+  const isPersonalDetailsValid = useMemo(
+    () => personalDetailsSchema.safeParse(personalDetailsValues).success,
+    [personalDetailsValues],
   )
-  const careerHistoryValidation = useMemo(
-    () => validateCareerHistory(formValues, careerHistory),
-    [formValues, careerHistory],
+  const isCareerHistoryValid = useMemo(() => {
+    if (!personalDetailsValues?.currentPosition?.trim()) return true
+    if (!careerHistoryValues?.length) return false
+    return careerHistoryValues.every((entry) => careerHistoryEntrySchema.safeParse(entry).success)
+  }, [personalDetailsValues, careerHistoryValues])
+  const isSkillsValid = useMemo(
+    () => (skillsValues ?? []).some((s) => s.name.trim().length > 0),
+    [skillsValues],
   )
-  const skillsValidation = useMemo(() => validateSkills(skills), [skills])
-  const educationValidation = useMemo(
-    () => validateEducation(tertiaryEducation, secondaryEducation),
-    [tertiaryEducation, secondaryEducation],
-  )
-  const languagesValidation = useMemo(
-    () => validateLanguages(selectedLanguages, otherLanguage),
-    [selectedLanguages, otherLanguage],
-  )
+  const isEducationValid = useMemo(() => {
+    const total = (tertiaryValues?.length ?? 0) + (secondaryValues?.length ?? 0)
+    if (!total) return false
+    return (
+      (tertiaryValues ?? []).every((e) => tertiaryEntrySchema.safeParse(e).success) &&
+      (secondaryValues ?? []).every((e) => secondaryEntrySchema.safeParse(e).success)
+    )
+  }, [tertiaryValues, secondaryValues])
+  const isLanguagesValid = useMemo(() => {
+    if (!languagesValues?.length) return false
+    if (languagesValues.includes('Other') && !otherLanguageValue?.trim()) return false
+    return true
+  }, [languagesValues, otherLanguageValue])
 
-  const isPersonalDetailsValid = !hasValidationErrors(personalDetailsValidation)
-  const isCareerHistoryValid = !hasCareerHistoryValidationErrors(careerHistoryValidation)
-  const isSkillsValid = !hasSkillsValidationErrors(skillsValidation)
-  const isEducationValid = !hasEducationValidationErrors(educationValidation)
-  const isLanguagesValid = !hasLanguagesValidationErrors(languagesValidation)
-
-  const canViewCv =
-    isPersonalDetailsValid &&
-    isCareerHistoryValid &&
-    isSkillsValid &&
-    isEducationValid &&
-    isLanguagesValid
-  //#endregion
-
-  //#region Navigation
-  const goBack = () => {
-    if (activeView === 'preview' || activeView === 'view-cv') {
-      setActiveView('review')
-      return
-    }
-
-    if (activeView === 'review') {
-      setActiveView('form')
-      setCurrentStepId(LAST_STEP)
-      return
-    }
-
-    if (currentStepId > FIRST_STEP) {
-      setCurrentStepId((prevStepId) => prevStepId - 1)
-      return
-    }
-
-    setActiveView('launcher')
-  }
-
+  const canViewCv = isPersonalDetailsValid && isCareerHistoryValid && isSkillsValid && isEducationValid && isLanguagesValid
   const canGoNext =
     activeView === 'form' &&
     ((currentStepId === 1 && isPersonalDetailsValid) ||
@@ -602,441 +179,159 @@ const useCvBuilder = (prefillData?: CvBuilderPrefillData) => {
       (currentStepId === 4 && isEducationValid) ||
       (currentStepId === 5 && isLanguagesValid))
 
-  const goNext = () => {
-    if (activeView === 'preview') {
-      return
+  const validateStep = async (stepId: number): Promise<boolean> => {
+    switch (stepId) {
+      case 1:
+        return form.trigger('personalDetails')
+
+      case 2: {
+        const currentPosition = form.getValues('personalDetails.currentPosition').trim()
+        if (!currentPosition) return true
+        form.clearErrors('careerHistory')
+        const careerHistory = form.getValues('careerHistory')
+        if (!careerHistory.length) {
+          form.setError('careerHistory', {
+            type: 'custom',
+            message: 'At least one position is required when current position is provided',
+          })
+          return false
+        }
+        return form.trigger('careerHistory')
+      }
+
+      case 3: {
+        form.clearErrors('skills')
+        if (!form.getValues('skills').some((s) => s.name.trim())) {
+          form.setError('skills', { type: 'custom', message: 'At least one skill is required' })
+          return false
+        }
+        return true
+      }
+
+      case 4: {
+        form.clearErrors('tertiaryEducation')
+        const tertiaryLen = form.getValues('tertiaryEducation').length
+        const secondaryLen = form.getValues('secondaryEducation').length
+        if (!tertiaryLen && !secondaryLen) {
+          form.setError('tertiaryEducation', {
+            type: 'custom',
+            message: 'At least one education entry is required',
+          })
+          return false
+        }
+        const tertiaryOk = await form.trigger('tertiaryEducation')
+        const secondaryOk = await form.trigger('secondaryEducation')
+        return tertiaryOk && secondaryOk
+      }
+
+      case 5: {
+        form.clearErrors('languages')
+        form.clearErrors('otherLanguage')
+        const langs = form.getValues('languages')
+        if (!langs.length) {
+          form.setError('languages', { type: 'custom', message: 'At least one language must be selected' })
+          return false
+        }
+        if (langs.includes('Other') && !form.getValues('otherLanguage').trim()) {
+          form.setError('otherLanguage', { type: 'custom', message: 'Please enter the other language' })
+          return false
+        }
+        return true
+      }
+
+      default:
+        return true
     }
+  }
+
+  const handleUploadFileSelect = (event: ChangeEvent<HTMLInputElement>) => {
+    const nextFile = event.target.files?.[0] ?? null
+    setSelectedUploadFile(nextFile)
+    event.target.value = ''
+  }
+  const openUploadPicker = () => uploadInputRef.current?.click()
+  const openBuildFlow = () => { setActiveView('form'); setCurrentStepId(FIRST_STEP) }
+  const openPreview = () => setActiveView('preview')
+  const closePreview = () => setActiveView('review')
+
+  const goBack = () => {
+    if (activeView === 'preview' || activeView === 'view-cv') { setActiveView('review'); return }
+    if (activeView === 'review') { setActiveView('form'); setCurrentStepId(LAST_STEP); return }
+    if (currentStepId > FIRST_STEP) { setCurrentStepId((prev) => prev - 1); return }
+    setActiveView('launcher')
+  }
+
+  const goNext = async () => {
+    if (activeView === 'preview') return
+    if (activeView === 'view-cv') { setActiveView('launcher'); setCurrentStepId(FIRST_STEP); return }
 
     if (activeView === 'review') {
-      setPersonalDetailsErrors(personalDetailsValidation)
-      setCareerHistoryErrors(careerHistoryValidation)
-      setSkillsErrors(skillsValidation)
-      setEducationErrors(educationValidation)
-      setLanguagesErrors(languagesValidation)
-
-      if (!canViewCv) {
-        return
+      let allValid = true
+      for (let step = 1; step <= LAST_STEP; step++) {
+        if (!(await validateStep(step))) allValid = false
       }
-
-      setActiveView('view-cv')
+      if (allValid) setActiveView('view-cv')
       return
     }
 
-    if (activeView === 'view-cv') {
-      setActiveView('launcher')
-      setCurrentStepId(FIRST_STEP)
-      return
-    }
-
-    if (currentStepId === PERSONAL_DETAILS_STEP_ID) {
-      setPersonalDetailsErrors(personalDetailsValidation)
-      if (!isPersonalDetailsValid) {
-        return
-      }
-    }
-
-    if (currentStepId === 2) {
-      setCareerHistoryErrors(careerHistoryValidation)
-      if (!isCareerHistoryValid) {
-        return
-      }
-    }
-
-    if (currentStepId === 3) {
-      setSkillsErrors(skillsValidation)
-      if (!isSkillsValid) {
-        return
-      }
-    }
-
-    if (currentStepId === 4) {
-      setEducationErrors(educationValidation)
-      if (!isEducationValid) {
-        return
-      }
-    }
-
-    if (currentStepId === 5) {
-      setLanguagesErrors(languagesValidation)
-      if (!isLanguagesValid) {
-        return
-      }
-    }
-
-    if (currentStepId < LAST_STEP) {
-      setCurrentStepId((prevStepId) => prevStepId + 1)
-      return
-    }
-
-    setActiveView('review')
+    if (!(await validateStep(currentStepId))) return
+    if (currentStepId < LAST_STEP) { setCurrentStepId((prev) => prev + 1) } else { setActiveView('review') }
   }
-  //#endregion
-
-  //#region Career history
-
-  const addPosition = () => {
-    setCareerHistory((prev) => [...prev, createCareerHistoryEntry(prev.length)])
-    setCareerHistoryErrors((currentErrors) =>
-      currentErrors.form
-        ? {
-            form: undefined,
-            byEntryId: currentErrors.byEntryId,
-          }
-        : currentErrors,
-    )
-  }
-
-  const updatePosition = (
-    entryId: string,
-    field: keyof Omit<CareerHistoryEntry, 'id' | 'tasks' | 'projects'>,
-    value: string | boolean,
-  ) => {
-    setCareerHistory((prev) =>
-      prev.map((entry) => {
-        if (entry.id !== entryId) {
-          return entry
-        }
-
-        if ((field === 'startDate' || field === 'endDate') && typeof value === 'string') {
-          const normalizedDateValue = normalizeCareerDateValue(value)
-
-          if (field === 'endDate') {
-            return {
-              ...entry,
-              endDate: normalizedDateValue,
-              isCurrentRole: currentRolePattern.test(normalizedDateValue.trim()),
-            }
-          }
-
-          return {
-            ...entry,
-            startDate: normalizedDateValue,
-          }
-        }
-
-        if (field === 'endDate' && typeof value === 'string') {
-          return {
-            ...entry,
-            endDate: value,
-            isCurrentRole: currentRolePattern.test(value.trim()),
-          }
-        }
-
-        return { ...entry, [field]: value }
-      }),
-    )
-
-    if (field === 'companyName' || field === 'positionHeld' || field === 'startDate' || field === 'endDate') {
-      setCareerHistoryErrors((currentErrors) => {
-        const entryErrors = currentErrors.byEntryId[entryId]
-        if (!entryErrors?.[field]) {
-          return currentErrors
-        }
-
-        const nextEntryErrors = { ...entryErrors }
-        delete nextEntryErrors[field]
-
-        const nextByEntryId = { ...currentErrors.byEntryId }
-        if (Object.keys(nextEntryErrors).length === 0) {
-          delete nextByEntryId[entryId]
-        } else {
-          nextByEntryId[entryId] = nextEntryErrors
-        }
-
-        return {
-          form: currentErrors.form,
-          byEntryId: nextByEntryId,
-        }
-      })
-    }
-  }
-
-  const addTask = (entryId: string) => {
-    setCareerHistory((prev) =>
-      prev.map((entry) =>
-        entry.id === entryId ? { ...entry, tasks: [...entry.tasks, ''] } : entry,
-      ),
-    )
-  }
-
-  const updateTask = (entryId: string, taskIndex: number, value: string) => {
-    setCareerHistory((prev) =>
-      prev.map((entry) => {
-        if (entry.id !== entryId) return entry
-        const nextTasks = [...entry.tasks]
-        nextTasks[taskIndex] = value
-        return { ...entry, tasks: nextTasks }
-      }),
-    )
-  }
-
-  const addProject = (entryId: string) => {
-    setCareerHistory((prev) =>
-      prev.map((entry) =>
-        entry.id === entryId ? { ...entry, projects: [...entry.projects, ''] } : entry,
-      ),
-    )
-  }
-
-  const updateProject = (entryId: string, projectIndex: number, value: string) => {
-    setCareerHistory((prev) =>
-      prev.map((entry) => {
-        if (entry.id !== entryId) return entry
-        const nextProjects = [...entry.projects]
-        nextProjects[projectIndex] = value
-        return { ...entry, projects: nextProjects }
-      }),
-    )
-  }
-  //#endregion
-
-  //#region Skills
-
-  const addSkill = () => {
-    setSkills((prev) => [...prev, createSkillEntry()])
-    setSkillsErrors((currentErrors) =>
-      currentErrors.form
-        ? {
-            form: undefined,
-          }
-        : currentErrors,
-    )
-  }
-
-  const updateSkill = (skillId: string, value: string) => {
-    setSkills((prev) =>
-      prev.map((skill) => (skill.id === skillId ? { ...skill, name: value } : skill)),
-    )
-
-    if (!isBlank(value)) {
-      setSkillsErrors((currentErrors) =>
-        currentErrors.form
-          ? {
-              form: undefined,
-            }
-          : currentErrors,
-      )
-    }
-  }
-
-  const removeSkill = (skillId: string) => {
-    setSkills((prev) => prev.filter((skill) => skill.id !== skillId))
-  }
-  //#endregion
-
-  //#region Education
-
-  const addTertiaryEntry = () => {
-    setTertiaryEducation((prev) => [...prev, createTertiaryEntry()])
-    setEducationErrors((currentErrors) =>
-      currentErrors.form
-        ? {
-            ...currentErrors,
-            form: undefined,
-          }
-        : currentErrors,
-    )
-  }
-
-  const updateTertiaryEntry = (
-    entryId: string,
-    field: keyof Omit<TertiaryEducationEntry, 'id'>,
-    value: string,
-  ) => {
-    setTertiaryEducation((prev) =>
-      prev.map((entry) => (entry.id === entryId ? { ...entry, [field]: value } : entry)),
-    )
-
-    setEducationErrors((currentErrors) => {
-      const entryErrors = currentErrors.tertiaryByEntryId[entryId]
-      if (!entryErrors?.[field]) {
-        return currentErrors
-      }
-
-      const nextEntryErrors = { ...entryErrors }
-      delete nextEntryErrors[field]
-
-      const nextTertiaryByEntryId = { ...currentErrors.tertiaryByEntryId }
-      if (Object.keys(nextEntryErrors).length === 0) {
-        delete nextTertiaryByEntryId[entryId]
-      } else {
-        nextTertiaryByEntryId[entryId] = nextEntryErrors
-      }
-
-      return {
-        ...currentErrors,
-        tertiaryByEntryId: nextTertiaryByEntryId,
-      }
-    })
-  }
-
-  const removeTertiaryEntry = (entryId: string) => {
-    setTertiaryEducation((prev) => prev.filter((entry) => entry.id !== entryId))
-    setEducationErrors((currentErrors) => {
-      if (!currentErrors.tertiaryByEntryId[entryId]) {
-        return currentErrors
-      }
-
-      const nextTertiaryByEntryId = { ...currentErrors.tertiaryByEntryId }
-      delete nextTertiaryByEntryId[entryId]
-      return {
-        ...currentErrors,
-        tertiaryByEntryId: nextTertiaryByEntryId,
-      }
-    })
-  }
-
-  const addSecondaryEntry = () => {
-    setSecondaryEducation((prev) => [...prev, createSecondaryEntry()])
-    setEducationErrors((currentErrors) =>
-      currentErrors.form
-        ? {
-            ...currentErrors,
-            form: undefined,
-          }
-        : currentErrors,
-    )
-  }
-
-  const updateSecondaryEntry = (
-    entryId: string,
-    field: keyof Omit<SecondaryEducationEntry, 'id'>,
-    value: string,
-  ) => {
-    setSecondaryEducation((prev) =>
-      prev.map((entry) => (entry.id === entryId ? { ...entry, [field]: value } : entry)),
-    )
-
-    setEducationErrors((currentErrors) => {
-      const entryErrors = currentErrors.secondaryByEntryId[entryId]
-      if (!entryErrors?.[field]) {
-        return currentErrors
-      }
-
-      const nextEntryErrors = { ...entryErrors }
-      delete nextEntryErrors[field]
-
-      const nextSecondaryByEntryId = { ...currentErrors.secondaryByEntryId }
-      if (Object.keys(nextEntryErrors).length === 0) {
-        delete nextSecondaryByEntryId[entryId]
-      } else {
-        nextSecondaryByEntryId[entryId] = nextEntryErrors
-      }
-
-      return {
-        ...currentErrors,
-        secondaryByEntryId: nextSecondaryByEntryId,
-      }
-    })
-  }
-
-  const removeSecondaryEntry = (entryId: string) => {
-    setSecondaryEducation((prev) => prev.filter((entry) => entry.id !== entryId))
-    setEducationErrors((currentErrors) => {
-      if (!currentErrors.secondaryByEntryId[entryId]) {
-        return currentErrors
-      }
-
-      const nextSecondaryByEntryId = { ...currentErrors.secondaryByEntryId }
-      delete nextSecondaryByEntryId[entryId]
-      return {
-        ...currentErrors,
-        secondaryByEntryId: nextSecondaryByEntryId,
-      }
-    })
-  }
-  //#endregion
-
-  //#region Languages
 
   const toggleLanguage = (language: Language) => {
-    setSelectedLanguages((prev) => {
-      const next = new Set(prev)
-      if (next.has(language)) {
-        next.delete(language)
-      } else {
-        next.add(language)
-      }
-      return next
-    })
-
-    setLanguagesErrors((currentErrors) =>
-      currentErrors.form || currentErrors.otherLanguage
-        ? {
-            form: undefined,
-            otherLanguage: undefined,
-          }
-        : currentErrors,
+    const current = form.getValues('languages')
+    const isSelected = current.includes(language)
+    form.setValue(
+      'languages',
+      isSelected ? current.filter((l) => l !== language) : [...current, language],
+      { shouldValidate: form.formState.submitCount > 0 },
     )
+    if (isSelected && language === 'Other') form.setValue('otherLanguage', '')
   }
 
   const updateOtherLanguage = (value: string) => {
-    setOtherLanguage(value)
+    form.setValue('otherLanguage', value, { shouldValidate: form.formState.submitCount > 0 })
+  }
 
-    if (!isBlank(value)) {
-      setLanguagesErrors((currentErrors) =>
-        currentErrors.otherLanguage
-          ? {
-              ...currentErrors,
-              otherLanguage: undefined,
-            }
-          : currentErrors,
-      )
+  const normalizeCareerDate = (entryIndex: number, field: 'startDate' | 'endDate') => {
+    const current = form.getValues(`careerHistory.${entryIndex}.${field}`)
+    const normalized = normalizeCareerDateValue(current)
+    if (normalized !== current) form.setValue(`careerHistory.${entryIndex}.${field}`, normalized)
+    if (field === 'endDate') {
+      form.setValue(`careerHistory.${entryIndex}.isCurrentRole`, currentRolePattern.test(normalized.trim()))
     }
   }
 
-  const selectedLanguageEntries = useMemo(
-    () => buildLanguageEntries(selectedLanguages, otherLanguage),
-    [selectedLanguages, otherLanguage],
+  const selectedLanguages = useMemo(
+    () => new Set<Language>((languagesValues ?? []).filter((l): l is Language => LANGUAGES_LIST.includes(l as Language))),
+    [languagesValues],
   )
-  //#endregion
+  const selectedLanguageEntries = useMemo(
+    () => buildLanguageEntries(languagesValues ?? [], otherLanguageValue ?? ''),
+    [languagesValues, otherLanguageValue],
+  )
 
   return {
+    form,
     uploadInputRef,
     activeView,
     selectedUploadFile,
     currentStepId,
     canViewCv,
-    formValues,
-    personalDetailsErrors,
-    careerHistoryErrors,
-    skillsErrors,
-    educationErrors,
-    languagesErrors,
-    careerHistory,
-    skills,
-    tertiaryEducation,
-    secondaryEducation,
     canGoNext,
     handleUploadFileSelect,
     openUploadPicker,
     openBuildFlow,
     openPreview,
     closePreview,
-    handleTextFieldChange,
-    handleSelectFieldChange,
     goBack,
     goNext,
-    addPosition,
-    updatePosition,
-    addTask,
-    updateTask,
-    addProject,
-    updateProject,
-    addSkill,
-    updateSkill,
-    removeSkill,
-    addTertiaryEntry,
-    updateTertiaryEntry,
-    removeTertiaryEntry,
-    addSecondaryEntry,
-    updateSecondaryEntry,
-    removeSecondaryEntry,
     selectedLanguages,
     selectedLanguageEntries,
-    otherLanguage,
+    otherLanguage: otherLanguageValue ?? '',
     toggleLanguage,
     updateOtherLanguage,
+    normalizeCareerDate,
   }
 }
 

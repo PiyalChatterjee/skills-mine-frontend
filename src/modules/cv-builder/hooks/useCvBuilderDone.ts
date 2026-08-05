@@ -7,15 +7,8 @@ import { ROUTE_PATHS } from '@/routes/routePaths'
 import type { CandidateProfileUpdatePayload } from '@/services/api/candidateApi'
 import type { AppDispatch } from '@/store'
 import { pushNotification } from '@/store/slices/notificationSlice'
-import type {
-  CareerHistoryEntry,
-  CvBuilderView,
-  Language,
-  PersonalDetailsFormState,
-  SecondaryEducationEntry,
-  SkillEntry,
-  TertiaryEducationEntry,
-} from '../types/cvBuilder'
+import type { CvBuilderView, Language } from '../types/cvBuilder'
+import type { CvBuilderFormValues } from '../types/cvBuilderSchema'
 
 const KNOWN_LANGUAGES: Language[] = [
   'Afrikaans',
@@ -72,14 +65,14 @@ const normalizeCareerDateValue = (value: string): string => {
   return `${monthName},${year}`
 }
 
-export const buildCvBuilderPrefillData = (profile: CandidateProfile | undefined) => {
+export const buildCvBuilderPrefillData = (profile: CandidateProfile | undefined): Partial<CvBuilderFormValues> | undefined => {
   if (!profile) {
     return undefined
   }
 
-  const selectedLanguageEntries = profile.languages ?? []
-  const knownLanguages = selectedLanguageEntries.filter(isKnownLanguage)
-  const customOtherLanguage = selectedLanguageEntries.find((language) => !isKnownLanguage(language))
+  const profileLanguages = profile.languages ?? []
+  const knownLanguages = profileLanguages.filter(isKnownLanguage)
+  const customOtherLanguage = profileLanguages.find((language) => !isKnownLanguage(language))
 
   return {
     personalDetails: {
@@ -93,8 +86,7 @@ export const buildCvBuilderPrefillData = (profile: CandidateProfile | undefined)
       currentPosition: profile.currentTitle ?? '',
       noticePeriod: profile.noticePeriod ?? '',
     },
-    careerHistory: (profile.experience ?? []).map((entry, index) => ({
-      id: `prefill-career-${index}`,
+    careerHistory: (profile.experience ?? []).map((entry) => ({
       companyName: entry.company ?? '',
       positionHeld: entry.title ?? '',
       startDate: normalizeCareerDateValue(entry.from ?? ''),
@@ -103,30 +95,22 @@ export const buildCvBuilderPrefillData = (profile: CandidateProfile | undefined)
       tasks: [''],
       projects: [''],
     })),
-    skills: (profile.skills ?? []).map((skill, index) => ({
-      id: `prefill-skill-${index}`,
-      name: skill,
-    })),
+    skills: (profile.skills ?? []).map((skill) => ({ name: skill })),
     tertiaryEducation: (profile.education ?? [])
       .filter((entry) => entry.educationLevel !== 'secondary')
-      .map((entry, index) => ({
-        id: `prefill-tertiary-${index}`,
+      .map((entry) => ({
         institutionName: entry.institution ?? '',
         degreeOrCertification: entry.qualification ?? '',
         yearCompleted: String(entry.year ?? ''),
       })),
     secondaryEducation: (profile.education ?? [])
       .filter((entry) => entry.educationLevel === 'secondary')
-      .map((entry, index) => ({
-        id: `prefill-secondary-${index}`,
+      .map((entry) => ({
         institutionName: entry.institution ?? '',
         highestGradePassed: entry.qualification ?? '',
         yearCompleted: String(entry.year ?? ''),
       })),
-    selectedLanguages: new Set<Language>([
-      ...knownLanguages,
-      ...(customOtherLanguage ? (['Other'] as Language[]) : []),
-    ]),
+    languages: [...knownLanguages, ...(customOtherLanguage ? (['Other'] as Language[]) : [])],
     otherLanguage: customOtherLanguage ?? '',
   }
 }
@@ -136,11 +120,7 @@ type UseCvBuilderDoneArgs = {
   goNext: () => void
   candidateId?: string
   candidateProfile?: CandidateProfile
-  formValues: PersonalDetailsFormState
-  careerHistory: CareerHistoryEntry[]
-  skills: SkillEntry[]
-  tertiaryEducation: TertiaryEducationEntry[]
-  secondaryEducation: SecondaryEducationEntry[]
+  getFormValues: () => CvBuilderFormValues
   selectedLanguageEntries: string[]
 }
 
@@ -149,7 +129,7 @@ const yearFromText = (value: string): number | null => {
   return match ? Number(match[0]) : null
 }
 
-const calculateExperienceYears = (careerHistory: CareerHistoryEntry[]): number => {
+const calculateExperienceYears = (careerHistory: CvBuilderFormValues['careerHistory']): number => {
   const years = careerHistory
     .map((entry) => yearFromText(entry.startDate))
     .filter((value): value is number => value !== null)
@@ -163,8 +143,8 @@ const calculateExperienceYears = (careerHistory: CareerHistoryEntry[]): number =
 }
 
 const mapEducationEntriesForPayload = (
-  tertiaryEducation: TertiaryEducationEntry[],
-  secondaryEducation: SecondaryEducationEntry[],
+  tertiaryEducation: CvBuilderFormValues['tertiaryEducation'],
+  secondaryEducation: CvBuilderFormValues['secondaryEducation'],
 ): CandidateProfile['education'] => {
   const tertiary = tertiaryEducation
     .filter((entry) =>
@@ -196,22 +176,14 @@ const mapEducationEntriesForPayload = (
 const buildCandidateProfileUpdatePayload = ({
   currentProfile,
   formValues,
-  careerHistory,
-  skills,
-  tertiaryEducation,
-  secondaryEducation,
   selectedLanguageEntries,
 }: {
   currentProfile: CandidateProfile
-  formValues: PersonalDetailsFormState
-  careerHistory: CareerHistoryEntry[]
-  skills: SkillEntry[]
-  tertiaryEducation: TertiaryEducationEntry[]
-  secondaryEducation: SecondaryEducationEntry[]
+  formValues: CvBuilderFormValues
   selectedLanguageEntries: string[]
 }): CandidateProfileUpdatePayload => {
-  const nextSkills = skills.map((skill) => skill.name.trim()).filter(Boolean)
-  const nextExperience = careerHistory
+  const nextSkills = formValues.skills.map((skill) => skill.name.trim()).filter(Boolean)
+  const nextExperience = formValues.careerHistory
     .filter((entry) =>
       [entry.companyName, entry.positionHeld, entry.startDate, entry.endDate]
         .some((fieldValue) => fieldValue.trim().length > 0),
@@ -223,23 +195,24 @@ const buildCandidateProfileUpdatePayload = ({
       to: entry.isCurrentRole ? 'Current' : entry.endDate.trim(),
     }))
 
-  const nextEducation = mapEducationEntriesForPayload(tertiaryEducation, secondaryEducation)
+  const nextEducation = mapEducationEntriesForPayload(formValues.tertiaryEducation, formValues.secondaryEducation)
+  const pd = formValues.personalDetails
 
   return {
-    fullName: formValues.fullName.trim(),
+    fullName: pd.fullName.trim(),
     email: currentProfile.email,
     phone: currentProfile.phone,
     profilePhotoUrl: currentProfile.profilePhotoUrl,
     password: currentProfile.password,
-    race: formValues.race.trim(),
-    gender: formValues.gender.trim(),
-    disabilityStatus: formValues.disabilityStatus.trim(),
-    nationality: formValues.nationality.trim(),
-    noticePeriod: formValues.noticePeriod.trim(),
-    location: formValues.residentialLocation.trim(),
-    currentTitle: formValues.currentPosition.trim(),
-    currentCompany: formValues.currentCompany.trim(),
-    experienceYears: calculateExperienceYears(careerHistory),
+    race: pd.race.trim(),
+    gender: pd.gender.trim(),
+    disabilityStatus: pd.disabilityStatus.trim(),
+    nationality: pd.nationality.trim(),
+    noticePeriod: pd.noticePeriod.trim(),
+    location: pd.residentialLocation.trim(),
+    currentTitle: pd.currentPosition.trim(),
+    currentCompany: pd.currentCompany.trim(),
+    experienceYears: calculateExperienceYears(formValues.careerHistory),
     skills: nextSkills,
     education: nextEducation,
     experience: nextExperience,
@@ -328,11 +301,7 @@ export const useCvBuilderDone = ({
   goNext,
   candidateId,
   candidateProfile,
-  formValues,
-  careerHistory,
-  skills,
-  tertiaryEducation,
-  secondaryEducation,
+  getFormValues,
   selectedLanguageEntries,
 }: UseCvBuilderDoneArgs) => {
   const navigate = useNavigate()
@@ -359,11 +328,7 @@ export const useCvBuilderDone = ({
 
     const payload = buildCandidateProfileUpdatePayload({
       currentProfile: candidateProfile,
-      formValues,
-      careerHistory,
-      skills,
-      tertiaryEducation,
-      secondaryEducation,
+      formValues: getFormValues(),
       selectedLanguageEntries,
     })
 
@@ -410,11 +375,7 @@ export const useCvBuilderDone = ({
     candidateId,
     candidateProfile,
     dispatch,
-    formValues,
-    careerHistory,
-    skills,
-    tertiaryEducation,
-    secondaryEducation,
+    getFormValues,
     selectedLanguageEntries,
     updateCandidateProfile,
     navigate,
