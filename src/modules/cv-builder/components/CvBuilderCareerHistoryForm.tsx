@@ -11,6 +11,10 @@ import type { CareerHistoryEntry } from '../types/cvBuilder'
 
 type CvBuilderCareerHistoryFormProps = {
   entries: CareerHistoryEntry[]
+  formError?: string
+  errorsByEntryId?: Partial<
+    Record<string, Partial<Record<'companyName' | 'positionHeld' | 'startDate' | 'endDate', string>>>
+  >
   onUpdatePosition: (
     entryId: string,
     field: keyof Omit<CareerHistoryEntry, 'id' | 'tasks' | 'projects'>,
@@ -69,6 +73,8 @@ const DynamicListSection = ({
 
 const CvBuilderCareerHistoryForm = ({
   entries,
+  formError,
+  errorsByEntryId,
   onUpdatePosition,
   onAddTask,
   onUpdateTask,
@@ -79,7 +85,16 @@ const CvBuilderCareerHistoryForm = ({
   <CvBuilderFormPanel>
     <CvBuilderSectionHeader iconSrc={buildingIcon} title="Career history" />
 
-    {entries.map((entry, positionIndex) => (
+    {formError ? (
+      <Typography component="p" sx={{ color: '#d32f2f', marginBottom: 2 }}>
+        {formError}
+      </Typography>
+    ) : null}
+
+    {entries.map((entry, positionIndex) => {
+      const entryErrors = errorsByEntryId?.[entry.id]
+
+      return (
       <Box key={entry.id} className={styles.positionCard}>
         <Typography component="h3" className={styles.positionLabel}>
           Position {positionIndex + 1}
@@ -91,6 +106,8 @@ const CvBuilderCareerHistoryForm = ({
             onChange={(event: ChangeEvent<HTMLInputElement>) =>
               onUpdatePosition(entry.id, 'companyName', event.target.value)
             }
+            error={Boolean(entryErrors?.companyName)}
+            helperText={entryErrors?.companyName}
             placeholder="Company name"
             className={styles.fieldControl}
             variant="outlined"
@@ -105,6 +122,8 @@ const CvBuilderCareerHistoryForm = ({
               onChange={(event: ChangeEvent<HTMLInputElement>) =>
                 onUpdatePosition(entry.id, 'positionHeld', event.target.value)
               }
+              error={Boolean(entryErrors?.positionHeld)}
+              helperText={entryErrors?.positionHeld}
               placeholder="Position held"
               className={styles.fieldControl}
               variant="outlined"
@@ -118,6 +137,8 @@ const CvBuilderCareerHistoryForm = ({
               onChange={(event: ChangeEvent<HTMLInputElement>) =>
                 onUpdatePosition(entry.id, 'startDate', event.target.value)
               }
+              error={Boolean(entryErrors?.startDate)}
+              helperText={entryErrors?.startDate}
               placeholder="Month, Year"
               className={styles.fieldControl}
               variant="outlined"
@@ -131,7 +152,9 @@ const CvBuilderCareerHistoryForm = ({
               onChange={(event: ChangeEvent<HTMLInputElement>) =>
                 onUpdatePosition(entry.id, 'endDate', event.target.value)
               }
-              placeholder="Month, Year"
+              error={Boolean(entryErrors?.endDate)}
+              helperText={entryErrors?.endDate}
+              placeholder="Month, Year or Present"
               className={styles.fieldControl}
               variant="outlined"
               fullWidth
@@ -157,7 +180,8 @@ const CvBuilderCareerHistoryForm = ({
           onAddValue={() => onAddProject(entry.id)}
         />
       </Box>
-    ))}
+      )
+    })}
 
     <Button
       type="button"

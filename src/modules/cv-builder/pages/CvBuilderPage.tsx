@@ -16,6 +16,7 @@ import CvBuilderReviewScreen from '../components/CvBuilderReviewScreen'
 import CvBuilderLanguagesForm from '../components/CvBuilderLanguagesForm'
 import CvBuilderSkillsForm from '../components/CvBuilderSkillsForm'
 import useCvBuilder from '../hooks/useCvBuilder'
+import { buildCvBuilderPrefillData, useCvBuilderDone } from '../hooks/useCvBuilderDone'
 import { CV_BUILDER_STEPS, type CvActionCard } from '../types/cvBuilder'
 import styles from './CvBuilderPage.module.css'
 import CvBuilderViewCvPage from '../components/CvBuilderViewCvPage'
@@ -25,14 +26,8 @@ const CvBuilderPage = () => {
   const candidateId = user?.id
   const { data: candidateProfile } = useCandidateProfileQuery(candidateId)
 
-  const profileDefaults = useMemo(
-    () => ({
-      fullName: candidateProfile?.fullName ?? '',
-      residentialLocation: candidateProfile?.location ?? '',
-      currentCompany: candidateProfile?.currentCompany ?? '',
-      currentPosition: candidateProfile?.currentTitle ?? '',
-      noticePeriod: '',
-    }),
+  const cvBuilderPrefillData = useMemo(
+    () => buildCvBuilderPrefillData(candidateProfile),
     [candidateProfile],
   )
 
@@ -41,11 +36,17 @@ const CvBuilderPage = () => {
     activeView,
     selectedUploadFile,
     currentStepId,
+    canViewCv,
     formValues,
+    personalDetailsErrors,
+    careerHistoryErrors,
+    skillsErrors,
+    educationErrors,
     careerHistory,
     skills,
     tertiaryEducation,
     secondaryEducation,
+    languagesErrors,
     canGoNext,
     handleUploadFileSelect,
     openUploadPicker,
@@ -72,29 +73,48 @@ const CvBuilderPage = () => {
     updateSecondaryEntry,
     removeSecondaryEntry,
     selectedLanguages,
+    selectedLanguageEntries,
+    otherLanguage,
     toggleLanguage,
-  } = useCvBuilder(profileDefaults)
+    updateOtherLanguage,
+  } = useCvBuilder(cvBuilderPrefillData)
 
-  const actionCards: CvActionCard[] = [
-    {
-      id: 'upload',
-      title: 'Upload my CV',
-      description: selectedUploadFile
-        ? `Selected file: ${selectedUploadFile.name}`
-        : 'Upload your CV directly from your computer.',
-      icon: uploadIcon,
-      tone: 'coral',
-      onClick: openUploadPicker,
-    },
-    {
-      id: 'build',
-      title: 'Build my CV',
-      description: 'Create a CV with The Skills Mine CV builder.',
-      icon: settingsIcon,
-      tone: 'teal',
-      onClick: openBuildFlow,
-    },
-  ]
+  const { handleDone, isSavingCandidateProfile } = useCvBuilderDone({
+    activeView,
+    goNext,
+    candidateId,
+    candidateProfile,
+    formValues,
+    careerHistory,
+    skills,
+    tertiaryEducation,
+    secondaryEducation,
+    selectedLanguageEntries,
+  })
+
+  const actionCards: CvActionCard[] = useMemo(
+    () => [
+      {
+        id: 'upload',
+        title: 'Upload my CV',
+        description: selectedUploadFile
+          ? `Selected file: ${selectedUploadFile.name}`
+          : 'Upload your CV directly from your computer.',
+        icon: uploadIcon,
+        tone: 'coral',
+        onClick: openUploadPicker,
+      },
+      {
+        id: 'build',
+        title: 'Build my CV',
+        description: 'Create a CV with The Skills Mine CV builder.',
+        icon: settingsIcon,
+        tone: 'teal',
+        onClick: openBuildFlow,
+      },
+    ],
+    [selectedUploadFile, openUploadPicker, openBuildFlow],
+  )
 
   return (
     <Box className={`${styles.pageRoot} ${activeView === 'view-cv' ? styles.pageRootViewCv : ''}`}>
@@ -125,17 +145,24 @@ const CvBuilderPage = () => {
             skills={skills}
             tertiaryEducation={tertiaryEducation}
             secondaryEducation={secondaryEducation}
-            selectedLanguages={selectedLanguages}
+            selectedLanguageEntries={selectedLanguageEntries}
             onClose={closePreview}
           />
         ) : activeView === 'review' ? (
           <CvBuilderReviewScreen
             formValues={formValues}
+            personalDetailsErrors={personalDetailsErrors}
+            careerHistoryErrors={careerHistoryErrors}
             careerHistory={careerHistory}
             skills={skills}
+            skillsErrors={skillsErrors}
+            educationErrors={educationErrors}
             tertiaryEducation={tertiaryEducation}
             secondaryEducation={secondaryEducation}
             selectedLanguages={selectedLanguages}
+            selectedLanguageEntries={selectedLanguageEntries}
+            otherLanguage={otherLanguage}
+            languagesErrors={languagesErrors}
             onTextFieldChange={handleTextFieldChange}
             onSelectFieldChange={handleSelectFieldChange}
             onUpdatePosition={updatePosition}
@@ -154,6 +181,7 @@ const CvBuilderPage = () => {
             onAddSecondary={addSecondaryEntry}
             onRemoveSecondary={removeSecondaryEntry}
             onToggleLanguage={toggleLanguage}
+            onOtherLanguageChange={updateOtherLanguage}
             onPreview={openPreview}
           />
         ) : activeView === 'view-cv' ? (
@@ -163,7 +191,7 @@ const CvBuilderPage = () => {
             skills={skills}
             tertiaryEducation={tertiaryEducation}
             secondaryEducation={secondaryEducation}
-            selectedLanguages={selectedLanguages}
+            selectedLanguageEntries={selectedLanguageEntries}
           />
         ) : (
           <Box className={styles.contentLayout}>
@@ -172,6 +200,7 @@ const CvBuilderPage = () => {
               {currentStepId === 1 && (
                 <CvBuilderPersonalDetailsForm
                   values={formValues}
+                  errors={personalDetailsErrors}
                   onTextFieldChange={handleTextFieldChange}
                   onSelectFieldChange={handleSelectFieldChange}
                 />
@@ -179,6 +208,8 @@ const CvBuilderPage = () => {
               {currentStepId === 2 && (
                 <CvBuilderCareerHistoryForm
                   entries={careerHistory}
+                  formError={careerHistoryErrors.form}
+                  errorsByEntryId={careerHistoryErrors.byEntryId}
                   onUpdatePosition={updatePosition}
                   onAddTask={addTask}
                   onUpdateTask={updateTask}
@@ -190,6 +221,7 @@ const CvBuilderPage = () => {
               {currentStepId === 3 && (
                 <CvBuilderSkillsForm
                   skills={skills}
+                  formError={skillsErrors.form}
                   onUpdateSkill={updateSkill}
                   onAddSkill={addSkill}
                   onRemoveSkill={removeSkill}
@@ -199,6 +231,9 @@ const CvBuilderPage = () => {
                 <CvBuilderEducationForm
                   tertiaryEntries={tertiaryEducation}
                   secondaryEntries={secondaryEducation}
+                  formError={educationErrors.form}
+                  tertiaryErrorsByEntryId={educationErrors.tertiaryByEntryId}
+                  secondaryErrorsByEntryId={educationErrors.secondaryByEntryId}
                   onUpdateTertiary={updateTertiaryEntry}
                   onAddTertiary={addTertiaryEntry}
                   onRemoveTertiary={removeTertiaryEntry}
@@ -210,7 +245,11 @@ const CvBuilderPage = () => {
               {currentStepId === 5 && (
                 <CvBuilderLanguagesForm
                   selectedLanguages={selectedLanguages}
+                  formError={languagesErrors.form}
+                  otherLanguageError={languagesErrors.otherLanguage}
+                  otherLanguageValue={otherLanguage}
                   onToggleLanguage={toggleLanguage}
+                  onOtherLanguageChange={updateOtherLanguage}
                 />
               )}
             </Box>
@@ -226,7 +265,7 @@ const CvBuilderPage = () => {
         <CvBuilderFooterActions
           onBack={goBack}
           onNext={goNext}
-          isNextDisabled={false}
+          isNextDisabled={!canViewCv}
           nextLabel="View CV"
           showNextIcon={false}
         />
@@ -235,8 +274,8 @@ const CvBuilderPage = () => {
       {activeView === 'view-cv' && (
         <CvBuilderFooterActions
           onBack={goBack}
-          onNext={goNext}
-          isNextDisabled={false}
+          onNext={handleDone}
+          isNextDisabled={isSavingCandidateProfile}
           nextLabel="Done"
           showNextIcon={false}
         />

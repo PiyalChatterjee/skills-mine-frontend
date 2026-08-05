@@ -9,6 +9,7 @@ import type { SkillEntry } from '../types/cvBuilder'
 
 type CvBuilderSkillsFormProps = {
   skills: SkillEntry[]
+  formError?: string
   onUpdateSkill: (skillId: string, value: string) => void
   onAddSkill: () => void
   onRemoveSkill: (skillId: string) => void
@@ -16,6 +17,7 @@ type CvBuilderSkillsFormProps = {
 
 const CvBuilderSkillsForm = ({
   skills,
+  formError,
   onUpdateSkill,
   onAddSkill,
   onRemoveSkill,
@@ -31,6 +33,12 @@ const CvBuilderSkillsForm = ({
     </Box>
 
     <Typography className={styles.skillsSubHeading}>List your skills</Typography>
+
+    {formError ? (
+      <Typography component="p" sx={{ color: '#d32f2f', marginBottom: 2 }}>
+        {formError}
+      </Typography>
+    ) : null}
 
     <Box className={styles.skillsList}>
       {skills.map((skill, index) => (

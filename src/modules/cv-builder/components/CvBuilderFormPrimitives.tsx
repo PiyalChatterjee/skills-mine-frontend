@@ -29,6 +29,8 @@ type CvBuilderSelectFieldProps = {
   allowEmptyOption?: boolean
   emptyLabel?: string
   displayEmpty?: boolean
+  error?: boolean
+  helperText?: string
 }
 
 const spanClassNameMap: Record<FieldSpan, string> = {
@@ -85,12 +87,16 @@ export const CvBuilderSelectField = ({
   allowEmptyOption = true,
   emptyLabel = 'Select',
   displayEmpty = true,
+  error = false,
+  helperText,
 }: CvBuilderSelectFieldProps) => (
   <CvBuilderLabeledField label={label} span={span}>
     <TextField
       select
       value={value}
       onChange={onChange}
+      error={error}
+      helperText={helperText}
       className={styles.fieldControl}
       variant="outlined"
       fullWidth

@@ -3,7 +3,6 @@ import { useEffect } from 'react'
 import closeIcon from '@/assets/cv-builder/close-line.svg'
 import type {
   CareerHistoryEntry,
-  Language,
   PersonalDetailsFormState,
   SecondaryEducationEntry,
   SkillEntry,
@@ -18,7 +17,7 @@ type CvBuilderPreviewPageProps = {
   skills: SkillEntry[]
   tertiaryEducation: TertiaryEducationEntry[]
   secondaryEducation: SecondaryEducationEntry[]
-  selectedLanguages: Set<Language>
+  selectedLanguageEntries: string[]
   onClose: () => void
 }
 
@@ -28,7 +27,7 @@ const CvBuilderPreviewPage = ({
   skills,
   tertiaryEducation,
   secondaryEducation,
-  selectedLanguages,
+  selectedLanguageEntries,
   onClose,
 }: CvBuilderPreviewPageProps) => {
   useEffect(() => {
@@ -63,7 +62,7 @@ const CvBuilderPreviewPage = ({
           skills={skills}
           tertiaryEducation={tertiaryEducation}
           secondaryEducation={secondaryEducation}
-          selectedLanguages={selectedLanguages}
+          selectedLanguageEntries={selectedLanguageEntries}
         />
       </Box>
     </Box>

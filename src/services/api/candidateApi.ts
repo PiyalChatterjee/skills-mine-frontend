@@ -10,6 +10,7 @@ const candidateEducationSchema = z.object({
   institution: z.string(),
   qualification: z.string(),
   year: z.number(),
+  educationLevel: z.enum(['tertiary', 'secondary']).optional(),
 })
 
 const candidateExperienceSchema = z.object({
@@ -32,6 +33,11 @@ const candidateProfileResponseSchema: z.ZodType<CandidateProfile> = z.object({
   phone: z.string(),
   profilePhotoUrl: z.string().optional(),
   password: z.string().optional(),
+  race: z.string().optional(),
+  gender: z.string().optional(),
+  disabilityStatus: z.string().optional(),
+  nationality: z.string().optional(),
+  noticePeriod: z.string().optional(),
   location: z.string(),
   currentTitle: z.string(),
   currentCompany: z.string(),
