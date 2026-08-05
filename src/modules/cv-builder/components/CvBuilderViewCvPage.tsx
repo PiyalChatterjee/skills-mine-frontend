@@ -2,7 +2,6 @@ import { Box, Button } from "@mui/material";
 import { useRef } from "react";
 import type {
   CareerHistoryEntry,
-  Language,
   PersonalDetailsFormState,
   SecondaryEducationEntry,
   SkillEntry,
@@ -18,7 +17,7 @@ type CvBuilderViewCvPageProps = {
   skills: SkillEntry[];
   tertiaryEducation: TertiaryEducationEntry[];
   secondaryEducation: SecondaryEducationEntry[];
-  selectedLanguages: Set<Language>;
+  selectedLanguageEntries: string[];
 };
 
 const CvBuilderViewCvPage = ({
@@ -27,7 +26,7 @@ const CvBuilderViewCvPage = ({
   skills,
   tertiaryEducation,
   secondaryEducation,
-  selectedLanguages,
+  selectedLanguageEntries,
 }: CvBuilderViewCvPageProps) => {
   const previewDocumentRef = useRef<HTMLDivElement | null>(null);
 
@@ -54,7 +53,7 @@ const CvBuilderViewCvPage = ({
                   skills={skills}
                   tertiaryEducation={tertiaryEducation}
                   secondaryEducation={secondaryEducation}
-                  selectedLanguages={selectedLanguages}
+                  selectedLanguageEntries={selectedLanguageEntries}
                 />
               </Box>
             </Box>

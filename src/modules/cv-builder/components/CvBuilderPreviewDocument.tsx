@@ -1,7 +1,6 @@
 import { Box, Typography } from "@mui/material";
 import type {
   CareerHistoryEntry,
-  Language,
   PersonalDetailsFormState,
   SecondaryEducationEntry,
   SkillEntry,
@@ -23,7 +22,7 @@ type CvBuilderPreviewDocumentProps = {
   skills: SkillEntry[];
   tertiaryEducation: TertiaryEducationEntry[];
   secondaryEducation: SecondaryEducationEntry[];
-  selectedLanguages: Set<Language>;
+  selectedLanguageEntries: string[];
 };
 
 const CvBuilderPreviewDocument = ({
@@ -33,7 +32,7 @@ const CvBuilderPreviewDocument = ({
   skills,
   tertiaryEducation,
   secondaryEducation,
-  selectedLanguages,
+  selectedLanguageEntries,
 }: CvBuilderPreviewDocumentProps) => {
   const previewFullName = formValues.fullName || "Candidate";
   const previewRole = getValueOrFallback(formValues.currentPosition, "Role not provided");
@@ -43,7 +42,20 @@ const CvBuilderPreviewDocument = ({
     NOT_PROVIDED_TEXT;
   const normalizedCareerHistory = normalizeCareerHistory(careerHistory);
   const normalizedSkills = normalizeSkills(skills);
-  const yearsOfExperience = `${Math.max(normalizedCareerHistory.length, 1)} Years`;
+  const currentYear = new Date().getFullYear();
+  const careerStartYears = normalizedCareerHistory
+    .map((entry) => {
+      const match = entry.startDate.match(/\b(19|20)\d{2}\b/);
+      return match ? Number(match[0]) : null;
+    })
+    .filter((value): value is number => value !== null);
+  const earliestCareerStartYear =
+    careerStartYears.length > 0 ? Math.min(...careerStartYears) : null;
+  const calculatedYearsOfExperience =
+    earliestCareerStartYear == null
+      ? 0
+      : Math.max(currentYear - earliestCareerStartYear, 0);
+  const yearsOfExperience = `${calculatedYearsOfExperience} Years`;
   const highestQualification =
     tertiaryEducation.find((entry) => entry.degreeOrCertification.trim())
       ?.degreeOrCertification || NOT_PROVIDED_TEXT;
@@ -55,7 +67,7 @@ const CvBuilderPreviewDocument = ({
       .slice(0, 3)
       .join(", ") || NOT_PROVIDED_TEXT;
   const languageSummary =
-    Array.from(selectedLanguages).join(", ") || NOT_PROVIDED_TEXT;
+    selectedLanguageEntries.join(", ") || NOT_PROVIDED_TEXT;
 
   const formatPeriod = (
     startDate: string,

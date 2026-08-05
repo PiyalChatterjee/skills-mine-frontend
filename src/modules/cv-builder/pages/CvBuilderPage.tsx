@@ -41,11 +41,17 @@ const CvBuilderPage = () => {
     activeView,
     selectedUploadFile,
     currentStepId,
+    canViewCv,
     formValues,
+    personalDetailsErrors,
+    careerHistoryErrors,
+    skillsErrors,
+    educationErrors,
     careerHistory,
     skills,
     tertiaryEducation,
     secondaryEducation,
+    languagesErrors,
     canGoNext,
     handleUploadFileSelect,
     openUploadPicker,
@@ -72,7 +78,10 @@ const CvBuilderPage = () => {
     updateSecondaryEntry,
     removeSecondaryEntry,
     selectedLanguages,
+    selectedLanguageEntries,
+    otherLanguage,
     toggleLanguage,
+    updateOtherLanguage,
   } = useCvBuilder(profileDefaults)
 
   const actionCards: CvActionCard[] = [
@@ -125,17 +134,24 @@ const CvBuilderPage = () => {
             skills={skills}
             tertiaryEducation={tertiaryEducation}
             secondaryEducation={secondaryEducation}
-            selectedLanguages={selectedLanguages}
+            selectedLanguageEntries={selectedLanguageEntries}
             onClose={closePreview}
           />
         ) : activeView === 'review' ? (
           <CvBuilderReviewScreen
             formValues={formValues}
+            personalDetailsErrors={personalDetailsErrors}
+            careerHistoryErrors={careerHistoryErrors}
             careerHistory={careerHistory}
             skills={skills}
+            skillsErrors={skillsErrors}
+            educationErrors={educationErrors}
             tertiaryEducation={tertiaryEducation}
             secondaryEducation={secondaryEducation}
             selectedLanguages={selectedLanguages}
+            selectedLanguageEntries={selectedLanguageEntries}
+            otherLanguage={otherLanguage}
+            languagesErrors={languagesErrors}
             onTextFieldChange={handleTextFieldChange}
             onSelectFieldChange={handleSelectFieldChange}
             onUpdatePosition={updatePosition}
@@ -154,6 +170,7 @@ const CvBuilderPage = () => {
             onAddSecondary={addSecondaryEntry}
             onRemoveSecondary={removeSecondaryEntry}
             onToggleLanguage={toggleLanguage}
+            onOtherLanguageChange={updateOtherLanguage}
             onPreview={openPreview}
           />
         ) : activeView === 'view-cv' ? (
@@ -163,7 +180,7 @@ const CvBuilderPage = () => {
             skills={skills}
             tertiaryEducation={tertiaryEducation}
             secondaryEducation={secondaryEducation}
-            selectedLanguages={selectedLanguages}
+            selectedLanguageEntries={selectedLanguageEntries}
           />
         ) : (
           <Box className={styles.contentLayout}>
@@ -172,6 +189,7 @@ const CvBuilderPage = () => {
               {currentStepId === 1 && (
                 <CvBuilderPersonalDetailsForm
                   values={formValues}
+                  errors={personalDetailsErrors}
                   onTextFieldChange={handleTextFieldChange}
                   onSelectFieldChange={handleSelectFieldChange}
                 />
@@ -179,6 +197,8 @@ const CvBuilderPage = () => {
               {currentStepId === 2 && (
                 <CvBuilderCareerHistoryForm
                   entries={careerHistory}
+                  formError={careerHistoryErrors.form}
+                  errorsByEntryId={careerHistoryErrors.byEntryId}
                   onUpdatePosition={updatePosition}
                   onAddTask={addTask}
                   onUpdateTask={updateTask}
@@ -190,6 +210,7 @@ const CvBuilderPage = () => {
               {currentStepId === 3 && (
                 <CvBuilderSkillsForm
                   skills={skills}
+                  formError={skillsErrors.form}
                   onUpdateSkill={updateSkill}
                   onAddSkill={addSkill}
                   onRemoveSkill={removeSkill}
@@ -199,6 +220,9 @@ const CvBuilderPage = () => {
                 <CvBuilderEducationForm
                   tertiaryEntries={tertiaryEducation}
                   secondaryEntries={secondaryEducation}
+                  formError={educationErrors.form}
+                  tertiaryErrorsByEntryId={educationErrors.tertiaryByEntryId}
+                  secondaryErrorsByEntryId={educationErrors.secondaryByEntryId}
                   onUpdateTertiary={updateTertiaryEntry}
                   onAddTertiary={addTertiaryEntry}
                   onRemoveTertiary={removeTertiaryEntry}
@@ -210,7 +234,11 @@ const CvBuilderPage = () => {
               {currentStepId === 5 && (
                 <CvBuilderLanguagesForm
                   selectedLanguages={selectedLanguages}
+                  formError={languagesErrors.form}
+                  otherLanguageError={languagesErrors.otherLanguage}
+                  otherLanguageValue={otherLanguage}
                   onToggleLanguage={toggleLanguage}
+                  onOtherLanguageChange={updateOtherLanguage}
                 />
               )}
             </Box>
@@ -226,7 +254,7 @@ const CvBuilderPage = () => {
         <CvBuilderFooterActions
           onBack={goBack}
           onNext={goNext}
-          isNextDisabled={false}
+          isNextDisabled={!canViewCv}
           nextLabel="View CV"
           showNextIcon={false}
         />

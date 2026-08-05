@@ -1,4 +1,5 @@
-import { Box, ButtonBase, Typography } from '@mui/material'
+import { Box, ButtonBase, TextField, Typography } from '@mui/material'
+import type { ChangeEvent } from 'react'
 import languagesIcon from '@/assets/cv-builder/languages-line.svg'
 import styles from '../pages/CvBuilderPage.module.css'
 import { CvBuilderFormPanel, CvBuilderSectionHeader } from './CvBuilderFormPrimitives'
@@ -6,15 +7,29 @@ import { LANGUAGES_LIST, type Language } from '../types/cvBuilder'
 
 type CvBuilderLanguagesFormProps = {
   selectedLanguages: Set<Language>
+  formError?: string
+  otherLanguageError?: string
+  otherLanguageValue: string
   onToggleLanguage: (language: Language) => void
+  onOtherLanguageChange: (value: string) => void
 }
 
 const CvBuilderLanguagesForm = ({
   selectedLanguages,
+  formError,
+  otherLanguageError,
+  otherLanguageValue,
   onToggleLanguage,
+  onOtherLanguageChange,
 }: CvBuilderLanguagesFormProps) => (
   <CvBuilderFormPanel>
     <CvBuilderSectionHeader iconSrc={languagesIcon} title="Languages" />
+
+    {formError ? (
+      <Typography component="p" sx={{ color: '#d32f2f', marginBottom: 2 }}>
+        {formError}
+      </Typography>
+    ) : null}
 
     <Box className={styles.languagesGrid}>
       {LANGUAGES_LIST.map((language) => {
@@ -42,6 +57,24 @@ const CvBuilderLanguagesForm = ({
         )
       })}
     </Box>
+
+    {selectedLanguages.has('Other') ? (
+      <Box sx={{ marginTop: 2 }}>
+        <Typography component="label" className={styles.fieldLabel}>
+          Other language
+        </Typography>
+        <TextField
+          value={otherLanguageValue}
+          onChange={(event: ChangeEvent<HTMLInputElement>) => onOtherLanguageChange(event.target.value)}
+          error={Boolean(otherLanguageError)}
+          helperText={otherLanguageError}
+          placeholder="Enter language"
+          className={styles.fieldControl}
+          variant="outlined"
+          fullWidth
+        />
+      </Box>
+    ) : null}
   </CvBuilderFormPanel>
 )
 
