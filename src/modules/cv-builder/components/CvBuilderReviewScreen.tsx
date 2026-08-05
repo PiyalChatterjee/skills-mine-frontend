@@ -27,11 +27,34 @@ type ReviewSectionId = 'personal' | 'career' | 'skills' | 'education' | 'languag
 
 type CvBuilderReviewScreenProps = {
   formValues: PersonalDetailsFormState
+  personalDetailsErrors?: Partial<Record<keyof PersonalDetailsFormState, string>>
+  careerHistoryErrors?: {
+    form?: string
+    byEntryId: Partial<Record<string, Partial<Record<'companyName' | 'positionHeld' | 'startDate' | 'endDate', string>>>>
+  }
+  skillsErrors?: {
+    form?: string
+  }
+  educationErrors?: {
+    form?: string
+    tertiaryByEntryId: Partial<
+      Record<string, Partial<Record<'institutionName' | 'degreeOrCertification' | 'yearCompleted', string>>>
+    >
+    secondaryByEntryId: Partial<
+      Record<string, Partial<Record<'institutionName' | 'highestGradePassed' | 'yearCompleted', string>>>
+    >
+  }
+  languagesErrors?: {
+    form?: string
+    otherLanguage?: string
+  }
   careerHistory: CareerHistoryEntry[]
   skills: SkillEntry[]
   tertiaryEducation: TertiaryEducationEntry[]
   secondaryEducation: SecondaryEducationEntry[]
   selectedLanguages: Set<Language>
+  selectedLanguageEntries: string[]
+  otherLanguage: string
   onTextFieldChange: (field: keyof PersonalDetailsFormState) => (event: ChangeEvent<HTMLInputElement>) => void
   onSelectFieldChange: (field: keyof PersonalDetailsFormState) => (event: ChangeEvent<HTMLInputElement>) => void
   onUpdatePosition: (
@@ -54,6 +77,7 @@ type CvBuilderReviewScreenProps = {
   onAddSecondary: () => void
   onRemoveSecondary: (entryId: string) => void
   onToggleLanguage: (language: Language) => void
+  onOtherLanguageChange: (value: string) => void
   onPreview: () => void
 }
 
@@ -66,11 +90,18 @@ type ReviewSectionConfig = {
 
 const CvBuilderReviewScreen = ({
   formValues,
+  personalDetailsErrors,
+  careerHistoryErrors,
+  skillsErrors,
+  educationErrors,
+  languagesErrors,
   careerHistory,
   skills,
   tertiaryEducation,
   secondaryEducation,
   selectedLanguages,
+  selectedLanguageEntries,
+  otherLanguage,
   onTextFieldChange,
   onSelectFieldChange,
   onUpdatePosition,
@@ -89,6 +120,7 @@ const CvBuilderReviewScreen = ({
   onAddSecondary,
   onRemoveSecondary,
   onToggleLanguage,
+  onOtherLanguageChange,
   onPreview,
 }: CvBuilderReviewScreenProps) => {
   const [expandedSections, setExpandedSections] = useState<Set<ReviewSectionId>>(new Set())
@@ -102,6 +134,7 @@ const CvBuilderReviewScreen = ({
         renderContent: () => (
           <CvBuilderPersonalDetailsForm
             values={formValues}
+            errors={personalDetailsErrors}
             onTextFieldChange={onTextFieldChange}
             onSelectFieldChange={onSelectFieldChange}
           />
@@ -114,6 +147,8 @@ const CvBuilderReviewScreen = ({
         renderContent: () => (
           <CvBuilderCareerHistoryForm
             entries={careerHistory}
+            formError={careerHistoryErrors?.form}
+            errorsByEntryId={careerHistoryErrors?.byEntryId}
             onUpdatePosition={onUpdatePosition}
             onAddTask={onAddTask}
             onUpdateTask={onUpdateTask}
@@ -130,6 +165,7 @@ const CvBuilderReviewScreen = ({
         renderContent: () => (
           <CvBuilderSkillsForm
             skills={skills}
+            formError={skillsErrors?.form}
             onUpdateSkill={onUpdateSkill}
             onAddSkill={onAddSkill}
             onRemoveSkill={onRemoveSkill}
@@ -144,6 +180,9 @@ const CvBuilderReviewScreen = ({
           <CvBuilderEducationForm
             tertiaryEntries={tertiaryEducation}
             secondaryEntries={secondaryEducation}
+            formError={educationErrors?.form}
+            tertiaryErrorsByEntryId={educationErrors?.tertiaryByEntryId}
+            secondaryErrorsByEntryId={educationErrors?.secondaryByEntryId}
             onUpdateTertiary={onUpdateTertiary}
             onAddTertiary={onAddTertiary}
             onRemoveTertiary={onRemoveTertiary}
@@ -160,7 +199,11 @@ const CvBuilderReviewScreen = ({
         renderContent: () => (
           <CvBuilderLanguagesForm
             selectedLanguages={selectedLanguages}
+            formError={languagesErrors?.form}
+            otherLanguageError={languagesErrors?.otherLanguage}
+            otherLanguageValue={otherLanguage}
             onToggleLanguage={onToggleLanguage}
+            onOtherLanguageChange={onOtherLanguageChange}
           />
         ),
       },
@@ -168,6 +211,10 @@ const CvBuilderReviewScreen = ({
     [
       careerHistory,
       formValues,
+      careerHistoryErrors,
+      skillsErrors,
+      educationErrors,
+      languagesErrors,
       onAddPosition,
       onAddProject,
       onAddSecondary,
@@ -180,6 +227,7 @@ const CvBuilderReviewScreen = ({
       onSelectFieldChange,
       onTextFieldChange,
       onToggleLanguage,
+      onOtherLanguageChange,
       onUpdatePosition,
       onUpdateProject,
       onUpdateSecondary,
@@ -187,9 +235,11 @@ const CvBuilderReviewScreen = ({
       onUpdateTask,
       onUpdateTertiary,
       secondaryEducation,
+      selectedLanguageEntries,
       selectedLanguages,
       skills,
       tertiaryEducation,
+      otherLanguage,
     ],
   )
 
@@ -264,7 +314,7 @@ const CvBuilderReviewScreen = ({
             skills={skills}
             tertiaryEducation={tertiaryEducation}
             secondaryEducation={secondaryEducation}
-            selectedLanguages={selectedLanguages}
+            selectedLanguageEntries={selectedLanguageEntries}
           />
         </Box>
       </Box>

@@ -1,12 +1,18 @@
 import { Box, Typography } from "@mui/material";
 import type {
   CareerHistoryEntry,
-  Language,
   PersonalDetailsFormState,
   SecondaryEducationEntry,
   SkillEntry,
   TertiaryEducationEntry,
 } from "../types/cvBuilder";
+import {
+  FALLBACK_WORK_DESCRIPTION,
+  NOT_PROVIDED_TEXT,
+  getValueOrFallback,
+  normalizeCareerHistory,
+  normalizeSkills,
+} from "../utils/cvPreviewHelpers";
 import styles from "../pages/CvBuilderPage.module.css";
 
 type CvBuilderPreviewDocumentProps = {
@@ -16,7 +22,7 @@ type CvBuilderPreviewDocumentProps = {
   skills: SkillEntry[];
   tertiaryEducation: TertiaryEducationEntry[];
   secondaryEducation: SecondaryEducationEntry[];
-  selectedLanguages: Set<Language>;
+  selectedLanguageEntries: string[];
 };
 
 const CvBuilderPreviewDocument = ({
@@ -26,50 +32,42 @@ const CvBuilderPreviewDocument = ({
   skills,
   tertiaryEducation,
   secondaryEducation,
-  selectedLanguages,
+  selectedLanguageEntries,
 }: CvBuilderPreviewDocumentProps) => {
   const previewFullName = formValues.fullName || "Candidate";
-  const previewRole = formValues.currentPosition || "Role not provided";
-  const previewCompany = formValues.currentCompany || "Company not provided";
+  const previewRole = getValueOrFallback(formValues.currentPosition, "Role not provided");
+  const previewCompany = getValueOrFallback(formValues.currentCompany, "Company not provided");
   const employmentEquityStatus =
     [formValues.race, formValues.gender].filter(Boolean).join(" ") ||
-    "Not provided";
-  const normalizedCareerHistory = careerHistory
-    .map((entry) => ({
-      ...entry,
-      tasks: entry.tasks.map((task) => task.trim()).filter(Boolean),
-      projects: entry.projects.map((project) => project.trim()).filter(Boolean),
-    }))
-    .filter(
-      (entry) =>
-        entry.companyName.trim() ||
-        entry.positionHeld.trim() ||
-        entry.startDate.trim() ||
-        entry.endDate.trim() ||
-        entry.tasks.length > 0 ||
-        entry.projects.length > 0,
-    );
-
-  const normalizedSkills = skills
-    .map((entry) => entry.name.trim())
-    .filter(Boolean);
-  const fallbackWorkDescription = [
-    "No responsibilities provided yet.",
-    "No achievements provided yet.",
-  ];
-  const yearsOfExperience = `${Math.max(normalizedCareerHistory.length, 1)} Years`;
+    NOT_PROVIDED_TEXT;
+  const normalizedCareerHistory = normalizeCareerHistory(careerHistory);
+  const normalizedSkills = normalizeSkills(skills);
+  const currentYear = new Date().getFullYear();
+  const careerStartYears = normalizedCareerHistory
+    .map((entry) => {
+      const match = entry.startDate.match(/\b(19|20)\d{2}\b/);
+      return match ? Number(match[0]) : null;
+    })
+    .filter((value): value is number => value !== null);
+  const earliestCareerStartYear =
+    careerStartYears.length > 0 ? Math.min(...careerStartYears) : null;
+  const calculatedYearsOfExperience =
+    earliestCareerStartYear == null
+      ? 0
+      : Math.max(currentYear - earliestCareerStartYear, 0);
+  const yearsOfExperience = `${calculatedYearsOfExperience} Years`;
   const highestQualification =
     tertiaryEducation.find((entry) => entry.degreeOrCertification.trim())
-      ?.degreeOrCertification || "Not provided";
+      ?.degreeOrCertification || NOT_PROVIDED_TEXT;
   const industryExperience =
     normalizedCareerHistory
       .flatMap((entry) => entry.projects)
       .map((project) => project.trim())
       .filter(Boolean)
       .slice(0, 3)
-      .join(", ") || "Not provided";
+      .join(", ") || NOT_PROVIDED_TEXT;
   const languageSummary =
-    Array.from(selectedLanguages).join(", ") || "Not provided";
+    selectedLanguageEntries.join(", ") || NOT_PROVIDED_TEXT;
 
   const formatPeriod = (
     startDate: string,
@@ -105,20 +103,20 @@ const CvBuilderPreviewDocument = ({
           <Typography>{employmentEquityStatus}</Typography>
           <Typography>Disability</Typography>
           <Typography>
-            {formValues.disabilityStatus || "Not provided"}
+            {getValueOrFallback(formValues.disabilityStatus)}
           </Typography>
           <Typography>Nationality</Typography>
-          <Typography>{formValues.nationality || "Not provided"}</Typography>
+          <Typography>{getValueOrFallback(formValues.nationality)}</Typography>
           <Typography>Residential Location</Typography>
           <Typography>
-            {formValues.residentialLocation || "Not provided"}
+            {getValueOrFallback(formValues.residentialLocation)}
           </Typography>
           <Typography>Current Company</Typography>
           <Typography>{previewCompany}</Typography>
           <Typography>Current Position</Typography>
           <Typography>{previewRole}</Typography>
           <Typography>Notice Period</Typography>
-          <Typography>{formValues.noticePeriod || "Not provided"}</Typography>
+          <Typography>{getValueOrFallback(formValues.noticePeriod)}</Typography>
         </Box>
 
         <Typography className={styles.previewPageSectionTitle}>
@@ -161,10 +159,10 @@ const CvBuilderPreviewDocument = ({
         </Box>
         {tertiaryEducation.map((entry) => (
           <Box key={entry.id} className={styles.previewPageEducationRow}>
-            <Typography>{entry.institutionName || "Not provided"}</Typography>
-            <Typography>{entry.yearCompleted || "Not provided"}</Typography>
+            <Typography>{getValueOrFallback(entry.institutionName)}</Typography>
+            <Typography>{getValueOrFallback(entry.yearCompleted)}</Typography>
             <Typography>
-              {entry.degreeOrCertification || "Not provided"}
+              {getValueOrFallback(entry.degreeOrCertification)}
             </Typography>
           </Box>
         ))}
@@ -179,10 +177,10 @@ const CvBuilderPreviewDocument = ({
         </Box>
         {secondaryEducation.map((entry) => (
           <Box key={entry.id} className={styles.previewPageEducationRow}>
-            <Typography>{entry.institutionName || "Not provided"}</Typography>
-            <Typography>{entry.yearCompleted || "Not provided"}</Typography>
+            <Typography>{getValueOrFallback(entry.institutionName)}</Typography>
+            <Typography>{getValueOrFallback(entry.yearCompleted)}</Typography>
             <Typography>
-              {entry.highestGradePassed || "Not provided"}
+              {getValueOrFallback(entry.highestGradePassed)}
             </Typography>
           </Box>
         ))}
@@ -200,7 +198,7 @@ const CvBuilderPreviewDocument = ({
         {normalizedCareerHistory.length > 0 ? (
           normalizedCareerHistory.map((entry) => (
             <Box key={entry.id} className={styles.previewPageCareerTableRow}>
-              <Typography>{entry.companyName || "Not provided"}</Typography>
+              <Typography>{getValueOrFallback(entry.companyName)}</Typography>
               <Typography>
                 {formatPeriod(
                   entry.startDate,
@@ -208,14 +206,14 @@ const CvBuilderPreviewDocument = ({
                   entry.isCurrentRole,
                 )}
               </Typography>
-              <Typography>{entry.positionHeld || "Not provided"}</Typography>
+              <Typography>{getValueOrFallback(entry.positionHeld)}</Typography>
             </Box>
           ))
         ) : (
           <Box className={styles.previewPageCareerTableRow}>
-            <Typography>Not provided</Typography>
-            <Typography>Not provided</Typography>
-            <Typography>Not provided</Typography>
+            <Typography>{NOT_PROVIDED_TEXT}</Typography>
+            <Typography>{NOT_PROVIDED_TEXT}</Typography>
+            <Typography>{NOT_PROVIDED_TEXT}</Typography>
           </Box>
         )}
 
@@ -232,7 +230,7 @@ const CvBuilderPreviewDocument = ({
           </Box>
         ) : (
           <Box component="ul" className={styles.previewPageSkillsList}>
-            <Box component="li">Not provided</Box>
+            <Box component="li">{NOT_PROVIDED_TEXT}</Box>
           </Box>
         )}
 
@@ -264,12 +262,12 @@ const CvBuilderPreviewDocument = ({
                   <Typography className={styles.previewPageWorkMetaLabel}>
                     Company Name
                   </Typography>
-                  <Typography>{entry.companyName || "Not provided"}</Typography>
+                  <Typography>{getValueOrFallback(entry.companyName)}</Typography>
                   <Typography className={styles.previewPageWorkMetaLabel}>
                     Position Held
                   </Typography>
                   <Typography>
-                    {entry.positionHeld || "Not provided"}
+                    {getValueOrFallback(entry.positionHeld)}
                   </Typography>
                   <Typography className={styles.previewPageWorkMetaLabel}>
                     Period
@@ -302,7 +300,7 @@ const CvBuilderPreviewDocument = ({
                     component="ul"
                     className={styles.previewPageWorkBulletList}
                   >
-                    {fallbackWorkDescription.map((item) => (
+                    {FALLBACK_WORK_DESCRIPTION.map((item) => (
                       <Box key={`${entry.id}-${item}`} component="li">
                         {item}
                       </Box>
@@ -320,22 +318,22 @@ const CvBuilderPreviewDocument = ({
               <Typography className={styles.previewPageWorkMetaLabel}>
                 Company Name
               </Typography>
-              <Typography>Not provided</Typography>
+              <Typography>{NOT_PROVIDED_TEXT}</Typography>
               <Typography className={styles.previewPageWorkMetaLabel}>
                 Position Held
               </Typography>
-              <Typography>Not provided</Typography>
+              <Typography>{NOT_PROVIDED_TEXT}</Typography>
               <Typography className={styles.previewPageWorkMetaLabel}>
                 Period
               </Typography>
-              <Typography>Not provided</Typography>
+              <Typography>{NOT_PROVIDED_TEXT}</Typography>
             </Box>
 
             <Typography className={styles.previewPageWorkDescriptionTitle}>
               Description:
             </Typography>
             <Box component="ul" className={styles.previewPageWorkBulletList}>
-              {fallbackWorkDescription.map((item) => (
+              {FALLBACK_WORK_DESCRIPTION.map((item) => (
                 <Box key={`fallback-${item}`} component="li">
                   {item}
                 </Box>

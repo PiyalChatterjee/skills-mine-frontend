@@ -19,12 +19,14 @@ import {
 
 type CvBuilderPersonalDetailsFormProps = {
   values: PersonalDetailsFormState
+  errors?: Partial<Record<keyof PersonalDetailsFormState, string>>
   onTextFieldChange: (field: keyof PersonalDetailsFormState) => (event: ChangeEvent<HTMLInputElement>) => void
   onSelectFieldChange: (field: keyof PersonalDetailsFormState) => (event: ChangeEvent<HTMLInputElement>) => void
 }
 
 const CvBuilderPersonalDetailsForm = ({
   values,
+  errors,
   onTextFieldChange,
   onSelectFieldChange,
 }: CvBuilderPersonalDetailsFormProps) => (
@@ -36,6 +38,8 @@ const CvBuilderPersonalDetailsForm = ({
         <TextField
           value={values.fullName}
           onChange={onTextFieldChange('fullName')}
+          error={Boolean(errors?.fullName)}
+          helperText={errors?.fullName}
           className={styles.fieldControl}
           variant="outlined"
           fullWidth
@@ -47,6 +51,8 @@ const CvBuilderPersonalDetailsForm = ({
         value={values.race}
         onChange={onSelectFieldChange('race')}
         options={RACE_OPTIONS}
+        error={Boolean(errors?.race)}
+        helperText={errors?.race}
       />
 
       <CvBuilderSelectField
@@ -54,6 +60,8 @@ const CvBuilderPersonalDetailsForm = ({
         value={values.gender}
         onChange={onSelectFieldChange('gender')}
         options={GENDER_OPTIONS}
+        error={Boolean(errors?.gender)}
+        helperText={errors?.gender}
       />
 
       <CvBuilderSelectField
@@ -61,12 +69,16 @@ const CvBuilderPersonalDetailsForm = ({
         value={values.disabilityStatus}
         onChange={onSelectFieldChange('disabilityStatus')}
         options={DISABILITY_OPTIONS}
+        error={Boolean(errors?.disabilityStatus)}
+        helperText={errors?.disabilityStatus}
       />
 
       <CvBuilderLabeledField label="Nationality" span="full">
         <TextField
           value={values.nationality}
           onChange={onTextFieldChange('nationality')}
+          error={Boolean(errors?.nationality)}
+          helperText={errors?.nationality}
           placeholder="Nationality"
           className={styles.fieldControl}
           variant="outlined"
@@ -82,6 +94,8 @@ const CvBuilderPersonalDetailsForm = ({
         span="full"
         allowEmptyOption={false}
         displayEmpty={true}
+        error={Boolean(errors?.residentialLocation)}
+        helperText={errors?.residentialLocation}
       />
 
       <CvBuilderLabeledField label="Current company" span="full">
@@ -99,6 +113,8 @@ const CvBuilderPersonalDetailsForm = ({
         <TextField
           value={values.currentPosition}
           onChange={onTextFieldChange('currentPosition')}
+          error={Boolean(errors?.currentPosition)}
+          helperText={errors?.currentPosition}
           placeholder="Current position"
           className={styles.fieldControl}
           variant="outlined"
@@ -111,6 +127,8 @@ const CvBuilderPersonalDetailsForm = ({
         value={values.noticePeriod}
         onChange={onSelectFieldChange('noticePeriod')}
         options={NOTICE_PERIOD_OPTIONS}
+        error={Boolean(errors?.noticePeriod)}
+        helperText={errors?.noticePeriod}
       />
     </Box>
   </CvBuilderFormPanel>

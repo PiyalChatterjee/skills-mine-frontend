@@ -1,21 +1,33 @@
+import { useNavigate } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux'
 import { Box, Button, ButtonBase, Typography } from '@mui/material'
 import { RecruiterSidebar } from '@/modules/recruiter/components/RecruiterSidebar'
+import { ROUTE_PATHS } from '@/routes/routePaths'
+import { selectMandate } from '@/store/slices/recruiterPipelineSlice'
+import type { RootState } from '@/store'
 import styles from './RecruiterPage.module.css'
 
 // ── Types ─────────────────────────────────────────────────────────────
 
-type PipelineColumn = {
-  label: string
-  count: number
-  colorClass: string
-  cards: PipelineCard[]
-}
+type PipelineStageLabel =
+  | 'Inbound' | 'Screening' | 'Assessment'
+  | 'Interview' | 'Shortlist' | 'Offer' | 'Closed'
+
+type CardTone = 'cream' | 'lilac' | 'yellow' | 'blush' | 'ice' | 'mint' | 'success' | 'danger'
 
 type PipelineCard = {
   id: string
   title: string
   company: string
-  companyColor: string
+  companyIcon: string
+  tone: CardTone
+  stage: PipelineStageLabel
+}
+
+type PipelineColumn = {
+  label: PipelineStageLabel
+  colorClass: string
+  cards: PipelineCard[]
 }
 
 // ── Constants ─────────────────────────────────────────────────────────
@@ -23,90 +35,81 @@ type PipelineCard = {
 const PIPELINE_COLUMNS: PipelineColumn[] = [
   {
     label: 'Inbound',
-    count: 15,
     colorClass: styles.colInbound,
     cards: [
-      { id: 'c1', title: 'Senior Develop...', company: 'Standard Bank', companyColor: '#1a73c5' },
-      { id: 'c2', title: 'Accounts Paya...', company: 'Wexford Searc...', companyColor: '#3aa86e' },
-      { id: 'c3', title: 'Head of Transp...', company: 'GIBB Pty Ltd', companyColor: '#e07d3a' },
-      { id: 'c4', title: 'Academic: Bac...', company: 'MANCOSA', companyColor: '#c0392b' },
-      { id: 'c5', title: 'Banking and Tr...', company: 'Corporate Place...', companyColor: '#1a73c5' },
+      { id: 'c1', title: 'Senior Develop...', company: 'Standard Bank',     companyIcon: '🛡', tone: 'cream',   stage: 'Inbound' },
+      { id: 'c2', title: 'Accounts Paya...', company: 'Wexford Searc...',   companyIcon: '♨', tone: 'cream',   stage: 'Inbound' },
+      { id: 'c3', title: 'Head of Transp...', company: 'GIBB Pty Ltd',      companyIcon: '◉', tone: 'cream',   stage: 'Inbound' },
+      { id: 'c4', title: 'Academic: Bac...', company: 'MANCOSA',            companyIcon: '♜', tone: 'cream',   stage: 'Inbound' },
+      { id: 'c5', title: 'Banking and Tr...', company: 'Corporate Place...', companyIcon: '✉', tone: 'cream',  stage: 'Inbound' },
     ],
   },
   {
     label: 'Screening',
-    count: 8,
     colorClass: styles.colScreening,
     cards: [
-      { id: 's1', title: 'Associate Prof...', company: 'University of Pret...', companyColor: '#6c4fa3' },
-      { id: 's2', title: 'QC Analyst – F...', company: 'Pronto Labour Te...', companyColor: '#3aa86e' },
-      { id: 's3', title: 'Chemistry Ana...', company: 'Microchem Speci...', companyColor: '#3aa86e' },
-      { id: 's4', title: 'Junior Mechan...', company: 'Network Enginee...', companyColor: '#c0392b' },
-      { id: 's5', title: 'Human Resour...', company: 'University of Kwa...', companyColor: '#6c4fa3' },
+      { id: 's1', title: 'Associate Prof...', company: 'University of Pret...', companyIcon: '♟', tone: 'lilac', stage: 'Screening' },
+      { id: 's2', title: 'QC Analyst - F...', company: 'Pronto Labour Te...',   companyIcon: '◉', tone: 'lilac', stage: 'Screening' },
+      { id: 's3', title: 'Chemistry Ana...', company: 'Microchem Speci...',     companyIcon: '〽', tone: 'lilac', stage: 'Screening' },
+      { id: 's4', title: 'Junior Mechan...', company: 'Network Enginee...',     companyIcon: '◉', tone: 'lilac', stage: 'Screening' },
+      { id: 's5', title: 'Human Resour...', company: 'University of Kwa...',    companyIcon: '♟', tone: 'lilac', stage: 'Screening' },
     ],
   },
   {
     label: 'Assessment',
-    count: 16,
     colorClass: styles.colAssessment,
     cards: [
-      { id: 'a1', title: 'Associate Prof...', company: 'University of Pret...', companyColor: '#6c4fa3' },
-      { id: 'a2', title: 'Driver', company: 'CYA Global', companyColor: '#1a73c5' },
-      { id: 'a3', title: 'Mechanical En...', company: 'Ashton Personnel', companyColor: '#3aa86e' },
-      { id: 'a4', title: 'Sales Represen...', company: 'Professional Field...', companyColor: '#1a73c5' },
-      { id: 'a5', title: 'KYC Administra...', company: 'Moladita Manage...', companyColor: '#3aa86e' },
+      { id: 'a1', title: 'Associate Prof...', company: 'University of Pret...', companyIcon: '♟', tone: 'yellow', stage: 'Assessment' },
+      { id: 'a2', title: 'Driver',             company: 'CYA Global',            companyIcon: '⚑', tone: 'yellow', stage: 'Assessment' },
+      { id: 'a3', title: 'Mechanical En...', company: 'Ashton Personnel',        companyIcon: '♙', tone: 'yellow', stage: 'Assessment' },
+      { id: 'a4', title: 'Sales Represen...', company: 'Professional Field...',  companyIcon: '⚑', tone: 'yellow', stage: 'Assessment' },
+      { id: 'a5', title: 'KYC Administra...', company: 'Moladita Manage...',     companyIcon: '⚑', tone: 'yellow', stage: 'Assessment' },
     ],
   },
   {
     label: 'Interview',
-    count: 7,
     colorClass: styles.colInterview,
     cards: [
-      { id: 'i1', title: 'Logistics Contr...', company: 'TC Construction', companyColor: '#3aa86e' },
-      { id: 'i2', title: 'Associate Prof...', company: 'University of Pret...', companyColor: '#6c4fa3' },
-      { id: 'i3', title: 'Operations Sys...', company: 'Network IT', companyColor: '#3aa86e' },
-      { id: 'i4', title: 'Property Valua...', company: 'Somewhere', companyColor: '#9e9e9e' },
-      { id: 'i5', title: 'University Degr...', company: 'Life Healthcare G...', companyColor: '#3aa86e' },
+      { id: 'i1', title: 'Logistics Contr...', company: 'TC Construction',      companyIcon: '▣', tone: 'blush', stage: 'Interview' },
+      { id: 'i2', title: 'Associate Prof...', company: 'University of Pret...',  companyIcon: '♟', tone: 'blush', stage: 'Interview' },
+      { id: 'i3', title: 'Operations Sys...', company: 'Network IT',             companyIcon: '◉', tone: 'blush', stage: 'Interview' },
+      { id: 'i4', title: 'Property Valua...', company: 'Somewhere',              companyIcon: 'S', tone: 'blush', stage: 'Interview' },
+      { id: 'i5', title: 'University Degr...', company: 'Life Healthcare G...',  companyIcon: '▣', tone: 'blush', stage: 'Interview' },
     ],
   },
   {
     label: 'Shortlist',
-    count: 3,
     colorClass: styles.colShortlist,
     cards: [
-      { id: 'sh1', title: 'Water Treatme...', company: 'MayFly Agri (pty)...', companyColor: '#3aa86e' },
-      { id: 'sh2', title: 'Experience Acc...', company: 'Full Service Carto...', companyColor: '#3aa86e' },
-      { id: 'sh3', title: 'Work Integrate...', company: 'Unique Personnel', companyColor: '#1a73c5' },
+      { id: 'sh1', title: 'Water Treatme...', company: 'MayFly Agri (pty)...', companyIcon: '▣', tone: 'ice', stage: 'Shortlist' },
+      { id: 'sh2', title: 'Experience Acc...', company: 'Full Service Carto...', companyIcon: '⌁', tone: 'ice', stage: 'Shortlist' },
+      { id: 'sh3', title: 'Work Integrate...', company: 'ATS Testing',           companyIcon: '◉', tone: 'ice', stage: 'Shortlist' },
     ],
   },
   {
     label: 'Offer',
-    count: 4,
     colorClass: styles.colOffer,
     cards: [
-      { id: 'o1', title: 'Accounts Paya...', company: 'Communicate Fin...', companyColor: '#3aa86e' },
-      { id: 'o2', title: 'Portfolio Mana...', company: 'Humankind Group', companyColor: '#3aa86e' },
-      { id: 'o3', title: 'Graduates (Ba...', company: 'Liona Consulting', companyColor: '#1a73c5' },
-      { id: 'o4', title: 'Banking Adviso...', company: 'FNB (Private Seg...', companyColor: '#c0392b' },
+      { id: 'o1', title: 'Accounts Paya...', company: 'Communicate Fin...',  companyIcon: '▣', tone: 'mint', stage: 'Offer' },
+      { id: 'o2', title: 'Portfolio Mana...', company: 'Humankind Group',    companyIcon: '▣', tone: 'mint', stage: 'Offer' },
+      { id: 'o3', title: 'Graduates (Ba...', company: 'Unique Personnel',    companyIcon: '♙', tone: 'mint', stage: 'Offer' },
+      { id: 'o4', title: 'Banking Adviso...', company: 'FNB (Private Seg...', companyIcon: '▣', tone: 'mint', stage: 'Offer' },
     ],
   },
   {
     label: 'Closed',
-    count: 50,
     colorClass: styles.colClosed,
     cards: [
-      { id: 'cl1', title: 'Sales Represen...', company: 'MASA Outsourc...', companyColor: '#c0392b' },
-      { id: 'cl2', title: 'Sales Represen...', company: 'MASA Outsourc...', companyColor: '#c0392b' },
-      { id: 'cl3', title: 'Export Sales S...', company: 'Liona Consulting', companyColor: '#1a73c5' },
-      { id: 'cl4', title: 'Production Eng...', company: 'Lapcim Manage...', companyColor: '#3aa86e' },
-      { id: 'cl5', title: 'X3 Junior Grou...', company: 'Medipost Pharm...', companyColor: '#3aa86e' },
+      { id: 'cl1', title: 'Sales Represen...', company: 'MASA Outsourc...',   companyIcon: '▣', tone: 'success', stage: 'Closed' },
+      { id: 'cl2', title: 'Sales Represen...', company: 'MASA Outsourc...',   companyIcon: '▣', tone: 'danger',  stage: 'Closed' },
+      { id: 'cl3', title: 'Export Sales S...', company: 'Luma Consulting',    companyIcon: '▣', tone: 'success', stage: 'Closed' },
+      { id: 'cl4', title: 'Production Eng...', company: 'Lascom Manage...',   companyIcon: '▣', tone: 'success', stage: 'Closed' },
+      { id: 'cl5', title: 'X3 Junior Grou...', company: 'Medipost Pharm...',  companyIcon: '▣', tone: 'danger',  stage: 'Closed' },
     ],
   },
 ]
 
 // ── Sub-components ────────────────────────────────────────────────────
-
-// ── KPI card icons ────────────────────────────────────────────────────
 
 const CvsDueIcon = () => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -128,8 +131,6 @@ const OfferLetterIcon = () => (
     <path d="M3 8l9 6 9-6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 )
-
-// ── KPI Card ──────────────────────────────────────────────────────────
 
 type KpiCardProps = {
   value: number
@@ -156,28 +157,32 @@ const KpiCard = ({ value, label, icon, colorClass, onView }: KpiCardProps) => (
 
 type PipelineCardProps = {
   card: PipelineCard
-  onView: () => void
+  onView: (id: string, stage: PipelineStageLabel) => void
   onExpand: () => void
 }
 
 const PipelineCardItem = ({ card, onView, onExpand }: PipelineCardProps) => (
-  <Box className={styles.pipelineCard}>
+  <Box className={`${styles.pipelineCard} ${styles[`card${card.tone[0].toUpperCase()}${card.tone.slice(1)}`]}`}>
     <Typography component="p" className={styles.pipelineCardTitle}>{card.title}</Typography>
     <Box className={styles.pipelineCardCompany}>
-      <Box
-        className={styles.pipelineCardCompanyDot}
-        style={{ background: card.companyColor }}
-      />
+      <Box component="span" className={styles.pipelineCardCompanyIcon}>{card.companyIcon}</Box>
       <Typography component="span" className={styles.pipelineCardCompanyName}>
         {card.company}
       </Typography>
     </Box>
     <Box className={styles.pipelineCardActions}>
-      <ButtonBase className={styles.pipelineCardActionBtn} onClick={onView} disableRipple aria-label="View">
-        👁
+      <ButtonBase
+        className={styles.pipelineCardActionBtn}
+        onClick={() => onView(card.id, card.stage)}
+        disableRipple
+        aria-label="View"
+      >
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <path d="M9.99993 2.5C14.4933 2.5 18.2317 5.73313 19.0154 10C18.2317 14.2668 14.4933 17.5 9.99993 17.5C5.50644 17.5 1.76813 14.2668 0.984375 10C1.76813 5.73313 5.50644 2.5 9.99993 2.5ZM9.99993 15.8333C13.5296 15.8333 16.5499 13.3767 17.3144 10C16.5499 6.62336 13.5296 4.16667 9.99993 4.16667C6.47018 4.16667 3.44986 6.62336 2.68533 10C3.44986 13.3767 6.47018 15.8333 9.99993 15.8333ZM9.99993 13.75C7.92883 13.75 6.24989 12.0711 6.24989 10C6.24989 7.92893 7.92883 6.25 9.99993 6.25C12.0709 6.25 13.7499 7.92893 13.7499 10C13.7499 12.0711 12.0709 13.75 9.99993 13.75ZM9.99993 12.0833C11.1505 12.0833 12.0833 11.1506 12.0833 10C12.0833 8.84942 11.1505 7.91667 9.99993 7.91667C8.84934 7.91667 7.91656 8.84942 7.91656 10C7.91656 11.1506 8.84934 12.0833 9.99993 12.0833Z" fill="currentColor"/>
+        </svg>
       </ButtonBase>
       <ButtonBase className={styles.pipelineCardActionBtn} onClick={onExpand} disableRipple aria-label="Expand">
-        ⤢
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-7 7M10 20H4v-6M4 20l7-7" /></svg>
       </ButtonBase>
     </Box>
   </Box>
@@ -186,8 +191,12 @@ const PipelineCardItem = ({ card, onView, onExpand }: PipelineCardProps) => (
 // ── Main Component ────────────────────────────────────────────────────
 
 const RecruiterPage = () => {
+  const navigate = useNavigate()
+  const dispatch = useDispatch()
+  const stageCounts = useSelector((state: RootState) => state.recruiterPipeline.stageCounts)
+
   const handleNewMandate = () => {
-    // TODO: Implement new mandate action
+    // TODO: Navigate to new mandate page
   }
 
   const handleViewCvsDue = () => {
@@ -206,8 +215,13 @@ const RecruiterPage = () => {
     // TODO: Navigate to full pipeline column view
   }
 
-  const handleCardView = () => {
-    // TODO: Navigate to card detail view
+  const handleCardView = (cardId: string, stage: PipelineStageLabel) => {
+    // For Inbound stage, navigate to Mandate Details with full data
+    if (stage === 'Inbound') {
+      dispatch(selectMandate(cardId))
+      navigate(ROUTE_PATHS.recruiterMandate.replace(':cardId', cardId))
+    }
+    // Other stages: future implementation
   }
 
   const handleCardExpand = () => {
@@ -246,21 +260,21 @@ const RecruiterPage = () => {
         </Box>
         <Box className={styles.kpiRow}>
           <KpiCard
-            value={20}
+            value={stageCounts.Inbound}
             label="CVs due"
             icon={<CvsDueIcon />}
             colorClass={styles.kpiBlue}
             onView={handleViewCvsDue}
           />
           <KpiCard
-            value={5}
+            value={stageCounts.Interview}
             label="Interviews to schedule"
             icon={<InterviewsIcon />}
             colorClass={styles.kpiPurple}
             onView={handleViewInterviews}
           />
           <KpiCard
-            value={10}
+            value={stageCounts.Offer}
             label="Offer Letter Acceptance Deadlines"
             icon={<OfferLetterIcon />}
             colorClass={styles.kpiAmber}
@@ -278,37 +292,44 @@ const RecruiterPage = () => {
           53 active mandates across 30 companies
         </Typography>
 
-        <Box className={styles.pipelineBoard}>
-          {PIPELINE_COLUMNS.map((col) => (
-            <Box key={col.label} className={styles.pipelineColumn}>
-              {/* Column Header */}
-              <Box className={`${styles.colHeader} ${col.colorClass}`}>
+        <Box className={styles.pipelineWrapper}>
+          {/* Unified header bar */}
+          <Box className={styles.pipelineHeader}>
+            {PIPELINE_COLUMNS.map((col) => (
+              <Box key={col.label} className={styles.colHeader}>
                 <Typography component="p" className={styles.colLabel}>{col.label}</Typography>
-                <Typography component="p" className={styles.colCount}>{col.count}</Typography>
+                <Typography component="p" className={styles.colCount}>
+                  {stageCounts[col.label]}
+                </Typography>
               </Box>
+            ))}
+          </Box>
 
-              {/* Cards */}
-              <Box className={styles.colCards}>
-                {col.cards.map((card) => (
-                  <PipelineCardItem
-                    key={card.id}
-                    card={card}
-                    onView={handleCardView}
-                    onExpand={handleCardExpand}
-                  />
-                ))}
+          {/* Cards board */}
+          <Box className={styles.pipelineBoard}>
+            {PIPELINE_COLUMNS.map((col) => (
+              <Box key={col.label} className={styles.pipelineColumn}>
+                <Box className={styles.colCards}>
+                  {col.cards.map((card) => (
+                    <PipelineCardItem
+                      key={card.id}
+                      card={card}
+                      onView={handleCardView}
+                      onExpand={handleCardExpand}
+                    />
+                  ))}
+                </Box>
+
+                <ButtonBase
+                  className={styles.viewMoreBtn}
+                  onClick={handleViewMore}
+                  disableRipple
+                >
+                  View more
+                </ButtonBase>
               </Box>
-
-              {/* View More */}
-              <ButtonBase
-                className={styles.viewMoreBtn}
-                onClick={handleViewMore}
-                disableRipple
-              >
-                View more
-              </ButtonBase>
-            </Box>
-          ))}
+            ))}
+          </Box>
         </Box>
       </Box>
       </Box>

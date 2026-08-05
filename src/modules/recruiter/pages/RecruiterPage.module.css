@@ -112,9 +112,9 @@
   min-height: 160px;
 }
 
-.kpiBlue   { background: #3e8fd4; }
-.kpiPurple { background: #7c5cd8; }
-.kpiAmber  { background: #d4961a; }
+.kpiBlue   { background: #F9E2E2; }
+.kpiPurple { background: #E4DFF4; }
+.kpiAmber  { background: #FAEED8; }
 
 .kpiTop {
   display: flex;
@@ -126,7 +126,7 @@
 :global(.MuiTypography-root).kpiValue,
 :global(.MuiTypography-root).kpiValue.kpiValue {
   margin: 0;
-  color: #ffffff;
+  color: #1a3a6b;
   font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
   font-size: 52px;
   font-weight: 400;
@@ -138,7 +138,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(255, 255, 255, 0.9);
+  color: #1a3a6b;
   margin-top: 4px;
   flex-shrink: 0;
 }
@@ -147,7 +147,7 @@
 :global(.MuiTypography-root).kpiLabel,
 :global(.MuiTypography-root).kpiLabel.kpiLabel {
   margin: 8px 0 0;
-  color: rgba(255, 255, 255, 0.9);
+  color: #1a3a6b;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
   font-size: 14px;
   font-weight: 400;
@@ -161,12 +161,12 @@
 
 .kpiDivider {
   height: 1px;
-  background: rgba(255, 255, 255, 0.35);
+  background: rgba(26, 58, 107, 0.2);
   margin: 12px 0 10px;
 }
 
 .kpiViewBtn:global(.MuiButtonBase-root) {
-  color: rgba(255, 255, 255, 0.9);
+  color: #1a3a6b;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
   font-size: 16px;
   font-weight: 400;
@@ -178,7 +178,7 @@
 }
 
 .kpiViewBtn:global(.MuiButtonBase-root):hover {
-  color: #ffffff;
+  color: #03478C;
 }
 
 /* ── Pipeline Section ────────────────────────────────────────────────── */
@@ -210,50 +210,64 @@
   letter-spacing: 0;
 }
 
+/* ── Pipeline Wrapper ────────────────────────────────────────────────── */
+.pipelineWrapper {
+  min-width: 1000px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #92c9e5;
+}
+
+/* ── Pipeline Header Bar ─────────────────────────────────────────────── */
+.pipelineHeader {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  background: #AAD5F0;
+  border-radius: 8px 8px 0 0;
+}
+
+.colHeader {
+  padding: 12px;
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 4px;
+  min-height: 69px;
+}
+
 /* ── Pipeline Board ──────────────────────────────────────────────────── */
 .pipelineBoard {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 4px;
-  background: #e2e8f0;
-  border-radius: 12px;
+  gap: 0;
+  background: #f0f4f8;
+  border-radius: 0 0 8px 8px;
   overflow: hidden;
-  border: 1px solid #d0dbe8;
 }
 
 /* ── Pipeline Column ─────────────────────────────────────────────────── */
 .pipelineColumn {
-  background: #f7f9fb;
+  background: #f0f4f8;
   display: flex;
   flex-direction: column;
   min-width: 0;
+  min-height: 516px;
+  border-right: 1px solid #92c9e5;
 }
 
-/* Column header colour bands — match image tones */
-.colHeader {
-  padding: 10px 10px 8px;
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 6px;
+.pipelineColumn:last-child {
+  border-right: 0;
 }
-
-.colInbound   { background: #b0cce0; }
-.colScreening { background: #b0cce0; }
-.colAssessment { background: #b0cce0; }
-.colInterview  { background: #b0cce0; }
-.colShortlist  { background: #b0cce0; }
-.colOffer      { background: #b0cce0; }
-.colClosed     { background: #b0cce0; }
 
 .colLabel,
 :global(.MuiTypography-root).colLabel,
 :global(.MuiTypography-root).colLabel.colLabel {
   margin: 0;
-  color: #1a2b4a;
+  color: #004d91;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 500;
   line-height: 1.4;
   letter-spacing: 0;
 }
@@ -262,9 +276,9 @@
 :global(.MuiTypography-root).colCount,
 :global(.MuiTypography-root).colCount.colCount {
   margin: 0;
-  color: #486581;
+  color: #075aa0;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 400;
   line-height: 1.4;
   letter-spacing: 0;
@@ -274,29 +288,39 @@
 .colCards {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 6px 6px 4px;
+  gap: 9px;
+  padding: 10px 11px 0;
   flex: 1;
 }
 
 /* ── Pipeline Card ───────────────────────────────────────────────────── */
 .pipelineCard {
-  background: #ffffff;
-  border-radius: 6px;
-  padding: 8px 8px 6px;
-  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 9px 9px;
+  min-height: 87px;
+  border: 0;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, .08);
 }
+
+.cardCream { background: #FAEED8; }
+.cardLilac { background: #E4DFF4; }
+.cardYellow { background: #FCF7DB; }
+.cardBlush { background: #F9E2E2; }
+.cardIce { background: #D3E5E8; }
+.cardMint { background: #B7DFC7; }
+.cardSuccess { background: #4BAF73; color: #ffffff; }
+.cardDanger { background: #e64b4b; color: #ffffff; }
 
 .pipelineCardTitle,
 :global(.MuiTypography-root).pipelineCardTitle,
 :global(.MuiTypography-root).pipelineCardTitle.pipelineCardTitle {
   margin: 0;
-  color: #1a2b4a;
+  color: #0057a5;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 500;
   line-height: 1.4;
   letter-spacing: 0;
@@ -312,18 +336,20 @@
   min-width: 0;
 }
 
-.pipelineCardCompanyDot {
-  width: 10px;
-  height: 10px;
-  border-radius: 2px;
+.pipelineCardCompanyIcon {
+  color: #064f90;
+  font-size: 12px;
+  line-height: 1;
+  width: 12px;
+  text-align: center;
   flex-shrink: 0;
 }
 
 .pipelineCardCompanyName,
 :global(.MuiTypography-root).pipelineCardCompanyName {
-  color: #486581;
+  color: #4b5e68;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 400;
   line-height: 1.4;
   white-space: nowrap;
@@ -335,18 +361,25 @@
 .pipelineCardActions {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-top: 2px;
+  justify-content: space-between;
+  margin-top: auto;
 }
 
 .pipelineCardActionBtn:global(.MuiButtonBase-root) {
   padding: 0;
-  font-size: 13px;
-  color: #486581;
+  color: #0057a5;
   min-width: 0;
   line-height: 1;
   transition: color 0.12s ease;
 }
+
+.pipelineCardActionBtn svg { width: 20px; height: 20px; }
+.pipelineCardActionBtn [aria-label="Expand"] svg,
+.pipelineCardActionBtn svg[viewBox="0 0 24 24"] { fill: none; stroke: currentColor; stroke-width: 2; }
+.cardSuccess .pipelineCardTitle, .cardDanger .pipelineCardTitle,
+.cardSuccess .pipelineCardCompanyName, .cardDanger .pipelineCardCompanyName,
+.cardSuccess .pipelineCardCompanyIcon, .cardDanger .pipelineCardCompanyIcon,
+.cardSuccess .pipelineCardActionBtn, .cardDanger .pipelineCardActionBtn { color: #ffffff; }
 
 .pipelineCardActionBtn:global(.MuiButtonBase-root):hover {
   color: #1a2b4a;
@@ -354,10 +387,7 @@
 
 /* ── View More Button ────────────────────────────────────────────────── */
 .viewMoreBtn:global(.MuiButtonBase-root) {
-  display: block;
-  width: 100%;
-  padding: 8px 6px;
-  color: #1a73c5;
+  display: none;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
   font-size: 12px;
   font-weight: 400;
@@ -374,6 +404,7 @@
 
 /* ── Responsive ──────────────────────────────────────────────────────── */
 @media (max-width: 1200px) {
+  .pipelineHeader,
   .pipelineBoard {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
@@ -397,6 +428,7 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
+  .pipelineHeader,
   .pipelineBoard {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -411,6 +443,7 @@
     grid-template-columns: 1fr;
   }
 
+  .pipelineHeader,
   .pipelineBoard {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

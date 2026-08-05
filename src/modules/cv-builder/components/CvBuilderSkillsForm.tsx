@@ -1,13 +1,15 @@
-import { Box, Button, IconButton, TextField, Typography } from '@mui/material'
+import { Box, Button, TextField, Typography } from '@mui/material'
 import type { ChangeEvent } from 'react'
 import skillsGenerateIcon from '@/assets/cv-builder/skills-generate.svg'
 import skillsSparkleIcon from '@/assets/cv-builder/skills-sparkle.svg'
 import styles from '../pages/CvBuilderPage.module.css'
+import CvBuilderRemoveItemButton from './CvBuilderRemoveItemButton'
 import { CvBuilderFormPanel, CvBuilderSectionHeader } from './CvBuilderFormPrimitives'
 import type { SkillEntry } from '../types/cvBuilder'
 
 type CvBuilderSkillsFormProps = {
   skills: SkillEntry[]
+  formError?: string
   onUpdateSkill: (skillId: string, value: string) => void
   onAddSkill: () => void
   onRemoveSkill: (skillId: string) => void
@@ -15,6 +17,7 @@ type CvBuilderSkillsFormProps = {
 
 const CvBuilderSkillsForm = ({
   skills,
+  formError,
   onUpdateSkill,
   onAddSkill,
   onRemoveSkill,
@@ -31,6 +34,12 @@ const CvBuilderSkillsForm = ({
 
     <Typography className={styles.skillsSubHeading}>List your skills</Typography>
 
+    {formError ? (
+      <Typography component="p" sx={{ color: '#d32f2f', marginBottom: 2 }}>
+        {formError}
+      </Typography>
+    ) : null}
+
     <Box className={styles.skillsList}>
       {skills.map((skill, index) => (
         <Box key={skill.id} className={styles.skillRow}>
@@ -44,19 +53,11 @@ const CvBuilderSkillsForm = ({
             variant="outlined"
             fullWidth
           />
-          {skills.length > 1 && (
-            <IconButton
-              type="button"
-              onClick={() => onRemoveSkill(skill.id)}
-              className={styles.inlineRemoveButton}
-              aria-label={`Remove skill ${index + 1}`}
-              disableRipple
-            >
-              <Box component="span" className={styles.removeSkillIcon} aria-hidden="true">
-                ✕
-              </Box>
-            </IconButton>
-          )}
+          <CvBuilderRemoveItemButton
+            canRemove={skills.length > 1}
+            ariaLabel={`Remove skill ${index + 1}`}
+            onClick={() => onRemoveSkill(skill.id)}
+          />
         </Box>
       ))}
 
