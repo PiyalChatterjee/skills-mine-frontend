@@ -44,6 +44,11 @@ type Metric = {
   cardClassName: string;
 };
 
+const toCityFromLocation = (location: string) => {
+  const [city] = location.split(",");
+  return city?.trim() || "Unknown";
+};
+
 const features: Feature[] = [
   { id: "1", label: "ATS-Optimised CVs", iconSrc: shieldIconUrl },
   { id: "2", label: "Suitability Scores", iconSrc: chartIconUrl },
@@ -71,11 +76,6 @@ const metrics: Metric[] = [
     cardClassName: styles.metricCardWideRight,
   },
 ];
-
-const toCityFromLocation = (location: string) => {
-  const [city] = location.split(",");
-  return city?.trim() || "Unknown";
-};
 
 const LandingPage = () => {
   const { openSignUpDrawer } = useOutletContext<PublicLayoutOutletContext>();
@@ -470,7 +470,7 @@ const LandingPage = () => {
                             <Box className={styles.tagRow}>
                               {[
                                 job.industry,
-                                toCityFromLocation(job.location),
+                                toCityFromLocation(job.location ?? ''),
                                 job.employmentType,
                               ].map((tag) => (
                                 <Chip

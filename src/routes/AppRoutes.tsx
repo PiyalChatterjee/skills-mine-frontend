@@ -55,7 +55,7 @@ export const AppRoutes = () => {
           </Route>
 
           <Route element={<CandidateLayout />}>
-            <Route element={<RoleGuard allowedRoles={['candidate']} fallbackPath={ROUTE_PATHS.dashboard} />}>
+            <Route element={<RoleGuard allowedRoles={['JOB_SEEKER']} fallbackPath={ROUTE_PATHS.dashboard} />}>
               <Route path={ROUTE_PATHS.candidateDashboard} element={<CandidateDashboardPage />} />
               <Route path={ROUTE_PATHS.cvBuilder} element={<CvBuilderPage />} />
             </Route>
@@ -70,7 +70,7 @@ export const AppRoutes = () => {
             <Route path={ROUTE_PATHS.recruiterCandidate} element={<CandidateProfilePage />} />
             <Route
               element={
-                <PermissionGuard requiredPermissions={['CRM_VIEW']} />
+                <PermissionGuard requiredPermissions={['CRM_EDIT']} />
               }
             >
               <Route path={ROUTE_PATHS.crm} element={<CrmPage />} />
@@ -78,19 +78,19 @@ export const AppRoutes = () => {
           </Route>
 
           <Route element={<MancoLayout />}>
-            <Route element={<RoleGuard allowedRoles={['manco', 'admin']} />}>
+            <Route element={<RoleGuard allowedRoles={['MANCO', 'ADMIN']} />}>
               <Route path={ROUTE_PATHS.manco} element={<MancoPage />} />
             </Route>
           </Route>
 
           <Route element={<ExcoLayout />}>
-            <Route element={<RoleGuard allowedRoles={['exco', 'admin']} />}>
+            <Route element={<RoleGuard allowedRoles={['ADMIN']} />}>
               <Route path={ROUTE_PATHS.exco} element={<ExcoPage />} />
             </Route>
           </Route>
 
           <Route element={<AdminLayout />}>
-            <Route element={<RoleGuard allowedRoles={['admin']} />}>
+            <Route element={<RoleGuard allowedRoles={['ADMIN']} />}>
               <Route path={ROUTE_PATHS.dashboard} element={<DashboardEntryPage />} />
             </Route>
           </Route>

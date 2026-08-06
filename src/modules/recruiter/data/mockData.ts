@@ -152,7 +152,7 @@ export const MOCK_CANDIDATES: Candidate[] = [
     ],
     applications: [
       { id: 'app-1', mandateId: 'c1', jobTitle: 'UX/UI Designer',    company: 'IBM',      currentStage: 'Interview',  stageColor: '#7A5DC7' },
-      { id: 'app-2', mandateId: 'c2', jobTitle: 'Graphic Designer',  company: 'TymeBank', currentStage: 'Shortlist',  stageColor: '#C64B8C' },
+      { id: 'app-2', mandateId: 'c2', jobTitle: 'Graphic Designer',  company: 'TymeBank', currentStage: 'Shortlisted',  stageColor: '#C64B8C' },
       { id: 'app-3', mandateId: 'c3', jobTitle: 'Product Designer',  company: 'Airbnb',   currentStage: 'Screening',  stageColor: '#5BBCCC' },
     ],
     recruiterNotes: [],
@@ -510,7 +510,8 @@ export const INITIAL_STAGE_COUNTS: StageCounts = {
   Screening:  8,
   Assessment: 16,
   Interview:  7,
-  Shortlist:  3,
+  Shortlisted:  3,
   Offer:      4,
+  Placed:     0,
   Closed:     50,
 }

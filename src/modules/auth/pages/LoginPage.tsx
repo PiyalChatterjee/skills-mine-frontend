@@ -34,18 +34,27 @@ const LoginPage = () => {
     formState: { errors, isSubmitting },
   } = useZodForm(loginSchema, {
     defaultValues: {
-      email: "",
+      username: "",
       password: "",
+      rememberMe: true,
     },
   });
   const passwordValue = watch("password");
   const hasPasswordValue = Boolean(passwordValue?.length);
 
-  const handleGoogleAuthSuccess = (tokenResponse: TokenResponse) => {
-    setPendingGoogleAuth(false);
-    setGoogleAuthError(null);
-    // TODO: Exchange tokenResponse.access_token with backend auth endpoint for Google login.
-    console.info("Google token response", tokenResponse);
+  const handleGoogleAuthSuccess = async (tokenResponse: TokenResponse) => {
+    try {
+      setGoogleAuthError(null);
+      const response = await authApi.exchangeGoogleToken({
+        accessToken: tokenResponse.access_token,
+      });
+      login(mapLoginResponseToSession(response));
+      navigate(ROUTE_PATHS.portal, { replace: true });
+    } catch {
+      setGoogleAuthError("Google sign-in failed. Please try again.");
+    } finally {
+      setPendingGoogleAuth(false);
+    }
   };
 
   const handleGoogleAuthError = () => {
@@ -121,9 +130,9 @@ const LoginPage = () => {
             <TextField
               placeholder="Email"
               autoComplete="email"
-              error={Boolean(errors.email)}
-              helperText={errors.email?.message}
-              {...register("email")}
+              error={Boolean(errors.username)}
+              helperText={errors.username?.message}
+              {...register("username")}
               className={styles.inputField}
             />
           </Box>

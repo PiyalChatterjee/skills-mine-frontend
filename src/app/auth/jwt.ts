@@ -4,8 +4,14 @@ const jwtPayloadSchema = z.object({
   sub: z.string().optional(),
   exp: z.number().optional(),
   iat: z.number().optional(),
+  userId: z.string().optional(),
   email: z.string().optional(),
+  name: z.string().optional(),
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+  recruiterId: z.string().optional(),
   role: z.string().optional(),
+  roles: z.array(z.string()).optional(),
   permissions: z.array(z.string()).optional(),
 })
 

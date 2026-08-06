@@ -16,6 +16,7 @@ import { JobBoardSelector } from '@/modules/recruiter/components/mandate/JobBoar
 import { StickyFooter } from '@/modules/recruiter/components/mandate/StickyFooter'
 import { pushNotification } from '@/store/slices/notificationSlice'
 import { ROUTE_PATHS } from '@/routes/routePaths'
+import { mandateApi } from '@/services/api/mandateApi'
 import type { MandateFormValues } from '@/modules/recruiter/components/mandate/types'
 import styles from './NewMandatePage.module.css'
 
@@ -25,7 +26,7 @@ const schema = z
   .object({
     companyName:     z.string().min(1, 'Company name is required'),
     positionTitle:   z.string().min(1, 'Position title is required'),
-    location:        z.string().optional().default(''),
+    location:        z.string(),
     fillByDate:      z.string().min(1, 'Fill by date is required'),
     workType:        z.string().min(1, 'Work type is required'),
     employmentType:  z.string().min(1, 'Employment type is required'),
@@ -43,8 +44,11 @@ const schema = z
   })
   .refine(
     data => {
-      if (data.salaryMin === '' || data.salaryMax === '') return true
-      return Number(data.salaryMin) <= Number(data.salaryMax)
+      if (typeof data.salaryMin !== 'number' || typeof data.salaryMax !== 'number') {
+        return true
+      }
+
+      return data.salaryMin <= data.salaryMax
     },
     { message: 'Minimum salary cannot exceed maximum', path: ['salaryMin'] },
   )
@@ -93,41 +97,50 @@ const NewMandatePage = () => {
 
   const onSubmit = async (values: MandateFormValues) => {
     setIsSubmitting(true)
-    // Simulate API call
-    await new Promise(res => setTimeout(res, 800))
+    try {
+      await mandateApi.createMandate({
+        companyName: values.companyName,
+        positionTitle: values.positionTitle,
+        location: values.location,
+        fillByDate: values.fillByDate,
+        workType: values.workType,
+        employmentType: values.employmentType,
+        experienceLevel: values.experienceLevel,
+        priority: values.priority,
+        salary: {
+          minimum: Number(values.salaryMin),
+          maximum: Number(values.salaryMax),
+        },
+        jobDescription: values.jobDescription,
+        requirements: values.requirements,
+        responsibilities: values.responsibilities,
+        benefits: values.benefits,
+        skills: values.skills,
+        industries: values.industries,
+        jobBoards: values.jobBoards,
+      })
 
-    const payload = {
-      companyName:      values.companyName,
-      positionTitle:    values.positionTitle,
-      location:         values.location,
-      fillByDate:       values.fillByDate,
-      workType:         values.workType,
-      employmentType:   values.employmentType,
-      experienceLevel:  values.experienceLevel,
-      priority:         values.priority,
-      salary: {
-        minimum: values.salaryMin,
-        maximum: values.salaryMax,
-      },
-      jobDescription:   values.jobDescription,
-      requirements:     values.requirements,
-      responsibilities: values.responsibilities,
-      benefits:         values.benefits,
-      skills:           values.skills,
-      industries:       values.industries,
-      jobBoards:        values.jobBoards,
+      dispatch(pushNotification({
+        level: 'success',
+        title: 'Mandate posted',
+        message: `"${values.positionTitle}" at ${values.companyName} has been posted successfully.`,
+      }))
+
+      navigate(ROUTE_PATHS.recruiter)
+    } catch (error) {
+      const message =
+        typeof error === 'object' && error !== null && 'message' in error
+          ? String((error as { message?: unknown }).message ?? 'Failed to post mandate. Please try again.')
+          : 'Failed to post mandate. Please try again.'
+
+      dispatch(pushNotification({
+        level: 'error',
+        title: 'Mandate post failed',
+        message,
+      }))
+    } finally {
+      setIsSubmitting(false)
     }
-
-    console.log('[New Mandate] Payload:', payload)
-
-    dispatch(pushNotification({
-      level: 'success',
-      title: 'Mandate posted',
-      message: `"${values.positionTitle}" at ${values.companyName} has been posted successfully.`,
-    }))
-
-    setIsSubmitting(false)
-    navigate(ROUTE_PATHS.recruiter)
   }
 
   // ── Cancel ──────────────────────────────────────────────────────────

@@ -1,6 +1,5 @@
-import { useMemo } from 'react'
 import {
-  useGetCandidateApplicationsQuery,
+  useGetCandidateDashboardQuery,
   useGetCandidateProfileQuery,
   useUpdateCandidateProfileMutation as useUpdateCandidateProfileRtkMutation,
 } from '@/store/api/apiSlice'
@@ -8,30 +7,19 @@ import type { CandidateProfileUpdatePayload } from '@/modules/candidate/types'
 import type { ApiError } from '@/types'
 
 export const useCandidateProfileQuery = (
-  candidateId?: string,
+  userId?: string,
   enabled = true,
 ) => {
-  return useGetCandidateProfileQuery(candidateId as string, {
-    skip: !enabled || !candidateId,
+  return useGetCandidateProfileQuery(userId as string, {
+    skip: !enabled || !userId,
   })
 }
 
-export const useCandidateApplicationsQuery = (
-  applicationIds: string[] = [],
-  enabled = true,
-) => {
-  const normalizedApplicationIds = useMemo(
-    () => applicationIds.filter(Boolean),
-    [applicationIds],
-  )
-
-  return useGetCandidateApplicationsQuery(normalizedApplicationIds, {
-    skip: !enabled || normalizedApplicationIds.length === 0,
-  })
-}
+export const useCandidateDashboardQuery = (enabled = true) =>
+  useGetCandidateDashboardQuery(undefined, { skip: !enabled })
 
 type UpdateCandidateProfileVariables = {
-  candidateId: string
+  userId: string
   payload: CandidateProfileUpdatePayload
 }
 

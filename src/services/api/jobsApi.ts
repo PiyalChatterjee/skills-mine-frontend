@@ -1,84 +1,73 @@
 import { apiClient } from '@/services/api/axios'
-import type { ApiResponse, Job, JobsResponse } from '@/types'
+import { apiEndpoints, resolveEndpoint } from '@/services/api/endpoints'
+import type {
+  ApplyJobRequest,
+  ApplyJobResponse,
+  Job,
+  JobsListData,
+  JobsResponse,
+  SaveJobResponse,
+  SuccessEnvelope,
+} from '@/types'
 
-const JOBS_ENDPOINT = import.meta.env.VITE_JOBS_ENDPOINT ?? '/jobs'
-const JOBS_QUERY_PARAM = import.meta.env.VITE_JOBS_QUERY_PARAM ?? 'query'
-const JOBS_PAGE_PARAM = import.meta.env.VITE_JOBS_PAGE_PARAM ?? 'page'
-const JOBS_PAGE_SIZE_PARAM =
-  import.meta.env.VITE_JOBS_PAGE_SIZE_PARAM ?? 'pageSize'
-const JOBS_LIMIT_PARAM = import.meta.env.VITE_JOBS_LIMIT_PARAM ?? 'limit'
+const toJobsResponse = (payload: SuccessEnvelope<JobsListData> | JobsListData | Job[]): JobsResponse => {
+  const data = 'data' in payload ? payload.data : payload
 
-const isJobsResponse = (data: unknown): data is JobsResponse =>
-  typeof data === 'object' && data !== null && 'jobs' in data
-
-const isApiResponse = (data: unknown): data is ApiResponse<JobsResponse> =>
-  typeof data === 'object' && data !== null && 'data' in data
-
-const toEmptyJobsResponse = (): JobsResponse => ({
-  jobs: [],
-  total: 0,
-  page: 1,
-  pageSize: 0,
-})
-
-const normalizeJobsResponse = (payload: unknown): JobsResponse => {
-  if (isApiResponse(payload)) {
-    return normalizeJobsResponse(payload.data)
-  }
-
-  if (isJobsResponse(payload) && Array.isArray(payload.jobs)) {
+  if (Array.isArray(data)) {
     return {
-      jobs: payload.jobs,
-      total: typeof payload.total === 'number' ? payload.total : payload.jobs.length,
-      page: typeof payload.page === 'number' ? payload.page : 1,
-      pageSize:
-        typeof payload.pageSize === 'number' ? payload.pageSize : payload.jobs.length,
-    }
-  }
-
-  if (Array.isArray(payload)) {
-    return {
-      jobs: payload as Job[],
-      total: payload.length,
+      jobs: data,
+      total: data.length,
       page: 1,
-      pageSize: payload.length,
+      pageSize: data.length,
     }
   }
 
-  return toEmptyJobsResponse()
+  return {
+    jobs: data.jobs,
+    total: data.pagination.total,
+    page: data.pagination.page,
+    pageSize: data.pagination.pageSize,
+  }
 }
 
 export const jobsApi = {
   async list(
-    searchQuery?: string,
+    q?: string,
     page = 1,
-    pageSize?: number,
+    limit = 10,
+    status: 'Open' | 'Closed' | 'Draft' = 'Open',
   ): Promise<JobsResponse> {
-    const normalizedSearchQuery = searchQuery?.trim() ?? ''
-
-    const response = await apiClient.get<ApiResponse<JobsResponse> | JobsResponse | Job[]>(
-      JOBS_ENDPOINT,
-      {
-        params: {
-          ...(normalizedSearchQuery
-            ? { [JOBS_QUERY_PARAM]: normalizedSearchQuery }
-            : {}),
-          [JOBS_PAGE_PARAM]: page,
-          ...(typeof pageSize === 'number' && pageSize > 0
-            ? {
-                [JOBS_PAGE_SIZE_PARAM]: pageSize,
-                [JOBS_LIMIT_PARAM]: pageSize,
-              }
-            : {}),
-        },
+    const response = await apiClient.get<SuccessEnvelope<JobsListData> | JobsListData | Job[]>(apiEndpoints.jobs.list, {
+      params: {
+        status,
+        ...(q ? { [apiEndpoints.jobs.listQueryParam]: q } : {}),
+        [apiEndpoints.jobs.listPageParam]: page,
+        [apiEndpoints.jobs.listLimitParam]: limit,
       },
-    )
+    })
 
-    const payload =
-      typeof response.data === 'string'
-        ? (JSON.parse(response.data) as ApiResponse<JobsResponse> | JobsResponse | Job[])
-        : response.data
+    return toJobsResponse(response.data)
+  },
 
-    return normalizeJobsResponse(payload)
+  getById(jobId: string): Promise<SuccessEnvelope<Job>> {
+    return apiClient
+      .get(resolveEndpoint(apiEndpoints.jobs.details, { jobId }))
+      .then((response) => response.data)
+  },
+
+  save(jobId: string): Promise<SaveJobResponse> {
+    return apiClient
+      .post(resolveEndpoint(apiEndpoints.jobs.save, { jobId }))
+      .then((response) => response.data)
+  },
+
+  apply(jobId: string, payload: ApplyJobRequest): Promise<ApplyJobResponse> {
+    return apiClient
+      .post(resolveEndpoint(apiEndpoints.jobs.apply, { jobId }), payload)
+      .then((response) => response.data)
+  },
+
+  create(payload: Partial<Job>): Promise<SuccessEnvelope<Job>> {
+    return apiClient.post(apiEndpoints.jobs.list, payload).then((response) => response.data)
   },
 }

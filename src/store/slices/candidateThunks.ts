@@ -6,7 +6,7 @@ import type { CandidateProfileUpdatePayload } from '@/modules/candidate/types'
 import type { AppDispatch } from '@/store'
 
 type SaveProfileArgs = {
-  candidateId: string
+  userId: string
   payload: CandidateProfileUpdatePayload
 }
 
@@ -50,8 +50,8 @@ export const saveProfileThunk = createAsyncThunk<
   },
 )
 
-export const fetchCandidateProfileThunk = (candidateId: string) =>
-  apiSlice.endpoints.getCandidateProfile.initiate(candidateId, { forceRefetch: false })
+export const fetchCandidateProfileThunk = (userId: string) =>
+  apiSlice.endpoints.getCandidateProfile.initiate(userId, { forceRefetch: false })
 
-export const fetchCandidateApplicationsThunk = (applicationIds: string[]) =>
-  apiSlice.endpoints.getCandidateApplications.initiate(applicationIds, { forceRefetch: false })
+export const fetchCandidateDashboardThunk = () =>
+  apiSlice.endpoints.getCandidateDashboard.initiate(undefined, { forceRefetch: false })

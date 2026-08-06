@@ -24,8 +24,8 @@ import CvBuilderViewCvPage from '../components/CvBuilderViewCvPage'
 
 const CvBuilderPage = () => {
   const { user } = useAuth()
-  const candidateId = user?.id
-  const { data: candidateProfile } = useCandidateProfileQuery(candidateId)
+  const userId = user?.userId
+  const { data: candidateProfile } = useCandidateProfileQuery(userId)
 
   const cvBuilderPrefillData = useMemo(
     () => buildCvBuilderPrefillData(candidateProfile),
@@ -53,7 +53,7 @@ const CvBuilderPage = () => {
   const { handleDone, isSavingCandidateProfile } = useCvBuilderDone({
     activeView,
     goNext,
-    candidateId,
+    userId,
     candidateProfile,
     getFormValues: form.getValues,
     selectedLanguageEntries,

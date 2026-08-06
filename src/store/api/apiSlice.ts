@@ -1,6 +1,6 @@
 import { createApi, fakeBaseQuery } from '@reduxjs/toolkit/query/react'
 import { candidateApi, jobsApi } from '@/services/api'
-import type { CandidateApplication, CandidateProfile } from '@/modules/candidate/types'
+import type { CandidateDashboardData, CandidateProfile } from '@/modules/candidate/types'
 import type { CandidateProfileUpdatePayload } from '@/modules/candidate/types'
 import type { ApiError, JobsResponse } from '@/types'
 import { withMappedApiError } from '@/store/api/queryHelpers'
@@ -12,38 +12,35 @@ type JobsListArgs = {
 }
 
 type UpdateCandidateProfileArgs = {
-  candidateId: string
+  userId: string
   payload: CandidateProfileUpdatePayload
 }
 
 export const apiSlice = createApi({
   reducerPath: 'api',
   baseQuery: fakeBaseQuery<ApiError>(),
-  tagTypes: ['CandidateProfile', 'CandidateApplications', 'Jobs'],
+  tagTypes: ['CandidateProfile', 'CandidateDashboard', 'Jobs'],
   endpoints: (build) => ({
     getCandidateProfile: build.query<CandidateProfile, string>({
-      queryFn: (candidateId) => withMappedApiError(() => candidateApi.getById(candidateId)),
-      providesTags: (_result, _error, candidateId) => [
-        { type: 'CandidateProfile', id: candidateId },
+      queryFn: (userId) => withMappedApiError(() => candidateApi.getById(userId)),
+      providesTags: (_result, _error, userId) => [
+        { type: 'CandidateProfile', id: userId },
       ],
     }),
-    getCandidateApplications: build.query<CandidateApplication[], string[]>({
-      queryFn: (applicationIds) =>
-        withMappedApiError(() =>
-          Promise.all(
-            applicationIds.filter(Boolean).map((id) => candidateApi.getApplicationById(id)),
-          ),
-        ),
-      providesTags: (_result, _error, applicationIds) => [
-        ...applicationIds.map((id) => ({ type: 'CandidateApplications' as const, id })),
-        { type: 'CandidateApplications' as const, id: 'LIST' },
-      ],
+    getCandidateDashboard: build.query<CandidateDashboardData, void>({
+      queryFn: () =>
+        withMappedApiError(async () => {
+          const response = await candidateApi.getDashboard()
+          return response.data
+        }),
+      providesTags: [{ type: 'CandidateDashboard', id: 'SELF' }],
     }),
     updateCandidateProfile: build.mutation<CandidateProfile, UpdateCandidateProfileArgs>({
-      queryFn: ({ candidateId, payload }) =>
-        withMappedApiError(() => candidateApi.updateById(candidateId, payload)),
+      queryFn: ({ userId, payload }) =>
+        withMappedApiError(() => candidateApi.updateById(userId, payload)),
       invalidatesTags: (_result, _error, args) => [
-        { type: 'CandidateProfile', id: args.candidateId },
+        { type: 'CandidateProfile', id: args.userId },
+        { type: 'CandidateDashboard', id: 'SELF' },
       ],
     }),
     listJobsPage: build.query<JobsResponse, JobsListArgs>({
@@ -61,7 +58,7 @@ export const apiSlice = createApi({
 
 export const {
   useGetCandidateProfileQuery,
-  useGetCandidateApplicationsQuery,
+  useGetCandidateDashboardQuery,
   useUpdateCandidateProfileMutation,
   useLazyListJobsPageQuery,
 } = apiSlice

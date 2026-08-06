@@ -15,6 +15,7 @@ import {
   inviteSignupSchema,
   type InviteSignupFormValues,
 } from "@/modules/auth/types";
+import { authApi } from "@/services/api/authApi";
 import loginFaceImage from "@/assets/login-face-img.jpg";
 import loginVectorImage from "@/assets/login-vector.svg";
 import styles from "./SignupPage.module.css";
@@ -34,12 +35,11 @@ const SignupPage = () => {
     defaultValues: {
       firstName: "",
       lastName: "",
-      phoneNumber: "",
-      staffNumber: "",
+      email: "",
+      mobileNumber: "",
       password: "",
       confirmPassword: "",
-      passwordHint: "",
-      termsAccepted: false,
+      acceptTerms: false,
     },
   });
 
@@ -48,13 +48,19 @@ const SignupPage = () => {
   const hasPasswordValue = Boolean(passwordValue?.length);
   const hasConfirmPasswordValue = Boolean(confirmPasswordValue?.length);
 
-  const phoneNumberRegistration = register("phoneNumber", {
+  const phoneNumberRegistration = register("mobileNumber", {
     onChange: (event) => {
-      event.target.value = event.target.value.replace(/\D/g, "").slice(0, 9);
+      const digitsOnly = event.target.value.replace(/\D/g, "").slice(0, 15);
+      event.target.value = digitsOnly ? `+${digitsOnly}` : "";
     },
   });
 
-  const onSubmit = async (_values: InviteSignupFormValues) => {
+  const onSubmit = async (values: InviteSignupFormValues) => {
+    await authApi.register({
+      ...values,
+      acceptPrivacyPolicy: values.acceptTerms,
+    });
+
     setSubmitSuccess(
       "Your details were captured. You can now continue with Sign in.",
     );
@@ -120,30 +126,29 @@ const SignupPage = () => {
           </Box>
 
           <Box className={styles.fieldGroup}>
-            <Typography className={styles.fieldLabel}>Phone number</Typography>
+            <Typography className={styles.fieldLabel}>Email</Typography>
             <TextField
-              placeholder="Phone number"
-              error={Boolean(errors.phoneNumber)}
-              helperText={errors.phoneNumber?.message}
-              slotProps={{
-                htmlInput: {
-                  inputMode: "numeric",
-                  maxLength: 9,
-                  pattern: "[0-9]*",
-                },
-              }}
-              {...phoneNumberRegistration}
+              placeholder="Email"
+              error={Boolean(errors.email)}
+              helperText={errors.email?.message}
+              {...register("email")}
               className={styles.inputField}
             />
           </Box>
 
           <Box className={styles.fieldGroup}>
-            <Typography className={styles.fieldLabel}>Staff Number</Typography>
+            <Typography className={styles.fieldLabel}>Phone number</Typography>
             <TextField
-              placeholder="Staff Number"
-              error={Boolean(errors.staffNumber)}
-              helperText={errors.staffNumber?.message}
-              {...register("staffNumber")}
+              placeholder="Phone number"
+              error={Boolean(errors.mobileNumber)}
+              helperText={errors.mobileNumber?.message}
+              slotProps={{
+                htmlInput: {
+                  inputMode: "tel",
+                  maxLength: 16,
+                },
+              }}
+              {...phoneNumberRegistration}
               className={styles.inputField}
             />
           </Box>
@@ -204,20 +209,9 @@ const SignupPage = () => {
             />
           </Box>
 
-          <Box className={styles.fieldGroup}>
-            <Typography className={styles.fieldLabel}>Password Hint</Typography>
-            <TextField
-              placeholder="Something to help you remember"
-              error={Boolean(errors.passwordHint)}
-              helperText={errors.passwordHint?.message}
-              {...register("passwordHint")}
-              className={styles.inputField}
-            />
-          </Box>
-
           <Box className={styles.termsRow}>
             <Controller
-              name="termsAccepted"
+              name="acceptTerms"
               control={control}
               render={({ field }) => (
                 <Checkbox
@@ -245,9 +239,9 @@ const SignupPage = () => {
             </Typography>
           </Box>
 
-          {errors.termsAccepted?.message ? (
+          {errors.acceptTerms?.message ? (
             <Typography className={styles.formErrorText}>
-              {errors.termsAccepted.message}
+              {errors.acceptTerms.message}
             </Typography>
           ) : null}
 
