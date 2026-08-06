@@ -1,31 +1,15 @@
 import { apiClient } from '@/services/api/axios'
-import { PERMISSIONS, type AuthUser, type JwtTokens, type Permission, type Role } from '@/types/auth'
-
-export interface LoginRequest {
-  email: string
-  password: string
-}
-
-export interface SignUpRequest {
-  firstName: string
-  lastName: string
-  email: string
-  phoneNumber: string
-  password: string
-  confirmPassword: string
-  passwordHint: string
-  termsAccepted: boolean
-}
-
-export interface LoginResponse {
-  token: string
-  user: AuthUser
-  expiresIn: number
-}
-
-export interface SignUpResponse {
-  status: number
-}
+import {
+  PERMISSIONS,
+  type AuthUser,
+  type JwtTokens,
+  type LoginRequest,
+  type LoginResponse,
+  type Permission,
+  type Role,
+  type SignUpRequest,
+  type SignUpResponse,
+} from '@/types/auth'
 
 interface MockLoginUser {
   id: string | number

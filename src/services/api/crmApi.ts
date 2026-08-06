@@ -1,11 +1,5 @@
 import { apiClient } from '@/services/api/axios'
-import type { ApiResponse } from '@/types/api'
-
-export interface CrmAccountSummary {
-  id: string
-  name: string
-  segment: string
-}
+import type { ApiResponse, CrmAccountSummary } from '@/types/api'
 
 export const crmApi = {
   listAccounts: () => apiClient.get<ApiResponse<CrmAccountSummary[]>>('/crm/accounts'),

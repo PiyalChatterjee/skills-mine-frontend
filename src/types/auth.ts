@@ -32,3 +32,29 @@ export interface AuthSession {
   tokens: JwtTokens | null
   isAuthenticated: boolean
 }
+
+export interface LoginRequest {
+  email: string
+  password: string
+}
+
+export interface SignUpRequest {
+  firstName: string
+  lastName: string
+  email: string
+  phoneNumber: string
+  password: string
+  confirmPassword: string
+  passwordHint: string
+  termsAccepted: boolean
+}
+
+export interface LoginResponse {
+  token: string
+  user: AuthUser
+  expiresIn: number
+}
+
+export interface SignUpResponse {
+  status: number
+}

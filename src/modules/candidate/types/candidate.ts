@@ -57,3 +57,5 @@ export interface CandidateApplication {
   isGuest: boolean
   updatedAt: string
 }
+
+export type CandidateProfileUpdatePayload = Omit<CandidateProfile, 'candidateId'>

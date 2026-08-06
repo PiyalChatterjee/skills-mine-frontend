@@ -1,7 +1,7 @@
 import { createApi, fakeBaseQuery } from '@reduxjs/toolkit/query/react'
 import { candidateApi, jobsApi } from '@/services/api'
 import type { CandidateApplication, CandidateProfile } from '@/modules/candidate/types'
-import type { CandidateProfileUpdatePayload } from '@/services/api/candidateApi'
+import type { CandidateProfileUpdatePayload } from '@/modules/candidate/types'
 import type { ApiError, JobsResponse } from '@/types'
 import { withMappedApiError } from '@/store/api/queryHelpers'
 

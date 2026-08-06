@@ -16,3 +16,25 @@ export interface PaginatedResponse<TData> {
   page: number
   pageSize: number
 }
+
+export interface CandidateSummary {
+  id: string
+  fullName: string
+  primarySkill: string
+}
+
+export interface CrmAccountSummary {
+  id: string
+  name: string
+  segment: string
+}
+
+export interface DashboardPlaceholder {
+  message: string
+}
+
+export interface MandateSummary {
+  id: string
+  title: string
+  status: string
+}

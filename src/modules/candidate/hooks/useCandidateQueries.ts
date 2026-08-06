@@ -4,7 +4,7 @@ import {
   useGetCandidateProfileQuery,
   useUpdateCandidateProfileMutation as useUpdateCandidateProfileRtkMutation,
 } from '@/store/api/apiSlice'
-import type { CandidateProfileUpdatePayload } from '@/services/api/candidateApi'
+import type { CandidateProfileUpdatePayload } from '@/modules/candidate/types'
 import type { ApiError } from '@/types'
 
 export const useCandidateProfileQuery = (

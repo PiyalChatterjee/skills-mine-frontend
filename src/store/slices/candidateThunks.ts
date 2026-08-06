@@ -2,7 +2,7 @@ import { createAsyncThunk } from '@reduxjs/toolkit'
 import { apiSlice } from '@/store/api/apiSlice'
 import { pushNotification } from '@/store/slices/notificationSlice'
 import type { CandidateProfile } from '@/modules/candidate/types'
-import type { CandidateProfileUpdatePayload } from '@/services/api/candidateApi'
+import type { CandidateProfileUpdatePayload } from '@/modules/candidate/types'
 import type { AppDispatch } from '@/store'
 
 type SaveProfileArgs = {

@@ -1,9 +1,10 @@
 import { z } from 'zod'
 import { apiClient } from '@/services/api/axios'
-import type { ApiResponse, PaginatedResponse } from '@/types/api'
+import type { ApiResponse, CandidateSummary, PaginatedResponse } from '@/types/api'
 import type {
   CandidateApplication,
   CandidateProfile,
+  CandidateProfileUpdatePayload,
 } from '@/modules/candidate/types'
 
 const candidateEducationSchema = z.object({
@@ -65,14 +66,6 @@ const candidateApplicationResponseSchema: z.ZodType<CandidateApplication> = z.ob
   isGuest: z.boolean(),
   updatedAt: z.string(),
 })
-
-export interface CandidateSummary {
-  id: string
-  fullName: string
-  primarySkill: string
-}
-
-export type CandidateProfileUpdatePayload = Omit<CandidateProfile, 'candidateId'>
 
 export const candidateApi = {
   list: () =>
