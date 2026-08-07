@@ -9,17 +9,16 @@ export const candidateSignUpSchema = z
 		firstName: z.string().trim().min(1, 'First name is required'),
 		lastName: z.string().trim().min(1, 'Last name is required'),
 		email: emailSchema,
-		phoneNumber: z
+		mobileNumber: z
 			.string()
 			.trim()
 			.min(1, 'Phone number is required')
-			.regex(/^\d{9}$/, 'Enter a valid South African phone number (9 digits)'),
+			.regex(/^\+\d{10,15}$/, 'Use international format like +27821234567'),
 		password: z
 			.string()
 			.min(8, 'Password must be at least 8 characters long'),
 		confirmPassword: z.string().min(1, 'Please confirm your password'),
-		passwordHint: z.string().trim().min(1, 'Password hint is required'),
-		termsAccepted: z
+		acceptTerms: z
 			.boolean()
 			.refine((value) => value === true, {
 				message: 'You must accept the terms and privacy policy',
@@ -37,17 +36,16 @@ export const recruiterSignUpSchema = z
 		firstName: z.string().trim().min(1, 'First name is required'),
 		lastName: z.string().trim().min(1, 'Last name is required'),
 		email: emailSchema,
-		phoneNumber: z
+		mobileNumber: z
 			.string()
 			.trim()
 			.min(1, 'Phone number is required')
-			.regex(/^\d{9}$/, 'Enter a valid South African phone number (9 digits)'),
+			.regex(/^\+\d{10,15}$/, 'Use international format like +27821234567'),
 		password: z
 			.string()
 			.min(8, 'Password must be at least 8 characters long'),
 		confirmPassword: z.string().min(1, 'Please confirm your password'),
-		passwordHint: z.string().trim().min(1, 'Password hint is required'),
-		termsAccepted: z
+		acceptTerms: z
 			.boolean()
 			.refine((value) => value === true, {
 				message: 'You must accept the terms and privacy policy',

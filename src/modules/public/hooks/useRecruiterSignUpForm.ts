@@ -17,8 +17,12 @@ export const useRecruiterSignUpForm = () => {
     let submitted = false;
 
     await handleSubmit(async (formValues: SignUpFormValues) => {
-      const response = await authApi.recruiterSignup(formValues);
-      submitted = response.status === 201;
+      const response = await authApi.register({
+        ...formValues,
+        userType: 'RECRUITER',
+        acceptPrivacyPolicy: formValues.acceptTerms,
+      });
+      submitted = response.statusCode === 201;
     })();
 
     return submitted;

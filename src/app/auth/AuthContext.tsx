@@ -76,6 +76,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   const logout = useCallback(() => {
     tokenStorage.clearAuth()
     store.dispatch(apiSlice.util.resetApiState())
+    store.dispatch({ type: 'candidate/clearCandidateState' })
     setSession(defaultState)
   }, [])
 

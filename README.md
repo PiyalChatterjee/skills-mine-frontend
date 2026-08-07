@@ -4,6 +4,8 @@ Enterprise React foundation for SkillsMine, built for scale-first development wi
 
 This repository provides the application shell, route composition, auth boundaries, state management, API contracts, workflow engine, theming, and test setup. It now also includes implemented public and candidate-facing authentication UX (email sign-up flow scaffolding and Google OAuth sign-up entry), plus improved shared navigation and layout components.
 
+> For a full breakdown of the system architecture, API contract integration, route guards, state management design, and environment configuration, see [ARCHITECTURE.md](ARCHITECTURE.md).
+
 ## Stack
 
 - React 19
@@ -29,21 +31,10 @@ Create a local `.env` from `.env.example` and set the required values.
 
 Required:
 
-1. Add `VITE_GOOGLE_CLIENT_ID` to your local `.env` file.
-2. Use a Web client ID from Google Cloud Console.
+1. Add `VITE_GOOGLE_CLIENT_ID` to your local `.env` file (Web client ID from Google Cloud Console).
+2. Set `VITE_API_BASE_URL` to your backend API base (e.g. `http://localhost:4000/api`).
 
-Also available:
-
-- `VITE_API_BASE_URL`
-- `VITE_AUTH_LOGIN_ENDPOINT`
-- `VITE_AUTH_SIGNUP_ENDPOINT`
-- `VITE_RECRUITER_REGISTER_ENDPOINT`
-- `VITE_AUTH_ME_ENDPOINT`
-- `VITE_AUTH_LOGOUT_ENDPOINT`
-- `VITE_REQUEST_TIMEOUT_MS`
-- `VITE_MOCK_ERROR_RATE`
-- `VITE_MOCK_DELAY_MIN_MS`
-- `VITE_MOCK_DELAY_MAX_MS`
+All other `VITE_*` endpoint keys have hardcoded fallbacks matching the mock server contract and are optional. See [ARCHITECTURE.md](ARCHITECTURE.md) for the full environment variable catalog.
 
 Useful scripts:
 

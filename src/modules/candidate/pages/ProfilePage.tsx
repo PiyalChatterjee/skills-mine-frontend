@@ -1,13 +1,15 @@
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import {
+  Alert,
   Box,
   Button,
+  CircularProgress,
   Divider,
   Stack,
   TextField,
   Typography,
 } from "@mui/material";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { Controller, useFieldArray } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/app/auth/AuthContext";
@@ -15,7 +17,6 @@ import { PasswordVisibilityAdornment } from "@/components/PasswordVisibilityAdor
 import { useZodForm } from "@/hooks/useZodForm";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import type { AppDispatch } from "@/store";
-import { apiSlice } from "@/store/api/apiSlice";
 import { saveProfileThunk } from "@/store/slices/candidateThunks";
 import {
   ProfileSelectField,
@@ -27,6 +28,7 @@ import {
   PROFILE_SELECT_OPTIONS,
   profileFormSchema,
 } from "@/modules/candidate/pages/profileForm.config";
+import { useCandidateProfileQuery } from "@/modules/candidate/hooks/useCandidateQueries";
 import cameraPlaceholderIconSrc from "@/assets/icons/camera-placeholder.svg";
 import eyeOffIconSrc from "@/assets/icons/eye-off.svg";
 import pencilLineIconSrc from "@/assets/icons/pencil-line.svg";
@@ -94,10 +96,14 @@ const ProfilePage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
   const { user } = useAuth();
-  const candidateId = user?.id;
-  const candidateProfile = useSelector(
-    apiSlice.endpoints.getCandidateProfile.select(candidateId ?? ''),
-  ).data;
+  const userId = user?.userId;
+  const {
+    data: candidateProfile,
+    isLoading,
+    isFetching,
+    isError,
+    error,
+  } = useCandidateProfileQuery(userId, Boolean(userId));
   const resolvedCandidateProfile = candidateProfile ?? null;
   const {
     control,
@@ -175,13 +181,13 @@ const ProfilePage = () => {
   }, [profilePhotoPreviewUrl]);
 
   const handleDashboard = async () => {
+    if (!userId || isLoading || isFetching) {
+      return;
+    }
+
     if (isDirty) {
       const isFormValid = await trigger();
       if (!isFormValid) {
-        return;
-      }
-
-      if (!candidateId) {
         return;
       }
 
@@ -192,7 +198,7 @@ const ProfilePage = () => {
 
       try {
         const updatedProfile = await dispatch(
-          saveProfileThunk({ candidateId, payload }),
+          saveProfileThunk({ userId, payload }),
         ).unwrap();
 
         reset(getProfileFormValues(updatedProfile));
@@ -213,9 +219,40 @@ const ProfilePage = () => {
   };
 
   const activeProfilePhotoUrl =
-    profilePhotoPreviewUrl ?? resolvedCandidateProfile?.profilePhotoUrl ?? null;
+    profilePhotoPreviewUrl ?? resolvedCandidateProfile?.personalDetails?.profileImageUrl ?? null;
   const passwordValue = watch("password");
   const hasPasswordValue = Boolean(passwordValue?.length);
+
+  if (!userId) {
+    return (
+      <Box className={styles.pageRoot}>
+        <Typography component="p">
+          Unable to load profile because no authenticated user is available.
+        </Typography>
+      </Box>
+    );
+  }
+
+  if ((isLoading || isFetching) && !resolvedCandidateProfile) {
+    return (
+      <Box className={styles.pageRoot}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (isError) {
+    const message =
+      typeof error === "object" && error !== null && "message" in error
+        ? String((error as { message?: unknown }).message ?? "Failed to load profile.")
+        : "Failed to load profile.";
+
+    return (
+      <Box className={styles.pageRoot}>
+        <Alert severity="error">{message}</Alert>
+      </Box>
+    );
+  }
 
   return (
     <Box className={styles.pageRoot}>
@@ -477,6 +514,7 @@ const ProfilePage = () => {
               variant="contained"
               className={styles.dashboardButton}
               onClick={handleDashboard}
+              disabled={isLoading || isFetching}
             >
               {isDirty ? "Save Changes" : "Go to Your Dashboard"}
             </Button>

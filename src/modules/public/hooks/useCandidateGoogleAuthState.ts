@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { TokenResponse } from "@react-oauth/google";
 import type { GoogleAuthStatus } from "@/modules/public/components/SignUpDrawer.types";
+import { authApi } from "@/services/api/authApi";
 
 export const useCandidateGoogleAuthState = () => {
   const [pendingGoogleAuth, setPendingGoogleAuth] = useState(false);
@@ -18,15 +19,19 @@ export const useCandidateGoogleAuthState = () => {
     setGoogleAuthMessage("");
   };
 
-  const handleGoogleAuthSuccess = (tokenResponse: TokenResponse) => {
-    setGoogleAuthStatus("success");
-    setGoogleAuthMessage(
-      "Google sign-in succeeded. Final backend token exchange is still TODO.",
-    );
-    setPendingGoogleAuth(false);
-
-    // TODO: Exchange tokenResponse.access_token with backend auth endpoint.
-    console.info("Google token response", tokenResponse);
+  const handleGoogleAuthSuccess = async (tokenResponse: TokenResponse) => {
+    try {
+      await authApi.exchangeGoogleToken({
+        accessToken: tokenResponse.access_token,
+      });
+      setGoogleAuthStatus("success");
+      setGoogleAuthMessage("Google sign-in succeeded.");
+    } catch {
+      setGoogleAuthStatus("error");
+      setGoogleAuthMessage("Google sign-in failed. Please try again.");
+    } finally {
+      setPendingGoogleAuth(false);
+    }
   };
 
   const handleGoogleAuthError = () => {

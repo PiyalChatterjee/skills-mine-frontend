@@ -1,49 +1,70 @@
-import { createApi, fakeBaseQuery } from '@reduxjs/toolkit/query/react'
-import { candidateApi, jobsApi } from '@/services/api'
-import type { CandidateApplication, CandidateProfile } from '@/modules/candidate/types'
-import type { CandidateProfileUpdatePayload } from '@/services/api/candidateApi'
-import type { ApiError, JobsResponse } from '@/types'
-import { withMappedApiError } from '@/store/api/queryHelpers'
+import { createApi, fakeBaseQuery } from "@reduxjs/toolkit/query/react";
+import { candidateApi, jobsApi } from "@/services/api";
+import type {
+  CandidateDashboardData,
+  CandidateProfile,
+} from "@/modules/candidate/types";
+import type { CandidateProfileUpdatePayload } from "@/modules/candidate/types";
+import type {
+  ApiError,
+  BuildMyCvData,
+  BuildMyCvState,
+  JobsResponse,
+  SaveBuildMyCvRequest,
+  UpdateBuildMyCvRequest,
+  UserProfile,
+  UserSkill,
+} from "@/types";
+import { withMappedApiError } from "@/store/api/queryHelpers";
 
 type JobsListArgs = {
-  searchQuery?: string
-  page: number
-  pageSize: number
-}
+  searchQuery?: string;
+  page: number;
+  pageSize: number;
+};
 
 type UpdateCandidateProfileArgs = {
-  candidateId: string
-  payload: CandidateProfileUpdatePayload
-}
+  userId: string;
+  payload: CandidateProfileUpdatePayload;
+};
 
 export const apiSlice = createApi({
-  reducerPath: 'api',
+  reducerPath: "api",
   baseQuery: fakeBaseQuery<ApiError>(),
-  tagTypes: ['CandidateProfile', 'CandidateApplications', 'Jobs'],
+  tagTypes: [
+    "CandidateProfile",
+    "CandidateDashboard",
+    "Jobs",
+    "UserProfile",
+    "Skills",
+    "BuildMyCv",
+  ],
   endpoints: (build) => ({
     getCandidateProfile: build.query<CandidateProfile, string>({
-      queryFn: (candidateId) => withMappedApiError(() => candidateApi.getById(candidateId)),
-      providesTags: (_result, _error, candidateId) => [
-        { type: 'CandidateProfile', id: candidateId },
+      queryFn: (userId) =>
+        withMappedApiError(() => candidateApi.getById(userId)),
+      providesTags: (_result, _error, userId) => [
+        { type: "CandidateProfile", id: userId },
       ],
     }),
-    getCandidateApplications: build.query<CandidateApplication[], string[]>({
-      queryFn: (applicationIds) =>
-        withMappedApiError(() =>
-          Promise.all(
-            applicationIds.filter(Boolean).map((id) => candidateApi.getApplicationById(id)),
-          ),
-        ),
-      providesTags: (_result, _error, applicationIds) => [
-        ...applicationIds.map((id) => ({ type: 'CandidateApplications' as const, id })),
-        { type: 'CandidateApplications' as const, id: 'LIST' },
-      ],
+    getCandidateDashboard: build.query<CandidateDashboardData, string>({
+      queryFn: (userId) =>
+        withMappedApiError(async () => {
+          const response = await candidateApi.getDashboard(userId);
+          return response.data;
+        }),
+      providesTags: [{ type: "CandidateDashboard", id: "SELF" }],
     }),
-    updateCandidateProfile: build.mutation<CandidateProfile, UpdateCandidateProfileArgs>({
-      queryFn: ({ candidateId, payload }) =>
-        withMappedApiError(() => candidateApi.updateById(candidateId, payload)),
+    updateCandidateProfile: build.mutation<
+      CandidateProfile,
+      UpdateCandidateProfileArgs
+    >({
+      queryFn: ({ userId, payload }) =>
+        withMappedApiError(() => candidateApi.updateById(userId, payload)),
       invalidatesTags: (_result, _error, args) => [
-        { type: 'CandidateProfile', id: args.candidateId },
+        { type: "CandidateProfile", id: args.userId },
+        { type: "CandidateDashboard", id: "SELF" },
+        { type: "UserProfile", id: args.userId },
       ],
     }),
     listJobsPage: build.query<JobsResponse, JobsListArgs>({
@@ -51,17 +72,59 @@ export const apiSlice = createApi({
         withMappedApiError(() => jobsApi.list(searchQuery, page, pageSize)),
       providesTags: (_result, _error, args) => [
         {
-          type: 'Jobs',
-          id: `${args.searchQuery ?? ''}:${args.page}:${args.pageSize}`,
+          type: "Jobs",
+          id: `${args.searchQuery ?? ""}:${args.page}:${args.pageSize}`,
         },
       ],
     }),
+    getUserProfile: build.query<UserProfile, string>({
+      queryFn: (userId) =>
+        withMappedApiError(() => candidateApi.getUserProfile(userId)),
+      providesTags: (_result, _error, userId) => [
+        { type: "UserProfile", id: userId },
+      ],
+    }),
+    saveJob: build.mutation<{ success: boolean }, string>({
+      queryFn: (jobId) => withMappedApiError(() => jobsApi.save(jobId)),
+      // invalidate UserProfile so savedJobs list refetches
+      invalidatesTags: () => [{ type: "UserProfile", id: "SELF" }],
+    }),
+    searchSkills: build.query<
+      UserSkill[],
+      { keyword: string; userId?: string }
+    >({
+      queryFn: ({ keyword, userId }) =>
+        withMappedApiError(() => candidateApi.searchSkills(keyword, userId)),
+      providesTags: (_result, _error, args) => [
+        { type: "Skills", id: args.keyword },
+      ],
+    }),
+    getBuildMyCv: build.query<BuildMyCvState, void>({
+      queryFn: () => withMappedApiError(() => candidateApi.getBuildMyCv()),
+      providesTags: [{ type: "BuildMyCv", id: "SELF" }],
+    }),
+    saveBuildMyCv: build.mutation<BuildMyCvData, SaveBuildMyCvRequest>({
+      queryFn: (payload) =>
+        withMappedApiError(() => candidateApi.saveBuildMyCv(payload)),
+      invalidatesTags: [{ type: "BuildMyCv", id: "SELF" }],
+    }),
+    updateBuildMyCv: build.mutation<BuildMyCvData, UpdateBuildMyCvRequest>({
+      queryFn: (payload) =>
+        withMappedApiError(() => candidateApi.updateBuildMyCv(payload)),
+      invalidatesTags: [{ type: "BuildMyCv", id: "SELF" }],
+    }),
   }),
-})
+});
 
 export const {
   useGetCandidateProfileQuery,
-  useGetCandidateApplicationsQuery,
+  useGetCandidateDashboardQuery,
   useUpdateCandidateProfileMutation,
   useLazyListJobsPageQuery,
-} = apiSlice
+  useGetUserProfileQuery,
+  useSaveJobMutation,
+  useSearchSkillsQuery,
+  useGetBuildMyCvQuery,
+  useSaveBuildMyCvMutation,
+  useUpdateBuildMyCvMutation,
+} = apiSlice;

@@ -76,20 +76,15 @@ const ArrowRightIcon = () => (
 
 // ── Helpers ────────────────────────────────────────────────────────────
 
-const formatTimestamp = (iso: string) => {
-  const d = new Date(iso)
-  return d.toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' }) +
-    ' ' + d.toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' })
-}
-
 // Stage badge colors
 const STAGE_COLORS: Record<PipelineStage, string> = {
   Inbound:    '#3aafb9',
   Screening:  '#2196a8',
   Assessment: '#f59e0b',
   Interview:  '#7c5cd8',
-  Shortlist:  '#2196a8',
+  Shortlisted:  '#2196a8',
   Offer:      '#4BAF73',
+  Placed:     '#2f9a5f',
   Closed:     '#d96b6b',
 }
 

@@ -17,8 +17,11 @@ export const useCandidateSignUpForm = () => {
     let submitted = false;
 
     await handleSubmit(async (formValues: SignUpFormValues) => {
-      const response = await authApi.signup(formValues);
-      submitted = response.status === 201;
+      const response = await authApi.register({
+        ...formValues,
+        acceptPrivacyPolicy: formValues.acceptTerms,
+      });
+      submitted = response.statusCode === 201;
     })();
 
     return submitted;

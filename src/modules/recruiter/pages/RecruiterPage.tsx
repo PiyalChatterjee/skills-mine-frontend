@@ -1,17 +1,19 @@
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useDispatch, useSelector } from 'react-redux'
-import { Box, Button, ButtonBase, Typography } from '@mui/material'
+import { useDispatch } from 'react-redux'
+import { Alert, Box, Button, ButtonBase, CircularProgress, Typography } from '@mui/material'
 import { RecruiterSidebar } from '@/modules/recruiter/components/RecruiterSidebar'
 import { ROUTE_PATHS } from '@/routes/routePaths'
+import { mandateApi } from '@/services/api/mandateApi'
 import { selectMandate } from '@/store/slices/recruiterPipelineSlice'
-import type { RootState } from '@/store'
+import type { RecruiterDashboardData, RecruiterMandatesData } from '@/types/api'
 import styles from './RecruiterPage.module.css'
 
 // ── Types ─────────────────────────────────────────────────────────────
 
 type PipelineStageLabel =
   | 'Inbound' | 'Screening' | 'Assessment'
-  | 'Interview' | 'Shortlist' | 'Offer' | 'Closed'
+  | 'Interview' | 'Shortlisted' | 'Offer' | 'Placed' | 'Closed'
 
 type CardTone = 'cream' | 'lilac' | 'yellow' | 'blush' | 'ice' | 'mint' | 'success' | 'danger'
 
@@ -78,12 +80,12 @@ const PIPELINE_COLUMNS: PipelineColumn[] = [
     ],
   },
   {
-    label: 'Shortlist',
+    label: 'Shortlisted',
     colorClass: styles.colShortlist,
     cards: [
-      { id: 'sh1', title: 'Water Treatme...', company: 'MayFly Agri (pty)...', companyIcon: '▣', tone: 'ice', stage: 'Shortlist' },
-      { id: 'sh2', title: 'Experience Acc...', company: 'Full Service Carto...', companyIcon: '⌁', tone: 'ice', stage: 'Shortlist' },
-      { id: 'sh3', title: 'Work Integrate...', company: 'ATS Testing',           companyIcon: '◉', tone: 'ice', stage: 'Shortlist' },
+      { id: 'sh1', title: 'Water Treatme...', company: 'MayFly Agri (pty)...', companyIcon: '▣', tone: 'ice', stage: 'Shortlisted' },
+      { id: 'sh2', title: 'Experience Acc...', company: 'Full Service Carto...', companyIcon: '⌁', tone: 'ice', stage: 'Shortlisted' },
+      { id: 'sh3', title: 'Work Integrate...', company: 'ATS Testing',           companyIcon: '◉', tone: 'ice', stage: 'Shortlisted' },
     ],
   },
   {
@@ -95,6 +97,11 @@ const PIPELINE_COLUMNS: PipelineColumn[] = [
       { id: 'o3', title: 'Graduates (Ba...', company: 'Unique Personnel',    companyIcon: '♙', tone: 'mint', stage: 'Offer' },
       { id: 'o4', title: 'Banking Adviso...', company: 'FNB (Private Seg...', companyIcon: '▣', tone: 'mint', stage: 'Offer' },
     ],
+  },
+  {
+    label: 'Placed',
+    colorClass: styles.colOffer,
+    cards: [],
   },
   {
     label: 'Closed',
@@ -193,26 +200,104 @@ const PipelineCardItem = ({ card, onView, onExpand }: PipelineCardProps) => (
 const RecruiterPage = () => {
   const navigate = useNavigate()
   const dispatch = useDispatch()
-  const stageCounts = useSelector((state: RootState) => state.recruiterPipeline.stageCounts)
+  const [dashboardData, setDashboardData] = useState<RecruiterDashboardData | null>(null)
+  const [mandatesData, setMandatesData] = useState<RecruiterMandatesData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+
+  useEffect(() => {
+    let isActive = true
+
+    const loadDashboard = async () => {
+      try {
+        setLoading(true)
+        setErrorMessage(null)
+
+        const [dashboardResponse, mandatesResponse] = await Promise.all([
+          mandateApi.getRecruiterDashboard(),
+          mandateApi.listRecruiterMandates({ page: 1, limit: 12 }),
+        ])
+
+        if (!isActive) {
+          return
+        }
+
+        setDashboardData(dashboardResponse.data)
+        setMandatesData(mandatesResponse.data)
+      } catch (error) {
+        if (!isActive) {
+          return
+        }
+
+        const message =
+          typeof error === 'object' && error !== null && 'message' in error
+            ? String((error as { message?: unknown }).message ?? 'Failed to load recruiter dashboard.')
+            : 'Failed to load recruiter dashboard.'
+        setErrorMessage(message)
+      } finally {
+        if (isActive) {
+          setLoading(false)
+        }
+      }
+    }
+
+    void loadDashboard()
+
+    return () => {
+      isActive = false
+    }
+  }, [])
+
+  const stageCounts = useMemo(() => {
+    const counts: Record<PipelineStageLabel, number> = {
+      Inbound: 0,
+      Screening: 0,
+      Assessment: 0,
+      Interview: 0,
+      Shortlisted: 0,
+      Offer: 0,
+      Placed: 0,
+      Closed: 0,
+    }
+
+    dashboardData?.pipeline.forEach((stage) => {
+      const normalized = stage.stage.trim().toLowerCase()
+      if (normalized === 'inbound') counts.Inbound = stage.count
+      if (normalized === 'screening') counts.Screening = stage.count
+      if (normalized === 'assessment') counts.Assessment = stage.count
+      if (normalized === 'interview') counts.Interview = stage.count
+      if (normalized === 'shortlisted') counts.Shortlisted = stage.count
+      if (normalized === 'offer') counts.Offer = stage.count
+      if (normalized === 'placed') counts.Placed = stage.count
+      if (normalized === 'closed') counts.Closed = stage.count
+    })
+
+    return counts
+  }, [dashboardData])
+
+  const defaultMandateId = PIPELINE_COLUMNS[0]?.cards[0]?.id ?? 'c1'
 
   const handleNewMandate = () => {
-    // TODO: Navigate to new mandate page
+    navigate(ROUTE_PATHS.recruiterNewMandate)
   }
 
   const handleViewCvsDue = () => {
-    // TODO: Navigate to CVs due view
+    dispatch(selectMandate(defaultMandateId))
+    navigate(ROUTE_PATHS.recruiterMandate.replace(':cardId', defaultMandateId))
   }
 
   const handleViewInterviews = () => {
-    // TODO: Navigate to interviews to schedule
+    dispatch(selectMandate(defaultMandateId))
+    navigate(ROUTE_PATHS.recruiterMandate.replace(':cardId', defaultMandateId))
   }
 
   const handleViewOfferLetters = () => {
-    // TODO: Navigate to offer letter deadlines
+    dispatch(selectMandate(defaultMandateId))
+    navigate(ROUTE_PATHS.recruiterMandate.replace(':cardId', defaultMandateId))
   }
 
   const handleViewMore = () => {
-    // TODO: Navigate to full pipeline column view
+    navigate(ROUTE_PATHS.recruiter)
   }
 
   const handleCardView = (cardId: string, stage: PipelineStageLabel) => {
@@ -225,7 +310,18 @@ const RecruiterPage = () => {
   }
 
   const handleCardExpand = () => {
-    // TODO: Open card expand/detail panel
+    navigate(ROUTE_PATHS.recruiter)
+  }
+
+  if (loading) {
+    return (
+      <Box className={styles.shell}>
+        <RecruiterSidebar />
+        <Box className={styles.pageRoot}>
+          <CircularProgress />
+        </Box>
+      </Box>
+    )
   }
 
   return (
@@ -233,6 +329,7 @@ const RecruiterPage = () => {
       <RecruiterSidebar />
 
       <Box className={styles.pageRoot}>
+      {errorMessage ? <Alert severity="error">{errorMessage}</Alert> : null}
       {/* ── Page Header ── */}
       <Box className={styles.pageHeader}>
         <Typography component="h1" className={styles.pageTitle}>
@@ -289,7 +386,7 @@ const RecruiterPage = () => {
           Recruitment Pipeline
         </Typography>
         <Typography component="p" className={styles.sectionSubtitle}>
-          53 active mandates across 30 companies
+          {`${mandatesData?.pagination.total ?? 0} active mandates`}
         </Typography>
 
         <Box className={styles.pipelineWrapper}>

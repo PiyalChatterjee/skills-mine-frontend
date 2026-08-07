@@ -24,10 +24,10 @@ export const CandidateLayout = () => {
   const { isAuthenticated, tokens, user } = useAuth()
 
   useEffect(() => {
-    if (user?.id) {
-      dispatch(fetchCandidateProfileThunk(user.id))
+    if (user?.userId) {
+      dispatch(fetchCandidateProfileThunk(user.userId))
     }
-  }, [user?.id, dispatch])
+  }, [user?.userId, dispatch])
 
   const accessToken = tokens?.accessToken
   const hasValidAccessToken = accessToken ? !isJwtExpired(accessToken) : false
@@ -89,7 +89,7 @@ export const CandidateLayout = () => {
   }
 
   const candidateNavItems = buildHeaderNavItems({
-    keys: getRoleHeaderNavKeys(user?.role ?? 'candidate'),
+    keys: getRoleHeaderNavKeys(user?.role ?? 'JOB_SEEKER'),
     pathname: location.pathname,
     actions: candidateHeaderActions,
   })

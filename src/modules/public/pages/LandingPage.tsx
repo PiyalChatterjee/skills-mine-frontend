@@ -3,6 +3,7 @@ import {
   Button,
   Card,
   Chip,
+  CircularProgress,
   IconButton,
   InputAdornment,
   TextField,
@@ -44,6 +45,11 @@ type Metric = {
   cardClassName: string;
 };
 
+const toCityFromLocation = (location: string) => {
+  const [city] = location.split(",");
+  return city?.trim() || "Unknown";
+};
+
 const features: Feature[] = [
   { id: "1", label: "ATS-Optimised CVs", iconSrc: shieldIconUrl },
   { id: "2", label: "Suitability Scores", iconSrc: chartIconUrl },
@@ -72,11 +78,6 @@ const metrics: Metric[] = [
   },
 ];
 
-const toCityFromLocation = (location: string) => {
-  const [city] = location.split(",");
-  return city?.trim() || "Unknown";
-};
-
 const LandingPage = () => {
   const { openSignUpDrawer } = useOutletContext<PublicLayoutOutletContext>();
   const dispatch = useDispatch();
@@ -100,6 +101,7 @@ const LandingPage = () => {
     visibleJobs,
     isJobsError,
     jobsError,
+    isJobsLoading,
     hasNextPage,
     isFetchingNextPage,
     fetchNextPage,
@@ -427,6 +429,10 @@ const LandingPage = () => {
             >
               {jobsError?.message || "Failed to load jobs."}
             </Typography>
+          ) : isJobsLoading ? (
+            <Box className={styles.jobsLoadingState} aria-live="polite" aria-busy="true">
+              <CircularProgress size={28} />
+            </Box>
           ) : allJobs ? (
             visibleJobs.length > 0 ? (
               <>
@@ -470,7 +476,7 @@ const LandingPage = () => {
                             <Box className={styles.tagRow}>
                               {[
                                 job.industry,
-                                toCityFromLocation(job.location),
+                                toCityFromLocation(job.location ?? ''),
                                 job.employmentType,
                               ].map((tag) => (
                                 <Chip

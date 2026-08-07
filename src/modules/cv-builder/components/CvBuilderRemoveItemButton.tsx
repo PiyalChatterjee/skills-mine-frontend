@@ -1,15 +1,19 @@
-import { Box, IconButton } from '@mui/material'
-import styles from '../pages/CvBuilderPage.module.css'
+import { Box, IconButton } from "@mui/material";
+import styles from "../pages/CvBuilderPage.module.css";
 
 type CvBuilderRemoveItemButtonProps = {
-  canRemove: boolean
-  ariaLabel: string
-  onClick: () => void
-}
+  canRemove: boolean;
+  ariaLabel: string;
+  onClick: () => void;
+};
 
-const CvBuilderRemoveItemButton = ({ canRemove, ariaLabel, onClick }: CvBuilderRemoveItemButtonProps) => {
+const CvBuilderRemoveItemButton = ({
+  canRemove,
+  ariaLabel,
+  onClick,
+}: CvBuilderRemoveItemButtonProps) => {
   if (!canRemove) {
-    return null
+    return null;
   }
 
   return (
@@ -20,11 +24,15 @@ const CvBuilderRemoveItemButton = ({ canRemove, ariaLabel, onClick }: CvBuilderR
       aria-label={ariaLabel}
       disableRipple
     >
-      <Box component="span" className={styles.removeSkillIcon} aria-hidden="true">
+      <Box
+        component="span"
+        className={styles.removeSkillIcon}
+        aria-hidden="true"
+      >
         ✕
       </Box>
     </IconButton>
-  )
-}
+  );
+};
 
-export default CvBuilderRemoveItemButton
+export default CvBuilderRemoveItemButton;

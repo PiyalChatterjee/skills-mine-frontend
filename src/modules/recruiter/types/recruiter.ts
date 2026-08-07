@@ -4,8 +4,9 @@ export type PipelineStage =
   | 'Screening'
   | 'Assessment'
   | 'Interview'
-  | 'Shortlist'
+  | 'Shortlisted'
   | 'Offer'
+  | 'Placed'
   | 'Closed'
 
 export type ClosedReason = 'Hired' | 'Rejected' | null
