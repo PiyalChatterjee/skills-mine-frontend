@@ -3,6 +3,7 @@ import {
   Button,
   Card,
   Chip,
+  CircularProgress,
   IconButton,
   InputAdornment,
   TextField,
@@ -100,6 +101,7 @@ const LandingPage = () => {
     visibleJobs,
     isJobsError,
     jobsError,
+    isJobsLoading,
     hasNextPage,
     isFetchingNextPage,
     fetchNextPage,
@@ -427,6 +429,10 @@ const LandingPage = () => {
             >
               {jobsError?.message || "Failed to load jobs."}
             </Typography>
+          ) : isJobsLoading ? (
+            <Box className={styles.jobsLoadingState} aria-live="polite" aria-busy="true">
+              <CircularProgress size={28} />
+            </Box>
           ) : allJobs ? (
             visibleJobs.length > 0 ? (
               <>

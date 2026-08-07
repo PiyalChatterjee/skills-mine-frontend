@@ -523,6 +523,18 @@
     gap: 24px;
 }
 
+.jobsLoadingState {
+    margin-top: 40px;
+    min-height: 160px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.jobsLoadingState :global(.MuiCircularProgress-root) {
+    color: #03478c;
+}
+
 .jobsLoadTriggerWrap {
     margin-top: 20px;
     display: flex;

@@ -292,7 +292,7 @@ describe('useCvBuilderDone', () => {
     const { result } = renderHook(
       () =>
         useCvBuilderDone({
-          activeView: 'step',
+            activeView: 'form',
           goNext,
           getFormValues: () => defaultFormValues,
           selectedLanguageEntries: ['English'],
