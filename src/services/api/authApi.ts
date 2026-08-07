@@ -1,6 +1,6 @@
-import { decodeJwtPayload } from '@/app/auth/jwt'
-import { apiClient } from '@/services/api/axios'
-import { apiEndpoints } from '@/services/api/endpoints'
+import { decodeJwtPayload } from "@/app/auth/jwt";
+import { apiClient } from "@/services/api/axios";
+import { apiEndpoints } from "@/services/api/endpoints";
 import {
   PERMISSIONS,
   type AuthUser,
@@ -15,60 +15,76 @@ import {
   type RegisterRequest,
   type Role,
   type SignUpResponse,
-} from '@/types/auth'
+} from "@/types/auth";
 
 const rolePermissions: Record<Role, Permission[]> = {
-  JOB_SEEKER: ['VIEW_JOBS', 'APPLY_JOB', 'UPLOAD_CV', 'VIEW_DASHBOARD'],
+  JOB_SEEKER: ["VIEW_JOBS", "APPLY_JOB", "UPLOAD_CV", "VIEW_DASHBOARD"],
   RECRUITER: [
-    'MANDATE_CREATE',
-    'MANDATE_EDIT',
-    'PIPELINE_ADVANCE',
-    'CRM_EDIT',
-    'CANDIDATE_VIEW',
-    'VIEW_DASHBOARD',
+    "MANDATE_CREATE",
+    "MANDATE_EDIT",
+    "PIPELINE_ADVANCE",
+    "CRM_EDIT",
+    "CANDIDATE_VIEW",
+    "VIEW_DASHBOARD",
   ],
-  MANCO: ['PIPELINE_VIEW', 'REPORT_VIEW', 'RECRUITER_VIEW', 'VIEW_DASHBOARD'],
-  ADMIN: ['ALL'],
-}
+  MANCO: ["PIPELINE_VIEW", "REPORT_VIEW", "RECRUITER_VIEW", "VIEW_DASHBOARD"],
+  ADMIN: ["ALL"],
+};
 
 const normalizeRole = (value: unknown): Role => {
-  if (value === 'JOB_SEEKER' || value === 'RECRUITER' || value === 'MANCO' || value === 'ADMIN') {
-    return value
+  if (
+    value === "JOB_SEEKER" ||
+    value === "RECRUITER" ||
+    value === "MANCO" ||
+    value === "ADMIN"
+  ) {
+    return value;
   }
 
-  return 'JOB_SEEKER'
-}
+  return "JOB_SEEKER";
+};
 
 const normalizePermissions = (roles: Role[]): Permission[] => {
-  const merged = new Set<Permission>()
+  const merged = new Set<Permission>();
 
   roles.forEach((role) => {
     rolePermissions[role].forEach((permission) => {
-      if (permission === 'ALL') {
-        PERMISSIONS.forEach((item) => merged.add(item))
-        return
+      if (permission === "ALL") {
+        PERMISSIONS.forEach((item) => merged.add(item));
+        return;
       }
 
-      merged.add(permission)
-    })
-  })
+      merged.add(permission);
+    });
+  });
 
-  return Array.from(merged)
-}
+  return Array.from(merged);
+};
 
-const buildAuthUserFromToken = (accessToken: string, rolesFromResponse: Role[], profileCompleted: number): AuthUser => {
-  const payload = decodeJwtPayload(accessToken)
-  const roles = rolesFromResponse.length > 0 ? rolesFromResponse : [normalizeRole(payload?.roles?.[0])]
-  const role = roles[0] ?? 'JOB_SEEKER'
-  const firstName = payload?.firstName ?? payload?.name?.split(' ')?.[0] ?? 'SkillsMine'
-  const lastName = payload?.lastName ?? payload?.name?.split(' ')?.slice(1).join(' ') ?? 'User'
-  const displayName = payload?.name ?? `${firstName} ${lastName}`.trim()
-  const userId = payload?.userId ?? payload?.sub ?? ''
+const buildAuthUserFromToken = (
+  accessToken: string,
+  rolesFromResponse: Role[],
+  profileCompleted: number,
+): AuthUser => {
+  const payload = decodeJwtPayload(accessToken);
+  const roles =
+    rolesFromResponse.length > 0
+      ? rolesFromResponse
+      : [normalizeRole(payload?.roles?.[0])];
+  const role = roles[0] ?? "JOB_SEEKER";
+  const firstName =
+    payload?.firstName ?? payload?.name?.split(" ")?.[0] ?? "SkillsMine";
+  const lastName =
+    payload?.lastName ??
+    payload?.name?.split(" ")?.slice(1).join(" ") ??
+    "User";
+  const displayName = payload?.name ?? `${firstName} ${lastName}`.trim();
+  const userId = payload?.userId ?? payload?.sub ?? "";
 
   return {
     id: userId,
     userId,
-    email: payload?.email ?? '',
+    email: payload?.email ?? "",
     firstName,
     lastName,
     displayName,
@@ -77,8 +93,8 @@ const buildAuthUserFromToken = (accessToken: string, rolesFromResponse: Role[], 
     recruiterId: payload?.recruiterId,
     profileCompleted,
     permissions: normalizePermissions(roles),
-  }
-}
+  };
+};
 
 export const mapLoginResponseToSession = (
   response: LoginResponse,
@@ -92,30 +108,47 @@ export const mapLoginResponseToSession = (
     accessToken: response.data.accessToken,
     refreshToken: response.data.refreshToken,
   },
-})
+});
 
 export const authApi = {
   login(payload: LoginRequest): Promise<LoginResponse> {
-    return apiClient.post<LoginResponse>(apiEndpoints.auth.login, payload).then((response) => response.data)
+    return apiClient
+      .post<LoginResponse>(apiEndpoints.auth.login, payload)
+      .then((response) => response.data);
   },
 
-  exchangeGoogleToken(payload: GoogleTokenExchangeRequest): Promise<GoogleTokenExchangeResponse> {
-    return apiClient.post<GoogleTokenExchangeResponse>(apiEndpoints.auth.googleExchange, payload).then((response) => response.data)
+  exchangeGoogleToken(
+    payload: GoogleTokenExchangeRequest,
+  ): Promise<GoogleTokenExchangeResponse> {
+    return apiClient
+      .post<GoogleTokenExchangeResponse>(
+        apiEndpoints.auth.googleExchange,
+        payload,
+      )
+      .then((response) => response.data);
   },
 
   register(payload: RegisterRequest): Promise<SignUpResponse> {
-    return apiClient.post<SignUpResponse>(apiEndpoints.auth.register, payload).then((response) => response.data)
+    return apiClient
+      .post<SignUpResponse>(apiEndpoints.auth.register, payload)
+      .then((response) => response.data);
   },
 
   forgotPassword(payload: ForgotPasswordRequest): Promise<unknown> {
-    return apiClient.post(apiEndpoints.auth.forgotPassword, payload).then((response) => response.data)
+    return apiClient
+      .post(apiEndpoints.auth.forgotPassword, payload)
+      .then((response) => response.data);
   },
 
   changePassword(payload: ChangePasswordRequest): Promise<unknown> {
-    return apiClient.post(apiEndpoints.auth.changePassword, payload).then((response) => response.data)
+    return apiClient
+      .post(apiEndpoints.auth.changePassword, payload)
+      .then((response) => response.data);
   },
 
   logout(): Promise<unknown> {
-    return apiClient.post(apiEndpoints.auth.logout).then((response) => response.data)
+    return apiClient
+      .post(apiEndpoints.auth.logout)
+      .then((response) => response.data);
   },
-}
+};
