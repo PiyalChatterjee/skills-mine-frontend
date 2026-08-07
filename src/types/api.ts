@@ -173,6 +173,88 @@ export interface SaveJobResponse {
   success: boolean
 }
 
+export interface SavedJob {
+  jobId: string
+  title: string
+  company: string
+  location?: string
+  industry?: string
+  salaryRange: string
+  workType: string
+  employmentType: string
+  savedAt?: string
+}
+
+export interface UserProfile {
+  userId: string
+  savedJobs: SavedJob[]
+}
+
+export interface UserSkill {
+  skillId: string
+  skillName: string
+  selected: boolean
+  userId?: string
+}
+
+export interface BuildMyCvPersonalDetails {
+  firstName?: string
+  lastName?: string
+  race?: string
+  gender?: string
+  disabilityStatus?: string
+  nationality?: string
+  location?: string
+  currentCompany?: string
+  currentPosition?: string
+  noticePeriod?: string
+}
+
+export interface BuildMyCvSecondaryEducationEntry {
+  schoolName: string
+  qualification: string
+  yearCompleted: number
+}
+
+export interface BuildMyCvTertiaryEducationEntry {
+  institution: string
+  qualification: string
+  fieldOfStudy?: string
+  yearCompleted: number
+}
+
+export interface BuildMyCvEducationSection {
+  secondaryEducation: BuildMyCvSecondaryEducationEntry[]
+  tertiaryEducation: BuildMyCvTertiaryEducationEntry[]
+}
+
+export interface BuildMyCvState {
+  resumeId?: string
+  personalDetails: BuildMyCvPersonalDetails
+  careerHistory: CandidateExperience[]
+  skills: string[]
+  education: BuildMyCvEducationSection
+  languages: CandidateLanguage[]
+  validation: string[]
+}
+
+export interface SaveBuildMyCvRequest {
+  personalDetails?: BuildMyCvPersonalDetails
+  careerHistory?: CandidateExperience[]
+  skills?: string[]
+  education?: BuildMyCvEducationSection
+  languages?: CandidateLanguage[]
+}
+
+export type UpdateBuildMyCvRequest = SaveBuildMyCvRequest
+
+export interface BuildMyCvResponse {
+  success: boolean
+  statusCode: number
+  message: string
+  data: BuildMyCvData
+}
+
 export interface ApplyJobRequest {
   candidateId?: string
   cvId?: string
@@ -198,6 +280,8 @@ export interface BuildMyCvData {
   languages: CandidateLanguage[]
   summary: string
   desiredJob: DesiredJob
+  createdAt?: string | null
+  lastModified?: string | null
 }
 
 export interface CvPreviewData {

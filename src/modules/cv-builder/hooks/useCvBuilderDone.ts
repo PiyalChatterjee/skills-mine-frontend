@@ -1,12 +1,13 @@
 import { useCallback } from 'react'
 import { useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
-import { useUpdateCandidateProfileMutation } from '@/modules/candidate/hooks/useCandidateQueries'
+import { useSaveBuildMyCvMutation, useUpdateBuildMyCvMutation } from '@/store/api/apiSlice'
 import type { CandidateProfile } from '@/modules/candidate/types'
 import { ROUTE_PATHS } from '@/routes/routePaths'
-import type { CandidateProfileUpdatePayload } from '@/modules/candidate/types'
 import type { AppDispatch } from '@/store'
 import { pushNotification } from '@/store/slices/notificationSlice'
+import { setBuildMyCvExists, setBuildMyCvLastModified } from '@/store/slices/candidateSlice'
+import type { SaveBuildMyCvRequest } from '@/types'
 import type { CvBuilderView, Language } from '../types/cvBuilder'
 import type { CvBuilderFormValues } from '../types/cvBuilderSchema'
 
@@ -59,7 +60,7 @@ const monthNameToIso = (value: string): string => {
   return `${year}-${String(monthIndex + 1).padStart(2, '0')}`
 }
 
-const isoToMonthName = (value: string): string => {
+export const isoToMonthName = (value: string): string => {
   const match = value.match(/^(19|20)\d{2}-(0[1-9]|1[0-2])$/)
   if (!match) {
     return value
@@ -76,12 +77,13 @@ export const buildCvBuilderPrefillData = (profile: CandidateProfile | undefined)
     return undefined
   }
 
-  const profileLanguages = profile.languages ?? []
+  const profileLanguages = Array.isArray(profile.languages) ? profile.languages : []
   const languageNames = profileLanguages.map((item) => item.language)
   const knownLanguages = languageNames.filter(isKnownLanguage)
   const customOtherLanguage = languageNames.find((language) => !isKnownLanguage(language))
 
-  const primaryExperience = profile.experience?.[0]
+  const experience = Array.isArray(profile.experience) ? profile.experience : []
+  const primaryExperience = experience[0]
 
   return {
     personalDetails: {
@@ -92,10 +94,10 @@ export const buildCvBuilderPrefillData = (profile: CandidateProfile | undefined)
       nationality: profile.personalDetails.nationality ?? '',
       residentialLocation: profile.personalDetails.location ?? '',
       currentCompany: primaryExperience?.company ?? '',
-      currentPosition: primaryExperience?.jobTitle ?? profile.desiredJob.jobTitle ?? '',
-      noticePeriod: profile.desiredJob.availableFrom ?? '',
+      currentPosition: primaryExperience?.jobTitle ?? profile.desiredJob?.jobTitle ?? '',
+      noticePeriod: profile.desiredJob?.availableFrom ?? '',
     },
-    careerHistory: (profile.experience ?? []).map((entry) => ({
+    careerHistory: experience.map((entry) => ({
       companyName: entry.company ?? '',
       positionHeld: entry.jobTitle ?? '',
       startDate: isoToMonthName(entry.startDate ?? ''),
@@ -104,8 +106,8 @@ export const buildCvBuilderPrefillData = (profile: CandidateProfile | undefined)
       tasks: [entry.responsibilities ?? ''],
       projects: [''],
     })),
-    skills: (profile.skills ?? []).map((skill) => ({ name: skill })),
-    tertiaryEducation: (profile.education ?? []).map((entry) => ({
+    skills: (Array.isArray(profile.skills) ? profile.skills : []).map((skill) => ({ name: skill })),
+    tertiaryEducation: (Array.isArray(profile.education) ? profile.education : []).map((entry) => ({
       institutionName: entry.institution ?? '',
       degreeOrCertification: entry.qualification ?? '',
       yearCompleted: String(entry.year ?? ''),
@@ -123,17 +125,16 @@ type UseCvBuilderDoneArgs = {
   candidateProfile?: CandidateProfile
   getFormValues: () => CvBuilderFormValues
   selectedLanguageEntries: string[]
+  buildMyCvExists: boolean
 }
 
-const buildCandidateProfileUpdatePayload = ({
-  currentProfile,
+const buildBuildMyCvRequest = ({
   formValues,
   selectedLanguageEntries,
 }: {
-  currentProfile: CandidateProfile
   formValues: CvBuilderFormValues
   selectedLanguageEntries: string[]
-}): CandidateProfileUpdatePayload => {
+}): SaveBuildMyCvRequest => {
   const [firstName, ...lastNameParts] = formValues.personalDetails.fullName.trim().split(' ')
   const languages = selectedLanguageEntries
     .filter(Boolean)
@@ -141,31 +142,18 @@ const buildCandidateProfileUpdatePayload = ({
 
   return {
     personalDetails: {
-      ...currentProfile.personalDetails,
-      firstName: firstName || currentProfile.personalDetails.firstName,
-      lastName: lastNameParts.join(' ').trim() || currentProfile.personalDetails.lastName,
-      location: formValues.personalDetails.residentialLocation.trim(),
-      eeStatus: formValues.personalDetails.race.trim(),
+      firstName: firstName || '',
+      lastName: lastNameParts.join(' ').trim(),
+      race: formValues.personalDetails.race.trim(),
+      gender: formValues.personalDetails.gender.trim(),
+      disabilityStatus: formValues.personalDetails.disabilityStatus.trim(),
       nationality: formValues.personalDetails.nationality.trim(),
+      location: formValues.personalDetails.residentialLocation.trim(),
+      currentCompany: formValues.personalDetails.currentCompany.trim(),
+      currentPosition: formValues.personalDetails.currentPosition.trim(),
+      noticePeriod: formValues.personalDetails.noticePeriod.trim(),
     },
-    desiredJob: {
-      ...currentProfile.desiredJob,
-      jobTitle: formValues.personalDetails.currentPosition.trim() || currentProfile.desiredJob.jobTitle,
-      availableFrom: formValues.personalDetails.noticePeriod.trim(),
-    },
-    education: [
-      ...formValues.tertiaryEducation.map((entry) => ({
-        institution: entry.institutionName.trim(),
-        qualification: entry.degreeOrCertification.trim(),
-        year: Number(entry.yearCompleted.trim()),
-      })),
-      ...formValues.secondaryEducation.map((entry) => ({
-        institution: entry.institutionName.trim(),
-        qualification: entry.highestGradePassed.trim(),
-        year: Number(entry.yearCompleted.trim()),
-      })),
-    ].filter((entry) => entry.institution && entry.qualification && Number.isFinite(entry.year)),
-    experience: formValues.careerHistory
+    careerHistory: formValues.careerHistory
       .filter((entry) => entry.companyName.trim() || entry.positionHeld.trim())
       .map((entry) => ({
         company: entry.companyName.trim(),
@@ -175,6 +163,22 @@ const buildCandidateProfileUpdatePayload = ({
         responsibilities: entry.tasks.map((task) => task.trim()).filter(Boolean).join('; '),
       })),
     skills: formValues.skills.map((skill) => skill.name.trim()).filter(Boolean),
+    education: {
+      tertiaryEducation: formValues.tertiaryEducation
+        .filter((entry) => entry.institutionName.trim() && entry.degreeOrCertification.trim())
+        .map((entry) => ({
+          institution: entry.institutionName.trim(),
+          qualification: entry.degreeOrCertification.trim(),
+          yearCompleted: Number(entry.yearCompleted.trim()),
+        })),
+      secondaryEducation: formValues.secondaryEducation
+        .filter((entry) => entry.institutionName.trim() && entry.highestGradePassed.trim())
+        .map((entry) => ({
+          schoolName: entry.institutionName.trim(),
+          qualification: entry.highestGradePassed.trim(),
+          yearCompleted: Number(entry.yearCompleted.trim()),
+        })),
+    },
     languages,
   }
 }
@@ -182,15 +186,16 @@ const buildCandidateProfileUpdatePayload = ({
 export const useCvBuilderDone = ({
   activeView,
   goNext,
-  userId,
-  candidateProfile,
   getFormValues,
   selectedLanguageEntries,
+  buildMyCvExists,
 }: UseCvBuilderDoneArgs) => {
   const navigate = useNavigate()
   const dispatch = useDispatch<AppDispatch>()
-  const { mutateAsync: updateCandidateProfile, isLoading: isSavingCandidateProfile } =
-    useUpdateCandidateProfileMutation()
+  const [triggerCreate, { isLoading: isCreating }] = useSaveBuildMyCvMutation()
+  const [triggerUpdate, { isLoading: isUpdating }] = useUpdateBuildMyCvMutation()
+
+  const isSavingCandidateProfile = isCreating || isUpdating
 
   const handleDone = useCallback(async () => {
     if (activeView !== 'view-cv') {
@@ -198,29 +203,25 @@ export const useCvBuilderDone = ({
       return
     }
 
-    if (!userId || !candidateProfile) {
-      dispatch(
-        pushNotification({
-          title: 'Unable to save CV',
-          message: 'Candidate profile could not be resolved.',
-          level: 'error',
-        }),
-      )
-      return
-    }
-
-    const payload = buildCandidateProfileUpdatePayload({
-      currentProfile: candidateProfile,
+    const payload = buildBuildMyCvRequest({
       formValues: getFormValues(),
       selectedLanguageEntries,
     })
 
     try {
-      await updateCandidateProfile({ userId, payload })
+      const result = buildMyCvExists
+        ? await triggerUpdate(payload).unwrap()
+        : await triggerCreate(payload).unwrap()
+
+      dispatch(setBuildMyCvExists(true))
+      dispatch(setBuildMyCvLastModified(result.lastModified ?? new Date().toISOString()))
+
       dispatch(
         pushNotification({
-          title: 'CV saved',
-          message: 'Your profile was updated successfully.',
+          title: buildMyCvExists ? 'Changes saved' : 'CV created',
+          message: buildMyCvExists
+            ? 'Changes saved successfully.'
+            : 'CV information saved successfully.',
           level: 'success',
         }),
       )
@@ -243,12 +244,12 @@ export const useCvBuilderDone = ({
   }, [
     activeView,
     goNext,
-    userId,
-    candidateProfile,
+    buildMyCvExists,
     dispatch,
     getFormValues,
     selectedLanguageEntries,
-    updateCandidateProfile,
+    triggerCreate,
+    triggerUpdate,
     navigate,
   ])
 

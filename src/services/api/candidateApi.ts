@@ -2,6 +2,7 @@ import { apiClient } from '@/services/api/axios'
 import { apiEndpoints, resolveEndpoint } from '@/services/api/endpoints'
 import type {
   BuildMyCvData,
+  BuildMyCvState,
   CandidateApplication,
   CandidateDashboardData,
   CandidateProfile,
@@ -10,9 +11,70 @@ import type {
   CvPreviewData,
   CvUploadData,
   RecommendedJobsData,
+  SaveBuildMyCvRequest,
+  UpdateBuildMyCvRequest,
   SuccessEnvelope,
+  UserProfile,
+  UserSkill,
 } from '@/types/api'
 import type { CandidateProfileUpdatePayload } from '@/modules/candidate/types'
+
+const isUserSkill = (value: unknown): value is UserSkill => {
+  if (!value || typeof value !== 'object') {
+    return false
+  }
+
+  const skill = value as Partial<UserSkill>
+  return typeof skill.skillId === 'string' && typeof skill.skillName === 'string'
+}
+
+const normalizeSkillsResponse = (payload: unknown): UserSkill[] => {
+  const toSkillsArray = (value: unknown): UserSkill[] => {
+    if (!Array.isArray(value)) {
+      return []
+    }
+
+    return value
+      .filter(isUserSkill)
+      .map((skill) => ({
+        skillId: skill.skillId,
+        skillName: skill.skillName,
+        selected: Boolean(skill.selected),
+        ...(skill.userId ? { userId: skill.userId } : {}),
+      }))
+  }
+
+  if (Array.isArray(payload)) {
+    return toSkillsArray(payload)
+  }
+
+  if (!payload || typeof payload !== 'object') {
+    return []
+  }
+
+  const maybeEnvelope = payload as {
+    data?: unknown
+    skills?: unknown
+    results?: unknown
+    items?: unknown
+  }
+
+  const candidates = [
+    maybeEnvelope.data,
+    maybeEnvelope.skills,
+    maybeEnvelope.results,
+    maybeEnvelope.items,
+  ]
+
+  for (const candidate of candidates) {
+    const normalized = toSkillsArray(candidate)
+    if (normalized.length > 0) {
+      return normalized
+    }
+  }
+
+  return []
+}
 
 const isCandidateApplication = (value: unknown): value is CandidateApplication => {
   if (!value || typeof value !== 'object') {
@@ -142,5 +204,37 @@ export const candidateApi = {
 
         throw new Error('Unexpected application response shape')
       })
+  },
+
+  getUserProfile(userId: string): Promise<UserProfile> {
+    return apiClient
+      .get<SuccessEnvelope<UserProfile>>(resolveEndpoint(apiEndpoints.users.profile, { userId }))
+      .then((response) => response.data.data)
+  },
+
+  searchSkills(keyword: string, userId?: string): Promise<UserSkill[]> {
+    return apiClient
+      .get<SuccessEnvelope<unknown> | unknown>(apiEndpoints.skills.search, {
+        params: { [apiEndpoints.skills.keywordParam]: keyword, ...(userId ? { userId } : {}) },
+      })
+      .then((response) => normalizeSkillsResponse(response.data))
+  },
+
+  getBuildMyCv(): Promise<BuildMyCvState> {
+    return apiClient
+      .get<SuccessEnvelope<BuildMyCvState>>(apiEndpoints.candidate.buildMyCv)
+      .then((response) => response.data.data)
+  },
+
+  saveBuildMyCv(payload: SaveBuildMyCvRequest): Promise<BuildMyCvData> {
+    return apiClient
+      .post<SuccessEnvelope<BuildMyCvData>>(apiEndpoints.candidate.buildMyCv, payload)
+      .then((response) => response.data.data)
+  },
+
+  updateBuildMyCv(payload: UpdateBuildMyCvRequest): Promise<BuildMyCvData> {
+    return apiClient
+      .put<SuccessEnvelope<BuildMyCvData>>(apiEndpoints.candidate.buildMyCv, payload)
+      .then((response) => response.data.data)
   },
 }

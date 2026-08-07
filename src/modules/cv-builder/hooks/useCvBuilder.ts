@@ -9,7 +9,17 @@ import {
   secondaryEntrySchema,
   type CvBuilderFormValues,
 } from '../types/cvBuilderSchema'
-import { CV_BUILDER_STEPS, LANGUAGES_LIST, type CvBuilderView, type Language } from '../types/cvBuilder'
+import {
+  CV_BUILDER_STEPS,
+  DISABILITY_OPTIONS,
+  GENDER_OPTIONS,
+  LANGUAGES_LIST,
+  LOCATION_OPTIONS,
+  NOTICE_PERIOD_OPTIONS,
+  RACE_OPTIONS,
+  type CvBuilderView,
+  type Language,
+} from '../types/cvBuilder'
 
 const FIRST_STEP = 1
 const LAST_STEP = CV_BUILDER_STEPS.length
@@ -60,6 +70,28 @@ const PERSONAL_FIELD_KEYS: (keyof CvBuilderFormValues['personalDetails'])[] = [
   'residentialLocation', 'currentCompany', 'currentPosition', 'noticePeriod',
 ]
 
+const PERSONAL_SELECT_OPTIONS: Partial<Record<keyof CvBuilderFormValues['personalDetails'], readonly string[]>> = {
+  race: RACE_OPTIONS,
+  gender: GENDER_OPTIONS,
+  disabilityStatus: DISABILITY_OPTIONS,
+  residentialLocation: LOCATION_OPTIONS,
+  noticePeriod: NOTICE_PERIOD_OPTIONS,
+}
+
+const normalizePersonalDetailsFieldValue = (
+  field: keyof CvBuilderFormValues['personalDetails'],
+  value: string,
+): string => {
+  const options = PERSONAL_SELECT_OPTIONS[field]
+  if (!options) {
+    return value
+  }
+
+  const normalized = value.trim().toLowerCase()
+  const matchedOption = options.find((option) => option.toLowerCase() === normalized)
+  return matchedOption ?? ''
+}
+
 const isCareerPristine = (entries: CvBuilderFormValues['careerHistory']) =>
   entries.length === 1 &&
   !entries[0].companyName && !entries[0].positionHeld &&
@@ -88,7 +120,7 @@ const buildLanguageEntries = (languages: string[], otherLanguage: string): strin
 
 export type CvBuilderPrefillData = Partial<CvBuilderFormValues>
 
-const useCvBuilder = (prefillData?: CvBuilderPrefillData) => {
+const useCvBuilder = (prefillData?: CvBuilderPrefillData, forceApply = false) => {
   const uploadInputRef = useRef<HTMLInputElement | null>(null)
   const [activeView, setActiveView] = useState<CvBuilderView>('launcher')
   const [selectedUploadFile, setSelectedUploadFile] = useState<File | null>(null)
@@ -110,30 +142,35 @@ const useCvBuilder = (prefillData?: CvBuilderPrefillData) => {
       const current = form.getValues('personalDetails')
       PERSONAL_FIELD_KEYS.forEach((field) => {
         const value = pd[field]
-        if (value && !current[field]) {
-          form.setValue(`personalDetails.${field}`, value)
+        if (!value || (!forceApply && current[field])) {
+          return
+        }
+
+        const nextValue = normalizePersonalDetailsFieldValue(field, value)
+        if (nextValue || !PERSONAL_SELECT_OPTIONS[field]) {
+          form.setValue(`personalDetails.${field}`, nextValue)
         }
       })
     }
-    if (careerHistory && careerHistory.length > 0 && isCareerPristine(form.getValues('careerHistory'))) {
+    if (careerHistory && careerHistory.length > 0 && (forceApply || isCareerPristine(form.getValues('careerHistory')))) {
       form.setValue('careerHistory', careerHistory)
     }
-    if (skills && skills.length > 0 && isSkillsPristine(form.getValues('skills'))) {
+    if (skills && skills.length > 0 && (forceApply || isSkillsPristine(form.getValues('skills')))) {
       form.setValue('skills', skills)
     }
-    if (tertiaryEducation && tertiaryEducation.length > 0 && isTertiaryPristine(form.getValues('tertiaryEducation'))) {
+    if (tertiaryEducation && tertiaryEducation.length > 0 && (forceApply || isTertiaryPristine(form.getValues('tertiaryEducation')))) {
       form.setValue('tertiaryEducation', tertiaryEducation)
     }
-    if (secondaryEducation && secondaryEducation.length > 0 && isSecondaryPristine(form.getValues('secondaryEducation'))) {
+    if (secondaryEducation && secondaryEducation.length > 0 && (forceApply || isSecondaryPristine(form.getValues('secondaryEducation')))) {
       form.setValue('secondaryEducation', secondaryEducation)
     }
-    if (languages && languages.length > 0 && form.getValues('languages').length === 0) {
+    if (languages && languages.length > 0 && (forceApply || form.getValues('languages').length === 0)) {
       form.setValue('languages', languages)
     }
-    if (otherLanguage && otherLanguage.trim() && !form.getValues('otherLanguage')) {
+    if (otherLanguage && otherLanguage.trim() && (forceApply || !form.getValues('otherLanguage'))) {
       form.setValue('otherLanguage', otherLanguage)
     }
-  }, [prefillData]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [prefillData, forceApply]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const personalDetailsValues = useWatch({ control: form.control, name: 'personalDetails' })
   const careerHistoryValues = useWatch({ control: form.control, name: 'careerHistory' })

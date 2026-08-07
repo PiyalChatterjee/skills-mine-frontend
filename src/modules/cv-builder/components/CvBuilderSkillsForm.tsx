@@ -27,11 +27,11 @@ const CvBuilderSkillsForm = () => {
         </Button>
       </Box>
 
-      <Typography className={styles.skillsSubHeading}>List your skills</Typography>
-
       {formError && (
         <Typography component="p" sx={{ color: '#d32f2f', marginBottom: 2 }}>{formError}</Typography>
       )}
+
+      <Typography className={styles.skillsSubHeading} sx={{ mt: 1 }}>List your skills</Typography>
 
       <Box className={styles.skillsList}>
         {fields.map((fieldItem, index) => (

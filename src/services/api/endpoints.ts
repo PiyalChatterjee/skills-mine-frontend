@@ -37,6 +37,11 @@ export const apiEndpoints = {
     listPageParam: withDefault(import.meta.env.VITE_JOBS_PAGE_PARAM, 'page'),
     listLimitParam: withDefault(import.meta.env.VITE_JOBS_LIMIT_PARAM, 'limit'),
   },
+  skills: {
+    search: withDefault(import.meta.env.VITE_SKILLS_SEARCH_ENDPOINT, '/skills/search'),
+    keywordParam: withDefault(import.meta.env.VITE_SKILLS_SEARCH_KEYWORD_PARAM, 'keyword'),
+    limitParam: withDefault(import.meta.env.VITE_SKILLS_SEARCH_LIMIT_PARAM, 'limit'),
+  },
   recruiter: {
     dashboard: withDefault(import.meta.env.VITE_RECRUITER_DASHBOARD_ENDPOINT, '/recruiter/dashboard'),
     mandates: withDefault(import.meta.env.VITE_RECRUITER_MANDATES_ENDPOINT, '/recruiter/mandates'),

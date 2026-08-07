@@ -1,5 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit'
 import authReducer from './slices/authSlice'
+import candidateReducer from './slices/candidateSlice'
 import notificationReducer from './slices/notificationSlice'
 import permissionReducer from './slices/permissionSlice'
 import recruiterPipelineReducer from './slices/recruiterPipelineSlice'
@@ -9,6 +10,7 @@ import { apiSlice } from '@/store/api/apiSlice'
 export const store = configureStore({
   reducer: {
     auth: authReducer,
+    candidate: candidateReducer,
     permission: permissionReducer,
     recruiterPipeline: recruiterPipelineReducer,
     ui: uiReducer,
