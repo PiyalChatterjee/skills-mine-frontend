@@ -11,6 +11,7 @@ import {
   type FieldPath,
   type FieldValues,
 } from "react-hook-form";
+import type { ReactNode } from "react";
 import dropdownChevronIconSrc from "@/assets/icons/dropdown-chevron.svg";
 import styles from "@/modules/candidate/pages/ProfilePage.module.css";
 
@@ -48,6 +49,31 @@ const DropdownIcon = ({ className }: { className?: string }) => (
   />
 );
 
+type ProfileFieldBlockProps = {
+  label: string;
+  fullWidth?: boolean;
+  children: ReactNode;
+};
+
+const ProfileFieldBlock = ({
+  label,
+  fullWidth,
+  children,
+}: ProfileFieldBlockProps) => (
+  <Box
+    className={`${styles.fieldBlock} ${fullWidth ? styles.fieldBlockFull : ""}`}
+  >
+    <Typography className={styles.fieldLabel}>{label}</Typography>
+    {children}
+  </Box>
+);
+
+const getInputClassName = (
+  baseClassName: string,
+  disabledClassName: string,
+  disabled: boolean,
+) => `${baseClassName} ${disabled ? disabledClassName : ""}`;
+
 export const ProfileTextField = <TFieldValues extends FieldValues>({
   control,
   name,
@@ -60,10 +86,7 @@ export const ProfileTextField = <TFieldValues extends FieldValues>({
   type,
   slotProps,
 }: BaseFieldProps<TFieldValues>) => (
-  <Box
-    className={`${styles.fieldBlock} ${fullWidth ? styles.fieldBlockFull : ""}`}
-  >
-    <Typography className={styles.fieldLabel}>{label}</Typography>
+  <ProfileFieldBlock label={label} fullWidth={fullWidth}>
     <Controller
       control={control}
       name={name}
@@ -80,12 +103,16 @@ export const ProfileTextField = <TFieldValues extends FieldValues>({
           disabled={disabled}
           error={Boolean(fieldState.error)}
           helperText={fieldState.error?.message}
-          className={`${inputClassName} ${disabled ? disabledClassName : ""}`}
+          className={getInputClassName(
+            inputClassName,
+            disabledClassName,
+            disabled,
+          )}
           slotProps={slotProps}
         />
       )}
     />
-  </Box>
+  </ProfileFieldBlock>
 );
 
 export const ProfileSelectField = <TFieldValues extends FieldValues>({
@@ -99,10 +126,7 @@ export const ProfileSelectField = <TFieldValues extends FieldValues>({
   inputClassName = styles.readonlyInput,
   disabledClassName = styles.readonlyInputDisabled,
 }: SelectFieldProps<TFieldValues>) => (
-  <Box
-    className={`${styles.fieldBlock} ${fullWidth ? styles.fieldBlockFull : ""}`}
-  >
-    <Typography className={styles.fieldLabel}>{label}</Typography>
+  <ProfileFieldBlock label={label} fullWidth={fullWidth}>
     <Controller
       control={control}
       name={name}
@@ -123,7 +147,11 @@ export const ProfileSelectField = <TFieldValues extends FieldValues>({
             disabled={disabled}
             error={Boolean(fieldState.error)}
             helperText={fieldState.error?.message}
-            className={`${inputClassName} ${disabled ? disabledClassName : ""}`}
+            className={getInputClassName(
+              inputClassName,
+              disabledClassName,
+              disabled,
+            )}
             slotProps={{
               select: {
                 displayEmpty: true,
@@ -155,5 +183,5 @@ export const ProfileSelectField = <TFieldValues extends FieldValues>({
         );
       }}
     />
-  </Box>
+  </ProfileFieldBlock>
 );

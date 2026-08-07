@@ -1,7 +1,7 @@
 .pageRoot {
   background: #d7edf6;
   min-height: 100%;
-  padding: 40px 80px 48px;
+  padding: 40px 80px 60px;
 }
 
 .loadingContainer {
@@ -392,6 +392,8 @@
 .statusPill[data-status='rejected']       { background: #e07070; }
 .statusPill[data-status='offer_extended'] { background: #5bbf8a; }
 .statusPill[data-status='shortlisted']    { background: #e085c2; }
+.statusPill[data-status='placed']         { background: #329d72; }
+.statusPill[data-status='unknown']        { background: #7a8694; }
 
 .emptyApplications {
   text-align: center;
@@ -409,7 +411,7 @@
 
 .pipelineLabels {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   margin-bottom: 10px;
 }
 
@@ -438,13 +440,14 @@
   transition: width 0.3s ease;
 }
 
-/* 6 stages → 0..5 index; fill covers to end of that segment */
+/* 7 stages → 0..6 index; fill covers to end of that segment */
 .pipelineFill0 { width: 8%; }
 .pipelineFill1 { width: 25%; }
 .pipelineFill2 { width: 42%; }
 .pipelineFill3 { width: 59%; }
 .pipelineFill4 { width: 79%; }
-.pipelineFill5 { width: 100%; }
+.pipelineFill5 { width: 92%; }
+.pipelineFill6 { width: 100%; }
 
 /* ── Application Message ─────────────────────────────────────────────── */
 .applicationMessage,

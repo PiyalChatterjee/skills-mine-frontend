@@ -1,22 +1,22 @@
-import { z } from "zod";
-import { emailSchema } from "@/app/validation.schema";
-import type { CandidateProfile } from "@/modules/candidate/types";
+import { z } from 'zod'
+import { emailSchema } from '@/app/validation.schema'
+import type { CandidateProfile, CandidateProfileUpdatePayload } from '@/modules/candidate/types'
 
 const requiredField = (label: string) =>
-  z.string().trim().min(1, `${label} is required`);
+  z.string().trim().min(1, `${label} is required`)
 
 export const profileFormSchema = z.object({
-  fullName: requiredField("Full name"),
+  fullName: requiredField('Full name'),
   email: emailSchema,
   phoneNumber: z
     .string()
     .trim()
-    .min(1, "Phone number is required")
-    .regex(/^[0-9+\-\s()]{7,20}$/, "Enter a valid phone number"),
-  residentialLocation: requiredField("Residential location"),
+    .min(1, 'Phone number is required')
+    .regex(/^\+\d{10,15}$/, 'Use international format like +27821234567'),
+  residentialLocation: requiredField('Residential location'),
   preferredJobTitle: z.string(),
   targetedIndustries: z.string(),
-  preferredLocations: requiredField("Preferred location"),
+  preferredLocations: requiredField('Preferred location'),
   employmentType: z.string(),
   availability: z.string(),
   certifications: z.array(
@@ -24,95 +24,107 @@ export const profileFormSchema = z.object({
       value: z.string().trim(),
     }),
   ),
-  highestDegreeEarned: requiredField("Highest degree earned"),
+  highestDegreeEarned: requiredField('Highest degree earned'),
   currentJobTitle: z.string(),
   currentEmployer: z.string(),
   totalYearsOfExperience: z
     .string()
     .trim()
-    .refine((value) => value === "" || /^\d+(\.\d+)?$/.test(value), {
-      message: "Use a valid number of years",
+    .refine((value) => value === '' || /^\d+(\.\d+)?$/.test(value), {
+      message: 'Use a valid number of years',
     }),
   password: z.string(),
-});
+})
 
-export type ProfileFormValues = z.infer<typeof profileFormSchema>;
+export type ProfileFormValues = z.infer<typeof profileFormSchema>
 
 export const PROFILE_SELECT_OPTIONS = {
   residentialLocation: [
-    "Johannesburg, Gauteng",
-    "Cape Town, Western Cape",
-    "Durban, KwaZulu-Natal",
+    'Johannesburg, Gauteng',
+    'Cape Town, Western Cape',
+    'Durban, KwaZulu-Natal',
   ],
   targetedIndustries: [
-    "Technology",
-    "Banking",
-    "Consulting",
-    "Digital Marketing",
+    'Technology',
+    'Banking',
+    'Consulting',
+    'Digital Marketing',
   ],
-  preferredLocations: ["Hybrid", "Remote", "On-site"],
-  employmentType: ["Full time", "Part time", "Contract"],
-  availability: ["Immediately", "2 weeks", "1 month"],
-} as const;
+  preferredLocations: ['Hybrid', 'Remote', 'On-site'],
+  employmentType: ['Permanent', 'Contract'],
+  availability: ['Immediately', '2 weeks', '1 month'],
+} as const
 
 export const getProfileFormValues = (
   profile: CandidateProfile | null,
 ): ProfileFormValues => {
-  const firstQualification = profile?.education?.[0]?.qualification ?? "";
+  const firstQualification = profile?.education?.[0]?.qualification ?? ''
+  const fullName = [
+    profile?.personalDetails?.firstName ?? '',
+    profile?.personalDetails?.lastName ?? '',
+  ]
+    .join(' ')
+    .trim()
 
   return {
-    fullName: profile?.fullName ?? "",
-    email: profile?.email ?? "",
-    phoneNumber: profile?.phone ?? "",
-    residentialLocation: profile?.location ?? "",
-    preferredJobTitle: profile?.currentTitle ?? "",
-    targetedIndustries: "",
-    preferredLocations: profile?.location ?? "",
-    employmentType: "",
-    availability: "",
-    certifications: [{ value: "" }],
+    fullName,
+    email: profile?.personalDetails?.email ?? '',
+    phoneNumber: profile?.personalDetails?.mobileNumber ?? '',
+    residentialLocation: profile?.personalDetails?.location ?? '',
+    preferredJobTitle: profile?.desiredJob?.jobTitle ?? '',
+    targetedIndustries: profile?.desiredJob?.industry ?? '',
+    preferredLocations: profile?.desiredJob?.workType ?? '',
+    employmentType: profile?.desiredJob?.employmentType ?? '',
+    availability: profile?.desiredJob?.availableFrom ?? '',
+    certifications: [{ value: '' }],
     highestDegreeEarned: firstQualification,
-    currentJobTitle: profile?.currentTitle ?? "",
-    currentEmployer: profile?.currentCompany ?? "",
-    totalYearsOfExperience:
-      profile?.experienceYears != null ? String(profile.experienceYears) : "",
-    password: profile?.password ?? "",
-  };
-};
+    currentJobTitle: profile?.desiredJob?.jobTitle ?? '',
+    currentEmployer: '',
+    totalYearsOfExperience: '',
+    password: '',
+  }
+}
 
 export const getCandidateProfileUpdatePayload = (
   values: ProfileFormValues,
   currentProfile: CandidateProfile | null,
-): Omit<CandidateProfile, "candidateId"> => {
-  const trimmedCurrentTitle = values.currentJobTitle.trim();
-  const trimmedPreferredTitle = values.preferredJobTitle.trim();
-  const experienceText = values.totalYearsOfExperience.trim();
-
-  const existingEducation = currentProfile?.education ?? [];
-  const firstEducation = existingEducation[0];
-  const nextEducation: CandidateProfile["education"] = [
-    {
-      institution: firstEducation?.institution ?? "Not specified",
-      qualification: values.highestDegreeEarned.trim(),
-      year: firstEducation?.year ?? new Date().getFullYear(),
-    },
-    ...existingEducation.slice(1),
-  ];
+): CandidateProfileUpdatePayload => {
+  const [firstName, ...rest] = values.fullName.trim().split(' ')
+  const lastName = rest.join(' ').trim()
 
   return {
-    fullName: values.fullName.trim(),
-    email: values.email.trim(),
-    phone: values.phoneNumber.trim(),
-    profilePhotoUrl: currentProfile?.profilePhotoUrl,
-    password: values.password || currentProfile?.password,
-    location: values.residentialLocation.trim(),
-    currentTitle: trimmedCurrentTitle || trimmedPreferredTitle,
-    currentCompany: values.currentEmployer.trim(),
-    experienceYears:
-      experienceText === ""
-        ? currentProfile?.experienceYears ?? 0
-        : Number(experienceText),
+    personalDetails: {
+      firstName: firstName || currentProfile?.personalDetails?.firstName || '',
+      lastName: lastName || currentProfile?.personalDetails?.lastName || '',
+      email: values.email.trim(),
+      mobileNumber: values.phoneNumber.trim(),
+      location: values.residentialLocation.trim(),
+      nationality: currentProfile?.personalDetails?.nationality ?? '',
+      idNumber: currentProfile?.personalDetails?.idNumber ?? '',
+      eeStatus: currentProfile?.personalDetails?.eeStatus ?? '',
+      profileImageUrl: currentProfile?.personalDetails?.profileImageUrl ?? '',
+      thumbnailUrl: currentProfile?.personalDetails?.thumbnailUrl ?? '',
+      linkedinUrl: currentProfile?.personalDetails?.linkedinUrl ?? '',
+      portfolioUrl: currentProfile?.personalDetails?.portfolioUrl ?? '',
+    },
+    desiredJob: {
+      jobTitle: values.preferredJobTitle.trim(),
+      industry: values.targetedIndustries.trim(),
+      workType: values.preferredLocations.trim(),
+      employmentType: values.employmentType.trim(),
+      salaryExpectation: currentProfile?.desiredJob?.salaryExpectation ?? 0,
+      availableFrom: values.availability.trim(),
+    },
+    education: [
+      {
+        institution: currentProfile?.education?.[0]?.institution ?? 'Not specified',
+        qualification: values.highestDegreeEarned.trim(),
+        year: currentProfile?.education?.[0]?.year ?? new Date().getFullYear(),
+      },
+      ...(currentProfile?.education?.slice(1) ?? []),
+    ],
+    experience: currentProfile?.experience ?? [],
     skills: currentProfile?.skills ?? [],
-    education: nextEducation,
-  };
-};
+    languages: currentProfile?.languages ?? [],
+  }
+}

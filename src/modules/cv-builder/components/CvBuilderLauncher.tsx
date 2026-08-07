@@ -1,10 +1,10 @@
-import { Box, ButtonBase, Typography } from '@mui/material'
-import styles from '../pages/CvBuilderPage.module.css'
-import type { CvActionCard } from '../types/cvBuilder'
+import { Box, ButtonBase, Typography } from "@mui/material";
+import styles from "../pages/CvBuilderPage.module.css";
+import type { CvActionCard } from "../types/cvBuilder";
 
 type CvBuilderLauncherProps = {
-  cards: CvActionCard[]
-}
+  cards: CvActionCard[];
+};
 
 const CvBuilderLauncher = ({ cards }: CvBuilderLauncherProps) => (
   <>
@@ -25,7 +25,12 @@ const CvBuilderLauncher = ({ cards }: CvBuilderLauncherProps) => (
               className={`${styles.iconFrame} ${styles[`iconFrame${card.tone[0].toUpperCase()}${card.tone.slice(1)}`]}`}
               aria-hidden="true"
             >
-              <Box component="img" src={card.icon} alt="" className={styles.icon} />
+              <Box
+                component="img"
+                src={card.icon}
+                alt=""
+                className={styles.icon}
+              />
             </Box>
             <Typography component="p" className={styles.cardTitle}>
               {card.title}
@@ -39,6 +44,6 @@ const CvBuilderLauncher = ({ cards }: CvBuilderLauncherProps) => (
       ))}
     </Box>
   </>
-)
+);
 
-export default CvBuilderLauncher
+export default CvBuilderLauncher;

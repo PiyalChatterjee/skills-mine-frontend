@@ -2,11 +2,10 @@ export type SignUpFormValues = {
   firstName: string;
   lastName: string;
   email: string;
-  phoneNumber: string;
+  mobileNumber: string;
   password: string;
   confirmPassword: string;
-  passwordHint: string;
-  termsAccepted: boolean;
+  acceptTerms: boolean;
 };
 
 export type GoogleAuthStatus = "idle" | "success" | "error";
@@ -15,9 +14,8 @@ export const initialSignUpFormValues: SignUpFormValues = {
   firstName: "",
   lastName: "",
   email: "",
-  phoneNumber: "",
+  mobileNumber: "",
   password: "",
   confirmPassword: "",
-  passwordHint: "",
-  termsAccepted: false,
+  acceptTerms: false,
 };

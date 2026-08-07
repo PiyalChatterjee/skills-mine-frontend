@@ -1,37 +1,59 @@
-import { Box, Button, TextField, Typography } from '@mui/material'
-import { Controller, useFieldArray, useFormContext } from 'react-hook-form'
-import skillsGenerateIcon from '@/assets/cv-builder/skills-generate.svg'
-import skillsSparkleIcon from '@/assets/cv-builder/skills-sparkle.svg'
-import styles from '../pages/CvBuilderPage.module.css'
-import CvBuilderRemoveItemButton from './CvBuilderRemoveItemButton'
-import { CvBuilderFormPanel, CvBuilderSectionHeader } from './CvBuilderFormPrimitives'
-import type { CvBuilderFormValues } from '../types/cvBuilderSchema'
+import { Box, Button, TextField, Typography } from "@mui/material";
+import { Controller, useFieldArray, useFormContext } from "react-hook-form";
+import skillsGenerateIcon from "@/assets/cv-builder/skills-generate.svg";
+import skillsSparkleIcon from "@/assets/cv-builder/skills-sparkle.svg";
+import styles from "../pages/CvBuilderPage.module.css";
+import CvBuilderRemoveItemButton from "./CvBuilderRemoveItemButton";
+import {
+  CvBuilderFormPanel,
+  CvBuilderSectionHeader,
+} from "./CvBuilderFormPrimitives";
+import type { CvBuilderFormValues } from "../types/cvBuilderSchema";
 
 const CvBuilderSkillsForm = () => {
-  const { control, formState: { errors }, clearErrors } = useFormContext<CvBuilderFormValues>()
-  const { fields, append, remove } = useFieldArray({ control, name: 'skills' })
-  const formError = (errors.skills as { root?: { message?: string } } | undefined)?.root?.message
+  const {
+    control,
+    formState: { errors },
+    clearErrors,
+  } = useFormContext<CvBuilderFormValues>();
+  const { fields, append, remove } = useFieldArray({ control, name: "skills" });
+  const formError = (
+    errors.skills as { root?: { message?: string } } | undefined
+  )?.root?.message;
 
   const handleAddSkill = () => {
-    clearErrors('skills')
-    append({ name: '' })
-  }
+    clearErrors("skills");
+    append({ name: "" });
+  };
 
   return (
     <CvBuilderFormPanel>
       <Box className={styles.skillsFormHeader}>
-        <CvBuilderSectionHeader iconSrc={skillsSparkleIcon} title="Your skills" />
+        <CvBuilderSectionHeader
+          iconSrc={skillsSparkleIcon}
+          title="Your skills"
+        />
         <Button type="button" className={styles.generateButton} disableRipple>
           Generate
-          <Box component="img" src={skillsGenerateIcon} alt="" className={styles.generateButtonIcon} aria-hidden="true" />
+          <Box
+            component="img"
+            src={skillsGenerateIcon}
+            alt=""
+            className={styles.generateButtonIcon}
+            aria-hidden="true"
+          />
         </Button>
       </Box>
 
-      <Typography className={styles.skillsSubHeading}>List your skills</Typography>
-
       {formError && (
-        <Typography component="p" sx={{ color: '#d32f2f', marginBottom: 2 }}>{formError}</Typography>
+        <Typography component="p" sx={{ color: "#d32f2f", marginBottom: 2 }}>
+          {formError}
+        </Typography>
       )}
+
+      <Typography className={styles.skillsSubHeading} sx={{ mt: 1 }}>
+        List your skills
+      </Typography>
 
       <Box className={styles.skillsList}>
         {fields.map((fieldItem, index) => (
@@ -57,12 +79,18 @@ const CvBuilderSkillsForm = () => {
           </Box>
         ))}
 
-        <Button type="button" onClick={handleAddSkill} className={styles.addMutedPillButton} disableRipple fullWidth>
+        <Button
+          type="button"
+          onClick={handleAddSkill}
+          className={styles.addMutedPillButton}
+          disableRipple
+          fullWidth
+        >
           Add skill
         </Button>
       </Box>
     </CvBuilderFormPanel>
-  )
-}
+  );
+};
 
-export default CvBuilderSkillsForm
+export default CvBuilderSkillsForm;

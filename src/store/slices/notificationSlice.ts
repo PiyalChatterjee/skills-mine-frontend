@@ -1,44 +1,44 @@
-import { createSlice, nanoid, type PayloadAction } from '@reduxjs/toolkit'
+import { createSlice, nanoid, type PayloadAction } from "@reduxjs/toolkit";
 
-export type NotificationLevel = 'success' | 'info' | 'warning' | 'error'
+export type NotificationLevel = "success" | "info" | "warning" | "error";
 
 export interface NotificationItem {
-  id: string
-  title: string
-  message?: string
-  level: NotificationLevel
+  id: string;
+  title: string;
+  message?: string;
+  level: NotificationLevel;
 }
 
 interface NotificationState {
-  items: NotificationItem[]
+  items: NotificationItem[];
 }
 
 const initialState: NotificationState = {
   items: [],
-}
+};
 
 const notificationSlice = createSlice({
-  name: 'notification',
+  name: "notification",
   initialState,
   reducers: {
     pushNotification: {
       reducer: (state, action: PayloadAction<NotificationItem>) => {
-        state.items.push(action.payload)
+        state.items.push(action.payload);
       },
-      prepare: (payload: Omit<NotificationItem, 'id'>) => ({
+      prepare: (payload: Omit<NotificationItem, "id">) => ({
         payload: { ...payload, id: nanoid() },
       }),
     },
     removeNotification: (state, action: PayloadAction<string>) => {
-      state.items = state.items.filter((item) => item.id !== action.payload)
+      state.items = state.items.filter((item) => item.id !== action.payload);
     },
     clearNotifications: (state) => {
-      state.items = []
+      state.items = [];
     },
   },
-})
+});
 
 export const { pushNotification, removeNotification, clearNotifications } =
-  notificationSlice.actions
+  notificationSlice.actions;
 
-export default notificationSlice.reducer
+export default notificationSlice.reducer;
