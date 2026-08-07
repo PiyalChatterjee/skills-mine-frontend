@@ -11,11 +11,11 @@ import styles from "../pages/CvBuilderPage.module.css";
 
 type CvBuilderPreviewDocumentProps = {
   size: "compact" | "full";
-  formValues: CvBuilderFormValues['personalDetails'];
-  careerHistory: CvBuilderFormValues['careerHistory'];
-  skills: CvBuilderFormValues['skills'];
-  tertiaryEducation: CvBuilderFormValues['tertiaryEducation'];
-  secondaryEducation: CvBuilderFormValues['secondaryEducation'];
+  formValues: CvBuilderFormValues["personalDetails"];
+  careerHistory: CvBuilderFormValues["careerHistory"];
+  skills: CvBuilderFormValues["skills"];
+  tertiaryEducation: CvBuilderFormValues["tertiaryEducation"];
+  secondaryEducation: CvBuilderFormValues["secondaryEducation"];
   selectedLanguageEntries: string[];
 };
 
@@ -29,8 +29,14 @@ const CvBuilderPreviewDocument = ({
   selectedLanguageEntries,
 }: CvBuilderPreviewDocumentProps) => {
   const previewFullName = formValues.fullName || "Candidate";
-  const previewRole = getValueOrFallback(formValues.currentPosition, "Role not provided");
-  const previewCompany = getValueOrFallback(formValues.currentCompany, "Company not provided");
+  const previewRole = getValueOrFallback(
+    formValues.currentPosition,
+    "Role not provided",
+  );
+  const previewCompany = getValueOrFallback(
+    formValues.currentCompany,
+    "Company not provided",
+  );
   const employmentEquityStatus =
     [formValues.race, formValues.gender].filter(Boolean).join(" ") ||
     NOT_PROVIDED_TEXT;
@@ -256,7 +262,9 @@ const CvBuilderPreviewDocument = ({
                   <Typography className={styles.previewPageWorkMetaLabel}>
                     Company Name
                   </Typography>
-                  <Typography>{getValueOrFallback(entry.companyName)}</Typography>
+                  <Typography>
+                    {getValueOrFallback(entry.companyName)}
+                  </Typography>
                   <Typography className={styles.previewPageWorkMetaLabel}>
                     Position Held
                   </Typography>
@@ -337,7 +345,6 @@ const CvBuilderPreviewDocument = ({
             <Box className={styles.previewPageDivider} />
           </Box>
         )}
-
       </Box>
     </Box>
   );

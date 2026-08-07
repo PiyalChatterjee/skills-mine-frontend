@@ -1,18 +1,24 @@
-﻿import { Box, TextField } from '@mui/material'
-import { Controller, useFormContext } from 'react-hook-form'
-import userIcon from '@/assets/public-layout/user-icon.svg'
-import styles from '../pages/CvBuilderPage.module.css'
+﻿import { Box, TextField } from "@mui/material";
+import { Controller, useFormContext } from "react-hook-form";
+import userIcon from "@/assets/public-layout/user-icon.svg";
+import styles from "../pages/CvBuilderPage.module.css";
 import {
   CvBuilderFormPanel,
   CvBuilderLabeledField,
   CvBuilderSectionHeader,
   CvBuilderSelectField,
-} from './CvBuilderFormPrimitives'
-import { DISABILITY_OPTIONS, GENDER_OPTIONS, LOCATION_OPTIONS, NOTICE_PERIOD_OPTIONS, RACE_OPTIONS } from '../types/cvBuilder'
-import type { CvBuilderFormValues } from '../types/cvBuilderSchema'
+} from "./CvBuilderFormPrimitives";
+import {
+  DISABILITY_OPTIONS,
+  GENDER_OPTIONS,
+  LOCATION_OPTIONS,
+  NOTICE_PERIOD_OPTIONS,
+  RACE_OPTIONS,
+} from "../types/cvBuilder";
+import type { CvBuilderFormValues } from "../types/cvBuilderSchema";
 
 const CvBuilderPersonalDetailsForm = () => {
-  const { control } = useFormContext<CvBuilderFormValues>()
+  const { control } = useFormContext<CvBuilderFormValues>();
 
   return (
     <CvBuilderFormPanel>
@@ -168,7 +174,7 @@ const CvBuilderPersonalDetailsForm = () => {
         />
       </Box>
     </CvBuilderFormPanel>
-  )
-}
+  );
+};
 
-export default CvBuilderPersonalDetailsForm
+export default CvBuilderPersonalDetailsForm;
