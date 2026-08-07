@@ -28,8 +28,11 @@ const mockSkill = (id: string, selected = false): UserSkill => ({
 
 const mockJob = (id: string): SavedJob => ({
   jobId: id,
-  jobTitle: `Job ${id}`,
+  title: `Job ${id}`,
   company: 'Acme',
+  salaryRange: 'R500k - R700k',
+  workType: 'Hybrid',
+  employmentType: 'Permanent',
   savedAt: '2024-01-01',
 })
 
@@ -209,7 +212,7 @@ describe('candidateSlice', () => {
     it('replaces education data', () => {
       const education = {
         secondaryEducation: [],
-        tertiaryEducation: [{ institution: 'UCT', qualification: 'BSc', year: 2018 }],
+        tertiaryEducation: [{ institution: 'UCT', qualification: 'BSc', yearCompleted: 2018 }],
       }
       const state = candidateReducer(buildInitialState(), updateBuildMyCvEducation(education))
       expect(state.buildMyCv.education.tertiaryEducation).toHaveLength(1)
