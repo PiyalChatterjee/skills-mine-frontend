@@ -1,10 +1,10 @@
-﻿import { Box, TextField } from "@mui/material";
+﻿import { Box } from "@mui/material";
 import { Controller, useFormContext } from "react-hook-form";
 import userIcon from "@/assets/public-layout/user-icon.svg";
 import styles from "../pages/CvBuilderPage.module.css";
 import {
   CvBuilderFormPanel,
-  CvBuilderLabeledField,
+  CvBuilderControlledTextField,
   CvBuilderSectionHeader,
   CvBuilderSelectField,
 } from "./CvBuilderFormPrimitives";
@@ -25,22 +25,12 @@ const CvBuilderPersonalDetailsForm = () => {
       <CvBuilderSectionHeader iconSrc={userIcon} title="Personal details" />
 
       <Box className={styles.formGrid}>
-        <CvBuilderLabeledField label="Full name" span="full">
-          <Controller
-            name="personalDetails.fullName"
-            control={control}
-            render={({ field, fieldState }) => (
-              <TextField
-                {...field}
-                error={Boolean(fieldState.error)}
-                helperText={fieldState.error?.message}
-                className={styles.fieldControl}
-                variant="outlined"
-                fullWidth
-              />
-            )}
-          />
-        </CvBuilderLabeledField>
+        <CvBuilderControlledTextField
+          name="personalDetails.fullName"
+          control={control}
+          label="Full name"
+          span="full"
+        />
 
         <Controller
           name="personalDetails.race"
@@ -87,23 +77,13 @@ const CvBuilderPersonalDetailsForm = () => {
           )}
         />
 
-        <CvBuilderLabeledField label="Nationality" span="full">
-          <Controller
-            name="personalDetails.nationality"
-            control={control}
-            render={({ field, fieldState }) => (
-              <TextField
-                {...field}
-                error={Boolean(fieldState.error)}
-                helperText={fieldState.error?.message}
-                placeholder="Nationality"
-                className={styles.fieldControl}
-                variant="outlined"
-                fullWidth
-              />
-            )}
-          />
-        </CvBuilderLabeledField>
+        <CvBuilderControlledTextField
+          name="personalDetails.nationality"
+          control={control}
+          label="Nationality"
+          span="full"
+          placeholder="Nationality"
+        />
 
         <Controller
           name="personalDetails.residentialLocation"
@@ -123,39 +103,22 @@ const CvBuilderPersonalDetailsForm = () => {
           )}
         />
 
-        <CvBuilderLabeledField label="Current company" span="full">
-          <Controller
-            name="personalDetails.currentCompany"
-            control={control}
-            render={({ field }) => (
-              <TextField
-                {...field}
-                placeholder="Current company"
-                className={styles.fieldControl}
-                variant="outlined"
-                fullWidth
-              />
-            )}
-          />
-        </CvBuilderLabeledField>
+        <CvBuilderControlledTextField
+          name="personalDetails.currentCompany"
+          control={control}
+          label="Current company"
+          span="full"
+          placeholder="Current company"
+          showError={false}
+        />
 
-        <CvBuilderLabeledField label="Current position" span="two">
-          <Controller
-            name="personalDetails.currentPosition"
-            control={control}
-            render={({ field, fieldState }) => (
-              <TextField
-                {...field}
-                error={Boolean(fieldState.error)}
-                helperText={fieldState.error?.message}
-                placeholder="Current position"
-                className={styles.fieldControl}
-                variant="outlined"
-                fullWidth
-              />
-            )}
-          />
-        </CvBuilderLabeledField>
+        <CvBuilderControlledTextField
+          name="personalDetails.currentPosition"
+          control={control}
+          label="Current position"
+          span="two"
+          placeholder="Current position"
+        />
 
         <Controller
           name="personalDetails.noticePeriod"

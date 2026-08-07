@@ -57,17 +57,26 @@ export const selectBuildMyCvExists = (state: RootState) =>
 export const selectBuildMyCvLastModified = (state: RootState) =>
   state.candidate.buildMyCvLastModified;
 
-export const selectBuildMyCvPersonalDetails = (state: RootState) =>
-  state.candidate.buildMyCv.personalDetails;
+const createBuildMyCvSelector = <TSelected>(
+  selector: (buildMyCv: RootState["candidate"]["buildMyCv"]) => TSelected,
+) => createSelector(selectBuildMyCv, selector);
 
-export const selectBuildMyCvCareerHistory = (state: RootState) =>
-  state.candidate.buildMyCv.careerHistory;
+export const selectBuildMyCvPersonalDetails = createBuildMyCvSelector(
+  (buildMyCv) => buildMyCv.personalDetails,
+);
 
-export const selectBuildMyCvSkills = (state: RootState) =>
-  state.candidate.buildMyCv.skills;
+export const selectBuildMyCvCareerHistory = createBuildMyCvSelector(
+  (buildMyCv) => buildMyCv.careerHistory,
+);
 
-export const selectBuildMyCvEducation = (state: RootState) =>
-  state.candidate.buildMyCv.education;
+export const selectBuildMyCvSkills = createBuildMyCvSelector(
+  (buildMyCv) => buildMyCv.skills,
+);
 
-export const selectBuildMyCvLanguages = (state: RootState) =>
-  state.candidate.buildMyCv.languages;
+export const selectBuildMyCvEducation = createBuildMyCvSelector(
+  (buildMyCv) => buildMyCv.education,
+);
+
+export const selectBuildMyCvLanguages = createBuildMyCvSelector(
+  (buildMyCv) => buildMyCv.languages,
+);

@@ -9,20 +9,17 @@ import {
   Typography,
 } from "@mui/material";
 import { Controller } from "react-hook-form";
-import { PasswordVisibilityAdornment } from "@/components/PasswordVisibilityAdornment";
 import { useZodForm } from "@/hooks/useZodForm";
+import AuthHero from "@/modules/auth/components/AuthHero";
+import AuthPasswordField from "@/modules/auth/components/AuthPasswordField";
 import {
   inviteSignupSchema,
   type InviteSignupFormValues,
 } from "@/modules/auth/types";
 import { authApi } from "@/services/api/authApi";
-import loginFaceImage from "@/assets/login-face-img.jpg";
-import loginVectorImage from "@/assets/login-vector.svg";
 import styles from "./SignupPage.module.css";
 
 const SignupPage = () => {
-  const [isPasswordVisible, setPasswordVisible] = useState(false);
-  const [isConfirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
 
   const {
@@ -45,9 +42,6 @@ const SignupPage = () => {
 
   const passwordValue = watch("password");
   const confirmPasswordValue = watch("confirmPassword");
-  const hasPasswordValue = Boolean(passwordValue?.length);
-  const hasConfirmPasswordValue = Boolean(confirmPasswordValue?.length);
-
   const phoneNumberRegistration = register("mobileNumber", {
     onChange: (event) => {
       const digitsOnly = event.target.value.replace(/\D/g, "").slice(0, 15);
@@ -68,26 +62,7 @@ const SignupPage = () => {
 
   return (
     <Box className={styles.pageRoot}>
-      <Box className={styles.heroSection}>
-        <Box
-          component="img"
-          src={loginVectorImage}
-          alt=""
-          className={styles.heroVector}
-        />
-        <Box
-          component="img"
-          src={loginFaceImage}
-          alt=""
-          className={styles.heroPortrait}
-        />
-        <Box className={styles.heroOverlay} />
-        <Box className={styles.heroHeadlineWrap}>
-          <Typography className={styles.heroHeadline}>
-            Global talent acquisition specialists
-          </Typography>
-        </Box>
-      </Box>
+      <AuthHero headline="Global talent acquisition specialists" />
 
       <Box className={styles.formSection}>
         <Typography className={styles.formHeading}>
@@ -153,61 +128,35 @@ const SignupPage = () => {
             />
           </Box>
 
-          <Box className={styles.fieldGroup}>
-            <Typography className={styles.fieldLabel}>Password</Typography>
-            <TextField
-              placeholder="At least 8 characters"
-              type={hasPasswordValue && isPasswordVisible ? "text" : "password"}
-              error={Boolean(errors.password)}
-              helperText={errors.password?.message}
-              slotProps={{
-                input: {
-                  endAdornment: hasPasswordValue ? (
-                    <PasswordVisibilityAdornment
-                      visible={isPasswordVisible}
-                      onToggle={() => {
-                        setPasswordVisible((previous) => !previous);
-                      }}
-                      buttonClassName={styles.passwordToggleButton}
-                      iconClassName={styles.passwordToggleIcon}
-                    />
-                  ) : null,
-                },
-              }}
-              {...register("password")}
-              className={styles.inputField}
-            />
-          </Box>
+          <AuthPasswordField
+            label="Password"
+            placeholder="At least 8 characters"
+            value={passwordValue}
+            error={Boolean(errors.password)}
+            helperText={errors.password?.message}
+            registration={register("password")}
+            fieldGroupClassName={styles.fieldGroup}
+            fieldLabelClassName={styles.fieldLabel}
+            inputFieldClassName={styles.inputField}
+            toggleButtonClassName={styles.passwordToggleButton}
+            toggleIconClassName={styles.passwordToggleIcon}
+            autoComplete="new-password"
+          />
 
-          <Box className={styles.fieldGroup}>
-            <Typography className={styles.fieldLabel}>Confirm Password</Typography>
-            <TextField
-              placeholder="Re-enter your password"
-              type={
-                hasConfirmPasswordValue && isConfirmPasswordVisible
-                  ? "text"
-                  : "password"
-              }
-              error={Boolean(errors.confirmPassword)}
-              helperText={errors.confirmPassword?.message}
-              slotProps={{
-                input: {
-                  endAdornment: hasConfirmPasswordValue ? (
-                    <PasswordVisibilityAdornment
-                      visible={isConfirmPasswordVisible}
-                      onToggle={() => {
-                        setConfirmPasswordVisible((previous) => !previous);
-                      }}
-                      buttonClassName={styles.passwordToggleButton}
-                      iconClassName={styles.passwordToggleIcon}
-                    />
-                  ) : null,
-                },
-              }}
-              {...register("confirmPassword")}
-              className={styles.inputField}
-            />
-          </Box>
+          <AuthPasswordField
+            label="Confirm Password"
+            placeholder="Re-enter your password"
+            value={confirmPasswordValue}
+            error={Boolean(errors.confirmPassword)}
+            helperText={errors.confirmPassword?.message}
+            registration={register("confirmPassword")}
+            fieldGroupClassName={styles.fieldGroup}
+            fieldLabelClassName={styles.fieldLabel}
+            inputFieldClassName={styles.inputField}
+            toggleButtonClassName={styles.passwordToggleButton}
+            toggleIconClassName={styles.passwordToggleIcon}
+            autoComplete="new-password"
+          />
 
           <Box className={styles.termsRow}>
             <Controller

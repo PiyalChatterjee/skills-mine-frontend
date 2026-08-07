@@ -9,14 +9,13 @@ import {
 import { useGoogleLogin, type TokenResponse } from "@react-oauth/google";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/app/auth/AuthContext";
-import { PasswordVisibilityAdornment } from "@/components/PasswordVisibilityAdornment";
 import { useZodForm } from "@/hooks/useZodForm";
+import AuthHero from "@/modules/auth/components/AuthHero";
+import AuthPasswordField from "@/modules/auth/components/AuthPasswordField";
 import { loginSchema, type LoginFormValues } from "@/modules/auth/types";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import { authApi, mapLoginResponseToSession } from "@/services/api/authApi";
 import googleLogoUrl from "@/assets/public-layout/google-logo.png";
-import loginFaceImage from "@/assets/login-face-img.jpg";
-import loginVectorImage from "@/assets/login-vector.svg";
 import styles from "./LoginPage.module.css";
 
 const LoginPage = () => {
@@ -25,7 +24,6 @@ const LoginPage = () => {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [googleAuthError, setGoogleAuthError] = useState<string | null>(null);
   const [pendingGoogleAuth, setPendingGoogleAuth] = useState(false);
-  const [isPasswordVisible, setPasswordVisible] = useState(false);
   const hasGoogleClientId = Boolean(import.meta.env.VITE_GOOGLE_CLIENT_ID?.trim());
   const {
     register,
@@ -40,7 +38,6 @@ const LoginPage = () => {
     },
   });
   const passwordValue = watch("password");
-  const hasPasswordValue = Boolean(passwordValue?.length);
 
   const handleGoogleAuthSuccess = async (tokenResponse: TokenResponse) => {
     try {
@@ -95,26 +92,10 @@ const LoginPage = () => {
 
   return (
     <Box className={styles.pageRoot}>
-      <Box className={styles.heroSection}>
-        <Box
-          component="img"
-          src={loginVectorImage}
-          alt=""
-          className={styles.heroVector}
-        />
-        <Box
-          component="img"
-          src={loginFaceImage}
-          alt=""
-          className={styles.heroPortrait}
-        />
-        <Box className={styles.heroOverlay} />
-        <Box className={styles.heroHeadlineWrap}>
-          <Typography className={styles.heroHeadline}>
-            Where talent meets opportunity.
-          </Typography>
-        </Box>
-      </Box>
+      <AuthHero
+        headline="Where talent meets opportunity."
+        headlineClassName={styles.heroHeadlineOverride}
+      />
 
       <Box className={styles.formSection}>
         <Typography className={styles.formHeading}>
@@ -137,34 +118,20 @@ const LoginPage = () => {
             />
           </Box>
 
-          <Box className={styles.fieldGroup}>
-            <Typography className={styles.fieldLabel}>Password</Typography>
-            <TextField
-              placeholder="Password"
-              type={hasPasswordValue && isPasswordVisible ? "text" : "password"}
-              autoComplete="current-password"
-              error={Boolean(errors.password)}
-              helperText={errors.password?.message}
-              slotProps={{
-                input: {
-                  endAdornment: hasPasswordValue
-                    ? (
-                        <PasswordVisibilityAdornment
-                          visible={isPasswordVisible}
-                          onToggle={() => {
-                            setPasswordVisible((previous) => !previous);
-                          }}
-                          buttonClassName={styles.passwordToggleButton}
-                          iconClassName={styles.passwordToggleIcon}
-                        />
-                      )
-                    : null,
-                },
-              }}
-              {...register("password")}
-              className={styles.inputField}
-            />
-          </Box>
+          <AuthPasswordField
+            label="Password"
+            placeholder="Password"
+            value={passwordValue}
+            autoComplete="current-password"
+            error={Boolean(errors.password)}
+            helperText={errors.password?.message}
+            registration={register("password")}
+            fieldGroupClassName={styles.fieldGroup}
+            fieldLabelClassName={styles.fieldLabel}
+            inputFieldClassName={styles.inputField}
+            toggleButtonClassName={styles.passwordToggleButton}
+            toggleIconClassName={styles.passwordToggleIcon}
+          />
 
           <Button
             type="submit"

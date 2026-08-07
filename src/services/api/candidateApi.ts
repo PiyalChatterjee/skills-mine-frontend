@@ -1,4 +1,8 @@
-import { apiClient } from "@/services/api/axios";
+import {
+  apiClient,
+  unwrapEnvelopeData,
+  unwrapResponseData,
+} from "@/services/api/axios";
 import { apiEndpoints, resolveEndpoint } from "@/services/api/endpoints";
 import type {
   BuildMyCvData,
@@ -124,10 +128,12 @@ const mapProfileResponse = (
 
 export const candidateApi = {
   async getById(userId: string): Promise<CandidateProfile> {
-    const response = await apiClient.get<CandidateProfileResponse>(
-      resolveEndpoint(apiEndpoints.users.profile, { userId }),
+    const payload = await unwrapResponseData(
+      apiClient.get<CandidateProfileResponse>(
+        resolveEndpoint(apiEndpoints.users.profile, { userId }),
+      ),
     );
-    return mapProfileResponse(response.data);
+    return mapProfileResponse(payload);
   },
 
   async updateById(
@@ -149,44 +155,42 @@ export const candidateApi = {
   > {
     const formData = new FormData();
     formData.append("file", file);
-    return apiClient
-      .post(
+    return unwrapResponseData(
+      apiClient.post(
         resolveEndpoint(apiEndpoints.users.profilePhoto, { userId }),
         formData,
-      )
-      .then((response) => response.data);
+      ),
+    );
   },
 
   deleteProfilePhoto(userId: string): Promise<SuccessEnvelope<null>> {
-    return apiClient
-      .delete(resolveEndpoint(apiEndpoints.users.profilePhoto, { userId }))
-      .then((response) => response.data);
+    return unwrapResponseData(
+      apiClient.delete(resolveEndpoint(apiEndpoints.users.profilePhoto, { userId })),
+    );
   },
 
   getDashboard(
     userId: string,
   ): Promise<SuccessEnvelope<CandidateDashboardData>> {
-    return apiClient
-      .get(resolveEndpoint(apiEndpoints.candidate.dashboard, { userId }))
-      .then((response) => response.data);
+    return unwrapResponseData(
+      apiClient.get(resolveEndpoint(apiEndpoints.candidate.dashboard, { userId })),
+    );
   },
 
   buildMyCv(): Promise<SuccessEnvelope<BuildMyCvData>> {
-    return apiClient
-      .post(apiEndpoints.candidate.buildMyCv)
-      .then((response) => response.data);
+    return unwrapResponseData(apiClient.post(apiEndpoints.candidate.buildMyCv));
   },
 
   previewResume(resumeId: string): Promise<SuccessEnvelope<CvPreviewData>> {
-    return apiClient
-      .get(resolveEndpoint(apiEndpoints.candidate.resumePreview, { resumeId }))
-      .then((response) => response.data);
+    return unwrapResponseData(
+      apiClient.get(resolveEndpoint(apiEndpoints.candidate.resumePreview, { resumeId })),
+    );
   },
 
   downloadResume(resumeId: string): Promise<SuccessEnvelope<CvDownloadData>> {
-    return apiClient
-      .get(resolveEndpoint(apiEndpoints.candidate.resumeDownload, { resumeId }))
-      .then((response) => response.data);
+    return unwrapResponseData(
+      apiClient.get(resolveEndpoint(apiEndpoints.candidate.resumeDownload, { resumeId })),
+    );
   },
 
   uploadApplicationCv(
@@ -195,83 +199,85 @@ export const candidateApi = {
   ): Promise<SuccessEnvelope<CvUploadData>> {
     const formData = new FormData();
     formData.append("file", file);
-    return apiClient
-      .post(
+    return unwrapResponseData(
+      apiClient.post(
         resolveEndpoint(apiEndpoints.applications.cvUpload, { applicationId }),
         formData,
-      )
-      .then((response) => response.data);
+      ),
+    );
   },
 
   getRecommendedJobs(
     candidateId: string,
   ): Promise<SuccessEnvelope<RecommendedJobsData>> {
-    return apiClient
-      .get(
+    return unwrapResponseData(
+      apiClient.get(
         resolveEndpoint(apiEndpoints.candidate.recommendedJobs, {
           candidateId,
         }),
-      )
-      .then((response) => response.data);
+      ),
+    );
   },
 
   getApplicationById(applicationId: string): Promise<CandidateApplication> {
-    return apiClient
-      .get<
+    return unwrapResponseData(
+      apiClient.get<
         SuccessEnvelope<unknown> | CandidateApplication
-      >(resolveEndpoint(apiEndpoints.applications.stageTransition, { applicationId }))
-      .then((response) => {
-        if (isCandidateApplication(response.data)) {
-          return response.data;
-        }
+      >(resolveEndpoint(apiEndpoints.applications.stageTransition, { applicationId })),
+    ).then((payload) => {
+      if (isCandidateApplication(payload)) {
+        return payload;
+      }
 
-        const envelope = response.data as SuccessEnvelope<unknown>;
-        if (isCandidateApplication(envelope.data)) {
-          return envelope.data;
-        }
+      const envelope = payload as SuccessEnvelope<unknown>;
+      if (isCandidateApplication(envelope.data)) {
+        return envelope.data;
+      }
 
-        throw new Error("Unexpected application response shape");
-      });
+      throw new Error("Unexpected application response shape");
+    });
   },
 
   getUserProfile(userId: string): Promise<UserProfile> {
-    return apiClient
-      .get<
-        SuccessEnvelope<UserProfile>
-      >(resolveEndpoint(apiEndpoints.users.profile, { userId }))
-      .then((response) => response.data.data);
+    return unwrapEnvelopeData(
+      apiClient.get<SuccessEnvelope<UserProfile>>(
+        resolveEndpoint(apiEndpoints.users.profile, { userId }),
+      ),
+    );
   },
 
   searchSkills(keyword: string, userId?: string): Promise<UserSkill[]> {
-    return apiClient
-      .get<SuccessEnvelope<unknown> | unknown>(apiEndpoints.skills.search, {
+    return unwrapResponseData(
+      apiClient.get<SuccessEnvelope<unknown> | unknown>(apiEndpoints.skills.search, {
         params: {
           [apiEndpoints.skills.keywordParam]: keyword,
           ...(userId ? { userId } : {}),
-        },
-      })
-      .then((response) => normalizeSkillsResponse(response.data));
+        }
+      }),
+    ).then((payload) => normalizeSkillsResponse(payload));
   },
 
   getBuildMyCv(): Promise<BuildMyCvState> {
-    return apiClient
-      .get<SuccessEnvelope<BuildMyCvState>>(apiEndpoints.candidate.buildMyCv)
-      .then((response) => response.data.data);
+    return unwrapEnvelopeData(
+      apiClient.get<SuccessEnvelope<BuildMyCvState>>(apiEndpoints.candidate.buildMyCv),
+    );
   },
 
   saveBuildMyCv(payload: SaveBuildMyCvRequest): Promise<BuildMyCvData> {
-    return apiClient
-      .post<
-        SuccessEnvelope<BuildMyCvData>
-      >(apiEndpoints.candidate.buildMyCv, payload)
-      .then((response) => response.data.data);
+    return unwrapEnvelopeData(
+      apiClient.post<SuccessEnvelope<BuildMyCvData>>(
+        apiEndpoints.candidate.buildMyCv,
+        payload,
+      ),
+    );
   },
 
   updateBuildMyCv(payload: UpdateBuildMyCvRequest): Promise<BuildMyCvData> {
-    return apiClient
-      .put<
-        SuccessEnvelope<BuildMyCvData>
-      >(apiEndpoints.candidate.buildMyCv, payload)
-      .then((response) => response.data.data);
+    return unwrapEnvelopeData(
+      apiClient.put<SuccessEnvelope<BuildMyCvData>>(
+        apiEndpoints.candidate.buildMyCv,
+        payload,
+      ),
+    );
   },
 };

@@ -1,5 +1,11 @@
 import { Box, MenuItem, TextField, Typography } from "@mui/material";
 import type { ChangeEvent, ReactNode } from "react";
+import {
+  Controller,
+  type Control,
+  type FieldPath,
+  type FieldValues,
+} from "react-hook-form";
 import chevronDownIcon from "@/assets/cv-builder/chevron-down.svg";
 import styles from "../pages/CvBuilderPage.module.css";
 
@@ -31,6 +37,15 @@ type CvBuilderSelectFieldProps = {
   displayEmpty?: boolean;
   error?: boolean;
   helperText?: string;
+};
+
+type CvBuilderControlledTextFieldProps<TFieldValues extends FieldValues> = {
+  name: FieldPath<TFieldValues>;
+  control: Control<TFieldValues>;
+  label: string;
+  span?: FieldSpan;
+  placeholder?: string;
+  showError?: boolean;
 };
 
 const spanClassNameMap: Record<FieldSpan, string> = {
@@ -137,5 +152,34 @@ export const CvBuilderSelectField = ({
         </MenuItem>
       ))}
     </TextField>
+  </CvBuilderLabeledField>
+);
+
+export const CvBuilderControlledTextField = <
+  TFieldValues extends FieldValues,
+>({
+  name,
+  control,
+  label,
+  span = "one",
+  placeholder,
+  showError = true,
+}: CvBuilderControlledTextFieldProps<TFieldValues>) => (
+  <CvBuilderLabeledField label={label} span={span}>
+    <Controller
+      name={name}
+      control={control}
+      render={({ field, fieldState }) => (
+        <TextField
+          {...field}
+          error={showError ? Boolean(fieldState.error) : false}
+          helperText={showError ? fieldState.error?.message : undefined}
+          placeholder={placeholder}
+          className={styles.fieldControl}
+          variant="outlined"
+          fullWidth
+        />
+      )}
+    />
   </CvBuilderLabeledField>
 );

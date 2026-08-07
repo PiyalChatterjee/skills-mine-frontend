@@ -1,5 +1,5 @@
 import { decodeJwtPayload } from "@/app/auth/jwt";
-import { apiClient } from "@/services/api/axios";
+import { apiClient, unwrapResponseData } from "@/services/api/axios";
 import { apiEndpoints } from "@/services/api/endpoints";
 import {
   PERMISSIONS,
@@ -111,44 +111,42 @@ export const mapLoginResponseToSession = (
 });
 
 export const authApi = {
-  login(payload: LoginRequest): Promise<LoginResponse> {
-    return apiClient
-      .post<LoginResponse>(apiEndpoints.auth.login, payload)
-      .then((response) => response.data);
+  async login(payload: LoginRequest): Promise<LoginResponse> {
+    return unwrapResponseData(
+      apiClient.post<LoginResponse>(apiEndpoints.auth.login, payload),
+    );
   },
 
-  exchangeGoogleToken(
+  async exchangeGoogleToken(
     payload: GoogleTokenExchangeRequest,
   ): Promise<GoogleTokenExchangeResponse> {
-    return apiClient
-      .post<GoogleTokenExchangeResponse>(
+    return unwrapResponseData(
+      apiClient.post<GoogleTokenExchangeResponse>(
         apiEndpoints.auth.googleExchange,
         payload,
-      )
-      .then((response) => response.data);
+      ),
+    );
   },
 
-  register(payload: RegisterRequest): Promise<SignUpResponse> {
-    return apiClient
-      .post<SignUpResponse>(apiEndpoints.auth.register, payload)
-      .then((response) => response.data);
+  async register(payload: RegisterRequest): Promise<SignUpResponse> {
+    return unwrapResponseData(
+      apiClient.post<SignUpResponse>(apiEndpoints.auth.register, payload),
+    );
   },
 
-  forgotPassword(payload: ForgotPasswordRequest): Promise<unknown> {
-    return apiClient
-      .post(apiEndpoints.auth.forgotPassword, payload)
-      .then((response) => response.data);
+  async forgotPassword(payload: ForgotPasswordRequest): Promise<unknown> {
+    return unwrapResponseData(
+      apiClient.post(apiEndpoints.auth.forgotPassword, payload),
+    );
   },
 
-  changePassword(payload: ChangePasswordRequest): Promise<unknown> {
-    return apiClient
-      .post(apiEndpoints.auth.changePassword, payload)
-      .then((response) => response.data);
+  async changePassword(payload: ChangePasswordRequest): Promise<unknown> {
+    return unwrapResponseData(
+      apiClient.post(apiEndpoints.auth.changePassword, payload),
+    );
   },
 
-  logout(): Promise<unknown> {
-    return apiClient
-      .post(apiEndpoints.auth.logout)
-      .then((response) => response.data);
+  async logout(): Promise<unknown> {
+    return unwrapResponseData(apiClient.post(apiEndpoints.auth.logout));
   },
 };
