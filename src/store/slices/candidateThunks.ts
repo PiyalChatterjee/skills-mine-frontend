@@ -53,5 +53,5 @@ export const saveProfileThunk = createAsyncThunk<
 export const fetchCandidateProfileThunk = (userId: string) =>
   apiSlice.endpoints.getCandidateProfile.initiate(userId, { forceRefetch: false })
 
-export const fetchCandidateDashboardThunk = () =>
-  apiSlice.endpoints.getCandidateDashboard.initiate(undefined, { forceRefetch: false })
+export const fetchCandidateDashboardThunk = (userId: string) =>
+  apiSlice.endpoints.getCandidateDashboard.initiate(userId, { forceRefetch: false })

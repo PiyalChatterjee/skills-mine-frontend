@@ -3,7 +3,7 @@ import { Box, ButtonBase, CircularProgress, Link, Typography } from '@mui/materi
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/app/auth/AuthContext'
 import { useCandidateDashboardQuery } from '@/modules/candidate/hooks/useCandidateQueries'
-import type { CandidateApplication } from '@/modules/candidate/types'
+import type { DashboardApplication } from '@/types/api'
 import bardLineIcon from '@/assets/candidate-dashboard/bard-line.svg'
 import expandCirclePlusIcon from '@/assets/candidate-dashboard/expand-circle-plus.svg'
 import bookmarkLineIcon from '@/assets/candidate-dashboard/bookmark-line.svg'
@@ -15,80 +15,71 @@ import verifiedBadgeLineIcon from '@/assets/candidate-dashboard/verified-badge-l
 import { ROUTE_PATHS } from '@/routes/routePaths'
 import styles from './CandidateDashboardPage.module.css'
 
-type PipelineStage =
-  | 'inbound'
-  | 'screening'
-  | 'shortlisted'
-  | 'interview'
-  | 'offer'
-  | 'placed'
-  | 'closed'
-
 type ApplicationStatusKey =
   | 'applied'
   | 'screening'
+  | 'assessment'
   | 'interview'
-  | 'rejected'
-  | 'offer_extended'
   | 'shortlisted'
+  | 'offer_extended'
   | 'placed'
+  | 'rejected'
   | 'unknown'
-
-const PIPELINE_STAGES: PipelineStage[] = [
-  'inbound',
-  'screening',
-  'shortlisted',
-  'interview',
-  'offer',
-  'placed',
-  'closed',
-]
-
-const PIPELINE_STAGE_LABELS: Record<PipelineStage, string> = {
-  inbound: 'Inbound',
-  screening: 'Screening',
-  shortlisted: 'Shortlisted',
-  interview: 'Interview',
-  offer: 'Offer',
-  placed: 'Placed',
-  closed: 'Closed',
-}
 
 const APPLICATION_STATUS_CONFIG: Record<ApplicationStatusKey, { label: string; color: string }> = {
   applied: { label: 'Applied', color: '#72c4e0' },
   screening: { label: 'Screening', color: '#4db8c8' },
+  assessment: { label: 'Assessment', color: '#f0a500' },
   interview: { label: 'Interview', color: '#7c5cd8' },
-  rejected: { label: 'Rejected', color: '#e07070' },
-  offer_extended: { label: 'Offer extended', color: '#5bbf8a' },
   shortlisted: { label: 'Shortlisted', color: '#e085c2' },
+  offer_extended: { label: 'Offer extended', color: '#5bbf8a' },
   placed: { label: 'Placed', color: '#329d72' },
+  rejected: { label: 'Rejected', color: '#e07070' },
   unknown: { label: 'Unknown stage', color: '#7a8694' },
 }
 
 const STAGE_STATUS_MAP: Record<string, ApplicationStatusKey> = {
+  // lowercase
   inbound: 'applied',
   applied: 'applied',
   screening: 'screening',
+  assessment: 'assessment',
   interview: 'interview',
+  shortlisted: 'shortlisted',
   offer: 'offer_extended',
   offer_extended: 'offer_extended',
-  shortlisted: 'shortlisted',
   placed: 'placed',
   closed: 'rejected',
   rejected: 'rejected',
 }
 
-const STAGE_PIPELINE_MAP: Record<string, PipelineStage> = {
-  inbound: 'inbound',
-  applied: 'inbound',
-  screening: 'screening',
-  shortlisted: 'shortlisted',
-  interview: 'interview',
-  offer: 'offer',
-  offer_extended: 'offer',
-  placed: 'placed',
-  closed: 'closed',
-  rejected: 'closed',
+// Pipeline stage label lookup – API keys are uppercase e.g. INTERVIEW
+const PIPELINE_STAGE_LABEL: Record<string, string> = {
+  applied: 'Applied',
+  screening: 'Screening',
+  assessment: 'Assessment',
+  interview: 'Interview',
+  shortlisted: 'Shortlisted',
+  offer: 'Offer',
+  placed: 'Placed',
+  closed: 'Closed',
+}
+
+const getPipelineStageLabelFromKey = (key: string): string =>
+  PIPELINE_STAGE_LABEL[key.toLowerCase()] ?? key
+
+// Returns 0-based index of current stage within the app's pipeline array
+const getPipelineProgress = (stage: string | undefined | null, pipeline: string[]): number => {
+  if (!stage || pipeline.length === 0) return 0
+  const normalized = stage.toLowerCase()
+  const idx = pipeline.findIndex((s) => s.toLowerCase() === normalized)
+  return idx >= 0 ? idx : 0
+}
+
+const getPipelineFillPercent = (stage: string | undefined | null, pipeline: string[]): number => {
+  if (pipeline.length <= 1) return 0
+  const idx = getPipelineProgress(stage, pipeline)
+  return Math.round((idx / (pipeline.length - 1)) * 100)
 }
 
 const unknownStages = new Set<string>()
@@ -104,7 +95,8 @@ const reportUnknownStage = (stage: string) => {
   }
 }
 
-const mapStageToStatusKey = (stage: string): ApplicationStatusKey => {
+const mapStageToStatusKey = (stage: string | undefined | null): ApplicationStatusKey => {
+  if (!stage) return 'unknown'
   const normalized = stage.trim().toLowerCase()
   const mapped = STAGE_STATUS_MAP[normalized]
   if (mapped) {
@@ -115,47 +107,30 @@ const mapStageToStatusKey = (stage: string): ApplicationStatusKey => {
   return 'unknown'
 }
 
-const mapStageToPipelineStage = (stage: string): PipelineStage | null => {
-  const normalized = stage.trim().toLowerCase()
-  const mapped = STAGE_PIPELINE_MAP[normalized]
-  if (mapped) {
-    return mapped
-  }
-
-  reportUnknownStage(stage)
-  return null
-}
-
-const getPipelineFillClassName = (pipelineStage: PipelineStage | null): string => {
-  if (!pipelineStage) {
-    return styles.pipelineFill0
-  }
-
-  const stageIndex = PIPELINE_STAGES.indexOf(pipelineStage)
-  const clampedIndex = Math.min(Math.max(stageIndex, 0), 6)
-  return styles[`pipelineFill${clampedIndex}`] ?? styles.pipelineFill0
-}
-
 type DisplayApplication = {
   id: string
   title: string
   status: ApplicationStatusKey
-  pipelineStage: PipelineStage | null
+  stage: string
+  pipeline: string[]
+  fillPercent: number
   message: string
 }
 
-const transformApplicationToDisplay = (app: CandidateApplication): DisplayApplication => ({
-  id: app.applicationId,
-  title: `${app.jobTitle} at ${app.company}`,
-  status: mapStageToStatusKey(app.currentStage),
-  pipelineStage: mapStageToPipelineStage(app.currentStage),
-  message: `Applied on ${new Date(app.appliedDate).toLocaleDateString()}`,
+const transformApplicationToDisplay = (app: DashboardApplication): DisplayApplication => ({
+  id: app.id,
+  title: `${app.job.title} at ${app.job.company}`,
+  status: mapStageToStatusKey(app.stage),
+  stage: app.stage,
+  pipeline: app.pipeline,
+  fillPercent: getPipelineFillPercent(app.stage, app.pipeline),
+  message: app.statusMessage,
 })
 
 const CandidateDashboardPage = () => {
   const navigate = useNavigate()
   const { user } = useAuth()
-  const { data: dashboard, isLoading } = useCandidateDashboardQuery(Boolean(user))
+  const { data: dashboard, isLoading } = useCandidateDashboardQuery(user?.userId, Boolean(user))
 
   const statCards = useMemo(() => {
     const summary = dashboard?.summary
@@ -168,14 +143,14 @@ const CandidateDashboardPage = () => {
         colorClass: styles.statCardBlue,
       },
       {
-        value: dashboard?.applications.filter((a) => a.currentStage.toLowerCase() === 'placed').length ?? 0,
+        value: summary?.successful ?? 0,
         icon: verifiedBadgeLineIcon,
         label: 'Successful',
         description: 'Successful applications through The Skills Mine',
         colorClass: styles.statCardGreen,
       },
       {
-        value: summary?.activeApplications ?? 0,
+        value: summary?.inProgress ?? 0,
         icon: progress5LineIcon,
         label: 'In Progress',
         description: 'Applications in progress through The Skills Mine',
@@ -186,7 +161,6 @@ const CandidateDashboardPage = () => {
 
   const firstName = user?.firstName ?? 'there'
   const applications = dashboard?.applications ?? []
-  const quickLinks = dashboard?.quickLinks ?? []
 
   if (isLoading) {
     return (
@@ -279,8 +253,8 @@ const CandidateDashboardPage = () => {
           type="button"
           className={`${styles.quickCard} ${styles.quickCardPurple}`}
           onClick={() => {
-            const path = quickLinks.find((item) => item.label.toLowerCase().includes('applications'))?.path
-            navigate(path ?? ROUTE_PATHS.jobs)
+            // quickLinks are string keys e.g. "RECOMMENDED_JOBS"
+            navigate(ROUTE_PATHS.jobs)
           }}
           disableRipple
         >
@@ -331,15 +305,19 @@ const CandidateDashboardPage = () => {
                   </Box>
 
                   <Box className={styles.pipelineWrap}>
-                    <Box className={styles.pipelineLabels}>
-                      {PIPELINE_STAGES.map((stage) => (
-                        <span key={stage} className={styles.pipelineLabel}>
-                          {PIPELINE_STAGE_LABELS[stage]}
+                    <Box className={styles.pipelineLabels} style={{ gridTemplateColumns: `repeat(${app.pipeline.length}, minmax(0, 1fr))` }}>
+                      {app.pipeline.map((stageKey) => (
+                        <span
+                          key={stageKey}
+                          className={styles.pipelineLabel}
+                          data-active={stageKey.toLowerCase() === app.stage.toLowerCase() || undefined}
+                        >
+                          {getPipelineStageLabelFromKey(stageKey)}
                         </span>
                       ))}
                     </Box>
                     <Box className={styles.pipelineTrack}>
-                      <Box className={`${styles.pipelineFill} ${getPipelineFillClassName(app.pipelineStage)}`} />
+                      <Box className={styles.pipelineFill} style={{ width: `${app.fillPercent}%` }} />
                     </Box>
                   </Box>
 

@@ -15,8 +15,8 @@ export const useCandidateProfileQuery = (
   })
 }
 
-export const useCandidateDashboardQuery = (enabled = true) =>
-  useGetCandidateDashboardQuery(undefined, { skip: !enabled })
+export const useCandidateDashboardQuery = (userId?: string, enabled = true) =>
+  useGetCandidateDashboardQuery(userId as string, { skip: !enabled || !userId })
 
 type UpdateCandidateProfileVariables = {
   userId: string

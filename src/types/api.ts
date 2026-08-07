@@ -87,17 +87,16 @@ export interface CandidateProfileResponse {
 }
 
 export interface CandidateDashboardSummary {
-  profileCompleted: number
   totalApplications: number
-  activeApplications: number
-  savedJobs: number
-  profileViews: number
+  submitted: number
+  inProgress: number
+  successful: number
 }
 
 export interface CandidateDashboardActivity {
-  day: string
-  applications: number
-  profileViews: number
+  jobsAppliedThisWeek: number
+  recruiterProfileViewsThisWeek: number
+  coursesCompletedThisWeek: number
 }
 
 export interface CandidateApplication {
@@ -116,14 +115,25 @@ export interface CandidateApplication {
   updatedAt?: string
 }
 
+export interface DashboardApplication {
+  id: string
+  job: {
+    id: string
+    title: string
+    company: string
+  }
+  stage: string
+  statusMessage: string
+  pipeline: string[]
+}
+
 export interface CandidateDashboardData {
+  id?: string
+  candidateId?: string
   summary: CandidateDashboardSummary
-  activity: CandidateDashboardActivity[]
-  applications: CandidateApplication[]
-  quickLinks: Array<{
-    label: string
-    path: string
-  }>
+  activity: CandidateDashboardActivity
+  applications: DashboardApplication[]
+  quickLinks: string[]
 }
 
 export interface JobsListData {

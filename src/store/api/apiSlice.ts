@@ -27,10 +27,10 @@ export const apiSlice = createApi({
         { type: 'CandidateProfile', id: userId },
       ],
     }),
-    getCandidateDashboard: build.query<CandidateDashboardData, void>({
-      queryFn: () =>
+    getCandidateDashboard: build.query<CandidateDashboardData, string>({
+      queryFn: (userId) =>
         withMappedApiError(async () => {
-          const response = await candidateApi.getDashboard()
+          const response = await candidateApi.getDashboard(userId)
           return response.data
         }),
       providesTags: [{ type: 'CandidateDashboard', id: 'SELF' }],

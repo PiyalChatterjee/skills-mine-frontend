@@ -89,8 +89,10 @@ export const candidateApi = {
       .then((response) => response.data)
   },
 
-  getDashboard(): Promise<SuccessEnvelope<CandidateDashboardData>> {
-    return apiClient.get(apiEndpoints.candidate.dashboard).then((response) => response.data)
+  getDashboard(userId: string): Promise<SuccessEnvelope<CandidateDashboardData>> {
+    return apiClient
+      .get(resolveEndpoint(apiEndpoints.candidate.dashboard, { userId }))
+      .then((response) => response.data)
   },
 
   buildMyCv(): Promise<SuccessEnvelope<BuildMyCvData>> {

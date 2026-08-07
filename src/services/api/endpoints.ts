@@ -17,7 +17,7 @@ export const apiEndpoints = {
     profilePhoto: withDefault(import.meta.env.VITE_USERS_PROFILE_PHOTO_ENDPOINT, '/users/:userId/profile-photo'),
   },
   candidate: {
-    dashboard: withDefault(import.meta.env.VITE_CANDIDATE_DASHBOARD_ENDPOINT, '/candidate/dashboard'),
+    dashboard: withDefault(import.meta.env.VITE_CANDIDATE_DASHBOARD_ENDPOINT, '/candidate/:userId/dashboard'),
     buildMyCv: withDefault(import.meta.env.VITE_CANDIDATE_BUILDMYCV_ENDPOINT, '/candidate/buildmycv'),
     resumePreview: withDefault(import.meta.env.VITE_CANDIDATE_RESUME_PREVIEW_ENDPOINT, '/candidate/:resumeId/preview'),
     resumeDownload: withDefault(import.meta.env.VITE_CANDIDATE_RESUME_DOWNLOAD_ENDPOINT, '/candidate/:resumeId/download'),
