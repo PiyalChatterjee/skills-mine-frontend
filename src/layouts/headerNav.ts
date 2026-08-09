@@ -128,7 +128,7 @@ export const PUBLIC_HEADER_NAV_PRESETS = {
 } satisfies Record<string, readonly HeaderNavKey[]>
 
 const ROLE_HEADER_NAV_PRESETS: Partial<Record<Role, readonly HeaderNavKey[]>> = {
-  candidate: [
+  JOB_SEEKER: [
     'candidateDashboard',
     'candidateJobApplications',
     'candidateSavedJobPosts',
@@ -136,7 +136,7 @@ const ROLE_HEADER_NAV_PRESETS: Partial<Record<Role, readonly HeaderNavKey[]>> = 
     'candidateSkillsBuild',
     'candidateBlog',
   ],
-  recruiter: [
+  RECRUITER: [
     'recruiterDashboard',
     'recruiterLatestOpenings',
     'recruiterJobApplications',

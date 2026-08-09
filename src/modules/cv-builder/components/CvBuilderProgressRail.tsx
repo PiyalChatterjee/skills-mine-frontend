@@ -1,23 +1,26 @@
-import { Box, Typography } from '@mui/material'
-import styles from '../pages/CvBuilderPage.module.css'
-import type { StepItem } from '../types/cvBuilder'
+import { Box, Typography } from "@mui/material";
+import styles from "../pages/CvBuilderPage.module.css";
+import type { StepItem } from "../types/cvBuilder";
 
 type CvBuilderProgressRailProps = {
-  steps: StepItem[]
-  activeStepId: number
-}
+  steps: StepItem[];
+  activeStepId: number;
+};
 
-const CvBuilderProgressRail = ({ steps, activeStepId }: CvBuilderProgressRailProps) => (
+const CvBuilderProgressRail = ({
+  steps,
+  activeStepId,
+}: CvBuilderProgressRailProps) => (
   <Box className={styles.progressRail}>
     {steps.map((step, index) => {
-      const isActive = step.id === activeStepId
-      const isCompleted = step.id < activeStepId
+      const isActive = step.id === activeStepId;
+      const isCompleted = step.id < activeStepId;
 
       return (
         <Box key={step.id} className={styles.progressItemWrap}>
           <Box className={styles.progressItem}>
             <Box
-              className={`${styles.progressCircle} ${isCompleted ? styles.progressCircleCompleted : ''} ${isActive ? styles.progressCircleActive : ''}`}
+              className={`${styles.progressCircle} ${isCompleted ? styles.progressCircleCompleted : ""} ${isActive ? styles.progressCircleActive : ""}`}
             >
               {isCompleted ? (
                 <Box
@@ -36,16 +39,18 @@ const CvBuilderProgressRail = ({ steps, activeStepId }: CvBuilderProgressRailPro
             </Box>
             <Typography
               component="p"
-              className={`${styles.progressLabel} ${isCompleted ? styles.progressLabelCompleted : ''} ${isActive ? styles.progressLabelActive : ''}`}
+              className={`${styles.progressLabel} ${isCompleted ? styles.progressLabelCompleted : ""} ${isActive ? styles.progressLabelActive : ""}`}
             >
               {step.label}
             </Typography>
           </Box>
-          {index < steps.length - 1 && <Box className={styles.progressConnector} aria-hidden="true" />}
+          {index < steps.length - 1 && (
+            <Box className={styles.progressConnector} aria-hidden="true" />
+          )}
         </Box>
-      )
+      );
     })}
   </Box>
-)
+);
 
-export default CvBuilderProgressRail
+export default CvBuilderProgressRail;

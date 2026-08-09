@@ -28,9 +28,10 @@ export const CandidateSignUpForm = ({
   const confirmPasswordValue = useWatch({ control, name: "confirmPassword" });
   const hasPasswordValue = Boolean(passwordValue?.length);
   const hasConfirmPasswordValue = Boolean(confirmPasswordValue?.length);
-  const phoneNumberRegistration = register("phoneNumber", {
+  const phoneNumberRegistration = register("mobileNumber", {
     onChange: (event) => {
-      event.target.value = event.target.value.replace(/\D/g, "").slice(0, 9);
+      const digitsOnly = event.target.value.replace(/\D/g, "").slice(0, 15);
+      event.target.value = digitsOnly ? `+${digitsOnly}` : "";
     },
   });
 
@@ -104,13 +105,12 @@ export const CandidateSignUpForm = ({
           variant="outlined"
           type="tel"
           fullWidth
-          error={Boolean(errors.phoneNumber)}
-          helperText={errors.phoneNumber?.message}
+          error={Boolean(errors.mobileNumber)}
+          helperText={errors.mobileNumber?.message}
           slotProps={{
             htmlInput: {
-              inputMode: "numeric",
-              maxLength: 9,
-              pattern: "[0-9]*",
+              inputMode: "tel",
+              maxLength: 16,
             },
           }}
           {...phoneNumberRegistration}
@@ -183,25 +183,9 @@ export const CandidateSignUpForm = ({
         />
       </Box>
 
-      <Box className={styles.fieldBlock}>
-        <Typography component="label" className={styles.fieldLabel} htmlFor="password-hint">
-          Password Hint
-        </Typography>
-        <TextField
-          id="password-hint"
-          className={styles.fieldInput}
-          placeholder="Something to help you remember"
-          variant="outlined"
-          fullWidth
-          error={Boolean(errors.passwordHint)}
-          helperText={errors.passwordHint?.message}
-          {...register("passwordHint")}
-        />
-      </Box>
-
       <Box className={styles.termsRow}>
         <Controller
-          name="termsAccepted"
+          name="acceptTerms"
           control={control}
           render={({ field }) => (
             <Checkbox
@@ -227,9 +211,9 @@ export const CandidateSignUpForm = ({
         </Typography>
       </Box>
 
-      {errors.termsAccepted?.message ? (
+      {errors.acceptTerms?.message ? (
         <Typography className={styles.formErrorText}>
-          {errors.termsAccepted.message}
+          {errors.acceptTerms.message}
         </Typography>
       ) : null}
 

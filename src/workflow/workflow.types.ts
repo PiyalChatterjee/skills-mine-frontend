@@ -3,8 +3,9 @@ export type WorkflowStage =
   | 'SCREENING'
   | 'ASSESSMENT'
   | 'INTERVIEW'
-  | 'SHORTLIST'
+  | 'SHORTLISTED'
   | 'OFFER'
+  | 'PLACED'
   | 'CLOSED'
 
 export interface WorkflowTransition {

@@ -1,181 +1,149 @@
 import { Box, Button, TextField, Typography } from '@mui/material'
-import type { ChangeEvent } from 'react'
+import { Controller, useFieldArray, useFormContext } from 'react-hook-form'
 import educationIcon from '@/assets/cv-builder/education-line.svg'
 import styles from '../pages/CvBuilderPage.module.css'
 import CvBuilderRemoveItemButton from './CvBuilderRemoveItemButton'
-import {
-  CvBuilderFormPanel,
-  CvBuilderLabeledField,
-  CvBuilderSectionHeader,
-} from './CvBuilderFormPrimitives'
-import type { SecondaryEducationEntry, TertiaryEducationEntry } from '../types/cvBuilder'
+import { CvBuilderFormPanel, CvBuilderLabeledField, CvBuilderSectionHeader } from './CvBuilderFormPrimitives'
+import type { CvBuilderFormValues } from '../types/cvBuilderSchema'
 
-type CvBuilderEducationFormProps = {
-  tertiaryEntries: TertiaryEducationEntry[]
-  secondaryEntries: SecondaryEducationEntry[]
-  onUpdateTertiary: (entryId: string, field: keyof Omit<TertiaryEducationEntry, 'id'>, value: string) => void
-  onAddTertiary: () => void
-  onRemoveTertiary: (entryId: string) => void
-  onUpdateSecondary: (entryId: string, field: keyof Omit<SecondaryEducationEntry, 'id'>, value: string) => void
-  onAddSecondary: () => void
-  onRemoveSecondary: (entryId: string) => void
-}
-
-type BaseEducationEntry = {
-  id: string
-  institutionName: string
-  yearCompleted: string
-}
-
-type EducationSectionProps<TEntry extends BaseEducationEntry> = {
+type EducationSectionProps = {
+  sectionName: 'tertiaryEducation' | 'secondaryEducation'
   sectionTitle: string
-  entries: TEntry[]
   entryLabelPrefix: string
   middleFieldLabel: string
   middleFieldPlaceholder: string
+  middleFieldKey: string
   addButtonLabel: string
-  middleFieldValue: (entry: TEntry) => string
-  onUpdateInstitutionName: (entryId: string, value: string) => void
-  onUpdateMiddleField: (entryId: string, value: string) => void
-  onUpdateYearCompleted: (entryId: string, value: string) => void
-  onRemoveEntry: (entryId: string) => void
-  onAddEntry: () => void
+  onAddClearError: () => void
 }
 
-const EducationSection = <TEntry extends BaseEducationEntry>({
+const EducationSection = ({
+  sectionName,
   sectionTitle,
-  entries,
   entryLabelPrefix,
   middleFieldLabel,
   middleFieldPlaceholder,
+  middleFieldKey,
   addButtonLabel,
-  middleFieldValue,
-  onUpdateInstitutionName,
-  onUpdateMiddleField,
-  onUpdateYearCompleted,
-  onRemoveEntry,
-  onAddEntry,
-}: EducationSectionProps<TEntry>) => (
-  <Box className={styles.educationSection}>
-    <Typography component="h3" className={styles.educationSubHeading}>
-      {sectionTitle}
-    </Typography>
+  onAddClearError,
+}: EducationSectionProps) => {
+  const { control } = useFormContext<CvBuilderFormValues>()
+  const { fields, append, remove } = useFieldArray({ control, name: sectionName })
 
-    {entries.map((entry, index) => (
-      <Box key={entry.id} className={styles.educationEntryWrap}>
-        {entries.length > 1 && (
-          <Box className={styles.educationEntryMeta}>
-            <Typography className={styles.educationEntryLabel}>
-              {entryLabelPrefix} {index + 1}
-            </Typography>
-            <CvBuilderRemoveItemButton
-              canRemove={entries.length > 1}
-              ariaLabel={`Remove ${entryLabelPrefix.toLowerCase()} ${index + 1}`}
-              onClick={() => onRemoveEntry(entry.id)}
-            />
+  const handleAdd = () => {
+    onAddClearError()
+    if (sectionName === 'tertiaryEducation') {
+      ;(append as (v: CvBuilderFormValues['tertiaryEducation'][number]) => void)({ institutionName: '', degreeOrCertification: '', yearCompleted: '' })
+    } else {
+      ;(append as (v: CvBuilderFormValues['secondaryEducation'][number]) => void)({ institutionName: '', highestGradePassed: '', yearCompleted: '' })
+    }
+  }
+
+  return (
+    <Box className={styles.educationSection}>
+      <Typography component="h3" className={styles.educationSubHeading}>{sectionTitle}</Typography>
+
+      {fields.map((fieldItem, index) => (
+        <Box key={fieldItem.id} className={styles.educationEntryWrap}>
+          {fields.length > 1 && (
+            <Box className={styles.educationEntryMeta}>
+              <Typography className={styles.educationEntryLabel}>{entryLabelPrefix} {index + 1}</Typography>
+              <CvBuilderRemoveItemButton
+                canRemove={fields.length > 1}
+                ariaLabel={`Remove ${entryLabelPrefix.toLowerCase()} ${index + 1}`}
+                onClick={() => remove(index)}
+              />
+            </Box>
+          )}
+
+          <Box className={styles.educationGrid}>
+            <CvBuilderLabeledField label="Institution name" span="full">
+              <Controller
+                name={`${sectionName}.${index}.institutionName` as never}
+                control={control}
+                render={({ field, fieldState }) => (
+                  <TextField {...field} error={Boolean(fieldState.error)} helperText={fieldState.error?.message} placeholder="Institution name" className={styles.fieldControl} variant="outlined" fullWidth />
+                )}
+              />
+            </CvBuilderLabeledField>
+
+            <CvBuilderLabeledField label={middleFieldLabel} span="two">
+              <Controller
+                name={`${sectionName}.${index}.${middleFieldKey}` as never}
+                control={control}
+                render={({ field, fieldState }) => (
+                  <TextField {...field} error={Boolean(fieldState.error)} helperText={fieldState.error?.message} placeholder={middleFieldPlaceholder} className={styles.fieldControl} variant="outlined" fullWidth />
+                )}
+              />
+            </CvBuilderLabeledField>
+
+            <CvBuilderLabeledField label="Year completed" span="one">
+              <Controller
+                name={`${sectionName}.${index}.yearCompleted` as never}
+                control={control}
+                render={({ field, fieldState }) => (
+                  <TextField
+                    {...field}
+                    onChange={(e) => field.onChange(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                    error={Boolean(fieldState.error)}
+                    helperText={fieldState.error?.message}
+                    placeholder="YYYY"
+                    slotProps={{ htmlInput: { inputMode: 'numeric', pattern: '[0-9]*', maxLength: 4 } }}
+                    className={styles.fieldControl}
+                    variant="outlined"
+                    fullWidth
+                  />
+                )}
+              />
+            </CvBuilderLabeledField>
           </Box>
-        )}
-
-        <Box className={styles.educationGrid}>
-          <CvBuilderLabeledField label="Institution name" span="full">
-            <TextField
-              value={entry.institutionName}
-              onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                onUpdateInstitutionName(entry.id, e.target.value)
-              }
-              placeholder="Institution name"
-              className={styles.fieldControl}
-              variant="outlined"
-              fullWidth
-            />
-          </CvBuilderLabeledField>
-
-          <CvBuilderLabeledField label={middleFieldLabel} span="two">
-            <TextField
-              value={middleFieldValue(entry)}
-              onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                onUpdateMiddleField(entry.id, e.target.value)
-              }
-              placeholder={middleFieldPlaceholder}
-              className={styles.fieldControl}
-              variant="outlined"
-              fullWidth
-            />
-          </CvBuilderLabeledField>
-
-          <CvBuilderLabeledField label="Year completed" span="one">
-            <TextField
-              value={entry.yearCompleted}
-              onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                onUpdateYearCompleted(entry.id, e.target.value)
-              }
-              placeholder="Year"
-              className={styles.fieldControl}
-              variant="outlined"
-              fullWidth
-            />
-          </CvBuilderLabeledField>
         </Box>
-      </Box>
-    ))}
+      ))}
 
-    <Button
-      type="button"
-      onClick={onAddEntry}
-      className={styles.addMutedPillButton}
-      disableRipple
-      fullWidth
-    >
-      {addButtonLabel}
-    </Button>
-  </Box>
-)
+      <Button type="button" onClick={handleAdd} className={styles.addMutedPillButton} disableRipple fullWidth>
+        {addButtonLabel}
+      </Button>
+    </Box>
+  )
+}
 
-const CvBuilderEducationForm = ({
-  tertiaryEntries,
-  secondaryEntries,
-  onUpdateTertiary,
-  onAddTertiary,
-  onRemoveTertiary,
-  onUpdateSecondary,
-  onAddSecondary,
-  onRemoveSecondary,
-}: CvBuilderEducationFormProps) => (
-  <CvBuilderFormPanel>
-    <CvBuilderSectionHeader iconSrc={educationIcon} title="Education" />
+const CvBuilderEducationForm = () => {
+  const { formState: { errors }, clearErrors } = useFormContext<CvBuilderFormValues>()
+  const formError = (errors.tertiaryEducation as { root?: { message?: string } } | undefined)?.root?.message
 
-    <Box className={styles.educationSections}>
+  const clearEducationError = () => clearErrors('tertiaryEducation')
+
+  return (
+    <CvBuilderFormPanel>
+      <CvBuilderSectionHeader iconSrc={educationIcon} title="Education" />
+
+      {formError && (
+        <Typography component="p" sx={{ color: '#d32f2f', marginBottom: 2 }}>{formError}</Typography>
+      )}
+
       <EducationSection
+        sectionName="tertiaryEducation"
         sectionTitle="Tertiary education"
-        entries={tertiaryEntries}
-        entryLabelPrefix="Tertiary education"
+        entryLabelPrefix="Tertiary entry"
         middleFieldLabel="Degree or certification"
         middleFieldPlaceholder="Degree or certification"
-        addButtonLabel="Add tertiary education"
-        middleFieldValue={(entry) => entry.degreeOrCertification}
-        onUpdateInstitutionName={(entryId, value) => onUpdateTertiary(entryId, 'institutionName', value)}
-        onUpdateMiddleField={(entryId, value) => onUpdateTertiary(entryId, 'degreeOrCertification', value)}
-        onUpdateYearCompleted={(entryId, value) => onUpdateTertiary(entryId, 'yearCompleted', value)}
-        onRemoveEntry={onRemoveTertiary}
-        onAddEntry={onAddTertiary}
+        middleFieldKey="degreeOrCertification"
+        addButtonLabel="+ Add tertiary entry"
+        onAddClearError={clearEducationError}
       />
 
       <EducationSection
+        sectionName="secondaryEducation"
         sectionTitle="Secondary education"
-        entries={secondaryEntries}
-        entryLabelPrefix="Secondary education"
+        entryLabelPrefix="Secondary entry"
         middleFieldLabel="Highest grade passed"
-        middleFieldPlaceholder="Highest grade passed"
-        addButtonLabel="Add secondary education"
-        middleFieldValue={(entry) => entry.highestGradePassed}
-        onUpdateInstitutionName={(entryId, value) => onUpdateSecondary(entryId, 'institutionName', value)}
-        onUpdateMiddleField={(entryId, value) => onUpdateSecondary(entryId, 'highestGradePassed', value)}
-        onUpdateYearCompleted={(entryId, value) => onUpdateSecondary(entryId, 'yearCompleted', value)}
-        onRemoveEntry={onRemoveSecondary}
-        onAddEntry={onAddSecondary}
+        middleFieldPlaceholder="e.g. Grade 12"
+        middleFieldKey="highestGradePassed"
+        addButtonLabel="+ Add secondary entry"
+        onAddClearError={clearEducationError}
       />
-    </Box>
-  </CvBuilderFormPanel>
-)
+    </CvBuilderFormPanel>
+  )
+}
 
 export default CvBuilderEducationForm

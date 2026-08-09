@@ -1,148 +1,152 @@
-import { apiClient } from '@/services/api/axios'
-import { PERMISSIONS, type AuthUser, type JwtTokens, type Permission, type Role } from '@/types/auth'
-
-export interface LoginRequest {
-  email: string
-  password: string
-}
-
-export interface SignUpRequest {
-  firstName: string
-  lastName: string
-  email: string
-  phoneNumber: string
-  password: string
-  confirmPassword: string
-  passwordHint: string
-  termsAccepted: boolean
-}
-
-export interface LoginResponse {
-  token: string
-  user: AuthUser
-  expiresIn: number
-}
-
-export interface SignUpResponse {
-  status: number
-}
-
-interface MockLoginUser {
-  id: string | number
-  email?: string
-  username?: string
-  name?: string
-  displayName?: string
-  firstName?: string
-  lastName?: string
-  role?: Role
-  permissions?: string[]
-}
-
-interface MockLoginApiResponse {
-  token: string
-  user: MockLoginUser
-  expiresIn: number
-}
+import { decodeJwtPayload } from "@/app/auth/jwt";
+import { apiClient, unwrapResponseData } from "@/services/api/axios";
+import { apiEndpoints } from "@/services/api/endpoints";
+import {
+  PERMISSIONS,
+  type AuthUser,
+  type ChangePasswordRequest,
+  type ForgotPasswordRequest,
+  type GoogleTokenExchangeRequest,
+  type GoogleTokenExchangeResponse,
+  type JwtTokens,
+  type LoginRequest,
+  type LoginResponse,
+  type Permission,
+  type RegisterRequest,
+  type Role,
+  type SignUpResponse,
+} from "@/types/auth";
 
 const rolePermissions: Record<Role, Permission[]> = {
-  candidate: [],
-  recruiter: ['CRM_VIEW', 'CRM_EDIT', 'MANDATE_CREATE', 'MANDATE_EDIT', 'PIPELINE_ADVANCE', 'PIPELINE_VIEW'],
-  manco: ['PIPELINE_VIEW', 'REPORT_VIEW'],
-  exco: ['REPORT_VIEW'],
-  admin: [
-    'MANDATE_CREATE',
-    'MANDATE_EDIT',
-    'PIPELINE_ADVANCE',
-    'PIPELINE_VIEW',
-    'CRM_VIEW',
-    'CRM_EDIT',
-    'REPORT_VIEW',
+  JOB_SEEKER: ["VIEW_JOBS", "APPLY_JOB", "UPLOAD_CV", "VIEW_DASHBOARD"],
+  RECRUITER: [
+    "MANDATE_CREATE",
+    "MANDATE_EDIT",
+    "PIPELINE_ADVANCE",
+    "CRM_EDIT",
+    "CANDIDATE_VIEW",
+    "VIEW_DASHBOARD",
   ],
-}
+  MANCO: ["PIPELINE_VIEW", "REPORT_VIEW", "RECRUITER_VIEW", "VIEW_DASHBOARD"],
+  ADMIN: ["ALL"],
+};
 
-const normalizePermissions = (
-  role: Role,
-  permissions?: string[],
-): Permission[] => {
-  if (!permissions || permissions.length === 0) {
-    return rolePermissions[role]
+const normalizeRole = (value: unknown): Role => {
+  if (
+    value === "JOB_SEEKER" ||
+    value === "RECRUITER" ||
+    value === "MANCO" ||
+    value === "ADMIN"
+  ) {
+    return value;
   }
 
-  if (permissions.includes('ALL')) {
-    return [...PERMISSIONS]
-  }
+  return "JOB_SEEKER";
+};
 
-  return permissions.filter((permission): permission is Permission =>
-    PERMISSIONS.includes(permission as Permission),
-  )
-}
+const normalizePermissions = (roles: Role[]): Permission[] => {
+  const merged = new Set<Permission>();
 
-const toAuthUser = (user: MockLoginUser): AuthUser => {
-  const role = user.role ?? 'candidate'
-  const fallbackName = [user.firstName, user.lastName]
-    .filter(Boolean)
-    .join(' ')
-    .trim()
-  const derivedName = fallbackName || user.username || user.email || 'SkillsMine User'
-  const displayName =
-    user.displayName ??
-    user.name ??
-    derivedName
+  roles.forEach((role) => {
+    rolePermissions[role].forEach((permission) => {
+      if (permission === "ALL") {
+        PERMISSIONS.forEach((item) => merged.add(item));
+        return;
+      }
+
+      merged.add(permission);
+    });
+  });
+
+  return Array.from(merged);
+};
+
+const buildAuthUserFromToken = (
+  accessToken: string,
+  rolesFromResponse: Role[],
+  profileCompleted: number,
+): AuthUser => {
+  const payload = decodeJwtPayload(accessToken);
+  const roles =
+    rolesFromResponse.length > 0
+      ? rolesFromResponse
+      : [normalizeRole(payload?.roles?.[0])];
+  const role = roles[0] ?? "JOB_SEEKER";
+  const firstName =
+    payload?.firstName ?? payload?.name?.split(" ")?.[0] ?? "SkillsMine";
+  const lastName =
+    payload?.lastName ??
+    payload?.name?.split(" ")?.slice(1).join(" ") ??
+    "User";
+  const displayName = payload?.name ?? `${firstName} ${lastName}`.trim();
+  const userId = payload?.userId ?? payload?.sub ?? "";
 
   return {
-    id: String(user.id),
-    email: user.email ?? `${user.username ?? 'user'}@skillsmine.local`,
+    id: userId,
+    userId,
+    email: payload?.email ?? "",
+    firstName,
+    lastName,
     displayName,
     role,
-    permissions: normalizePermissions(role, user.permissions),
-  }
-}
+    roles,
+    recruiterId: payload?.recruiterId,
+    profileCompleted,
+    permissions: normalizePermissions(roles),
+  };
+};
 
 export const mapLoginResponseToSession = (
   response: LoginResponse,
 ): { user: AuthUser; tokens: JwtTokens } => ({
-  user: response.user,
+  user: buildAuthUserFromToken(
+    response.data.accessToken,
+    response.data.roles.map(normalizeRole),
+    response.data.profileCompleted,
+  ),
   tokens: {
-    accessToken: response.token,
+    accessToken: response.data.accessToken,
+    refreshToken: response.data.refreshToken,
   },
-})
+});
 
 export const authApi = {
   async login(payload: LoginRequest): Promise<LoginResponse> {
-    const response = await apiClient.post<MockLoginApiResponse>(
-      import.meta.env.VITE_AUTH_LOGIN_ENDPOINT,
-      payload,
-    )
-
-    return {
-      token: response.data.token,
-      user: toAuthUser(response.data.user),
-      expiresIn: response.data.expiresIn,
-    }
+    return unwrapResponseData(
+      apiClient.post<LoginResponse>(apiEndpoints.auth.login, payload),
+    );
   },
-  async signup(payload: SignUpRequest): Promise<SignUpResponse> {
-    const response = await apiClient.post<MockLoginApiResponse>(
-      import.meta.env.VITE_AUTH_SIGNUP_ENDPOINT,
-      payload,
-    )
 
-    return {
-      status: response.status,
-    }
+  async exchangeGoogleToken(
+    payload: GoogleTokenExchangeRequest,
+  ): Promise<GoogleTokenExchangeResponse> {
+    return unwrapResponseData(
+      apiClient.post<GoogleTokenExchangeResponse>(
+        apiEndpoints.auth.googleExchange,
+        payload,
+      ),
+    );
   },
-  async recruiterSignup(payload: SignUpRequest): Promise<SignUpResponse> {
-    const response = await apiClient.post<MockLoginApiResponse>(
-      import.meta.env.VITE_RECRUITER_REGISTER_ENDPOINT,
-      payload,
-    )
 
-    return {
-      status: response.status,
-    }
+  async register(payload: RegisterRequest): Promise<SignUpResponse> {
+    return unwrapResponseData(
+      apiClient.post<SignUpResponse>(apiEndpoints.auth.register, payload),
+    );
   },
-  refresh: () =>
-    apiClient.post<JwtTokens>(import.meta.env.VITE_AUTH_ME_ENDPOINT),
-  logout: () =>
-    apiClient.post<null>(import.meta.env.VITE_AUTH_LOGOUT_ENDPOINT),
-}
+
+  async forgotPassword(payload: ForgotPasswordRequest): Promise<unknown> {
+    return unwrapResponseData(
+      apiClient.post(apiEndpoints.auth.forgotPassword, payload),
+    );
+  },
+
+  async changePassword(payload: ChangePasswordRequest): Promise<unknown> {
+    return unwrapResponseData(
+      apiClient.post(apiEndpoints.auth.changePassword, payload),
+    );
+  },
+
+  async logout(): Promise<unknown> {
+    return unwrapResponseData(apiClient.post(apiEndpoints.auth.logout));
+  },
+};

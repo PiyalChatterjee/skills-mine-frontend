@@ -36,3 +36,6 @@ dist-ssr
 
 # Bob config files
 .bob
+
+# coverage
+coverage

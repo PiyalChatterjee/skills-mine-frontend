@@ -1,107 +1,283 @@
-import { z } from 'zod'
-import { apiClient } from '@/services/api/axios'
-import type { ApiResponse, PaginatedResponse } from '@/types/api'
+import {
+  apiClient,
+  unwrapEnvelopeData,
+  unwrapResponseData,
+} from "@/services/api/axios";
+import { apiEndpoints, resolveEndpoint } from "@/services/api/endpoints";
 import type {
+  BuildMyCvData,
+  BuildMyCvState,
   CandidateApplication,
+  CandidateDashboardData,
   CandidateProfile,
-} from '@/modules/candidate/types'
+  CandidateProfileResponse,
+  CvDownloadData,
+  CvPreviewData,
+  CvUploadData,
+  RecommendedJobsData,
+  SaveBuildMyCvRequest,
+  UpdateBuildMyCvRequest,
+  SuccessEnvelope,
+  UserProfile,
+  UserSkill,
+} from "@/types/api";
+import type { CandidateProfileUpdatePayload } from "@/modules/candidate/types";
 
-const candidateEducationSchema = z.object({
-  institution: z.string(),
-  qualification: z.string(),
-  year: z.number(),
-})
+const isUserSkill = (value: unknown): value is UserSkill => {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
 
-const candidateExperienceSchema = z.object({
-  company: z.string(),
-  title: z.string(),
-  from: z.string(),
-  to: z.string(),
-})
+  const skill = value as Partial<UserSkill>;
+  return (
+    typeof skill.skillId === "string" && typeof skill.skillName === "string"
+  );
+};
 
-const candidateDocumentSchema = z.object({
-  docId: z.string(),
-  type: z.string(),
-  uploadedAt: z.string(),
-})
+const normalizeSkillsResponse = (payload: unknown): UserSkill[] => {
+  const toSkillsArray = (value: unknown): UserSkill[] => {
+    if (!Array.isArray(value)) {
+      return [];
+    }
 
-const candidateProfileResponseSchema: z.ZodType<CandidateProfile> = z.object({
-  candidateId: z.string(),
-  fullName: z.string(),
-  email: z.string(),
-  phone: z.string(),
-  profilePhotoUrl: z.string().optional(),
-  password: z.string().optional(),
-  location: z.string(),
-  currentTitle: z.string(),
-  currentCompany: z.string(),
-  experienceYears: z.number(),
-  skills: z.array(z.string()),
-  education: z.array(candidateEducationSchema),
-  experience: z.array(candidateExperienceSchema).optional(),
-  documents: z.array(candidateDocumentSchema).optional(),
-  languages: z.array(z.string()).optional(),
-  profileComplete: z.number().optional(),
-  applications: z.array(z.string()).optional(),
-})
+    return value.filter(isUserSkill).map((skill) => ({
+      skillId: skill.skillId,
+      skillName: skill.skillName,
+      selected: Boolean(skill.selected),
+      ...(skill.userId ? { userId: skill.userId } : {}),
+    }));
+  };
 
-const candidateApplicationResponseSchema: z.ZodType<CandidateApplication> = z.object({
-  applicationId: z.string(),
-  candidateId: z.string(),
-  candidateName: z.string(),
-  jobId: z.string(),
-  jobTitle: z.string(),
-  company: z.string(),
-  currentStage: z.string(),
-  appliedDate: z.string(),
-  matchScore: z.number(),
-  coverLetter: z.string(),
-  isGuest: z.boolean(),
-  updatedAt: z.string(),
-})
+  if (Array.isArray(payload)) {
+    return toSkillsArray(payload);
+  }
 
-export interface CandidateSummary {
-  id: string
-  fullName: string
-  primarySkill: string
-}
+  if (!payload || typeof payload !== "object") {
+    return [];
+  }
 
-export type CandidateProfileUpdatePayload = Omit<CandidateProfile, 'candidateId'>
+  const maybeEnvelope = payload as {
+    data?: unknown;
+    skills?: unknown;
+    results?: unknown;
+    items?: unknown;
+  };
+
+  const candidates = [
+    maybeEnvelope.data,
+    maybeEnvelope.skills,
+    maybeEnvelope.results,
+    maybeEnvelope.items,
+  ];
+
+  for (const candidate of candidates) {
+    const normalized = toSkillsArray(candidate);
+    if (normalized.length > 0) {
+      return normalized;
+    }
+  }
+
+  return [];
+};
+
+const isCandidateApplication = (
+  value: unknown,
+): value is CandidateApplication => {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const candidate = value as Partial<CandidateApplication>;
+  return (
+    typeof candidate.applicationId === "string" &&
+    typeof candidate.candidateId === "string" &&
+    typeof candidate.jobId === "string" &&
+    typeof candidate.jobTitle === "string" &&
+    typeof candidate.company === "string" &&
+    typeof candidate.currentStage === "string" &&
+    typeof candidate.appliedDate === "string" &&
+    typeof candidate.matchScore === "number" &&
+    typeof candidate.isGuest === "boolean"
+  );
+};
+
+const mapProfileResponse = (
+  payload: CandidateProfileResponse,
+): CandidateProfile => ({
+  userId: payload.data.personalDetails.userId,
+  personalDetails: {
+    firstName: payload.data.personalDetails.firstName,
+    lastName: payload.data.personalDetails.lastName,
+    email: payload.data.personalDetails.email,
+    mobileNumber: payload.data.personalDetails.mobileNumber,
+    location: payload.data.personalDetails.location,
+    nationality: payload.data.personalDetails.nationality,
+    idNumber: payload.data.personalDetails.idNumber,
+    eeStatus: payload.data.personalDetails.eeStatus,
+    profileImageUrl: payload.data.personalDetails.profileImageUrl,
+    thumbnailUrl: payload.data.personalDetails.thumbnailUrl,
+    linkedinUrl: payload.data.personalDetails.linkedinUrl,
+    portfolioUrl: payload.data.personalDetails.portfolioUrl,
+  },
+  desiredJob: payload.data.desiredJob,
+  education: payload.data.education,
+  experience: payload.data.experience,
+  skills: payload.data.skills ?? [],
+  languages: payload.data.languages ?? [],
+});
 
 export const candidateApi = {
-  list: () =>
-    apiClient.get<ApiResponse<PaginatedResponse<CandidateSummary>>>('/candidates'),
-  getById: async (candidateId: string): Promise<CandidateProfile> => {
-    const response = await apiClient.get<CandidateProfile>(`/candidates/${candidateId}`)
-    const parsedProfile = candidateProfileResponseSchema.safeParse(response.data)
-
-    if (!parsedProfile.success) {
-      throw new Error('Received an invalid candidate profile payload.')
-    }
-
-    return parsedProfile.data
+  async getById(userId: string): Promise<CandidateProfile> {
+    const payload = await unwrapResponseData(
+      apiClient.get<CandidateProfileResponse>(
+        resolveEndpoint(apiEndpoints.users.profile, { userId }),
+      ),
+    );
+    return mapProfileResponse(payload);
   },
-  updateById: async (
-    candidateId: string,
+
+  async updateById(
+    userId: string,
     payload: CandidateProfileUpdatePayload,
-  ): Promise<CandidateProfile> => {
-    const response = await apiClient.put<CandidateProfile>(`/candidates/${candidateId}`, payload)
-    const parsedProfile = candidateProfileResponseSchema.safeParse(response.data)
-
-    if (!parsedProfile.success) {
-      throw new Error('Received an invalid candidate profile payload.')
-    }
-
-    return parsedProfile.data
+  ): Promise<CandidateProfile> {
+    await apiClient.put<SuccessEnvelope<{ userId: string; updatedAt: string }>>(
+      resolveEndpoint(apiEndpoints.users.profile, { userId }),
+      payload,
+    );
+    return this.getById(userId);
   },
-  getApplicationById: async (applicationId: string): Promise<CandidateApplication> => {
-    const response = await apiClient.get<CandidateApplication>(`/candidates/applications/${applicationId}`)
-    const parsed = candidateApplicationResponseSchema.safeParse(response.data)
 
-    if (!parsed.success) {
-      throw new Error(`Received an invalid application payload for ${applicationId}.`)
-    }
-
-    return parsed.data
+  uploadProfilePhoto(
+    userId: string,
+    file: File,
+  ): Promise<
+    SuccessEnvelope<{ profileImageUrl: string; thumbnailUrl: string }>
+  > {
+    const formData = new FormData();
+    formData.append("file", file);
+    return unwrapResponseData(
+      apiClient.post(
+        resolveEndpoint(apiEndpoints.users.profilePhoto, { userId }),
+        formData,
+      ),
+    );
   },
-}
+
+  deleteProfilePhoto(userId: string): Promise<SuccessEnvelope<null>> {
+    return unwrapResponseData(
+      apiClient.delete(resolveEndpoint(apiEndpoints.users.profilePhoto, { userId })),
+    );
+  },
+
+  getDashboard(
+    userId: string,
+  ): Promise<SuccessEnvelope<CandidateDashboardData>> {
+    return unwrapResponseData(
+      apiClient.get(resolveEndpoint(apiEndpoints.candidate.dashboard, { userId })),
+    );
+  },
+
+  buildMyCv(): Promise<SuccessEnvelope<BuildMyCvData>> {
+    return unwrapResponseData(apiClient.post(apiEndpoints.candidate.buildMyCv));
+  },
+
+  previewResume(resumeId: string): Promise<SuccessEnvelope<CvPreviewData>> {
+    return unwrapResponseData(
+      apiClient.get(resolveEndpoint(apiEndpoints.candidate.resumePreview, { resumeId })),
+    );
+  },
+
+  downloadResume(resumeId: string): Promise<SuccessEnvelope<CvDownloadData>> {
+    return unwrapResponseData(
+      apiClient.get(resolveEndpoint(apiEndpoints.candidate.resumeDownload, { resumeId })),
+    );
+  },
+
+  uploadApplicationCv(
+    applicationId: string,
+    file: File,
+  ): Promise<SuccessEnvelope<CvUploadData>> {
+    const formData = new FormData();
+    formData.append("file", file);
+    return unwrapResponseData(
+      apiClient.post(
+        resolveEndpoint(apiEndpoints.applications.cvUpload, { applicationId }),
+        formData,
+      ),
+    );
+  },
+
+  getRecommendedJobs(
+    candidateId: string,
+  ): Promise<SuccessEnvelope<RecommendedJobsData>> {
+    return unwrapResponseData(
+      apiClient.get(
+        resolveEndpoint(apiEndpoints.candidate.recommendedJobs, {
+          candidateId,
+        }),
+      ),
+    );
+  },
+
+  getApplicationById(applicationId: string): Promise<CandidateApplication> {
+    return unwrapResponseData(
+      apiClient.get<
+        SuccessEnvelope<unknown> | CandidateApplication
+      >(resolveEndpoint(apiEndpoints.applications.stageTransition, { applicationId })),
+    ).then((payload) => {
+      if (isCandidateApplication(payload)) {
+        return payload;
+      }
+
+      const envelope = payload as SuccessEnvelope<unknown>;
+      if (isCandidateApplication(envelope.data)) {
+        return envelope.data;
+      }
+
+      throw new Error("Unexpected application response shape");
+    });
+  },
+
+  getUserProfile(userId: string): Promise<UserProfile> {
+    return unwrapEnvelopeData(
+      apiClient.get<SuccessEnvelope<UserProfile>>(
+        resolveEndpoint(apiEndpoints.users.profile, { userId }),
+      ),
+    );
+  },
+
+  searchSkills(keyword: string, userId?: string): Promise<UserSkill[]> {
+    return unwrapResponseData(
+      apiClient.get<SuccessEnvelope<unknown> | unknown>(apiEndpoints.skills.search, {
+        params: {
+          [apiEndpoints.skills.keywordParam]: keyword,
+          ...(userId ? { userId } : {}),
+        }
+      }),
+    ).then((payload) => normalizeSkillsResponse(payload));
+  },
+
+  getBuildMyCv(): Promise<BuildMyCvState> {
+    return unwrapEnvelopeData(
+      apiClient.get<SuccessEnvelope<BuildMyCvState>>(apiEndpoints.candidate.buildMyCv),
+    );
+  },
+
+  saveBuildMyCv(payload: SaveBuildMyCvRequest): Promise<BuildMyCvData> {
+    return unwrapEnvelopeData(
+      apiClient.post<SuccessEnvelope<BuildMyCvData>>(
+        apiEndpoints.candidate.buildMyCv,
+        payload,
+      ),
+    );
+  },
+
+  updateBuildMyCv(payload: UpdateBuildMyCvRequest): Promise<BuildMyCvData> {
+    return unwrapEnvelopeData(
+      apiClient.put<SuccessEnvelope<BuildMyCvData>>(
+        apiEndpoints.candidate.buildMyCv,
+        payload,
+      ),
+    );
+  },
+};

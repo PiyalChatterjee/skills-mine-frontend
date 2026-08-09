@@ -1,69 +1,96 @@
-import { Box, Button, TextField, Typography } from '@mui/material'
-import type { ChangeEvent } from 'react'
-import skillsGenerateIcon from '@/assets/cv-builder/skills-generate.svg'
-import skillsSparkleIcon from '@/assets/cv-builder/skills-sparkle.svg'
-import styles from '../pages/CvBuilderPage.module.css'
-import CvBuilderRemoveItemButton from './CvBuilderRemoveItemButton'
-import { CvBuilderFormPanel, CvBuilderSectionHeader } from './CvBuilderFormPrimitives'
-import type { SkillEntry } from '../types/cvBuilder'
+import { Box, Button, TextField, Typography } from "@mui/material";
+import { Controller, useFieldArray, useFormContext } from "react-hook-form";
+import skillsGenerateIcon from "@/assets/cv-builder/skills-generate.svg";
+import skillsSparkleIcon from "@/assets/cv-builder/skills-sparkle.svg";
+import styles from "../pages/CvBuilderPage.module.css";
+import CvBuilderRemoveItemButton from "./CvBuilderRemoveItemButton";
+import {
+  CvBuilderFormPanel,
+  CvBuilderSectionHeader,
+} from "./CvBuilderFormPrimitives";
+import type { CvBuilderFormValues } from "../types/cvBuilderSchema";
 
-type CvBuilderSkillsFormProps = {
-  skills: SkillEntry[]
-  onUpdateSkill: (skillId: string, value: string) => void
-  onAddSkill: () => void
-  onRemoveSkill: (skillId: string) => void
-}
+const CvBuilderSkillsForm = () => {
+  const {
+    control,
+    formState: { errors },
+    clearErrors,
+  } = useFormContext<CvBuilderFormValues>();
+  const { fields, append, remove } = useFieldArray({ control, name: "skills" });
+  const formError = (
+    errors.skills as { root?: { message?: string } } | undefined
+  )?.root?.message;
 
-const CvBuilderSkillsForm = ({
-  skills,
-  onUpdateSkill,
-  onAddSkill,
-  onRemoveSkill,
-}: CvBuilderSkillsFormProps) => (
-  <CvBuilderFormPanel>
-    <Box className={styles.skillsFormHeader}>
-      <CvBuilderSectionHeader iconSrc={skillsSparkleIcon} title="Your skills" />
+  const handleAddSkill = () => {
+    clearErrors("skills");
+    append({ name: "" });
+  };
 
-      <Button type="button" className={styles.generateButton} disableRipple>
-        Generate
-        <Box component="img" src={skillsGenerateIcon} alt="" className={styles.generateButtonIcon} aria-hidden="true" />
-      </Button>
-    </Box>
-
-    <Typography className={styles.skillsSubHeading}>List your skills</Typography>
-
-    <Box className={styles.skillsList}>
-      {skills.map((skill, index) => (
-        <Box key={skill.id} className={styles.skillRow}>
-          <TextField
-            value={skill.name}
-            onChange={(event: ChangeEvent<HTMLInputElement>) =>
-              onUpdateSkill(skill.id, event.target.value)
-            }
-            placeholder={`Skill ${index + 1}`}
-            className={styles.fieldControl}
-            variant="outlined"
-            fullWidth
+  return (
+    <CvBuilderFormPanel>
+      <Box className={styles.skillsFormHeader}>
+        <CvBuilderSectionHeader
+          iconSrc={skillsSparkleIcon}
+          title="Your skills"
+        />
+        <Button type="button" className={styles.generateButton} disableRipple>
+          Generate
+          <Box
+            component="img"
+            src={skillsGenerateIcon}
+            alt=""
+            className={styles.generateButtonIcon}
+            aria-hidden="true"
           />
-          <CvBuilderRemoveItemButton
-            canRemove={skills.length > 1}
-            ariaLabel={`Remove skill ${index + 1}`}
-            onClick={() => onRemoveSkill(skill.id)}
-          />
-        </Box>
-      ))}
+        </Button>
+      </Box>
 
-      <Button
-        type="button"
-        onClick={onAddSkill}
-        className={styles.addMutedPillButton}
-        disableRipple
-        fullWidth
-      >
-        Add skill
-      </Button>
-    </Box>
-  </CvBuilderFormPanel>
-)
+      {formError && (
+        <Typography component="p" sx={{ color: "#d32f2f", marginBottom: 2 }}>
+          {formError}
+        </Typography>
+      )}
 
-export default CvBuilderSkillsForm
+      <Typography className={styles.skillsSubHeading} sx={{ mt: 1 }}>
+        List your skills
+      </Typography>
+
+      <Box className={styles.skillsList}>
+        {fields.map((fieldItem, index) => (
+          <Box key={fieldItem.id} className={styles.skillRow}>
+            <Controller
+              name={`skills.${index}.name`}
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  placeholder={`Skill ${index + 1}`}
+                  className={styles.fieldControl}
+                  variant="outlined"
+                  fullWidth
+                />
+              )}
+            />
+            <CvBuilderRemoveItemButton
+              canRemove={fields.length > 1}
+              ariaLabel={`Remove skill ${index + 1}`}
+              onClick={() => remove(index)}
+            />
+          </Box>
+        ))}
+
+        <Button
+          type="button"
+          onClick={handleAddSkill}
+          className={styles.addMutedPillButton}
+          disableRipple
+          fullWidth
+        >
+          Add skill
+        </Button>
+      </Box>
+    </CvBuilderFormPanel>
+  );
+};
+
+export default CvBuilderSkillsForm;

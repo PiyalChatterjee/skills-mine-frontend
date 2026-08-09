@@ -1,34 +1,28 @@
 import { Box, Button } from "@mui/material";
 import { useRef } from "react";
-import type {
-  CareerHistoryEntry,
-  Language,
-  PersonalDetailsFormState,
-  SecondaryEducationEntry,
-  SkillEntry,
-  TertiaryEducationEntry,
-} from "../types/cvBuilder";
+import { useFormContext, useWatch } from "react-hook-form";
+import type { CvBuilderFormValues } from "../types/cvBuilderSchema";
 import CvBuilderPreviewDocument from "./CvBuilderPreviewDocument";
 import styles from "../pages/CvBuilderPage.module.css";
 import { downloadCvPdf } from "../utils/downloadCvPdf";
 
-type CvBuilderViewCvPageProps = {
-  formValues: PersonalDetailsFormState;
-  careerHistory: CareerHistoryEntry[];
-  skills: SkillEntry[];
-  tertiaryEducation: TertiaryEducationEntry[];
-  secondaryEducation: SecondaryEducationEntry[];
-  selectedLanguages: Set<Language>;
-};
+type CvBuilderViewCvPageProps = Record<string, never>;
 
-const CvBuilderViewCvPage = ({
-  formValues,
-  careerHistory,
-  skills,
-  tertiaryEducation,
-  secondaryEducation,
-  selectedLanguages,
-}: CvBuilderViewCvPageProps) => {
+const CvBuilderViewCvPage = (_: CvBuilderViewCvPageProps) => {
+  const { control } = useFormContext<CvBuilderFormValues>();
+  const formValues = useWatch({ control, name: "personalDetails" });
+  const careerHistory = useWatch({ control, name: "careerHistory" }) ?? [];
+  const skills = useWatch({ control, name: "skills" }) ?? [];
+  const tertiary = useWatch({ control, name: "tertiaryEducation" }) ?? [];
+  const secondary = useWatch({ control, name: "secondaryEducation" }) ?? [];
+  const languages = useWatch({ control, name: "languages" }) ?? [];
+  const otherLanguage = useWatch({ control, name: "otherLanguage" }) ?? "";
+  const selectedLanguageEntries = [
+    ...languages.filter((l: string) => l !== "Other"),
+    ...(languages.includes("Other") && otherLanguage.trim()
+      ? [otherLanguage.trim()]
+      : []),
+  ];
   const previewDocumentRef = useRef<HTMLDivElement | null>(null);
 
   const handleDownloadPdf = async () => {
@@ -52,9 +46,9 @@ const CvBuilderViewCvPage = ({
                   formValues={formValues}
                   careerHistory={careerHistory}
                   skills={skills}
-                  tertiaryEducation={tertiaryEducation}
-                  secondaryEducation={secondaryEducation}
-                  selectedLanguages={selectedLanguages}
+                  tertiaryEducation={tertiary}
+                  secondaryEducation={secondary}
+                  selectedLanguageEntries={selectedLanguageEntries}
                 />
               </Box>
             </Box>

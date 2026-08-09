@@ -1,12 +1,5 @@
 import { Box, Typography } from "@mui/material";
-import type {
-  CareerHistoryEntry,
-  Language,
-  PersonalDetailsFormState,
-  SecondaryEducationEntry,
-  SkillEntry,
-  TertiaryEducationEntry,
-} from "../types/cvBuilder";
+import type { CvBuilderFormValues } from "../types/cvBuilderSchema";
 import {
   FALLBACK_WORK_DESCRIPTION,
   NOT_PROVIDED_TEXT,
@@ -18,12 +11,12 @@ import styles from "../pages/CvBuilderPage.module.css";
 
 type CvBuilderPreviewDocumentProps = {
   size: "compact" | "full";
-  formValues: PersonalDetailsFormState;
-  careerHistory: CareerHistoryEntry[];
-  skills: SkillEntry[];
-  tertiaryEducation: TertiaryEducationEntry[];
-  secondaryEducation: SecondaryEducationEntry[];
-  selectedLanguages: Set<Language>;
+  formValues: CvBuilderFormValues["personalDetails"];
+  careerHistory: CvBuilderFormValues["careerHistory"];
+  skills: CvBuilderFormValues["skills"];
+  tertiaryEducation: CvBuilderFormValues["tertiaryEducation"];
+  secondaryEducation: CvBuilderFormValues["secondaryEducation"];
+  selectedLanguageEntries: string[];
 };
 
 const CvBuilderPreviewDocument = ({
@@ -33,17 +26,36 @@ const CvBuilderPreviewDocument = ({
   skills,
   tertiaryEducation,
   secondaryEducation,
-  selectedLanguages,
+  selectedLanguageEntries,
 }: CvBuilderPreviewDocumentProps) => {
   const previewFullName = formValues.fullName || "Candidate";
-  const previewRole = getValueOrFallback(formValues.currentPosition, "Role not provided");
-  const previewCompany = getValueOrFallback(formValues.currentCompany, "Company not provided");
+  const previewRole = getValueOrFallback(
+    formValues.currentPosition,
+    "Role not provided",
+  );
+  const previewCompany = getValueOrFallback(
+    formValues.currentCompany,
+    "Company not provided",
+  );
   const employmentEquityStatus =
     [formValues.race, formValues.gender].filter(Boolean).join(" ") ||
     NOT_PROVIDED_TEXT;
   const normalizedCareerHistory = normalizeCareerHistory(careerHistory);
   const normalizedSkills = normalizeSkills(skills);
-  const yearsOfExperience = `${Math.max(normalizedCareerHistory.length, 1)} Years`;
+  const currentYear = new Date().getFullYear();
+  const careerStartYears = normalizedCareerHistory
+    .map((entry) => {
+      const match = entry.startDate.match(/\b(19|20)\d{2}\b/);
+      return match ? Number(match[0]) : null;
+    })
+    .filter((value): value is number => value !== null);
+  const earliestCareerStartYear =
+    careerStartYears.length > 0 ? Math.min(...careerStartYears) : null;
+  const calculatedYearsOfExperience =
+    earliestCareerStartYear == null
+      ? 0
+      : Math.max(currentYear - earliestCareerStartYear, 0);
+  const yearsOfExperience = `${calculatedYearsOfExperience} Years`;
   const highestQualification =
     tertiaryEducation.find((entry) => entry.degreeOrCertification.trim())
       ?.degreeOrCertification || NOT_PROVIDED_TEXT;
@@ -55,7 +67,7 @@ const CvBuilderPreviewDocument = ({
       .slice(0, 3)
       .join(", ") || NOT_PROVIDED_TEXT;
   const languageSummary =
-    Array.from(selectedLanguages).join(", ") || NOT_PROVIDED_TEXT;
+    selectedLanguageEntries.join(", ") || NOT_PROVIDED_TEXT;
 
   const formatPeriod = (
     startDate: string,
@@ -145,8 +157,8 @@ const CvBuilderPreviewDocument = ({
           <Typography>Year Completed</Typography>
           <Typography>Degree / Certificate Name</Typography>
         </Box>
-        {tertiaryEducation.map((entry) => (
-          <Box key={entry.id} className={styles.previewPageEducationRow}>
+        {tertiaryEducation.map((entry, i) => (
+          <Box key={i} className={styles.previewPageEducationRow}>
             <Typography>{getValueOrFallback(entry.institutionName)}</Typography>
             <Typography>{getValueOrFallback(entry.yearCompleted)}</Typography>
             <Typography>
@@ -163,8 +175,8 @@ const CvBuilderPreviewDocument = ({
           <Typography>Year Completed</Typography>
           <Typography>Highest grade passed</Typography>
         </Box>
-        {secondaryEducation.map((entry) => (
-          <Box key={entry.id} className={styles.previewPageEducationRow}>
+        {secondaryEducation.map((entry, i) => (
+          <Box key={i} className={styles.previewPageEducationRow}>
             <Typography>{getValueOrFallback(entry.institutionName)}</Typography>
             <Typography>{getValueOrFallback(entry.yearCompleted)}</Typography>
             <Typography>
@@ -184,8 +196,8 @@ const CvBuilderPreviewDocument = ({
           <Typography>Position Held</Typography>
         </Box>
         {normalizedCareerHistory.length > 0 ? (
-          normalizedCareerHistory.map((entry) => (
-            <Box key={entry.id} className={styles.previewPageCareerTableRow}>
+          normalizedCareerHistory.map((entry, entryIdx) => (
+            <Box key={entryIdx} className={styles.previewPageCareerTableRow}>
               <Typography>{getValueOrFallback(entry.companyName)}</Typography>
               <Typography>
                 {formatPeriod(
@@ -235,7 +247,7 @@ const CvBuilderPreviewDocument = ({
           Work Experience
         </Typography>
         {normalizedCareerHistory.length > 0 ? (
-          normalizedCareerHistory.map((entry) => {
+          normalizedCareerHistory.map((entry, entryIdx) => {
             const descriptionItems = [
               ...entry.tasks,
               ...entry.projects.map((project) => `Project: ${project}`),
@@ -243,14 +255,16 @@ const CvBuilderPreviewDocument = ({
 
             return (
               <Box
-                key={`${entry.id}-work`}
+                key={`work-${entryIdx}`}
                 className={styles.previewPageWorkEntry}
               >
                 <Box className={styles.previewPageWorkMetaGrid}>
                   <Typography className={styles.previewPageWorkMetaLabel}>
                     Company Name
                   </Typography>
-                  <Typography>{getValueOrFallback(entry.companyName)}</Typography>
+                  <Typography>
+                    {getValueOrFallback(entry.companyName)}
+                  </Typography>
                   <Typography className={styles.previewPageWorkMetaLabel}>
                     Position Held
                   </Typography>
@@ -278,7 +292,7 @@ const CvBuilderPreviewDocument = ({
                     className={styles.previewPageWorkBulletList}
                   >
                     {descriptionItems.map((item, index) => (
-                      <Box key={`${entry.id}-desc-${index}`} component="li">
+                      <Box key={`desc-${entryIdx}-${index}`} component="li">
                         {item}
                       </Box>
                     ))}
@@ -288,8 +302,8 @@ const CvBuilderPreviewDocument = ({
                     component="ul"
                     className={styles.previewPageWorkBulletList}
                   >
-                    {FALLBACK_WORK_DESCRIPTION.map((item) => (
-                      <Box key={`${entry.id}-${item}`} component="li">
+                    {FALLBACK_WORK_DESCRIPTION.map((item, fbIdx) => (
+                      <Box key={`fallback-${entryIdx}-${fbIdx}`} component="li">
                         {item}
                       </Box>
                     ))}
@@ -331,7 +345,6 @@ const CvBuilderPreviewDocument = ({
             <Box className={styles.previewPageDivider} />
           </Box>
         )}
-
       </Box>
     </Box>
   );
