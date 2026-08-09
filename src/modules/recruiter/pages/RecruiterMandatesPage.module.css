@@ -1,0 +1,12 @@
+.shell {
+  display: flex;
+  align-items: stretch;
+  min-height: 100vh;
+  margin-left: 240px;
+}
+
+@media (max-width: 900px) {
+  .shell {
+    margin-left: 240px;
+  }
+}
