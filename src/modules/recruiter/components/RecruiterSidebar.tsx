@@ -58,10 +58,10 @@ export const RecruiterSidebar = () => {
 
   const mainNavItems: NavItem[] = [
     { id: 'dashboard',  label: 'Dashboard',   to: ROUTE_PATHS.recruiter, icon: <img src={dashboardIcon} width={20} height={20} alt="" aria-hidden="true" /> },
-    { id: 'mandates',   label: 'Mandates',    to: ROUTE_PATHS.recruiter, icon: <img src={mandatesIcon}  width={20} height={20} alt="" aria-hidden="true" /> },
+    { id: 'mandates',   label: 'Mandates',    to: ROUTE_PATHS.recruiterMandates, icon: <img src={mandatesIcon}  width={20} height={20} alt="" aria-hidden="true" /> },
     { id: 'newMandate', label: 'New Mandate', icon: <PlusIcon />,        onClick: handleNewMandateClick },
     { id: 'candidates', label: 'Candidates',  to: ROUTE_PATHS.recruiter, icon: <CandidatesIcon /> },
-    { id: 'crm',        label: 'CRM',         to: ROUTE_PATHS.crm,       icon: <img src={crmIcon}      width={20} height={20} alt="" aria-hidden="true" /> },
+    { id: 'crm',        label: 'CRM',         to: ROUTE_PATHS.recruiterCrm, icon: <img src={crmIcon}      width={20} height={20} alt="" aria-hidden="true" /> },
   ]
 
   const adminNavItems: NavItem[] = [
@@ -71,9 +71,7 @@ export const RecruiterSidebar = () => {
   ]
 
   const renderNavItem = (item: NavItem) => {
-    const isActive = item.to
-      ? location.pathname === item.to && item.id === 'dashboard'
-      : false
+    const isActive = item.to ? location.pathname === item.to : false
 
     const content = (
       <>
