@@ -84,7 +84,7 @@ export const AppRoutes = () => {
           </Route>
 
           <Route element={<ExcoLayout />}>
-            <Route element={<RoleGuard allowedRoles={['ADMIN']} />}>
+            <Route element={<RoleGuard allowedRoles={['EXCO', 'ADMIN']} />}>
               <Route path={ROUTE_PATHS.exco} element={<ExcoPage />} />
             </Route>
           </Route>

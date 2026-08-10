@@ -17,7 +17,7 @@ export const useCandidateSignUpForm = () => {
     let submitted = false;
 
     await handleSubmit(async (formValues: SignUpFormValues) => {
-      const response = await authApi.register({
+      const response = await authApi.candidateRegister({
         ...formValues,
         acceptPrivacyPolicy: formValues.acceptTerms,
       });

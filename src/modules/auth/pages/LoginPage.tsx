@@ -45,7 +45,7 @@ const LoginPage = () => {
       const response = await authApi.exchangeGoogleToken({
         accessToken: tokenResponse.access_token,
       });
-      login(mapLoginResponseToSession(response));
+      login(await mapLoginResponseToSession(response));
       navigate(ROUTE_PATHS.portal, { replace: true });
     } catch {
       setGoogleAuthError("Google sign-in failed. Please try again.");
@@ -83,7 +83,7 @@ const LoginPage = () => {
       setSubmitError(null);
 
       const response = await authApi.login(values);
-      login(mapLoginResponseToSession(response));
+      login(await mapLoginResponseToSession(response));
       navigate(ROUTE_PATHS.portal, { replace: true });
     } catch {
       setSubmitError("Login failed. Check your credentials and try again.");

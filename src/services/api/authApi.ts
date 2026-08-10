@@ -1,10 +1,14 @@
 import { decodeJwtPayload } from "@/app/auth/jwt";
-import { apiClient, unwrapResponseData } from "@/services/api/axios";
+import { tokenStorage } from "@/app/auth/tokenStorage";
+import { apiClient, unwrapEnvelopeData, unwrapResponseData } from "@/services/api/axios";
 import { apiEndpoints } from "@/services/api/endpoints";
 import {
   PERMISSIONS,
   type AuthUser,
+  type CandidateRegistrationRequest,
+  type CandidateRegistrationResponse,
   type ChangePasswordRequest,
+  type CurrentUserResponse,
   type ForgotPasswordRequest,
   type GoogleTokenExchangeRequest,
   type GoogleTokenExchangeResponse,
@@ -13,9 +17,13 @@ import {
   type LoginResponse,
   type Permission,
   type RegisterRequest,
+  type ResetPasswordRequest,
   type Role,
   type SignUpResponse,
+  type StaffRegistrationRequest,
+  type StaffRegistrationResponse,
 } from "@/types/auth";
+import type { SuccessEnvelope } from "@/types/api";
 
 const rolePermissions: Record<Role, Permission[]> = {
   JOB_SEEKER: ["VIEW_JOBS", "APPLY_JOB", "UPLOAD_CV", "VIEW_DASHBOARD"],
@@ -28,6 +36,7 @@ const rolePermissions: Record<Role, Permission[]> = {
     "VIEW_DASHBOARD",
   ],
   MANCO: ["PIPELINE_VIEW", "REPORT_VIEW", "RECRUITER_VIEW", "VIEW_DASHBOARD"],
+  EXCO: ["PIPELINE_VIEW", "REPORT_VIEW", "RECRUITER_VIEW", "VIEW_DASHBOARD"],
   ADMIN: ["ALL"],
 };
 
@@ -36,6 +45,7 @@ const normalizeRole = (value: unknown): Role => {
     value === "JOB_SEEKER" ||
     value === "RECRUITER" ||
     value === "MANCO" ||
+    value === "EXCO" ||
     value === "ADMIN"
   ) {
     return value;
@@ -61,59 +71,94 @@ const normalizePermissions = (roles: Role[]): Permission[] => {
   return Array.from(merged);
 };
 
-const buildAuthUserFromToken = (
+const buildAuthUserFromCurrentUser = (
+  currentUser: CurrentUserResponse,
   accessToken: string,
-  rolesFromResponse: Role[],
-  profileCompleted: number,
 ): AuthUser => {
   const payload = decodeJwtPayload(accessToken);
   const roles =
-    rolesFromResponse.length > 0
-      ? rolesFromResponse
+    currentUser.roles.length > 0
+      ? currentUser.roles.map(normalizeRole)
       : [normalizeRole(payload?.roles?.[0])];
   const role = roles[0] ?? "JOB_SEEKER";
   const firstName =
-    payload?.firstName ?? payload?.name?.split(" ")?.[0] ?? "SkillsMine";
+    payload?.firstName ?? payload?.name?.split(" ")?.[0] ?? "";
   const lastName =
     payload?.lastName ??
     payload?.name?.split(" ")?.slice(1).join(" ") ??
-    "User";
-  const displayName = payload?.name ?? `${firstName} ${lastName}`.trim();
-  const userId = payload?.userId ?? payload?.sub ?? "";
+    "";
+  const displayName =
+    payload?.name ?? (`${firstName} ${lastName}`.trim() || currentUser.email);
 
   return {
-    id: userId,
-    userId,
+    id: currentUser.userId,
+    userId: currentUser.userId,
+    email: currentUser.email,
+    firstName,
+    lastName,
+    displayName,
+    role,
+    roles,
+    accountStatus: currentUser.accountStatus,
+    permissions: normalizePermissions(roles),
+  };
+};
+
+const buildAuthUserFromJwt = (accessToken: string): AuthUser => {
+  const payload = decodeJwtPayload(accessToken);
+  const roles = [normalizeRole(payload?.roles?.[0])];
+  const role = roles[0];
+  const firstName =
+    payload?.firstName ?? payload?.name?.split(" ")?.[0] ?? "";
+  const lastName =
+    payload?.lastName ??
+    payload?.name?.split(" ")?.slice(1).join(" ") ??
+    "";
+  const displayName =
+    payload?.name ?? (`${firstName} ${lastName}`.trim() || (payload?.email ?? ""));
+
+  return {
+    id: payload?.userId ?? payload?.sub ?? "",
+    userId: payload?.userId ?? payload?.sub ?? "",
     email: payload?.email ?? "",
     firstName,
     lastName,
     displayName,
     role,
     roles,
-    recruiterId: payload?.recruiterId,
-    profileCompleted,
     permissions: normalizePermissions(roles),
   };
 };
 
-export const mapLoginResponseToSession = (
+export const mapLoginResponseToSession = async (
   response: LoginResponse,
-): { user: AuthUser; tokens: JwtTokens } => ({
-  user: buildAuthUserFromToken(
-    response.data.accessToken,
-    response.data.roles.map(normalizeRole),
-    response.data.profileCompleted,
-  ),
-  tokens: {
-    accessToken: response.data.accessToken,
-    refreshToken: response.data.refreshToken,
-  },
-});
+): Promise<{ user: AuthUser; tokens: JwtTokens }> => {
+  const { accessToken, idToken, refreshToken } = response.data;
+  const tokens: JwtTokens = { accessToken, idToken, refreshToken };
+
+  // Store tokens temporarily so the Axios interceptor can attach the Bearer header
+  tokenStorage.setTokens(tokens);
+
+  try {
+    const currentUser = await authApi.getCurrentUser();
+    const user = buildAuthUserFromCurrentUser(currentUser, accessToken);
+    return { user, tokens };
+  } catch {
+    // /users/me not yet available — fall back to JWT claims
+    return { user: buildAuthUserFromJwt(accessToken), tokens };
+  }
+};
 
 export const authApi = {
   async login(payload: LoginRequest): Promise<LoginResponse> {
     return unwrapResponseData(
       apiClient.post<LoginResponse>(apiEndpoints.auth.login, payload),
+    );
+  },
+
+  async getCurrentUser(): Promise<CurrentUserResponse> {
+    return unwrapEnvelopeData(
+      apiClient.get<SuccessEnvelope<CurrentUserResponse>>(apiEndpoints.auth.me),
     );
   },
 
@@ -128,9 +173,38 @@ export const authApi = {
     );
   },
 
+  /** @deprecated Use candidateRegister or staffRegister */
   async register(payload: RegisterRequest): Promise<SignUpResponse> {
     return unwrapResponseData(
       apiClient.post<SignUpResponse>(apiEndpoints.auth.register, payload),
+    );
+  },
+
+  async candidateRegister(
+    payload: CandidateRegistrationRequest,
+  ): Promise<CandidateRegistrationResponse> {
+    return unwrapResponseData(
+      apiClient.post<CandidateRegistrationResponse>(
+        apiEndpoints.auth.candidateRegister,
+        payload,
+      ),
+    );
+  },
+
+  async staffRegister(
+    payload: StaffRegistrationRequest,
+  ): Promise<StaffRegistrationResponse> {
+    return unwrapResponseData(
+      apiClient.post<StaffRegistrationResponse>(
+        apiEndpoints.auth.staffRegister,
+        payload,
+      ),
+    );
+  },
+
+  async validateStaffInvitation(token: string): Promise<unknown> {
+    return unwrapResponseData(
+      apiClient.post(apiEndpoints.auth.staffInvitationValidate, { token }),
     );
   },
 
@@ -140,13 +214,19 @@ export const authApi = {
     );
   },
 
+  async resetPassword(payload: ResetPasswordRequest): Promise<unknown> {
+    return unwrapResponseData(
+      apiClient.post(apiEndpoints.auth.resetPassword, payload),
+    );
+  },
+
   async changePassword(payload: ChangePasswordRequest): Promise<unknown> {
     return unwrapResponseData(
       apiClient.post(apiEndpoints.auth.changePassword, payload),
     );
   },
 
-  async logout(): Promise<unknown> {
-    return unwrapResponseData(apiClient.post(apiEndpoints.auth.logout));
+  async logout(): Promise<void> {
+    await apiClient.post(apiEndpoints.auth.logout);
   },
 };
