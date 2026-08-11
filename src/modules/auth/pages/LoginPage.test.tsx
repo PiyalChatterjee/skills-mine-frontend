@@ -44,7 +44,7 @@ vi.mock('@react-oauth/google', () => ({
 
 vi.mock('@/services/api/authApi', () => ({
   authApi: { login: mockApiLogin, exchangeGoogleToken: mockExchangeGoogleToken },
-  mapLoginResponseToSession: (r: unknown) => r,
+  mapLoginResponseToSession: (r: unknown) => Promise.resolve(r),
 }))
 
 const mockAuthApi = { login: mockApiLogin, exchangeGoogleToken: mockExchangeGoogleToken }

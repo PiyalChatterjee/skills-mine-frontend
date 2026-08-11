@@ -1,4 +1,5 @@
 import type {
+  CandidateAuthentication,
   CandidateApplication,
   CandidateDashboardData,
   CandidateEducation,
@@ -7,9 +8,11 @@ import type {
   CandidateProfile,
   DesiredJob,
   PersonalDetails,
+  ProfileEducation,
 } from '@/types/api'
 
 export type {
+  CandidateAuthentication,
   CandidateApplication,
   CandidateDashboardData,
   CandidateEducation,
@@ -18,12 +21,13 @@ export type {
   CandidateProfile,
   DesiredJob,
   PersonalDetails,
+  ProfileEducation,
 }
 
 export type CandidateProfileUpdatePayload = Partial<{
   personalDetails: Partial<PersonalDetails>
   desiredJob: Partial<DesiredJob>
-  education: CandidateEducation[]
+  education: ProfileEducation
   experience: CandidateExperience[]
   skills: string[]
   languages: CandidateLanguage[]

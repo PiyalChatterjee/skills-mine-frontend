@@ -11,7 +11,7 @@ import {
   type FieldPath,
   type FieldValues,
 } from "react-hook-form";
-import type { ReactNode } from "react";
+import { type ReactNode, useId } from "react";
 import dropdownChevronIconSrc from "@/assets/icons/dropdown-chevron.svg";
 import styles from "@/modules/candidate/pages/ProfilePage.module.css";
 
@@ -52,18 +52,22 @@ const DropdownIcon = ({ className }: { className?: string }) => (
 type ProfileFieldBlockProps = {
   label: string;
   fullWidth?: boolean;
+  htmlFor: string;
   children: ReactNode;
 };
 
 const ProfileFieldBlock = ({
   label,
   fullWidth,
+  htmlFor,
   children,
 }: ProfileFieldBlockProps) => (
   <Box
     className={`${styles.fieldBlock} ${fullWidth ? styles.fieldBlockFull : ""}`}
   >
-    <Typography className={styles.fieldLabel}>{label}</Typography>
+    <Typography component="label" htmlFor={htmlFor} className={styles.fieldLabel}>
+      {label}
+    </Typography>
     {children}
   </Box>
 );
@@ -85,35 +89,40 @@ export const ProfileTextField = <TFieldValues extends FieldValues>({
   disabledClassName = styles.readonlyInputDisabled,
   type,
   slotProps,
-}: BaseFieldProps<TFieldValues>) => (
-  <ProfileFieldBlock label={label} fullWidth={fullWidth}>
-    <Controller
-      control={control}
-      name={name}
-      render={({ field, fieldState }) => (
-        <TextField
-          variant="outlined"
-          fullWidth
-          type={type}
-          value={typeof field.value === "string" ? field.value : ""}
-          onChange={field.onChange}
-          onBlur={field.onBlur}
-          inputRef={field.ref}
-          placeholder={placeholder ?? label}
-          disabled={disabled}
-          error={Boolean(fieldState.error)}
-          helperText={fieldState.error?.message}
-          className={getInputClassName(
-            inputClassName,
-            disabledClassName,
-            disabled,
-          )}
-          slotProps={slotProps}
-        />
-      )}
-    />
-  </ProfileFieldBlock>
-);
+}: BaseFieldProps<TFieldValues>) => {
+  const inputId = useId();
+
+  return (
+    <ProfileFieldBlock label={label} fullWidth={fullWidth} htmlFor={inputId}>
+      <Controller
+        control={control}
+        name={name}
+        render={({ field, fieldState }) => (
+          <TextField
+            id={inputId}
+            variant="outlined"
+            fullWidth
+            type={type}
+            value={typeof field.value === "string" ? field.value : ""}
+            onChange={field.onChange}
+            onBlur={field.onBlur}
+            inputRef={field.ref}
+            placeholder={placeholder ?? label}
+            disabled={disabled}
+            error={Boolean(fieldState.error)}
+            helperText={fieldState.error?.message}
+            className={getInputClassName(
+              inputClassName,
+              disabledClassName,
+              disabled,
+            )}
+            slotProps={slotProps}
+          />
+        )}
+      />
+    </ProfileFieldBlock>
+  );
+};
 
 export const ProfileSelectField = <TFieldValues extends FieldValues>({
   control,
@@ -125,63 +134,68 @@ export const ProfileSelectField = <TFieldValues extends FieldValues>({
   disabled = false,
   inputClassName = styles.readonlyInput,
   disabledClassName = styles.readonlyInputDisabled,
-}: SelectFieldProps<TFieldValues>) => (
-  <ProfileFieldBlock label={label} fullWidth={fullWidth}>
-    <Controller
-      control={control}
-      name={name}
-      render={({ field, fieldState }) => {
-        const placeholderText = placeholder ?? label;
-        const selectedValue =
-          typeof field.value === "string" ? field.value : "";
+}: SelectFieldProps<TFieldValues>) => {
+  const inputId = useId();
 
-        return (
-          <TextField
-            variant="outlined"
-            fullWidth
-            select
-            value={selectedValue}
-            onChange={(event) => field.onChange(event.target.value)}
-            onBlur={field.onBlur}
-            inputRef={field.ref}
-            disabled={disabled}
-            error={Boolean(fieldState.error)}
-            helperText={fieldState.error?.message}
-            className={getInputClassName(
-              inputClassName,
-              disabledClassName,
-              disabled,
-            )}
-            slotProps={{
-              select: {
-                displayEmpty: true,
-                IconComponent: DropdownIcon,
-                renderValue: (selected: unknown) => {
-                  const currentValue =
-                    typeof selected === "string" ? selected : "";
-                  if (!currentValue) {
-                    return (
-                      <span className={styles.selectPlaceholder}>
-                        {placeholderText}
-                      </span>
-                    );
-                  }
-                  return currentValue;
+  return (
+    <ProfileFieldBlock label={label} fullWidth={fullWidth} htmlFor={inputId}>
+      <Controller
+        control={control}
+        name={name}
+        render={({ field, fieldState }) => {
+          const placeholderText = placeholder ?? label;
+          const selectedValue =
+            typeof field.value === "string" ? field.value : "";
+
+          return (
+            <TextField
+              id={inputId}
+              variant="outlined"
+              fullWidth
+              select
+              value={selectedValue}
+              onChange={(event) => field.onChange(event.target.value)}
+              onBlur={field.onBlur}
+              inputRef={field.ref}
+              disabled={disabled}
+              error={Boolean(fieldState.error)}
+              helperText={fieldState.error?.message}
+              className={getInputClassName(
+                inputClassName,
+                disabledClassName,
+                disabled,
+              )}
+              slotProps={{
+                select: {
+                  displayEmpty: true,
+                  IconComponent: DropdownIcon,
+                  renderValue: (selected: unknown) => {
+                    const currentValue =
+                      typeof selected === "string" ? selected : "";
+                    if (!currentValue) {
+                      return (
+                        <span className={styles.selectPlaceholder}>
+                          {placeholderText}
+                        </span>
+                      );
+                    }
+                    return currentValue;
+                  },
                 },
-              },
-            }}
-          >
-            <MenuItem value="" disabled>
-              {placeholderText}
-            </MenuItem>
-            {options.map((option) => (
-              <MenuItem key={option} value={option}>
-                {option}
+              }}
+            >
+              <MenuItem value="" disabled>
+                {placeholderText}
               </MenuItem>
-            ))}
-          </TextField>
-        );
-      }}
-    />
-  </ProfileFieldBlock>
-);
+              {options.map((option) => (
+                <MenuItem key={option} value={option}>
+                  {option}
+                </MenuItem>
+              ))}
+            </TextField>
+          );
+        }}
+      />
+    </ProfileFieldBlock>
+  );
+};

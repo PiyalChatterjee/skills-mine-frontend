@@ -1,4 +1,4 @@
-export const ROLES = ['JOB_SEEKER', 'RECRUITER', 'MANCO', 'ADMIN'] as const
+export const ROLES = ['JOB_SEEKER', 'RECRUITER', 'MANCO', 'EXCO', 'ADMIN'] as const
 
 export type Role = (typeof ROLES)[number]
 
@@ -22,6 +22,7 @@ export type Permission = (typeof PERMISSIONS)[number]
 
 export interface JwtTokens {
   accessToken: string
+  idToken?: string
   refreshToken?: string
 }
 
@@ -34,8 +35,7 @@ export interface AuthUser {
   displayName: string
   role: Role
   roles: Role[]
-  recruiterId?: string
-  profileCompleted?: number
+  accountStatus?: string
   permissions: Permission[]
 }
 
@@ -51,14 +51,31 @@ export interface LoginRequest {
   rememberMe?: boolean
 }
 
-export interface GoogleTokenExchangeRequest {
+export interface LoginResponseData {
   accessToken: string
+  idToken: string
+  refreshToken: string
+  expiresIn: number
+  tokenType: string
 }
 
-export type GoogleTokenExchangeResponse = LoginResponse
+export interface LoginResponse {
+  success: boolean
+  statusCode: number
+  message: string
+  data: LoginResponseData
+}
 
-export interface RegisterRequest {
-  userType?: Role
+export interface CurrentUserResponse {
+  userId: string
+  email: string
+  provider: string
+  roles: Role[]
+  staffProfile?: Record<string, unknown>
+  accountStatus: string
+}
+
+export interface CandidateRegistrationRequest {
   firstName: string
   lastName: string
   email: string
@@ -69,24 +86,7 @@ export interface RegisterRequest {
   acceptPrivacyPolicy?: boolean
 }
 
-export type SignUpRequest = RegisterRequest
-
-export interface LoginResponseData {
-  accessToken: string
-  refreshToken: string
-  expiresIn: number
-  profileCompleted: number
-  roles: Role[]
-}
-
-export interface LoginResponse {
-  success: boolean
-  statusCode: number
-  message: string
-  data: LoginResponseData
-}
-
-export interface SignUpResponse {
+export interface CandidateRegistrationResponse {
   success: boolean
   statusCode: number
   message: string
@@ -97,8 +97,54 @@ export interface SignUpResponse {
   }
 }
 
+export interface StaffRegistrationRequest {
+  firstName: string
+  lastName: string
+  email: string
+  mobileNumber?: string
+  password: string
+  confirmPassword: string
+  invitationToken?: string
+  acceptTerms?: boolean
+  acceptPrivacyPolicy?: boolean
+}
+
+export interface StaffRegistrationResponse {
+  success: boolean
+  statusCode: number
+  message: string
+  data: {
+    userId: string
+    email: string
+    accountStatus: 'ACTIVE' | 'PENDING_VERIFICATION' | 'SUSPENDED'
+  }
+}
+
+export interface GoogleTokenExchangeRequest {
+  accessToken: string
+}
+
+export type GoogleTokenExchangeResponse = LoginResponse
+
+// Backward-compat aliases
+export type RegisterRequest = CandidateRegistrationRequest
+export type SignUpRequest = CandidateRegistrationRequest
+export type SignUpResponse = CandidateRegistrationResponse
+
 export interface ForgotPasswordRequest {
   email: string
+}
+
+export interface ResetPasswordRequest {
+  resetToken: string
+  newPassword: string
+  confirmNewPassword: string
+}
+
+export interface ResetPasswordResponse {
+  success: boolean
+  statusCode: number
+  message: string
 }
 
 export interface ChangePasswordRequest {

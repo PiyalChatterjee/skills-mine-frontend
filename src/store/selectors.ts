@@ -5,9 +5,9 @@ import { apiSlice } from "@/store/api/apiSlice";
 // ── Auth / Identity ────────────────────────────────────────────────────────
 
 export const selectUserId = (state: RootState): string | null =>
-  state.auth.user?.userId ?? state.candidate.userId ?? null;
+  state.auth.currentUser?.userId ?? state.candidate.userId ?? null;
 
-export const selectAuthUser = (state: RootState) => state.auth.user;
+export const selectAuthUser = (state: RootState) => state.auth.currentUser;
 
 // ── User Profile & Saved Jobs ──────────────────────────────────────────────
 
