@@ -2,6 +2,7 @@ import { useZodForm } from "@/hooks/useZodForm";
 import { initialSignUpFormValues, type SignUpFormValues } from "@/modules/public/components/SignUpDrawer.types";
 import { recruiterSignUpSchema } from "@/app/validation.schema";
 import { authApi } from "@/services/api/authApi";
+import { useCallback } from "react";
 
 const isSuccessfulRegistration = (response: unknown) => {
   if (!response || typeof response !== "object") {
@@ -29,6 +30,7 @@ export const useRecruiterSignUpForm = () => {
     register,
     control,
     handleSubmit,
+    reset,
     formState: { errors, isSubmitting },
   } = useZodForm(recruiterSignUpSchema, {
     defaultValues: initialSignUpFormValues,
@@ -48,11 +50,16 @@ export const useRecruiterSignUpForm = () => {
     return submitted;
   };
 
+  const resetForm = useCallback(() => {
+    reset(initialSignUpFormValues);
+  }, [reset]);
+
   return {
     register,
     control,
     errors,
     isSubmitting,
     submitForm,
+    resetForm,
   };
 };

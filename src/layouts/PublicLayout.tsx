@@ -1,5 +1,5 @@
 import { Box } from "@mui/material";
-import { useState, type MouseEvent } from "react";
+import { useEffect, useState, type MouseEvent } from "react";
 import { useSelector } from "react-redux";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/app/auth/AuthContext";
@@ -36,6 +36,10 @@ export const PublicLayout = () => {
   const accessToken = tokens?.accessToken;
   const hasValidAccessToken = accessToken ? !isJwtExpired(accessToken) : false;
   const canAccessProtectedRoutes = isAuthenticated && hasValidAccessToken;
+
+  useEffect(() => {
+    setSignUpDrawerOpen(false);
+  }, [location.pathname, location.search]);
 
   const handleHelpClick = () => {
     // TODO: Implement action

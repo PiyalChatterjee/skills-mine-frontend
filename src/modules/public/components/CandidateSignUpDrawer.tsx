@@ -5,9 +5,8 @@ import {
   IconButton,
   Typography,
 } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
 import { SignUpForm } from "@/modules/public/components/SignUpForm";
 import { SignUpGoogleButton } from "@/modules/public/components/SignUpGoogleButton";
 import { SignUpSuccess } from "@/modules/public/components/SignUpSuccess";
@@ -32,7 +31,6 @@ export const CandidateSignUpDrawer = ({
   onClose,
 }: CandidateSignUpDrawerProps) => {
   const dispatch = useDispatch<AppDispatch>();
-  const navigate = useNavigate();
   const [signUpSuccess, setSignUpSuccess] = useState(false);
   const {
     register,
@@ -40,6 +38,7 @@ export const CandidateSignUpDrawer = ({
     errors,
     isSubmitting,
     submitForm,
+    resetForm,
   } = useCandidateSignUpForm();
   const {
     hasGoogleClientId,
@@ -59,6 +58,19 @@ export const CandidateSignUpDrawer = ({
         ? styles.googleStatusError
         : styles.googleStatus;
 
+  const handleDrawerClose = () => {
+    onClose();
+  };
+
+  useEffect(() => {
+    if (open) {
+      return;
+    }
+
+    setSignUpSuccess(false);
+    resetForm();
+  }, [open, resetForm]);
+
   const handleSignUpSubmit = async () => {
     try {
       const success = await submitForm();
@@ -72,7 +84,6 @@ export const CandidateSignUpDrawer = ({
             level: "success",
           }),
         );
-        navigate(`${ROUTE_PATHS.login}?${CANDIDATE_POST_SIGNUP_QUERY}`, { replace: true });
       }
     } catch (error) {
       const message =
@@ -93,7 +104,7 @@ export const CandidateSignUpDrawer = ({
     <Drawer
       anchor="right"
       open={open}
-      onClose={onClose}
+      onClose={handleDrawerClose}
       slotProps={{
         paper: {
           className: styles.drawerPaper,
@@ -105,13 +116,15 @@ export const CandidateSignUpDrawer = ({
           <IconButton
             aria-label="Close sign up panel"
             className={styles.closeButton}
-            onClick={onClose}
+            onClick={handleDrawerClose}
           >
             <img src={closeIconSrc} alt="" aria-hidden="true" className={styles.closeIcon} />
           </IconButton>
           <SignUpSuccess
+            heading="Your account has been created."
+            subtext="Please log in to continue with your profile setup."
+            ctaLabel="Done"
             navigateTo={`${ROUTE_PATHS.login}?${CANDIDATE_POST_SIGNUP_QUERY}`}
-            onNavigate={onClose}
           />
         </>
       ) : (
@@ -119,7 +132,7 @@ export const CandidateSignUpDrawer = ({
           <IconButton
             aria-label="Close sign up panel"
             className={styles.closeButton}
-            onClick={onClose}
+            onClick={handleDrawerClose}
           >
             <img src={closeIconSrc} alt="" aria-hidden="true" className={styles.closeIcon} />
           </IconButton>
