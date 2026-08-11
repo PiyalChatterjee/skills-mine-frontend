@@ -29,6 +29,7 @@ import {
   profileFormSchema,
 } from "@/modules/candidate/pages/profileForm.config";
 import { useCandidateProfileQuery } from "@/modules/candidate/hooks/useCandidateQueries";
+import ChangePasswordModal from "@/modules/candidate/components/ChangePasswordModal";
 import cameraPlaceholderIconSrc from "@/assets/icons/camera-placeholder.svg";
 import eyeOffIconSrc from "@/assets/icons/eye-off.svg";
 import pencilLineIconSrc from "@/assets/icons/pencil-line.svg";
@@ -122,6 +123,7 @@ const ProfilePage = () => {
     });
   const [isPasswordDisabled, setIsPasswordDisabled] = useState(true);
   const [isPasswordVisible, setPasswordVisible] = useState(false);
+  const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
   const [isPersonalEditing, setIsPersonalEditing] = useState(false);
   const [isDesiredEditing, setIsDesiredEditing] = useState(false);
   const [isEducationEditing, setIsEducationEditing] = useState(false);
@@ -151,7 +153,7 @@ const ProfilePage = () => {
   };
 
   const handleChangePassword = () => {
-    setIsPasswordDisabled(false);
+    setIsChangePasswordModalOpen(true);
   };
 
   const handleUploadPhotoClick = () => {
@@ -256,6 +258,11 @@ const ProfilePage = () => {
 
   return (
     <Box className={styles.pageRoot}>
+      <ChangePasswordModal
+        open={isChangePasswordModalOpen}
+        prefillEmail={user?.email ?? ""}
+        onClose={() => setIsChangePasswordModalOpen(false)}
+      />
       {/* ── Page heading ── */}
       <Typography component="h1" className={styles.pageTitle}>
         Profile settings

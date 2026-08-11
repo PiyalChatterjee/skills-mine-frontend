@@ -83,7 +83,7 @@ export const getProfileFormValues = (
     currentJobTitle: profile?.desiredJob?.jobTitle ?? '',
     currentEmployer: '',
     totalYearsOfExperience: '',
-    password: '',
+    password: profile?.authentication?.password ?? '',
   }
 }
 

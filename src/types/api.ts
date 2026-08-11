@@ -41,7 +41,17 @@ export interface DesiredJob {
   workType: "Remote" | "Hybrid" | "On-site" | string;
   employmentType: "Permanent" | "Contract" | string;
   salaryExpectation: number;
+  currency?: string;
+  industries?: string[];
+  locations?: string[];
+  jobType?: string;
   availableFrom: string;
+}
+
+export interface CandidateAuthentication {
+  password: string;
+  provider: string;
+  accountStatus: string;
 }
 
 export interface CandidateEducation {
@@ -77,17 +87,21 @@ export interface CandidateProfile {
   experience: CandidateExperience[];
   skills: string[];
   languages: CandidateLanguage[];
+  authentication?: CandidateAuthentication | null;
 }
 
 export interface CandidateProfileResponse {
   status: string;
   data: {
+    userId?: string;
+    savedJobs?: Array<string | SavedJob>;
     personalDetails: PersonalDetails & { userId: string };
     desiredJob: DesiredJob;
     education: ProfileEducation | null;
     experience: CandidateExperience[];
     skills?: string[];
     languages?: CandidateLanguage[];
+    authentication?: CandidateAuthentication;
   };
 }
 

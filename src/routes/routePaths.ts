@@ -1,6 +1,7 @@
 export const ROUTE_PATHS = {
   landing: '/',
   login: '/login',
+  resetPassword: '/reset-password',
   signup: '/signup',
   portal: '/portal',
   dashboard: '/dashboard',

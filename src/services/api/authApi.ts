@@ -18,6 +18,7 @@ import {
   type Permission,
   type RegisterRequest,
   type ResetPasswordRequest,
+  type ResetPasswordResponse,
   type Role,
   type SignUpResponse,
   type StaffRegistrationRequest,
@@ -214,9 +215,9 @@ export const authApi = {
     );
   },
 
-  async resetPassword(payload: ResetPasswordRequest): Promise<unknown> {
+  async resetPassword(payload: ResetPasswordRequest): Promise<ResetPasswordResponse> {
     return unwrapResponseData(
-      apiClient.post(apiEndpoints.auth.resetPassword, payload),
+      apiClient.post<ResetPasswordResponse>(apiEndpoints.auth.resetPassword, payload),
     );
   },
 

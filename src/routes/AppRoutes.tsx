@@ -8,6 +8,7 @@ import { PublicLayout } from '@/layouts/PublicLayout'
 import { RecruiterLayout } from '@/layouts/RecruiterLayout'
 import LoginPage from '@/modules/auth/pages/LoginPage'
 import SignupPage from '@/modules/auth/pages/SignupPage'
+import ResetPasswordPage from '@/modules/auth/pages/ResetPasswordPage.tsx'
 import LandingPage from '@/modules/public/pages/LandingPage'
 import { PortalRoute } from '@/routes/PortalRoute'
 import { PermissionGuard } from '@/routes/guards/PermissionGuard'
@@ -50,6 +51,10 @@ export const AppRoutes = () => {
         </Route>
 
         <Route element={<ProtectedRoute />}>
+          <Route element={<PublicLayout />}>
+            <Route path={ROUTE_PATHS.resetPassword} element={<ResetPasswordPage />} />
+          </Route>
+
           <Route element={<PortalRoute />}>
             <Route path={ROUTE_PATHS.portal} element={<RouteFallback />} />
           </Route>

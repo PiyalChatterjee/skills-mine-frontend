@@ -1,4 +1,5 @@
 import type {
+  CandidateAuthentication,
   CandidateApplication,
   CandidateDashboardData,
   CandidateEducation,
@@ -11,6 +12,7 @@ import type {
 } from '@/types/api'
 
 export type {
+  CandidateAuthentication,
   CandidateApplication,
   CandidateDashboardData,
   CandidateEducation,

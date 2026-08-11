@@ -174,13 +174,13 @@ describe("authApi", () => {
     it("calls POST /api/v1/auth/reset-password", async () => {
       mockPost.mockResolvedValue({ data: {} });
       await authApi.resetPassword({
-        token: "reset-token",
+        resetToken: "reset-token",
         newPassword: "NewPass1",
         confirmNewPassword: "NewPass1",
       });
       expect(mockPost).toHaveBeenCalledWith(
         "/api/v1/auth/reset-password",
-        expect.objectContaining({ token: "reset-token" }),
+        expect.objectContaining({ resetToken: "reset-token" }),
       );
     });
   });

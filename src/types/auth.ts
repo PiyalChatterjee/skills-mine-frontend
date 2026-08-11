@@ -136,9 +136,15 @@ export interface ForgotPasswordRequest {
 }
 
 export interface ResetPasswordRequest {
-  token: string
+  resetToken: string
   newPassword: string
   confirmNewPassword: string
+}
+
+export interface ResetPasswordResponse {
+  success: boolean
+  statusCode: number
+  message: string
 }
 
 export interface ChangePasswordRequest {
