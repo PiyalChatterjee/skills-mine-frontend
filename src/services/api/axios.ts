@@ -3,6 +3,7 @@ import axios, {
   type AxiosResponse,
   type InternalAxiosRequestConfig,
 } from "axios";
+import { authEvents } from "@/app/auth/authEvents";
 import { tokenStorage } from "@/app/auth/tokenStorage";
 import type { SuccessEnvelope } from "@/types/api";
 
@@ -43,6 +44,7 @@ apiClient.interceptors.response.use(
   (error: AxiosError) => {
     if (error.response?.status === 401) {
       tokenStorage.clearAuth();
+      authEvents.emitUnauthorized();
     }
     return Promise.reject(error);
   },

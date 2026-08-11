@@ -120,7 +120,7 @@ const mapProfileResponse = (
     portfolioUrl: payload.data.personalDetails.portfolioUrl,
   },
   desiredJob: payload.data.desiredJob,
-  education: payload.data.education,
+  education: payload.data.education ?? null,
   experience: payload.data.experience,
   skills: payload.data.skills ?? [],
   languages: payload.data.languages ?? [],

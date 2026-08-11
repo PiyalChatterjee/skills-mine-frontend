@@ -50,6 +50,11 @@ export interface CandidateEducation {
   year: number;
 }
 
+export interface ProfileEducation {
+  certifications: string[];
+  highestEarned: string;
+}
+
 export interface CandidateExperience {
   company: string;
   jobTitle: string;
@@ -68,7 +73,7 @@ export interface CandidateProfile {
   userId: string;
   personalDetails: PersonalDetails;
   desiredJob: DesiredJob;
-  education: CandidateEducation[];
+  education: ProfileEducation | null;
   experience: CandidateExperience[];
   skills: string[];
   languages: CandidateLanguage[];
@@ -79,7 +84,7 @@ export interface CandidateProfileResponse {
   data: {
     personalDetails: PersonalDetails & { userId: string };
     desiredJob: DesiredJob;
-    education: CandidateEducation[];
+    education: ProfileEducation | null;
     experience: CandidateExperience[];
     skills?: string[];
     languages?: CandidateLanguage[];

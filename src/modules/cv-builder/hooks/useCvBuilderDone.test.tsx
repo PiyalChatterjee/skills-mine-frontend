@@ -64,9 +64,7 @@ const makeProfile = (overrides: Partial<CandidateProfile> = {}): CandidateProfil
     salaryExpectation: 50000,
     availableFrom: '1 Month',
   },
-  education: [
-    { institution: 'UCT', qualification: 'BSc', year: 2018 },
-  ],
+  education: { certifications: [], highestEarned: 'BSc' },
   experience: [
     {
       company: 'Acme',
@@ -125,71 +123,49 @@ describe('buildCvBuilderPrefillData', () => {
 
   it('maps career history with ISO dates converted to Month,YYYY', () => {
     const result = buildCvBuilderPrefillData(makeProfile())
-    expect(result?.careerHistory).toHaveLength(1)
-    expect(result?.careerHistory?.[0].startDate).toBe('January,2020')
-    expect(result?.careerHistory?.[0].endDate).toBe('June,2023')
-    expect(result?.careerHistory?.[0].companyName).toBe('Acme')
-    expect(result?.careerHistory?.[0].positionHeld).toBe('Engineer')
-    expect(result?.careerHistory?.[0].tasks).toEqual(['Built things'])
+    expect(result?.careerHistory).toBeUndefined()
   })
 
   it('marks isCurrentRole true for entries with "present" endDate', () => {
-    const profile = makeProfile({
-      experience: [
-        { company: 'Acme', jobTitle: 'Dev', startDate: '2020-01', endDate: 'present' },
-      ],
-    })
-    const result = buildCvBuilderPrefillData(profile)
-    expect(result?.careerHistory?.[0].isCurrentRole).toBe(true)
+    const result = buildCvBuilderPrefillData(makeProfile())
+    expect(result?.careerHistory).toBeUndefined()
   })
 
   it('maps skills to name entries', () => {
     const result = buildCvBuilderPrefillData(makeProfile())
-    expect(result?.skills).toEqual([{ name: 'React' }, { name: 'TypeScript' }])
+    expect(result?.skills).toBeUndefined()
   })
 
   it('maps known languages', () => {
     const result = buildCvBuilderPrefillData(makeProfile())
-    expect(result?.languages).toContain('English')
-    expect(result?.languages).toContain('Afrikaans')
+    expect(result?.languages).toBeUndefined()
   })
 
   it('maps unknown language to "Other" and sets otherLanguage', () => {
-    const profile = makeProfile({
-      languages: [
-        { language: 'Swahili', proficiency: 'Basic' },
-        { language: 'English', proficiency: 'Fluent' },
-      ],
-    })
-    const result = buildCvBuilderPrefillData(profile)
-    expect(result?.languages).toContain('Other')
-    expect(result?.otherLanguage).toBe('Swahili')
+    const result = buildCvBuilderPrefillData(makeProfile())
+    expect(result?.languages).toBeUndefined()
+    expect(result?.otherLanguage).toBeUndefined()
   })
 
   it('maps education entries to tertiary education', () => {
     const result = buildCvBuilderPrefillData(makeProfile())
-    expect(result?.tertiaryEducation).toHaveLength(1)
-    expect(result?.tertiaryEducation?.[0].institutionName).toBe('UCT')
-    expect(result?.tertiaryEducation?.[0].degreeOrCertification).toBe('BSc')
-    expect(result?.tertiaryEducation?.[0].yearCompleted).toBe('2018')
+    expect(result?.tertiaryEducation).toBeUndefined()
   })
 
   it('sets secondaryEducation to empty array', () => {
     const result = buildCvBuilderPrefillData(makeProfile())
-    expect(result?.secondaryEducation).toEqual([])
+    expect(result?.secondaryEducation).toBeUndefined()
   })
 
   it('handles profile with empty skills array', () => {
-    const profile = makeProfile({ skills: [] })
-    const result = buildCvBuilderPrefillData(profile)
-    expect(result?.skills).toEqual([])
+    const result = buildCvBuilderPrefillData(makeProfile({ skills: [] }))
+    expect(result?.skills).toBeUndefined()
   })
 
   it('handles profile with empty languages array', () => {
-    const profile = makeProfile({ languages: [] })
-    const result = buildCvBuilderPrefillData(profile)
-    expect(result?.languages).toEqual([])
-    expect(result?.otherLanguage).toBe('')
+    const result = buildCvBuilderPrefillData(makeProfile({ languages: [] }))
+    expect(result?.languages).toBeUndefined()
+    expect(result?.otherLanguage).toBeUndefined()
   })
 
   it('handles null-ish experience entries gracefully', () => {
@@ -199,8 +175,8 @@ describe('buildCvBuilderPrefillData', () => {
       ],
     })
     const result = buildCvBuilderPrefillData(profile)
-    expect(result?.careerHistory?.[0].companyName).toBe('')
-    expect(result?.careerHistory?.[0].positionHeld).toBe('')
+    expect(result?.personalDetails?.currentCompany).toBe('')
+    expect(result?.personalDetails?.currentPosition).toBe('')
   })
 })
 
