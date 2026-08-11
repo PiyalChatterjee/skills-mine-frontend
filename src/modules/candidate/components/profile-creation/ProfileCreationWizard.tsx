@@ -138,7 +138,7 @@ const ProfileCreationWizard = () => {
             <Button
               type="button"
               onClick={handleBack}
-              className={styles.backButton}
+              className={`${styles.backButton} wizard-back-button`}
               disableRipple
             >
               <img

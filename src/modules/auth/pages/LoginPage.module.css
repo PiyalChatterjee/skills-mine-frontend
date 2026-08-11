@@ -72,10 +72,6 @@
   color: #ffffff;
 }
 
-.submitButton:global(.MuiButton-root):global(.MuiButton-contained):hover {
-  background: #2B96D9;
-}
-
 .submitButton:global(.MuiButton-root):global(.Mui-disabled) {
   color: #ffffff;
 }

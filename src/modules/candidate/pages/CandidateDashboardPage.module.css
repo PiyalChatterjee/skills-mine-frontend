@@ -151,19 +151,19 @@
 }
 
 .quickCard {
+  cursor: pointer;
+}
+
+.quickCard:global(.MuiButtonBase-root) {
   padding: 24px;
   display: flex;
   flex-direction: column;
   gap: 24px;
-  cursor: pointer;
   border: none;
   border-radius: 16px;
   box-shadow: 2px 4px 5px rgba(3, 71, 140, 0.32);
   text-align: left;
   transition: filter 0.15s ease;
-}
-
-.quickCard:global(.MuiButtonBase-root) {
   align-items: flex-start;
   justify-content: flex-start;
 }
@@ -177,20 +177,20 @@
   outline-offset: -4px;
 }
 
-.quickCardBlue {
-  background: #2b96d9;
+.quickCard.quickCardBlue {
+  background-color: #2b96d9;
 }
 
-.quickCardTeal {
-  background: #32abbf;
+.quickCard.quickCardTeal {
+  background-color: #32abbf;
 }
 
-.quickCardNavy {
-  background: #03478c;
+.quickCard.quickCardNavy {
+  background-color: #03478c;
 }
 
-.quickCardPurple {
-  background: #957dd2;
+.quickCard.quickCardPurple {
+  background-color: #957dd2;
 }
 
 .quickCardHeader {

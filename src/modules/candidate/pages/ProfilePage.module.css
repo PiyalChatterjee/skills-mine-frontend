@@ -217,12 +217,6 @@
   gap: 8px;
 }
 
-.editButton:global(.MuiButton-root):hover {
-  background: #eef0f2;
-  box-shadow: none;
-  border-color: #2a3132;
-}
-
 .editButton:global(.MuiButton-root) :global(.MuiButton-startIcon) {
   margin-right: 0;
 }
@@ -476,11 +470,6 @@
   width: 100%;
 }
 
-.addCertButton:global(.MuiButton-root):hover {
-  background: #eef0f2;
-  box-shadow: none;
-}
-
 .changePasswordButton,
 .changePasswordButton:global(.MuiButton-root) {
   width: 100%;
@@ -496,11 +485,6 @@
   line-height: 1.5;
   letter-spacing: 0.1px;
   text-transform: none;
-  box-shadow: none;
-}
-
-.changePasswordButton:global(.MuiButton-root):hover {
-  background: #eef0f2;
   box-shadow: none;
 }
 

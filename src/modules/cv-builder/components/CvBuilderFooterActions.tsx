@@ -21,7 +21,7 @@ const CvBuilderFooterActions = ({
 }: CvBuilderFooterActionsProps) => (
   <Box className={styles.footerBar}>
     <Box className={styles.footerBarInner}>
-      <Button type="button" onClick={onBack} className={styles.backButton} disableRipple>
+      <Button type="button" onClick={onBack} className={`${styles.backButton} no-global-hover`} disableRipple>
         <Box component="img" src={arrowRight} alt="" className={styles.buttonArrowBack} aria-hidden="true" />
         Back
       </Button>

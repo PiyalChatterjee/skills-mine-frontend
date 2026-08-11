@@ -212,10 +212,6 @@
     text-transform: none;
 }
 
-.educationAddButton:global(.MuiButton-root):hover {
-    background: #eef0f2;
-}
-
 .requiredHint,
 .requiredHint:global(.MuiTypography-root) {
     margin: 0;
