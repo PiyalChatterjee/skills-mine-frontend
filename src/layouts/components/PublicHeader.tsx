@@ -6,7 +6,7 @@ import {
   MenuItem,
   Typography,
 } from "@mui/material";
-import { useState, type MouseEvent } from "react";
+import { useState, type KeyboardEvent, type MouseEvent } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import searchIcon from "@/assets/landing-page/search-icon.svg";
 import skillsMineLogo from "@/assets/skillsMine-logo.svg";
@@ -78,6 +78,22 @@ export const PublicHeader = ({
   const handleProfileSettingsClick = () => {
     handleProfileMenuClose();
     navigate(ROUTE_PATHS.profile);
+  };
+
+  const handleProfileCreationClick = () => {
+    handleProfileMenuClose();
+    navigate(ROUTE_PATHS.profileCreation);
+  };
+
+  const handleProfileMenuUserBlockKeyDown = (
+    event: KeyboardEvent<HTMLDivElement>,
+  ) => {
+    if (event.key !== "Enter" && event.key !== " ") {
+      return;
+    }
+
+    event.preventDefault();
+    handleProfileCreationClick();
   };
 
   const handleSignOutClick = async () => {
@@ -247,7 +263,15 @@ export const PublicHeader = ({
                     },
                   }}
                 >
-                  <Box className={styles.profileMenuUserBlock}>
+                  {/* TODO: Remove this temporary redirect after the end-of-flow routing is fixed. */}
+                  <Box
+                    className={styles.profileMenuUserBlock}
+                    role="button"
+                    tabIndex={0}
+                    aria-label="Open profile creation"
+                    onClick={handleProfileCreationClick}
+                    onKeyDown={handleProfileMenuUserBlockKeyDown}
+                  >
                     <Box
                       className={styles.profileMenuUserAvatar}
                       aria-hidden="true"

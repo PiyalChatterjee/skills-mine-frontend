@@ -14,27 +14,8 @@ import {
   setBuildMyCvLastModified,
 } from "@/store/slices/candidateSlice";
 import type { SaveBuildMyCvRequest } from "@/types";
-import type { CvBuilderView, Language } from "../types/cvBuilder";
+import type { CvBuilderView } from "../types/cvBuilder";
 import type { CvBuilderFormValues } from "../types/cvBuilderSchema";
-
-const KNOWN_LANGUAGES: Language[] = [
-  "Afrikaans",
-  "Southern Sotho",
-  "Swati",
-  "English",
-  "Northern Sotho",
-  "Ndebele",
-  "Xhosa",
-  "Venda",
-  "Tsonga",
-  "Zulu",
-  "Tswana",
-  "South African Sign",
-  "Other",
-];
-
-const isKnownLanguage = (value: string): value is Language =>
-  KNOWN_LANGUAGES.includes(value as Language);
 
 const monthNames = [
   "January",
@@ -87,19 +68,9 @@ export const buildCvBuilderPrefillData = (
     return undefined;
   }
 
-  const profileLanguages = Array.isArray(profile.languages)
-    ? profile.languages
-    : [];
-  const languageNames = profileLanguages.map((item) => item.language);
-  const knownLanguages = languageNames.filter(isKnownLanguage);
-  const customOtherLanguage = languageNames.find(
-    (language) => !isKnownLanguage(language),
-  );
-
-  const experience = Array.isArray(profile.experience)
-    ? profile.experience
-    : [];
-  const primaryExperience = experience[0];
+  const primaryExperience = Array.isArray(profile.experience)
+    ? profile.experience[0]
+    : undefined;
 
   return {
     personalDetails: {
@@ -115,32 +86,6 @@ export const buildCvBuilderPrefillData = (
         primaryExperience?.jobTitle ?? profile.desiredJob?.jobTitle ?? "",
       noticePeriod: profile.desiredJob?.availableFrom ?? "",
     },
-    careerHistory: experience.map((entry) => ({
-      companyName: entry.company ?? "",
-      positionHeld: entry.jobTitle ?? "",
-      startDate: isoToMonthName(entry.startDate ?? ""),
-      endDate: isoToMonthName(entry.endDate ?? ""),
-      isCurrentRole: (entry.endDate ?? "").toLowerCase() === "present",
-      tasks: [entry.responsibilities ?? ""],
-      projects: [""],
-    })),
-    skills: (Array.isArray(profile.skills) ? profile.skills : []).map(
-      (skill) => ({ name: skill }),
-    ),
-    tertiaryEducation: (Array.isArray(profile.education)
-      ? profile.education
-      : []
-    ).map((entry) => ({
-      institutionName: entry.institution ?? "",
-      degreeOrCertification: entry.qualification ?? "",
-      yearCompleted: String(entry.year ?? ""),
-    })),
-    secondaryEducation: [],
-    languages: [
-      ...knownLanguages,
-      ...(customOtherLanguage ? (["Other"] as Language[]) : []),
-    ],
-    otherLanguage: customOtherLanguage ?? "",
   };
 };
 

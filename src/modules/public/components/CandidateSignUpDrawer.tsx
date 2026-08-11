@@ -5,7 +5,7 @@ import {
   IconButton,
   Typography,
 } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { SignUpForm } from "@/modules/public/components/SignUpForm";
 import { SignUpGoogleButton } from "@/modules/public/components/SignUpGoogleButton";
@@ -17,6 +17,9 @@ import type { AppDispatch } from "@/store";
 import { pushNotification } from "@/store/slices/notificationSlice";
 import closeIconSrc from "@/assets/icons/close-icon.svg";
 import styles from "./CandidateSignUpDrawer.module.css";
+
+const CANDIDATE_PROFILE_CREATION_PENDING_KEY = "candidate_profile_creation_pending";
+const CANDIDATE_POST_SIGNUP_QUERY = "postSignup=candidate";
 
 type CandidateSignUpDrawerProps = {
   open: boolean;
@@ -35,6 +38,7 @@ export const CandidateSignUpDrawer = ({
     errors,
     isSubmitting,
     submitForm,
+    resetForm,
   } = useCandidateSignUpForm();
   const {
     hasGoogleClientId,
@@ -54,10 +58,24 @@ export const CandidateSignUpDrawer = ({
         ? styles.googleStatusError
         : styles.googleStatus;
 
+  const handleDrawerClose = () => {
+    onClose();
+  };
+
+  useEffect(() => {
+    if (open) {
+      return;
+    }
+
+    setSignUpSuccess(false);
+    resetForm();
+  }, [open, resetForm]);
+
   const handleSignUpSubmit = async () => {
     try {
       const success = await submitForm();
       if (success) {
+        localStorage.setItem(CANDIDATE_PROFILE_CREATION_PENDING_KEY, "1");
         setSignUpSuccess(true);
         dispatch(
           pushNotification({
@@ -86,7 +104,7 @@ export const CandidateSignUpDrawer = ({
     <Drawer
       anchor="right"
       open={open}
-      onClose={onClose}
+      onClose={handleDrawerClose}
       slotProps={{
         paper: {
           className: styles.drawerPaper,
@@ -98,18 +116,23 @@ export const CandidateSignUpDrawer = ({
           <IconButton
             aria-label="Close sign up panel"
             className={styles.closeButton}
-            onClick={onClose}
+            onClick={handleDrawerClose}
           >
             <img src={closeIconSrc} alt="" aria-hidden="true" className={styles.closeIcon} />
           </IconButton>
-          <SignUpSuccess navigateTo={ROUTE_PATHS.candidateDashboard} />
+          <SignUpSuccess
+            heading="Your account has been created."
+            subtext="Please log in to continue with your profile setup."
+            ctaLabel="Done"
+            navigateTo={`${ROUTE_PATHS.login}?${CANDIDATE_POST_SIGNUP_QUERY}`}
+          />
         </>
       ) : (
         <Box className={styles.drawerContent}>
           <IconButton
             aria-label="Close sign up panel"
             className={styles.closeButton}
-            onClick={onClose}
+            onClick={handleDrawerClose}
           >
             <img src={closeIconSrc} alt="" aria-hidden="true" className={styles.closeIcon} />
           </IconButton>

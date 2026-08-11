@@ -103,28 +103,49 @@ const isCandidateApplication = (
 
 const mapProfileResponse = (
   payload: CandidateProfileResponse,
-): CandidateProfile => ({
-  userId: payload.data.personalDetails.userId,
-  personalDetails: {
-    firstName: payload.data.personalDetails.firstName,
-    lastName: payload.data.personalDetails.lastName,
-    email: payload.data.personalDetails.email,
-    mobileNumber: payload.data.personalDetails.mobileNumber,
-    location: payload.data.personalDetails.location,
-    nationality: payload.data.personalDetails.nationality,
-    idNumber: payload.data.personalDetails.idNumber,
-    eeStatus: payload.data.personalDetails.eeStatus,
-    profileImageUrl: payload.data.personalDetails.profileImageUrl,
-    thumbnailUrl: payload.data.personalDetails.thumbnailUrl,
-    linkedinUrl: payload.data.personalDetails.linkedinUrl,
-    portfolioUrl: payload.data.personalDetails.portfolioUrl,
-  },
-  desiredJob: payload.data.desiredJob,
-  education: payload.data.education,
-  experience: payload.data.experience,
-  skills: payload.data.skills ?? [],
-  languages: payload.data.languages ?? [],
-});
+): CandidateProfile => {
+  const desiredJob = payload.data.desiredJob as CandidateProfileResponse["data"]["desiredJob"] & {
+    jobType?: string;
+    industries?: string[];
+    locations?: string[];
+    currency?: string;
+  };
+
+  return {
+    userId: payload.data.userId ?? payload.data.personalDetails.userId,
+    personalDetails: {
+      firstName: payload.data.personalDetails.firstName,
+      lastName: payload.data.personalDetails.lastName,
+      email: payload.data.personalDetails.email,
+      mobileNumber: payload.data.personalDetails.mobileNumber,
+      location: payload.data.personalDetails.location,
+      nationality: payload.data.personalDetails.nationality,
+      idNumber: payload.data.personalDetails.idNumber,
+      eeStatus: payload.data.personalDetails.eeStatus,
+      profileImageUrl: payload.data.personalDetails.profileImageUrl,
+      thumbnailUrl: payload.data.personalDetails.thumbnailUrl,
+      linkedinUrl: payload.data.personalDetails.linkedinUrl,
+      portfolioUrl: payload.data.personalDetails.portfolioUrl,
+    },
+    desiredJob: {
+      jobTitle: desiredJob.jobTitle,
+      industry: desiredJob.industry ?? desiredJob.industries?.join(", ") ?? "",
+      workType: desiredJob.workType ?? desiredJob.locations?.join(", ") ?? "",
+      employmentType: desiredJob.employmentType ?? desiredJob.jobType ?? "",
+      salaryExpectation: desiredJob.salaryExpectation,
+      currency: desiredJob.currency,
+      industries: desiredJob.industries,
+      locations: desiredJob.locations,
+      jobType: desiredJob.jobType,
+      availableFrom: desiredJob.availableFrom,
+    },
+    education: payload.data.education ?? null,
+    experience: payload.data.experience,
+    skills: payload.data.skills ?? [],
+    languages: payload.data.languages ?? [],
+    authentication: payload.data.authentication ?? null,
+  };
+};
 
 export const candidateApi = {
   async getById(userId: string): Promise<CandidateProfile> {

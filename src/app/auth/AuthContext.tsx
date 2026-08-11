@@ -8,6 +8,7 @@ import {
   type PropsWithChildren,
 } from 'react'
 import { tokenStorage } from '@/app/auth/tokenStorage'
+import { authEvents } from '@/app/auth/authEvents'
 import { isJwtExpired } from '@/app/auth/jwt'
 import { store } from '@/store'
 import { apiSlice } from '@/store/api/apiSlice'
@@ -60,6 +61,14 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
       user,
       tokens,
       isAuthenticated: true,
+    })
+  }, [])
+
+  useEffect(() => {
+    authEvents.onUnauthorized(() => {
+      store.dispatch(apiSlice.util.resetApiState())
+      store.dispatch({ type: 'candidate/clearCandidateState' })
+      setSession(defaultState)
     })
   }, [])
 

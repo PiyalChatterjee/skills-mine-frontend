@@ -5,7 +5,7 @@ import {
   IconButton,
   Typography,
 } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { SignUpForm } from "@/modules/public/components/SignUpForm";
 import { SignUpGoogleButton } from "@/modules/public/components/SignUpGoogleButton";
@@ -35,6 +35,7 @@ export const RecruiterSignUpDrawer = ({
     errors,
     isSubmitting,
     submitForm,
+    resetForm,
   } = useRecruiterSignUpForm();
   const {
     hasGoogleClientId,
@@ -53,6 +54,19 @@ export const RecruiterSignUpDrawer = ({
       : googleAuthStatus === "error"
         ? styles.googleStatusError
         : styles.googleStatus;
+
+  const handleDrawerClose = () => {
+    onClose();
+  };
+
+  useEffect(() => {
+    if (open) {
+      return;
+    }
+
+    setSignUpSuccess(false);
+    resetForm();
+  }, [open, resetForm]);
 
   const handleSignUpSubmit = async () => {
     try {
@@ -86,7 +100,7 @@ export const RecruiterSignUpDrawer = ({
     <Drawer
       anchor="right"
       open={open}
-      onClose={onClose}
+      onClose={handleDrawerClose}
       slotProps={{
         paper: {
           className: styles.drawerPaper,
@@ -98,7 +112,7 @@ export const RecruiterSignUpDrawer = ({
           <IconButton
             aria-label="Close sign up panel"
             className={styles.closeButton}
-            onClick={onClose}
+            onClick={handleDrawerClose}
           >
             <img src={closeIconSrc} alt="" aria-hidden="true" className={styles.closeIcon} />
           </IconButton>
@@ -111,7 +125,7 @@ export const RecruiterSignUpDrawer = ({
           <IconButton
             aria-label="Close sign up panel"
             className={styles.closeButton}
-            onClick={onClose}
+            onClick={handleDrawerClose}
           >
             <img src={closeIconSrc} alt="" aria-hidden="true" className={styles.closeIcon} />
           </IconButton>
