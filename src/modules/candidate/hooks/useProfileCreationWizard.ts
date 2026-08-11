@@ -108,7 +108,6 @@ export const useProfileCreationWizard = () => {
   const userId = user?.userId
   const [currentStepIndex, setCurrentStepIndex] = useState(0)
   const [submitError, setSubmitError] = useState<string | null>(null)
-  const [isSavingDraft, setIsSavingDraft] = useState(false)
 
   const {
     data: candidateProfile,
@@ -160,19 +159,6 @@ export const useProfileCreationWizard = () => {
     navigate(ROUTE_PATHS.candidateDashboard)
   }
 
-  const handleSaveDraft = async () => {
-    setSubmitError(null)
-    setIsSavingDraft(true)
-
-    try {
-      await persistValues(form.getValues())
-    } catch (saveError) {
-      setSubmitError(getErrorMessage(saveError, 'Failed to save your draft.'))
-    } finally {
-      setIsSavingDraft(false)
-    }
-  }
-
   const handleNext = async () => {
     setSubmitError(null)
 
@@ -182,14 +168,13 @@ export const useProfileCreationWizard = () => {
       return
     }
 
+    if (currentStepIndex < PROFILE_CREATION_IMPLEMENTED_STEPS.length - 1) {
+      setCurrentStepIndex((previous) => previous + 1)
+      return
+    }
+
     try {
       await persistValues(form.getValues())
-
-      if (currentStepIndex < PROFILE_CREATION_IMPLEMENTED_STEPS.length - 1) {
-        setCurrentStepIndex((previous) => previous + 1)
-        return
-      }
-
       navigate(ROUTE_PATHS.candidateDashboard, { replace: true })
     } catch (saveError) {
       setSubmitError(
@@ -206,13 +191,11 @@ export const useProfileCreationWizard = () => {
     canGoNext,
     handleBack,
     handleNext,
-    handleSaveDraft,
     isLoading,
     isFetching,
     isError,
     loadErrorMessage: getErrorMessage(error, 'Failed to load your profile.'),
     submitError,
-    isSavingDraft,
     isSubmitting: updateProfileMutation.isLoading,
     isMissingUser: !userId,
   }

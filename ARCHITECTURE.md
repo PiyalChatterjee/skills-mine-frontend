@@ -196,8 +196,10 @@ sequenceDiagram
     LoginPage->>AuthContext: login(payload)
     AuthContext->>tokenStorage: setTokens + setUser → sessionStorage
     AuthContext->>AuthContext: setSession (isAuthenticated = true)
-    LoginPage->>Router: login effect resolves target route
-    Note over LoginPage,Router: Candidate post-signup intent is checked first<br/>to force /profile/create before default role routing
+    LoginPage->>candidateApi: getById(userId) for JOB_SEEKER
+    candidateApi-->>LoginPage: CandidateProfile
+    LoginPage->>Router: route by profile completeness (JOB_SEEKER) or role default
+    Note over LoginPage,Router: Incomplete candidate profile → /profile/create<br/>Complete profile → /candidate/dashboard
 ```
 
 ### Candidate Onboarding Follow-Up
@@ -206,12 +208,14 @@ The original candidate onboarding flow used an intermediate `/portal` hop plus r
 
 The current flow removes active `/portal` routing from `AppRoutes` and resolves navigation directly inside `LoginPage`:
 
-- candidate sign-up stores `candidate_profile_creation_pending=1` in `localStorage`
-- sign-up success redirects to `/login?postSignup=candidate`
-- after login, `LoginPage` sends `JOB_SEEKER` users with that intent to `/profile/create`
-- all other authenticated users go straight to their role default route
+- candidate sign-up success redirects to `/login`
+- after login, `LoginPage` sends non-candidate roles straight to their role default route
+- for `JOB_SEEKER`, `LoginPage` fetches candidate profile data and checks completeness
+- incomplete candidate profile routes to `/profile/create`; complete profile routes to `/candidate/dashboard`
 
 To keep this deterministic, `ProtectedRoute` and `RoleGuard` both accept persisted `sessionStorage` auth data as a temporary fallback while `AuthContext` finishes hydrating.
+
+Within the profile creation wizard itself, data is now persisted only on final `Done` (step transitions no longer save on every `Next`).
 
 ### Session Storage Layout
 
@@ -481,14 +485,15 @@ flowchart TD
     H --> I[AuthContext.login payload]
     I --> J[tokenStorage.setTokens + setUser\n→ sessionStorage]
     I --> K[setSession → isAuthenticated = true]
-    K --> L{Candidate sign-up intent\nor pending profile creation?}
-    L -- Yes --> M[/profile/create]
-    L -- No --> N{Role?}
-    N -- JOB_SEEKER --> O[/candidate/dashboard]
-    N -- RECRUITER --> P[/recruiter]
-    N -- MANCO --> Q[/manco]
-    N -- EXCO --> R[/exco]
-    N -- ADMIN --> S[/dashboard]
+    K --> L{Role?}
+    L -- RECRUITER --> P["/recruiter"]
+    L -- MANCO --> Q["/manco"]
+    L -- EXCO --> R["/exco"]
+    L -- ADMIN --> S["/dashboard"]
+    L -- JOB_SEEKER --> T[candidateApi.getById]
+    T --> U{Profile complete?}
+    U -- No --> M["/profile/create"]
+    U -- Yes --> O["/candidate/dashboard"]
 
     T[ProtectedRoute] -. checks AuthContext first .-> K
     U[tokenStorage fallback] -. used during hydration .-> T

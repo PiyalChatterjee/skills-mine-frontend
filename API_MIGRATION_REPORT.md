@@ -217,12 +217,14 @@ Removed deprecated service:
 - That timing gap made protected candidate routes treat the session as unauthenticated or missing a role for a moment, causing redirect churn and occasional bounce-back to `/login`.
 
 ### Final Frontend Behavior
-- Candidate sign-up stores a local onboarding intent flag: `candidate_profile_creation_pending=1`.
-- Successful candidate sign-up redirects to `/login?postSignup=candidate`.
-- After login succeeds, `LoginPage` checks for that intent first.
-- If the authenticated user role is `JOB_SEEKER` and onboarding intent is present, the app navigates directly to `/profile/create`.
-- Otherwise, the app navigates directly to the role default route.
+- Candidate sign-up success redirects to `/login` (no onboarding localStorage key or query-string intent).
+- After login succeeds, `LoginPage` performs role-first routing:
+  - non-candidate roles go straight to their role default route
+  - `JOB_SEEKER` users fetch candidate profile data and run a profile-completeness check
+- If candidate profile data is incomplete, the app navigates to `/profile/create`.
+- If candidate profile data is complete, the app navigates to `/candidate/dashboard`.
 - Active `/portal` route wiring was removed from `AppRoutes`.
+- Profile creation persistence now occurs on final `Done` only (intermediate steps are local-only).
 
 ### Code-Level Safeguards Added
 - `ProtectedRoute` now accepts a valid persisted access token from `tokenStorage` as a temporary fallback while auth context hydrates.
