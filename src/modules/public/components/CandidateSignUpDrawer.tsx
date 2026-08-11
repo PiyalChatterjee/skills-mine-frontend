@@ -18,9 +18,6 @@ import { pushNotification } from "@/store/slices/notificationSlice";
 import closeIconSrc from "@/assets/icons/close-icon.svg";
 import styles from "./CandidateSignUpDrawer.module.css";
 
-const CANDIDATE_PROFILE_CREATION_PENDING_KEY = "candidate_profile_creation_pending";
-const CANDIDATE_POST_SIGNUP_QUERY = "postSignup=candidate";
-
 type CandidateSignUpDrawerProps = {
   open: boolean;
   onClose: () => void;
@@ -75,7 +72,6 @@ export const CandidateSignUpDrawer = ({
     try {
       const success = await submitForm();
       if (success) {
-        localStorage.setItem(CANDIDATE_PROFILE_CREATION_PENDING_KEY, "1");
         setSignUpSuccess(true);
         dispatch(
           pushNotification({
@@ -124,7 +120,7 @@ export const CandidateSignUpDrawer = ({
             heading="Your account has been created."
             subtext="Please log in to continue with your profile setup."
             ctaLabel="Done"
-            navigateTo={`${ROUTE_PATHS.login}?${CANDIDATE_POST_SIGNUP_QUERY}`}
+            navigateTo={ROUTE_PATHS.login}
           />
         </>
       ) : (

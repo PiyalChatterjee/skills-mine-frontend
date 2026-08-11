@@ -59,7 +59,7 @@ npm run test:coverage
 - Refactored auth persistence so both JWT tokens and authenticated user data are stored and cleared together via session storage.
 - `AuthProvider` now hydrates state from storage on boot, clears invalid sessions, and persists user data on login.
 - JWT expiry checks are stricter: tokens without an `exp` claim are treated as expired.
-- Candidate onboarding now routes directly from login to `/profile/create` when sign-up set a pending profile-creation intent. The old active `/portal` hop was removed because it amplified auth hydration races and caused occasional redirects back to `/login` despite successful login and `/auth/me` responses.
+- Candidate onboarding now routes from login based on candidate profile completeness. For `JOB_SEEKER`, incomplete profile data routes to `/profile/create`, while complete profile data routes to `/candidate/dashboard`. The old active `/portal` hop was removed because it amplified auth hydration races and caused occasional redirects back to `/login` despite successful login and `/auth/me` responses.
 - `ProtectedRoute` and `RoleGuard` now use persisted session storage as a temporary fallback during auth hydration so protected candidate routes do not flicker or bounce on first render.
 
 ### Public/Candidate Layout and Navigation

@@ -18,18 +18,14 @@ const ProfileCreationWizard = () => {
     canGoNext,
     handleBack,
     handleNext,
-    handleSaveDraft,
     isLoading,
     isFetching,
     isError,
     loadErrorMessage,
     submitError,
-    isSavingDraft,
     isSubmitting,
     isMissingUser,
   } = useProfileCreationWizard()
-
-  const isBusy = isSavingDraft || isSubmitting
 
   let stepContent = null
   const isBasicDetailsStep = activeStepId === 'basic-details'
@@ -159,7 +155,7 @@ const ProfileCreationWizard = () => {
                 type="button"
                 onClick={handleNext}
                 className={`${styles.nextButton} ${isReviewStep ? styles.doneButton : ''}`}
-                disabled={!canGoNext || isBusy}
+                disabled={!canGoNext || isSubmitting}
                 disableRipple
               >
                 {isSubmitting ? 'Saving…' : isReviewStep ? 'Done' : 'Next'}
@@ -172,18 +168,6 @@ const ProfileCreationWizard = () => {
                   />
                 )}
               </Button>
-
-              {isReviewStep ? null : (
-                <Button
-                  type="button"
-                  onClick={handleSaveDraft}
-                  className={styles.saveDraftButton}
-                  disabled={isBusy}
-                  disableRipple
-                >
-                  {isSavingDraft ? 'Saving draft…' : 'Save draft'}
-                </Button>
-              )}
             </Box>
           </Box>
         </Box>
