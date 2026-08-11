@@ -217,6 +217,7 @@ describe("mapLoginResponseToSession", () => {
 
   it("maps login response to user and tokens (async)", async () => {
     const result = await mapLoginResponseToSession(fakeLoginResponse);
+    expect(mockGet).toHaveBeenCalledWith("/api/v1/users/me");
     expect(result.tokens.accessToken).toBe("access-token");
     expect(result.tokens.idToken).toBe("id-token");
     expect(result.tokens.refreshToken).toBe("refresh-token");

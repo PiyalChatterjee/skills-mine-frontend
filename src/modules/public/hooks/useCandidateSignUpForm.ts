@@ -3,6 +3,27 @@ import { initialSignUpFormValues, type SignUpFormValues } from "@/modules/public
 import { candidateSignUpSchema } from "@/app/validation.schema";
 import { authApi } from "@/services/api/authApi";
 
+const isSuccessfulRegistration = (response: unknown) => {
+  if (!response || typeof response !== "object") {
+    return false;
+  }
+
+  const payload = response as {
+    statusCode?: number;
+    userId?: string;
+    email?: string;
+    data?: { userId?: string; email?: string };
+  };
+
+  return (
+    payload.statusCode === 201 ||
+    Boolean(payload.userId) ||
+    Boolean(payload.email) ||
+    Boolean(payload.data?.userId) ||
+    Boolean(payload.data?.email)
+  );
+};
+
 export const useCandidateSignUpForm = () => {
   const {
     register,
@@ -21,7 +42,7 @@ export const useCandidateSignUpForm = () => {
         ...formValues,
         acceptPrivacyPolicy: formValues.acceptTerms,
       });
-      submitted = response.statusCode === 201;
+      submitted = isSuccessfulRegistration(response);
     })();
 
     return submitted;

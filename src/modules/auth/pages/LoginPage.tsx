@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Alert,
   Box,
@@ -7,20 +7,24 @@ import {
   Typography,
 } from "@mui/material";
 import { useGoogleLogin, type TokenResponse } from "@react-oauth/google";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/app/auth/AuthContext";
 import { useZodForm } from "@/hooks/useZodForm";
 import AuthHero from "@/modules/auth/components/AuthHero";
 import AuthPasswordField from "@/modules/auth/components/AuthPasswordField";
+import { roleToDefaultRoute } from "@/routes/roleDefaultRoutes";
 import { loginSchema, type LoginFormValues } from "@/modules/auth/types";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import { authApi, mapLoginResponseToSession } from "@/services/api/authApi";
 import googleLogoUrl from "@/assets/public-layout/google-logo.png";
 import styles from "./LoginPage.module.css";
 
+const CANDIDATE_PROFILE_CREATION_PENDING_KEY = "candidate_profile_creation_pending";
+
 const LoginPage = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const location = useLocation();
+  const { login, isAuthenticated, user } = useAuth();
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [googleAuthError, setGoogleAuthError] = useState<string | null>(null);
   const [pendingGoogleAuth, setPendingGoogleAuth] = useState(false);
@@ -38,6 +42,27 @@ const LoginPage = () => {
     },
   });
   const passwordValue = watch("password");
+  const postSignupIntent = new URLSearchParams(location.search).get("postSignup");
+
+  useEffect(() => {
+    if (!isAuthenticated || !user) {
+      return;
+    }
+
+    const hasPendingProfileCreation =
+      localStorage.getItem(CANDIDATE_PROFILE_CREATION_PENDING_KEY) === "1";
+    const shouldGoToProfileCreation =
+      user.role === "JOB_SEEKER" &&
+      (postSignupIntent === "candidate" || hasPendingProfileCreation);
+
+    if (shouldGoToProfileCreation) {
+      localStorage.removeItem(CANDIDATE_PROFILE_CREATION_PENDING_KEY);
+      navigate(ROUTE_PATHS.profileCreation, { replace: true });
+      return;
+    }
+
+    navigate(roleToDefaultRoute[user.role], { replace: true });
+  }, [isAuthenticated, navigate, postSignupIntent, user]);
 
   const handleGoogleAuthSuccess = async (tokenResponse: TokenResponse) => {
     try {
@@ -45,8 +70,8 @@ const LoginPage = () => {
       const response = await authApi.exchangeGoogleToken({
         accessToken: tokenResponse.access_token,
       });
-      login(await mapLoginResponseToSession(response));
-      navigate(ROUTE_PATHS.portal, { replace: true });
+      const session = await mapLoginResponseToSession(response);
+      login(session);
     } catch {
       setGoogleAuthError("Google sign-in failed. Please try again.");
     } finally {
@@ -83,8 +108,8 @@ const LoginPage = () => {
       setSubmitError(null);
 
       const response = await authApi.login(values);
-      login(await mapLoginResponseToSession(response));
-      navigate(ROUTE_PATHS.portal, { replace: true });
+      const session = await mapLoginResponseToSession(response);
+      login(session);
     } catch {
       setSubmitError("Login failed. Check your credentials and try again.");
     }

@@ -54,7 +54,7 @@ const HEADER_NAV_DEFINITIONS: Record<HeaderNavKey, HeaderNavDefinition> = {
   },
   dashboard: {
     label: 'Dashboard',
-    to: ROUTE_PATHS.portal,
+    to: ROUTE_PATHS.candidateDashboard,
     requiresAuth: true,
   },
   skillsBuild: {

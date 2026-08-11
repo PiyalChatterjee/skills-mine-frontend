@@ -1,6 +1,6 @@
 import { decodeJwtPayload } from "@/app/auth/jwt";
 import { tokenStorage } from "@/app/auth/tokenStorage";
-import { apiClient, unwrapEnvelopeData, unwrapResponseData } from "@/services/api/axios";
+import { apiClient, unwrapResponseData } from "@/services/api/axios";
 import { apiEndpoints } from "@/services/api/endpoints";
 import {
   PERMISSIONS,
@@ -25,6 +25,16 @@ import {
   type StaffRegistrationResponse,
 } from "@/types/auth";
 import type { SuccessEnvelope } from "@/types/api";
+
+const unwrapCurrentUserResponse = (
+  response: CurrentUserResponse | SuccessEnvelope<CurrentUserResponse>,
+): CurrentUserResponse => {
+  if (response && typeof response === "object" && "data" in response) {
+    return (response as SuccessEnvelope<CurrentUserResponse>).data;
+  }
+
+  return response as CurrentUserResponse;
+};
 
 const rolePermissions: Record<Role, Permission[]> = {
   JOB_SEEKER: ["VIEW_JOBS", "APPLY_JOB", "UPLOAD_CV", "VIEW_DASHBOARD"],
@@ -136,6 +146,7 @@ export const mapLoginResponseToSession = async (
 ): Promise<{ user: AuthUser; tokens: JwtTokens }> => {
   const { accessToken, idToken, refreshToken } = response.data;
   const tokens: JwtTokens = { accessToken, idToken, refreshToken };
+  const jwtUser = buildAuthUserFromJwt(accessToken);
 
   // Store tokens temporarily so the Axios interceptor can attach the Bearer header
   tokenStorage.setTokens(tokens);
@@ -145,8 +156,8 @@ export const mapLoginResponseToSession = async (
     const user = buildAuthUserFromCurrentUser(currentUser, accessToken);
     return { user, tokens };
   } catch {
-    // /users/me not yet available — fall back to JWT claims
-    return { user: buildAuthUserFromJwt(accessToken), tokens };
+    // Fall back to JWT claims only when the current-user request is unavailable.
+    return { user: jwtUser, tokens };
   }
 };
 
@@ -158,9 +169,13 @@ export const authApi = {
   },
 
   async getCurrentUser(): Promise<CurrentUserResponse> {
-    return unwrapEnvelopeData(
-      apiClient.get<SuccessEnvelope<CurrentUserResponse>>(apiEndpoints.auth.me),
+    const response = await unwrapResponseData(
+      apiClient.get<CurrentUserResponse | SuccessEnvelope<CurrentUserResponse>>(
+        apiEndpoints.auth.me,
+      ),
     );
+
+    return unwrapCurrentUserResponse(response);
   },
 
   async exchangeGoogleToken(

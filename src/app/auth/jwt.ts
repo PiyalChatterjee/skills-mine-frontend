@@ -9,7 +9,7 @@ const jwtPayloadSchema = z.object({
   name: z.string().optional(),
   firstName: z.string().optional(),
   lastName: z.string().optional(),
-  recruiterId: z.string().optional(),
+  recruiterId: z.string().nullable().optional(),
   role: z.string().optional(),
   roles: z.array(z.string()).optional(),
   permissions: z.array(z.string()).optional(),
@@ -23,7 +23,9 @@ export const decodeJwtPayload = (token: string): JwtPayload | null => {
     if (!payload) return null
 
     const normalized = payload.replace(/-/g, '+').replace(/_/g, '/')
-    const decoded = atob(normalized)
+    const paddingLength = (4 - (normalized.length % 4)) % 4
+    const padded = normalized.padEnd(normalized.length + paddingLength, '=')
+    const decoded = atob(padded)
     return jwtPayloadSchema.parse(JSON.parse(decoded))
   } catch {
     return null

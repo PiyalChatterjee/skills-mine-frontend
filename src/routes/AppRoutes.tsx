@@ -10,7 +10,6 @@ import LoginPage from '@/modules/auth/pages/LoginPage'
 import SignupPage from '@/modules/auth/pages/SignupPage'
 import ResetPasswordPage from '@/modules/auth/pages/ResetPasswordPage.tsx'
 import LandingPage from '@/modules/public/pages/LandingPage'
-import { PortalRoute } from '@/routes/PortalRoute'
 import { PermissionGuard } from '@/routes/guards/PermissionGuard'
 import { ProtectedRoute } from '@/routes/guards/ProtectedRoute'
 import { RoleGuard } from '@/routes/guards/RoleGuard'
@@ -25,6 +24,7 @@ const CandidateDashboardPage = lazy(
 )
 const CvBuilderPage = lazy(() => import('@/modules/cv-builder/pages/CvBuilderPage'))
 const JobsPage = lazy(() => import('@/modules/candidate/pages/JobsPage'))
+const ProfileCreationPage = lazy(() => import('@/modules/candidate/pages/ProfileCreationPage'))
 const ProfilePage = lazy(() => import('@/modules/candidate/pages/ProfilePage'))
 const RecruiterPage = lazy(() => import('@/modules/recruiter/pages/RecruiterPage'))
 const MandateDetailPage = lazy(() => import('@/modules/recruiter/pages/MandateDetailPage'))
@@ -55,14 +55,11 @@ export const AppRoutes = () => {
             <Route path={ROUTE_PATHS.resetPassword} element={<ResetPasswordPage />} />
           </Route>
 
-          <Route element={<PortalRoute />}>
-            <Route path={ROUTE_PATHS.portal} element={<RouteFallback />} />
-          </Route>
-
           <Route element={<CandidateLayout />}>
             <Route element={<RoleGuard allowedRoles={['JOB_SEEKER']} fallbackPath={ROUTE_PATHS.dashboard} />}>
               <Route path={ROUTE_PATHS.candidateDashboard} element={<CandidateDashboardPage />} />
               <Route path={ROUTE_PATHS.cvBuilder} element={<CvBuilderPage />} />
+              <Route path={ROUTE_PATHS.profileCreation} element={<ProfileCreationPage />} />
             </Route>
             <Route path={ROUTE_PATHS.jobs} element={<JobsPage />} />
             <Route path={ROUTE_PATHS.profile} element={<ProfilePage />} />

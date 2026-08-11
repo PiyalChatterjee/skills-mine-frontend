@@ -7,6 +7,7 @@ import {
 } from "@mui/material";
 import { useState } from "react";
 import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { SignUpForm } from "@/modules/public/components/SignUpForm";
 import { SignUpGoogleButton } from "@/modules/public/components/SignUpGoogleButton";
 import { SignUpSuccess } from "@/modules/public/components/SignUpSuccess";
@@ -18,6 +19,9 @@ import { pushNotification } from "@/store/slices/notificationSlice";
 import closeIconSrc from "@/assets/icons/close-icon.svg";
 import styles from "./CandidateSignUpDrawer.module.css";
 
+const CANDIDATE_PROFILE_CREATION_PENDING_KEY = "candidate_profile_creation_pending";
+const CANDIDATE_POST_SIGNUP_QUERY = "postSignup=candidate";
+
 type CandidateSignUpDrawerProps = {
   open: boolean;
   onClose: () => void;
@@ -28,6 +32,7 @@ export const CandidateSignUpDrawer = ({
   onClose,
 }: CandidateSignUpDrawerProps) => {
   const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
   const [signUpSuccess, setSignUpSuccess] = useState(false);
   const {
     register,
@@ -58,6 +63,7 @@ export const CandidateSignUpDrawer = ({
     try {
       const success = await submitForm();
       if (success) {
+        localStorage.setItem(CANDIDATE_PROFILE_CREATION_PENDING_KEY, "1");
         setSignUpSuccess(true);
         dispatch(
           pushNotification({
@@ -66,6 +72,7 @@ export const CandidateSignUpDrawer = ({
             level: "success",
           }),
         );
+        navigate(`${ROUTE_PATHS.login}?${CANDIDATE_POST_SIGNUP_QUERY}`, { replace: true });
       }
     } catch (error) {
       const message =
@@ -102,7 +109,10 @@ export const CandidateSignUpDrawer = ({
           >
             <img src={closeIconSrc} alt="" aria-hidden="true" className={styles.closeIcon} />
           </IconButton>
-          <SignUpSuccess navigateTo={ROUTE_PATHS.candidateDashboard} />
+          <SignUpSuccess
+            navigateTo={`${ROUTE_PATHS.login}?${CANDIDATE_POST_SIGNUP_QUERY}`}
+            onNavigate={onClose}
+          />
         </>
       ) : (
         <Box className={styles.drawerContent}>

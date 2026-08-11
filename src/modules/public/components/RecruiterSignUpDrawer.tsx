@@ -104,6 +104,7 @@ export const RecruiterSignUpDrawer = ({
           </IconButton>
           <SignUpSuccess
             navigateTo={ROUTE_PATHS.login}
+            onNavigate={onClose}
           />
         </>
       ) : (

@@ -8,6 +8,7 @@ type SignUpSuccessProps = {
   subtext?: string;
   ctaLabel?: string;
   navigateTo: string;
+  onNavigate?: () => void;
 };
 
 export const SignUpSuccess = ({
@@ -15,6 +16,7 @@ export const SignUpSuccess = ({
   subtext = "Check your inbox for further instructions.",
   ctaLabel = "Sign in",
   navigateTo,
+  onNavigate,
 }: SignUpSuccessProps) => {
   const navigate = useNavigate();
 
@@ -41,7 +43,8 @@ export const SignUpSuccess = ({
         variant="contained"
         className={styles.signInButton}
         onClick={() => {
-          navigate(navigateTo);
+          onNavigate?.();
+          navigate(navigateTo, { replace: true });
         }}
       >
         {ctaLabel}
