@@ -7,7 +7,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useGoogleLogin, type TokenResponse } from "@react-oauth/google";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/app/auth/AuthContext";
 import { useZodForm } from "@/hooks/useZodForm";
 import AuthHero from "@/modules/auth/components/AuthHero";
@@ -16,14 +16,13 @@ import { roleToDefaultRoute } from "@/routes/roleDefaultRoutes";
 import { loginSchema, type LoginFormValues } from "@/modules/auth/types";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import { authApi, mapLoginResponseToSession } from "@/services/api/authApi";
+import { candidateApi } from "@/services/api/candidateApi";
+import { isCandidateProfileCompleteForOnboarding } from "@/modules/candidate/utils/profileCompleteness";
 import googleLogoUrl from "@/assets/public-layout/google-logo.png";
 import styles from "./LoginPage.module.css";
 
-const CANDIDATE_PROFILE_CREATION_PENDING_KEY = "candidate_profile_creation_pending";
-
 const LoginPage = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const { login, isAuthenticated, user } = useAuth();
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [googleAuthError, setGoogleAuthError] = useState<string | null>(null);
@@ -42,27 +41,49 @@ const LoginPage = () => {
     },
   });
   const passwordValue = watch("password");
-  const postSignupIntent = new URLSearchParams(location.search).get("postSignup");
 
   useEffect(() => {
     if (!isAuthenticated || !user) {
       return;
     }
 
-    const hasPendingProfileCreation =
-      localStorage.getItem(CANDIDATE_PROFILE_CREATION_PENDING_KEY) === "1";
-    const shouldGoToProfileCreation =
-      user.role === "JOB_SEEKER" &&
-      (postSignupIntent === "candidate" || hasPendingProfileCreation);
+    let isActive = true;
 
-    if (shouldGoToProfileCreation) {
-      localStorage.removeItem(CANDIDATE_PROFILE_CREATION_PENDING_KEY);
-      navigate(ROUTE_PATHS.profileCreation, { replace: true });
-      return;
-    }
+    const routeAuthenticatedUser = async () => {
+      if (user.role !== "JOB_SEEKER") {
+        navigate(roleToDefaultRoute[user.role], { replace: true });
+        return;
+      }
 
-    navigate(roleToDefaultRoute[user.role], { replace: true });
-  }, [isAuthenticated, navigate, postSignupIntent, user]);
+      try {
+        const profile = await candidateApi.getById(user.userId);
+        if (!isActive) {
+          return;
+        }
+
+        const isProfileComplete = isCandidateProfileCompleteForOnboarding(profile);
+        navigate(
+          isProfileComplete
+            ? roleToDefaultRoute[user.role]
+            : ROUTE_PATHS.profileCreation,
+          { replace: true },
+        );
+      } catch {
+        if (!isActive) {
+          return;
+        }
+
+        // Fallback to the default route if profile fetch fails.
+        navigate(roleToDefaultRoute[user.role], { replace: true });
+      }
+    };
+
+    void routeAuthenticatedUser();
+
+    return () => {
+      isActive = false;
+    };
+  }, [isAuthenticated, navigate, user]);
 
   const handleGoogleAuthSuccess = async (tokenResponse: TokenResponse) => {
     try {

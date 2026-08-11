@@ -80,7 +80,7 @@ describe("Sign up drawers", () => {
     fireEvent.click(screen.getByRole("button", { name: "Submit mocked form" }));
 
     expect(await screen.findByText("Your account has been created.")).toBeInTheDocument();
-    expect(localStorage.getItem("candidate_profile_creation_pending")).toBe("1");
+    expect(localStorage.getItem("candidate_profile_creation_pending")).toBeNull();
 
     rerender(
       <MemoryRouter>

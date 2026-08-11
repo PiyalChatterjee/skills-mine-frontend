@@ -15,6 +15,13 @@ const mockLogin = vi.hoisted(() => vi.fn())
 const mockStartGoogleLogin = vi.hoisted(() => vi.fn())
 const mockApiLogin = vi.hoisted(() => vi.fn())
 const mockExchangeGoogleToken = vi.hoisted(() => vi.fn())
+const mockGetCandidateProfile = vi.hoisted(() => vi.fn())
+const mockIsProfileComplete = vi.hoisted(() => vi.fn())
+const mockAuthState = vi.hoisted(() => ({
+  login: mockLogin,
+  isAuthenticated: false,
+  user: null as null | { userId: string; role: string },
+}))
 
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom')
@@ -22,7 +29,7 @@ vi.mock('react-router-dom', async () => {
 })
 
 vi.mock('@/app/auth/AuthContext', () => ({
-  useAuth: () => ({ login: mockLogin }),
+  useAuth: () => mockAuthState,
 }))
 
 const mockGoogleLoginBehavior = vi.hoisted(() => ({
@@ -47,6 +54,16 @@ vi.mock('@/services/api/authApi', () => ({
   mapLoginResponseToSession: (r: unknown) => Promise.resolve(r),
 }))
 
+vi.mock('@/services/api/candidateApi', () => ({
+  candidateApi: {
+    getById: mockGetCandidateProfile,
+  },
+}))
+
+vi.mock('@/modules/candidate/utils/profileCompleteness', () => ({
+  isCandidateProfileCompleteForOnboarding: mockIsProfileComplete,
+}))
+
 const mockAuthApi = { login: mockApiLogin, exchangeGoogleToken: mockExchangeGoogleToken }
 
 const renderPage = () =>
@@ -60,6 +77,9 @@ describe('LoginPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockGoogleLoginBehavior.shouldCallError = false
+    mockAuthState.isAuthenticated = false
+    mockAuthState.user = null
+    mockIsProfileComplete.mockReturnValue(true)
   })
 
   it('renders the email and password fields', () => {
@@ -102,7 +122,6 @@ describe('LoginPage', () => {
         expect.objectContaining({ username: 'user@test.com', password: 'mypassword' }),
       )
       expect(mockLogin).toHaveBeenCalled()
-      expect(mockNavigate).toHaveBeenCalled()
     })
   })
 
@@ -140,7 +159,7 @@ describe('LoginPage', () => {
     fireEvent.click(screen.getByRole('button', { name: /sign in with google/i }))
     await waitFor(() => {
       expect(mockExchangeGoogleToken).toHaveBeenCalledWith({ accessToken: 'tok' })
-      expect(mockNavigate).toHaveBeenCalled()
+      expect(mockLogin).toHaveBeenCalled()
     })
     vi.unstubAllEnvs()
   })
@@ -165,5 +184,32 @@ describe('LoginPage', () => {
       expect(screen.getByText(/google sign-in failed/i)).toBeInTheDocument()
     })
     vi.unstubAllEnvs()
+  })
+
+  it('routes authenticated job seeker with incomplete profile to profile creation', async () => {
+    mockAuthState.isAuthenticated = true
+    mockAuthState.user = { userId: 'candidate-1', role: 'JOB_SEEKER' }
+    mockGetCandidateProfile.mockResolvedValue({ userId: 'candidate-1' })
+    mockIsProfileComplete.mockReturnValue(false)
+
+    renderPage()
+
+    await waitFor(() => {
+      expect(mockGetCandidateProfile).toHaveBeenCalledWith('candidate-1')
+      expect(mockNavigate).toHaveBeenCalledWith('/profile/create', { replace: true })
+    })
+  })
+
+  it('routes authenticated job seeker with complete profile to dashboard', async () => {
+    mockAuthState.isAuthenticated = true
+    mockAuthState.user = { userId: 'candidate-1', role: 'JOB_SEEKER' }
+    mockGetCandidateProfile.mockResolvedValue({ userId: 'candidate-1' })
+    mockIsProfileComplete.mockReturnValue(true)
+
+    renderPage()
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/candidate/dashboard', { replace: true })
+    })
   })
 })

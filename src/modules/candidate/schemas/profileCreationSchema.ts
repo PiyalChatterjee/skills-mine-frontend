@@ -30,7 +30,7 @@ export const profileCreationSchema = z.object({
       value: z.string().trim(),
     }),
   ),
-  highestDegreeEarned: requiredField('Highest degree earned'),
+  highestDegreeEarned: z.string().trim(),
   currentJobTitle: z.string().trim(),
   currentEmployer: z.string().trim(),
   totalYearsOfExperience: z
