@@ -93,6 +93,20 @@ describe('ResetPasswordPage', () => {
     })
   })
 
+  it('validates that new password and confirm password match', async () => {
+    renderPage('/reset-password?token=reset-token-123')
+
+    const passwordInputs = screen.getAllByPlaceholderText('Password')
+    await userEvent.type(passwordInputs[0], 'Password1!')
+    await userEvent.type(passwordInputs[1], 'Password2!')
+    fireEvent.click(screen.getByRole('button', { name: /reset password/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText('Passwords do not match')).toBeInTheDocument()
+      expect(mockResetPasswordThunk).not.toHaveBeenCalled()
+    })
+  })
+
   it('uses backend success message after a successful reset', async () => {
     renderPage('/reset-password?token=reset-token-123')
     await submitValidForm()
