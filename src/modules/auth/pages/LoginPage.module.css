@@ -42,6 +42,28 @@
   letter-spacing: 0.1px;
 }
 
+.forgotPasswordRow {
+  display: flex;
+  justify-content: center;
+  margin-top: -8px;
+}
+
+.forgotPasswordLink,
+.forgotPasswordLink:global(.MuiTypography-root) {
+  text-transform: none;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.1px;
+  color: #03478c;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.forgotPasswordLink:global(.MuiTypography-root):hover {
+  color: #03478c;
+  text-decoration: underline;
+}
+
 .inputField :global(.MuiOutlinedInput-root) {
   border-radius: 8px;
 }

@@ -11,6 +11,7 @@ type ViewState = "request" | "otp";
 type UseChangePasswordModalArgs = {
   open: boolean;
   prefillEmail?: string;
+  mode?: "reset" | "change";
 };
 
 const buildMockResetToken = (email: string, otpCode: string) => {
@@ -21,6 +22,7 @@ const buildMockResetToken = (email: string, otpCode: string) => {
 export const useChangePasswordModal = ({
   open,
   prefillEmail = "",
+  mode = "reset",
 }: UseChangePasswordModalArgs) => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
@@ -49,8 +51,11 @@ export const useChangePasswordModal = ({
       dispatch(
         pushNotification({
           level: "success",
-          title: "Check your email",
-          message: "Password reset instructions have been sent.",
+          title: mode === "change" ? "Check your email" : "Check your email",
+          message:
+            mode === "change"
+              ? "Password change instructions have been sent."
+              : "Password reset instructions have been sent.",
         }),
       );
       setView("otp");
@@ -58,8 +63,8 @@ export const useChangePasswordModal = ({
       dispatch(
         pushNotification({
           level: "error",
-          title: "Failed to send",
-          message: "Please try again later.",
+          title: mode === "change" ? "Failed to send change instructions" : "Failed to send",
+          message: mode === "change" ? "Please try again later." : "Please try again later.",
         }),
       );
     } finally {
@@ -104,7 +109,10 @@ export const useChangePasswordModal = ({
         pushNotification({
           level: "success",
           title: "OTP resent",
-          message: "A new OTP has been sent to your email.",
+          message:
+            mode === "change"
+              ? "A new OTP has been sent to your email to change your password."
+              : "A new OTP has been sent to your email.",
         }),
       );
       setOtp(["", "", "", ""]);

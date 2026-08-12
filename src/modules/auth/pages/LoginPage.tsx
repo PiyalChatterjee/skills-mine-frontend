@@ -7,11 +7,12 @@ import {
   Typography,
 } from "@mui/material";
 import { useGoogleLogin, type TokenResponse } from "@react-oauth/google";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/app/auth/AuthContext";
 import { useZodForm } from "@/hooks/useZodForm";
 import AuthHero from "@/modules/auth/components/AuthHero";
 import AuthPasswordField from "@/modules/auth/components/AuthPasswordField";
+import ChangePasswordModal from "@/modules/candidate/components/ChangePasswordModal";
 import { roleToDefaultRoute } from "@/routes/roleDefaultRoutes";
 import { loginSchema, type LoginFormValues } from "@/modules/auth/types";
 import { ROUTE_PATHS } from "@/routes/routePaths";
@@ -23,6 +24,7 @@ import styles from "./LoginPage.module.css";
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { login, isAuthenticated, user } = useAuth();
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [googleAuthError, setGoogleAuthError] = useState<string | null>(null);
@@ -41,6 +43,14 @@ const LoginPage = () => {
     },
   });
   const passwordValue = watch("password");
+  const usernameValue = watch("username");
+  const isForgotPasswordModalOpen = searchParams.get("forgot-password") === "1";
+
+  const handleForgotPasswordClose = () => {
+    const nextSearchParams = new URLSearchParams(searchParams);
+    nextSearchParams.delete("forgot-password");
+    setSearchParams(nextSearchParams, { replace: true });
+  };
 
   useEffect(() => {
     if (!isAuthenticated || !user) {
@@ -138,6 +148,12 @@ const LoginPage = () => {
 
   return (
     <Box className={styles.pageRoot}>
+      <ChangePasswordModal
+        open={isForgotPasswordModalOpen}
+        prefillEmail={usernameValue}
+        onClose={handleForgotPasswordClose}
+        mode="reset"
+      />
       <AuthHero
         headline="Where talent meets opportunity."
         headlineClassName={styles.heroHeadlineOverride}
@@ -188,6 +204,17 @@ const LoginPage = () => {
           >
             {isSubmitting ? "Signing in..." : "Log In"}
           </Button>
+
+          <Box className={styles.forgotPasswordRow}>
+            <Typography
+              component={Link}
+              to="?forgot-password=1"
+              replace
+              className={styles.forgotPasswordLink}
+            >
+              Forgot password?
+            </Typography>
+          </Box>
 
           <Button
             type="button"
