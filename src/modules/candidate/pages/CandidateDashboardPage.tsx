@@ -188,11 +188,109 @@ const CandidateDashboardPage = () => {
 
   const firstName = user?.firstName ?? "there";
   const applications = dashboard?.applications ?? [];
+  const isNewUser = !isLoading && applications.length === 0 && (dashboard?.summary?.totalApplications ?? 0) === 0;
 
   if (isLoading) {
     return (
       <Box className={styles.loadingContainer}>
         <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (isNewUser) {
+    return (
+      <Box className={styles.pageRoot}>
+        <Box component="section" className={styles.emptyHeroBanner}>
+          <Typography component="p" className={styles.emptyHeroGreeting}>
+            Hi {firstName}
+          </Typography>
+          <Typography component="h1" className={styles.emptyHeroMessage}>
+            You haven&apos;t applied for any jobs yet.
+          </Typography>
+          <ButtonBase
+            type="button"
+            className={styles.emptyHeroCta}
+            onClick={() => navigate(ROUTE_PATHS.jobs)}
+            disableRipple
+          >
+            See matched jobs
+          </ButtonBase>
+        </Box>
+
+        <Box component="section" className={styles.emptyQuickActionsRow}>
+          <ButtonBase
+            type="button"
+            className={`${styles.quickCard} ${styles.quickCardBlue}`}
+            onClick={() => navigate(ROUTE_PATHS.jobs)}
+            disableRipple
+          >
+            <Box className={styles.quickCardHeader}>
+              <Box className={styles.quickCardIconFrameBlue} aria-hidden="true">
+                <Box
+                  component="img"
+                  src={settings4LineIcon}
+                  alt=""
+                  className={styles.quickCardIcon}
+                />
+              </Box>
+              <Typography component="p" className={styles.quickCardTitle}>
+                Skills build
+              </Typography>
+            </Box>
+            <Typography component="p" className={styles.quickCardSubtitle}>
+              Learn a skill to enhance your CV.
+            </Typography>
+          </ButtonBase>
+
+          <ButtonBase
+            type="button"
+            className={`${styles.quickCard} ${styles.quickCardNavy}`}
+            onClick={() => navigate(ROUTE_PATHS.jobs)}
+            disableRipple
+          >
+            <Box className={styles.quickCardHeader}>
+              <Box className={styles.quickCardIconFrameNavy} aria-hidden="true">
+                <Box
+                  component="img"
+                  src={seoLineIcon}
+                  alt=""
+                  className={styles.quickCardIcon}
+                />
+              </Box>
+              <Typography component="p" className={styles.quickCardTitle}>
+                Latest Jobs
+              </Typography>
+            </Box>
+            <Typography component="p" className={styles.quickCardSubtitle}>
+              View all the latest job posts.
+            </Typography>
+          </ButtonBase>
+
+          <ButtonBase
+            type="button"
+            className={`${styles.quickCard} ${styles.quickCardPurple}`}
+            onClick={() => navigate(ROUTE_PATHS.jobs)}
+            disableRipple
+          >
+            <Box className={styles.quickCardHeader}>
+              <Box className={styles.quickCardIconFrameNeutral} aria-hidden="true">
+                <Box
+                  component="img"
+                  src={bardLineIcon}
+                  alt=""
+                  className={styles.quickCardIcon}
+                />
+              </Box>
+              <Typography component="p" className={styles.quickCardTitle}>
+                Recommended Jobs
+              </Typography>
+            </Box>
+            <Typography component="p" className={styles.quickCardSubtitle}>
+              View recommended jobs for you.
+            </Typography>
+          </ButtonBase>
+        </Box>
       </Box>
     );
   }

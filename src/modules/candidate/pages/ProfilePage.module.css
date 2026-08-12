@@ -470,6 +470,12 @@
   width: 100%;
 }
 
+.addCertButton:global(.Mui-disabled) {
+  pointer-events: none;
+  cursor: default;
+  color: #B0B4B8;
+}
+
 .changePasswordButton,
 .changePasswordButton:global(.MuiButton-root) {
   width: 100%;

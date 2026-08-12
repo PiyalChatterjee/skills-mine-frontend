@@ -1,5 +1,4 @@
 .pageRoot {
-  background: #d7edf6;
   min-height: 100%;
   padding: 40px 80px 60px;
 }
@@ -422,6 +421,81 @@
   text-align: center;
   padding: 32px 0;
   color: #9CA3AF;
+}
+
+/* ── New-user empty state ────────────────────────────────────────────── */
+.emptyHeroBanner {
+  background: #03478c;
+  border-radius: 20px;
+  padding: 32px 40px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.emptyHeroGreeting,
+:global(.MuiTypography-root).emptyHeroGreeting,
+:global(.MuiTypography-root).emptyHeroGreeting.emptyHeroGreeting {
+  margin: 0;
+  color: #ffffff;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
+}
+
+.emptyHeroMessage,
+:global(.MuiTypography-root).emptyHeroMessage,
+:global(.MuiTypography-root).emptyHeroMessage.emptyHeroMessage {
+  margin: 0;
+  color: #ffffff;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
+}
+
+.emptyHeroCta:global(.MuiButtonBase-root) {
+  height: 40px;
+  padding: 0 24px;
+  background: #32abbf;
+  border-radius: 999px;
+  color: #ffffff;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.1px;
+  white-space: nowrap;
+  transition: filter 0.15s ease;
+}
+
+.emptyHeroCta:hover {
+  filter: brightness(1.08);
+}
+
+.emptyQuickActionsRow {
+  width: 100%;
+  margin: 24px 0 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+
+@media (max-width: 900px) {
+  .emptyQuickActionsRow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .emptyQuickActionsRow {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ── Pipeline Progress Bar ───────────────────────────────────────────── */
