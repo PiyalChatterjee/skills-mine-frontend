@@ -98,7 +98,7 @@ const NewMandatePage = () => {
   const onSubmit = async (values: MandateFormValues) => {
     setIsSubmitting(true)
     try {
-      await mandateApi.createMandate({
+      await mandateApi.createJobPost({
         companyName: values.companyName,
         positionTitle: values.positionTitle,
         location: values.location,
@@ -184,7 +184,7 @@ const NewMandatePage = () => {
             <BackArrowIcon /> Back
           </button>
           <Typography component="h1" className={styles.pageTitle}>
-            New Mandate
+            New Job Post
           </Typography>
         </Box>
 

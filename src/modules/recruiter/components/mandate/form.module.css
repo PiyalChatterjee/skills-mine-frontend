@@ -261,27 +261,3 @@
   font-size: 16px;
 }
 
-/* ── Bullet textarea preview ─────────────────────────────────────────── */
-.bulletPreview {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 12px 14px;
-  border: 1px solid #d1d5db;
-  border-top: none;
-  border-radius: 0 0 8px 8px;
-  background: #f9fafb;
-}
-
-.bulletItem {
-  display: flex;
-  gap: 8px;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 13px;
-  color: #57606a;
-}
-
-.bulletDot {
-  color: #9ca3af;
-  flex-shrink: 0;
-}

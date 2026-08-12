@@ -8,14 +8,18 @@ import styles from './RecruiterMandatesPage.module.css'
 const RecruiterMandatesPage = () => {
   const navigate = useNavigate()
 
-  const handleNewMandate = () => {
-    navigate(ROUTE_PATHS.recruiterNewMandate)
+  const handleNewJobPost = () => {
+    navigate(ROUTE_PATHS.recruiterNewJobPost)
+  }
+
+  const handleEditJobPost = (mandateId: string) => {
+    navigate(ROUTE_PATHS.recruiterEditJobPost.replace(':mandateId', mandateId))
   }
 
   return (
     <Box className={styles.shell}>
       <RecruiterSidebar />
-      <MandatesScreen onNewMandate={handleNewMandate} />
+      <MandatesScreen onNewJobPost={handleNewJobPost} onEditJobPost={handleEditJobPost} />
     </Box>
   )
 }

@@ -105,6 +105,12 @@ export const apiEndpoints = {
       "limit",
     ),
   },
+  candidates: {
+    list: withDefault(
+      import.meta.env.VITE_CANDIDATES_LIST_ENDPOINT,
+      "/candidates",
+    ),
+  },
   recruiter: {
     dashboard: withDefault(
       import.meta.env.VITE_RECRUITER_DASHBOARD_ENDPOINT,
@@ -141,6 +147,28 @@ export const apiEndpoints = {
     recruiterPerformance: withDefault(
       import.meta.env.VITE_MANCO_RECRUITER_PERFORMANCE_ENDPOINT,
       "/v1/manco/recruiters/:id/performance",
+    ),
+  },
+  jobPosts: {
+    list: withDefault(
+      import.meta.env.VITE_JOB_POSTS_ENDPOINT,
+      "/job-posts",
+    ),
+    create: withDefault(
+      import.meta.env.VITE_JOB_POST_CREATE_ENDPOINT,
+      "/job-posts",
+    ),
+    detail: withDefault(
+      import.meta.env.VITE_JOB_POST_DETAIL_ENDPOINT,
+      "/job-posts/:mandateId",
+    ),
+    update: withDefault(
+      import.meta.env.VITE_JOB_POST_UPDATE_ENDPOINT,
+      "/job-posts/:mandateId",
+    ),
+    delete: withDefault(
+      import.meta.env.VITE_JOB_POST_DELETE_ENDPOINT,
+      "/job-posts/:mandateId",
     ),
   },
   crm: {
