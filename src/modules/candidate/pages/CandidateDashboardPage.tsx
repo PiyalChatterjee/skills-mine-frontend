@@ -1,9 +1,8 @@
-import { useMemo } from "react";
+import { Fragment, useMemo } from "react";
 import {
   Box,
   ButtonBase,
   CircularProgress,
-  Link,
   Typography,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
@@ -28,8 +27,8 @@ type ApplicationStatusKey =
   | "interview"
   | "shortlisted"
   | "offer_extended"
-  | "placed"
-  | "rejected"
+  | "offer_accepted"
+  | "offer_declined"
   | "unknown";
 
 const APPLICATION_STATUS_CONFIG: Record<
@@ -41,9 +40,9 @@ const APPLICATION_STATUS_CONFIG: Record<
   assessment: { label: "Assessment", color: "#f0a500" },
   interview: { label: "Interview", color: "#7c5cd8" },
   shortlisted: { label: "Shortlisted", color: "#e085c2" },
-  offer_extended: { label: "Offer extended", color: "#5bbf8a" },
-  placed: { label: "Placed", color: "#329d72" },
-  rejected: { label: "Rejected", color: "#e07070" },
+  offer_extended: { label: "Offer", color: "#5bbf8a" },
+  offer_accepted: { label: "Closed", color: "#4BAF73" },
+  offer_declined: { label: "Closed", color: "#D64545" },
   unknown: { label: "Unknown stage", color: "#7a8694" },
 };
 
@@ -57,9 +56,8 @@ const STAGE_STATUS_MAP: Record<string, ApplicationStatusKey> = {
   shortlisted: "shortlisted",
   offer: "offer_extended",
   offer_extended: "offer_extended",
-  placed: "placed",
-  closed: "rejected",
-  rejected: "rejected",
+  offer_accepted: "offer_accepted",
+  offer_declined: "offer_declined",
 };
 
 // Pipeline stage label lookup – API keys are uppercase e.g. INTERVIEW
@@ -88,13 +86,20 @@ const getPipelineProgress = (
   return idx >= 0 ? idx : 0;
 };
 
+const CLOSED_STAGES = new Set(["closed", "offer_accepted", "offer_declined"]);
+
 const getPipelineFillPercent = (
   stage: string | undefined | null,
   pipeline: string[],
 ): number => {
   if (pipeline.length <= 1) return 0;
+  // Closed/accepted/declined stages mean the process is complete
+  if (stage && CLOSED_STAGES.has(stage.toLowerCase())) {
+    return 100;
+  }
   const idx = getPipelineProgress(stage, pipeline);
-  return Math.round((idx / (pipeline.length - 1)) * 100);
+  // Align bar to center of current stage label
+  return Math.round(((idx + 0.5) / pipeline.length) * 100);
 };
 
 const unknownStages = new Set<string>();
@@ -188,7 +193,10 @@ const CandidateDashboardPage = () => {
 
   const firstName = user?.firstName ?? "there";
   const applications = dashboard?.applications ?? [];
-  const isNewUser = !isLoading && applications.length === 0 && (dashboard?.summary?.totalApplications ?? 0) === 0;
+  const isNewUser =
+    !isLoading &&
+    applications.length === 0 &&
+    (dashboard?.summary?.totalApplications ?? 0) === 0;
 
   if (isLoading) {
     return (
@@ -235,7 +243,8 @@ const CandidateDashboardPage = () => {
                 />
               </Box>
               <Typography component="p" className={styles.quickCardTitle}>
-                Skills build
+                <span className={styles.quickCardTitleLine}>Skills</span>
+                <span className={styles.quickCardTitleLine}>build</span>
               </Typography>
             </Box>
             <Typography component="p" className={styles.quickCardSubtitle}>
@@ -259,7 +268,8 @@ const CandidateDashboardPage = () => {
                 />
               </Box>
               <Typography component="p" className={styles.quickCardTitle}>
-                Latest Jobs
+                <span className={styles.quickCardTitleLine}>Latest</span>
+                <span className={styles.quickCardTitleLine}>Jobs</span>
               </Typography>
             </Box>
             <Typography component="p" className={styles.quickCardSubtitle}>
@@ -274,7 +284,10 @@ const CandidateDashboardPage = () => {
             disableRipple
           >
             <Box className={styles.quickCardHeader}>
-              <Box className={styles.quickCardIconFrameNeutral} aria-hidden="true">
+              <Box
+                className={styles.quickCardIconFrameNeutral}
+                aria-hidden="true"
+              >
                 <Box
                   component="img"
                   src={bardLineIcon}
@@ -283,7 +296,8 @@ const CandidateDashboardPage = () => {
                 />
               </Box>
               <Typography component="p" className={styles.quickCardTitle}>
-                Recommended Jobs
+                <span className={styles.quickCardTitleLine}>Recommended</span>
+                <span className={styles.quickCardTitleLine}>Jobs</span>
               </Typography>
             </Box>
             <Typography component="p" className={styles.quickCardSubtitle}>
@@ -353,7 +367,8 @@ const CandidateDashboardPage = () => {
               />
             </Box>
             <Typography component="p" className={styles.quickCardTitle}>
-              CV Builder
+              <span className={styles.quickCardTitleLine}>CV</span>
+              <span className={styles.quickCardTitleLine}>Builder</span>
             </Typography>
           </Box>
           <Typography component="p" className={styles.quickCardSubtitle}>
@@ -377,7 +392,8 @@ const CandidateDashboardPage = () => {
               />
             </Box>
             <Typography component="p" className={styles.quickCardTitle}>
-              Saved Jobs
+              <span className={styles.quickCardTitleLine}>Saved</span>
+              <span className={styles.quickCardTitleLine}>Jobs</span>
             </Typography>
           </Box>
           <Typography component="p" className={styles.quickCardSubtitle}>
@@ -401,7 +417,8 @@ const CandidateDashboardPage = () => {
               />
             </Box>
             <Typography component="p" className={styles.quickCardTitle}>
-              Latest Jobs
+              <span className={styles.quickCardTitleLine}>Latest</span>
+              <span className={styles.quickCardTitleLine}>Jobs</span>
             </Typography>
           </Box>
           <Typography component="p" className={styles.quickCardSubtitle}>
@@ -431,7 +448,8 @@ const CandidateDashboardPage = () => {
               />
             </Box>
             <Typography component="p" className={styles.quickCardTitle}>
-              Recommended Jobs
+              <span className={styles.quickCardTitleLine}>Recommended</span>
+              <span className={styles.quickCardTitleLine}>Jobs</span>
             </Typography>
           </Box>
           <Typography component="p" className={styles.quickCardSubtitle}>
@@ -441,10 +459,12 @@ const CandidateDashboardPage = () => {
       </Box>
 
       <Box component="section" className={styles.applicationsSection}>
-        <Typography component="h2" className={styles.sectionTitle}>
-          My applications
-        </Typography>
         <Box className={styles.applicationsList}>
+          <Box className={styles.applicationsHeader}>
+            <Typography component="h2" className={styles.sectionTitle}>
+              My applications
+            </Typography>
+          </Box>
           {applications.length === 0 ? (
             <Typography component="p" className={styles.emptyApplications}>
               No applications yet. Start applying to jobs!
@@ -453,77 +473,76 @@ const CandidateDashboardPage = () => {
             applications.map((apiApp, index) => {
               const app = transformApplicationToDisplay(apiApp);
               return (
-                <Box key={app.id} className={styles.applicationEntry}>
-                  {!index && null}
-                  <Box className={styles.applicationHeader}>
-                    <Box className={styles.applicationTitleRow}>
-                      <Typography
-                        component="h3"
-                        className={styles.applicationTitle}
-                      >
-                        {app.title}
-                      </Typography>
-                      <ButtonBase
-                        type="button"
-                        className={styles.expandButton}
-                        aria-label={`View details for ${app.title}`}
-                        disableRipple
-                      >
-                        <Box
-                          component="img"
-                          src={expandCirclePlusIcon}
-                          alt=""
-                          className={styles.expandButtonIcon}
-                          aria-hidden="true"
-                        />
-                      </ButtonBase>
-                    </Box>
-                    <Box className={styles.statusPill} data-status={app.status}>
-                      {APPLICATION_STATUS_CONFIG[app.status].label}
-                    </Box>
-                  </Box>
-
-                  <Box className={styles.pipelineWrap}>
-                    <Box
-                      className={styles.pipelineLabels}
-                      style={{
-                        gridTemplateColumns: `repeat(${app.pipeline.length}, minmax(0, 1fr))`,
-                      }}
-                    >
-                      {app.pipeline.map((stageKey) => (
-                        <span
-                          key={stageKey}
-                          className={styles.pipelineLabel}
-                          data-active={
-                            stageKey.toLowerCase() ===
-                              app.stage.toLowerCase() || undefined
-                          }
+                <Fragment key={app.id}>
+                  <Box className={styles.applicationEntry}>
+                    <Box className={styles.applicationHeader}>
+                      <Box className={styles.applicationTitleRow}>
+                        <Typography
+                          component="h3"
+                          className={styles.applicationTitle}
                         >
-                          {getPipelineStageLabelFromKey(stageKey)}
-                        </span>
-                      ))}
+                          {app.title}
+                        </Typography>
+                        <ButtonBase
+                          type="button"
+                          className={styles.expandButton}
+                          aria-label={`View details for ${app.title}`}
+                          disableRipple
+                        >
+                          <Box
+                            component="img"
+                            src={expandCirclePlusIcon}
+                            alt=""
+                            className={styles.expandButtonIcon}
+                            aria-hidden="true"
+                          />
+                        </ButtonBase>
+                      </Box>
+                      <Box className={styles.statusPill} data-status={app.status}>
+                        {APPLICATION_STATUS_CONFIG[app.status].label}
+                      </Box>
                     </Box>
-                    <Box className={styles.pipelineTrack}>
+
+                    <Box className={styles.pipelineWrap}>
                       <Box
-                        className={`${styles.pipelineFill} ${app.offerAccepted ? styles.pipelineFillOfferAccepted : app.stage.toLowerCase() === "offer" ? styles.pipelineFillOfferExtended : ""}`}
-                        style={{ width: `${app.fillPercent}%` }}
-                      />
+                        className={styles.pipelineLabels}
+                        style={{
+                          gridTemplateColumns: `repeat(${app.pipeline.length}, minmax(0, 1fr))`,
+                        }}
+                      >
+                        {app.pipeline.map((stageKey) => (
+                          <span
+                            key={stageKey}
+                            className={styles.pipelineLabel}
+                            data-active={
+                              stageKey.toLowerCase() ===
+                                app.stage.toLowerCase() || undefined
+                            }
+                          >
+                            {getPipelineStageLabelFromKey(stageKey)}
+                          </span>
+                        ))}
+                      </Box>
+                      <Box className={styles.pipelineTrack}>
+                        <Box
+                          className={`${styles.pipelineFill} ${(app.status === "offer_declined" || app.status === "offer_accepted") && styles.pipelineFillClosed}`}
+                          style={{ width: `${app.fillPercent}%` }}
+                        />
+                      </Box>
                     </Box>
+
+                    <Typography
+                      component="p"
+                      className={styles.applicationMessage}
+                    >
+                      {app.message}
+                    </Typography>
                   </Box>
 
-                  <Typography
-                    component="p"
-                    className={styles.applicationMessage}
-                  >
-                    {app.message}
-                    <Link
-                      href={ROUTE_PATHS.jobs}
-                      className={styles.applicationMessageLink}
-                    >
-                      View jobs
-                    </Link>
-                  </Typography>
-                </Box>
+                  {index < applications.length - 1 ? (
+                    <Box className={styles.applicationDivider} aria-hidden="true" />
+                  ) : null}
+                </Fragment>
               );
             })
           )}
