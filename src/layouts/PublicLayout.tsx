@@ -36,6 +36,8 @@ export const PublicLayout = () => {
   const accessToken = tokens?.accessToken;
   const hasValidAccessToken = accessToken ? !isJwtExpired(accessToken) : false;
   const canAccessProtectedRoutes = isAuthenticated && hasValidAccessToken;
+  const shouldUseAuthHeaderVariant = isResetPasswordPage && canAccessProtectedRoutes;
+  const shouldUseLoginHeaderVariant = isLoginPage || (isResetPasswordPage && !canAccessProtectedRoutes);
 
   useEffect(() => {
     setSignUpDrawerOpen(false);
@@ -93,7 +95,7 @@ export const PublicLayout = () => {
     navigate(ROUTE_PATHS.login, { state: { from: targetPath } });
   };
 
-  const navItems = isLoginPage
+  const navItems = shouldUseLoginHeaderVariant
     ? []
     : isSignupPage
       ? buildHeaderNavItems({
@@ -127,7 +129,7 @@ export const PublicLayout = () => {
   });
 
   const resolvedNavItems =
-    isResetPasswordPage && canAccessProtectedRoutes
+    shouldUseAuthHeaderVariant
       ? resetPasswordCandidateNavItems
       : navItems;
 
@@ -141,18 +143,29 @@ export const PublicLayout = () => {
         onSignUpClick={handleSignUpClick}
         onSearchClick={handleSearchClick}
         onNotificationClick={handleNotificationClick}
-        showHelpButton={isLoginPage}
-        showNotificationButton={isResetPasswordPage && canAccessProtectedRoutes}
+        showHelpButton={shouldUseLoginHeaderVariant}
+        showNotificationButton={shouldUseAuthHeaderVariant}
         showProfileBadge={
-          !isLoginPage && !isSignupPage && !isLandingPage && !isHiringLandingMode
+          shouldUseAuthHeaderVariant ||
+          (!isLoginPage &&
+            !isSignupPage &&
+            !isLandingPage &&
+            !isHiringLandingMode &&
+            !isResetPasswordPage)
         }
         showSearchButton={
-          !isLoginPage && !isSignupPage && !isLandingPage && !isHiringLandingMode
+          shouldUseAuthHeaderVariant ||
+          (!isLoginPage &&
+            !isSignupPage &&
+            !isLandingPage &&
+            !isHiringLandingMode &&
+            !isResetPasswordPage)
         }
         showSignUp={
+          !shouldUseLoginHeaderVariant &&
           !isLoginPage &&
           !isSignupPage &&
-          !(isResetPasswordPage && canAccessProtectedRoutes)
+          !shouldUseAuthHeaderVariant
         }
       />
 

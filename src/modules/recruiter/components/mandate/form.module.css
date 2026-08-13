@@ -36,7 +36,7 @@
 .label {
   color: #1f2328;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 400;
   line-height: 150%;
 }
@@ -51,7 +51,7 @@
   border: 1px solid #d1d5db;
   border-radius: 8px;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 14px;
+  font-size: 16px;
   color: #1f2328;
   background: #ffffff;
   outline: none;
@@ -222,42 +222,43 @@
 .jobBoardGrid {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 8px;
+  align-items: center;
 }
 
 .jobBoardCard {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 10px 20px;
+  padding: 0;
+  border: none;
   border-radius: 8px;
-  border: 1.5px solid #e5e7eb;
-  background: #ffffff;
+  background: transparent;
   cursor: pointer;
-  transition: border-color 0.12s, background 0.12s;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 14px;
-  font-weight: 500;
-  color: #1f2328;
-  min-width: 72px;
-  gap: 6px;
+  transition: opacity 0.12s, box-shadow 0.12s;
+  line-height: 0;
+}
+
+.jobBoardCard img {
+  display: block;
+  height: 48px;
+  width: auto;
 }
 
 .jobBoardCard:hover {
-  border-color: #2B96D9;
+  opacity: 0.85;
 }
 
 .jobBoardCardSelected {
-  border-color: #2B96D9;
-  background: #e8f4fd;
-  color: #03478C;
+  box-shadow: 0 0 0 2px #2B96D9;
+  border-radius: 8px;
 }
 
 .boardHelperText {
   margin: 0 0 12px;
   color: #57606a;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 13px;
+  font-size: 16px;
 }
 
 /* ── Bullet textarea preview ─────────────────────────────────────────── */

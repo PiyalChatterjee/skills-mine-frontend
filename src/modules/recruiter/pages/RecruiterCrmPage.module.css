@@ -1,0 +1,358 @@
+/* ── Shell (sidebar + content) ───────────────────────────────────────── */
+.shell {
+  display: flex;
+  align-items: stretch;
+  min-height: 100vh;
+  margin-left: 240px;
+}
+
+/* ── Page Root ───────────────────────────────────────────────────────── */
+.pageRoot {
+  flex: 1;
+  background: #f0f4f8;
+  min-height: 100vh;
+  padding: 32px 40px 48px;
+  overflow-x: auto;
+}
+
+/* ── Page Title ──────────────────────────────────────────────────────── */
+.pageTitle,
+:global(.MuiTypography-root).pageTitle {
+  margin: 0 0 20px;
+  color: #03478c;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: 0;
+}
+
+/* ── Stat Tiles Outer Panel ──────────────────────────────────────────── */
+.statTilesPanel {
+  background: #1a4a82;
+  border-radius: 10px;
+  padding: 12px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+/* ── Individual Stat Tile ────────────────────────────────────────────── */
+.statTile {
+  border-radius: 8px;
+  padding: 18px 20px 16px;
+  display: flex;
+  flex-direction: column;
+  min-height: 80px;
+}
+
+.statTileRed   { background: #e05a5a; }
+.statTileGreen { background: #4aaa6e; }
+.statTileAmber { background: #e8a53a; }
+.statTileTeal  { background: #3d9db5; }
+
+.statTileTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.statTileValue,
+:global(.MuiTypography-root).statTileValue {
+  margin: 0;
+  color: #ffffff;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 42px;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.statTileIcon {
+  display: flex;
+  align-items: center;
+  color: rgba(255, 255, 255, 0.85);
+  margin-top: 4px;
+}
+
+.statTileLabel,
+:global(.MuiTypography-root).statTileLabel {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.92);
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+/* ── Search Bar ──────────────────────────────────────────────────────── */
+.searchWrap {
+  margin-bottom: 16px;
+  position: relative;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #8c959f;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+}
+
+.searchInput {
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  padding: 9px 14px 9px 36px;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 14px;
+  color: #57606a;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
+}
+
+.searchInput::placeholder {
+  color: #8c959f;
+}
+
+.searchInput:focus {
+  border-color: #0969da;
+}
+
+/* ── Cards List ──────────────────────────────────────────────────────── */
+.cardsList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ── CRM Card ────────────────────────────────────────────────────────── */
+.crmCard {
+  border-radius: 8px;
+  padding: 14px 16px 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.crmCardGreen { background: #4aaa6e; }
+.crmCardRed   { background: #e05a5a; }
+.crmCardAmber { background: #e8a53a; }
+.crmCardTeal  { background: #3d9db5; }
+
+/* ── Card Top Row: badge | line | status tag ─────────────────────────── */
+.cardTopRow {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+/* Badge tag (Hot Lead / Needs Attention / Warm Contact / Cold Lead) */
+.badgeTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255, 255, 255, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  border-radius: 4px;
+  padding: 2px 8px 2px 6px;
+  flex-shrink: 0;
+}
+
+.badgeTagIcon {
+  display: flex;
+  align-items: center;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.badgeTagText,
+:global(.MuiTypography-root).badgeTagText {
+  margin: 0;
+  color: #ffffff;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+/* Horizontal divider line between badge and status */
+.cardDividerLine {
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.3);
+  margin: 0 10px;
+}
+
+/* Status tag (Follow up / Overdue) */
+.statusTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border-radius: 4px;
+  padding: 2px 8px 2px 6px;
+  flex-shrink: 0;
+}
+
+.statusTagFollowUp {
+  background: rgba(255, 255, 255, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.38);
+}
+
+.statusTagOverdue {
+  background: #c0392b;
+  border: 1px solid #922b21;
+}
+
+.statusTagIcon {
+  display: flex;
+  align-items: center;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.statusTagText,
+:global(.MuiTypography-root).statusTagText {
+  margin: 0;
+  color: #ffffff;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+/* ── Company Name ────────────────────────────────────────────────────── */
+.companyName,
+:global(.MuiTypography-root).companyName {
+  margin: 0 0 8px;
+  color: #ffffff;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+/* ── Last Contact Row ────────────────────────────────────────────────── */
+.lastContactRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 7px;
+}
+
+.rowIcon {
+  display: flex;
+  align-items: center;
+  color: rgba(255, 255, 255, 0.88);
+  flex-shrink: 0;
+}
+
+.lastContactText,
+:global(.MuiTypography-root).lastContactText {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.92);
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+/* ── Notes Row ───────────────────────────────────────────────────────── */
+.notesRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.notesIconWrap {
+  display: flex;
+  align-items: flex-start;
+  margin-top: 1px;
+  color: rgba(255, 255, 255, 0.88);
+  flex-shrink: 0;
+}
+
+.notesTextCol {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.notesLabel,
+:global(.MuiTypography-root).notesLabel {
+  margin: 0 0 1px;
+  color: rgba(255, 255, 255, 0.92);
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.notesContent,
+:global(.MuiTypography-root).notesContent {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.9);
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.5;
+  font-style: italic;
+}
+
+/* ── Card Bottom Row ─────────────────────────────────────────────────── */
+.cardBottomRow {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+.updateBtn:global(.MuiButtonBase-root) {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  border-radius: 4px;
+  padding: 4px 12px;
+  color: #ffffff;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+  transition: background 0.15s ease;
+  white-space: nowrap;
+}
+
+.updateBtn:global(.MuiButtonBase-root):hover {
+  background: rgba(255, 255, 255, 0.32);
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .statTilesPanel {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .pageRoot {
+    padding: 20px 20px 40px;
+  }
+}
+
+@media (max-width: 600px) {
+  .statTilesPanel {
+    grid-template-columns: 1fr;
+  }
+  .pageRoot {
+    padding: 16px 12px 32px;
+  }
+}

@@ -94,7 +94,7 @@ export interface CandidateProfileResponse {
   status: string;
   data: {
     userId?: string;
-    savedJobs?: Array<string | SavedJob>;
+    savedJobs?: string[];
     personalDetails: PersonalDetails & { userId: string };
     desiredJob: DesiredJob;
     education: ProfileEducation | null;
@@ -175,6 +175,7 @@ export interface Job {
   salaryRange: string;
   description?: string;
   requirements?: string[];
+  responsibilities: string[];
   skills?: string[];
   status: "Open" | "Closed" | "Draft" | string;
   applicationCount: number;
@@ -207,7 +208,8 @@ export interface SavedJob {
 
 export interface UserProfile {
   userId: string;
-  savedJobs: SavedJob[];
+  /** API returns an array of job ID strings */
+  savedJobs: string[];
 }
 
 export interface UserSkill {

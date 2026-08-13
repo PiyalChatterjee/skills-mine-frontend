@@ -26,6 +26,7 @@ const mockGetBuildMyCv = vi.fn()
 const mockSaveBuildMyCv = vi.fn()
 const mockUpdateBuildMyCv = vi.fn()
 const mockUpdateById = vi.fn()
+const mockUpdateUserProfile = vi.fn()
 
 vi.mock('@/services/api', () => ({
   candidateApi: {
@@ -37,6 +38,7 @@ vi.mock('@/services/api', () => ({
     saveBuildMyCv: (...args: unknown[]) => mockSaveBuildMyCv(...args),
     updateBuildMyCv: (...args: unknown[]) => mockUpdateBuildMyCv(...args),
     updateById: (...args: unknown[]) => mockUpdateById(...args),
+    updateUserProfile: (...args: unknown[]) => mockUpdateUserProfile(...args),
   },
   jobsApi: {
     list: vi.fn().mockResolvedValue({ data: [] }),
@@ -134,12 +136,12 @@ describe('useUserProfile', () => {
   beforeEach(() => vi.clearAllMocks())
 
   it('dispatches setSavedJobs when profile data arrives', async () => {
-    const userProfileData = { userId: 'u-1', savedJobs: [{ jobId: 'j1', jobTitle: 'Dev', company: 'Acme', savedAt: '2024' }] }
+    const userProfileData = { userId: 'u-1', savedJobs: ['j1'] }
     mockGetUserProfile.mockResolvedValue(userProfileData)
     const store = makeTestStore()
     renderHook(() => useUserProfile('u-1'), { wrapper: makeWrapper(store) })
     await waitFor(() => expect(store.getState().candidate.savedJobs.length).toBeGreaterThan(0))
-    expect(store.getState().candidate.savedJobs[0].jobId).toBe('j1')
+    expect(store.getState().candidate.savedJobs[0]).toBe('j1')
   })
 
   it('skips when userId is not provided', () => {
@@ -309,13 +311,14 @@ describe('useUpdateCandidateProfileMutation', () => {
 })
 
 describe('useSaveJob', () => {
-  it('triggers saveJob mutation and returns success', async () => {
+  it('triggers saveJob mutation and returns updated user profile', async () => {
+    mockUpdateUserProfile.mockResolvedValue({ userId: 'u-1', savedJobs: ['job-1'] })
     const store = makeTestStore()
     const { result } = renderHook(() => useSaveJob(), { wrapper: makeWrapper(store) })
     await act(async () => {
       const [trigger] = result.current
-      const response = await trigger('job-1').unwrap()
-      expect(response).toEqual({ success: true })
+      const response = await trigger({ userId: 'u-1', savedJobs: ['job-1'] }).unwrap()
+      expect(response).toEqual({ userId: 'u-1', savedJobs: ['job-1'] })
     })
   })
 })

@@ -121,10 +121,6 @@
     background-color: #03478c;
 }
 
-.submitButton:global(.MuiButton-root):global(.MuiButton-contained):hover {
-    background: #2b96d9;
-}
-
 @media (min-width: 900px) {
     .formSection {
         margin-top: 52px;

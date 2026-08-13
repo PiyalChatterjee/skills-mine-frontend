@@ -112,9 +112,9 @@
   min-height: 160px;
 }
 
-.kpiBlue   { background: #F9E2E2; }
-.kpiPurple { background: #E4DFF4; }
-.kpiAmber  { background: #FAEED8; }
+.kpiBlue   { background: #55ABE1; }
+.kpiPurple { background: #7A5DC7; }
+.kpiAmber  { background: #E6A83B; }
 
 .kpiTop {
   display: flex;
@@ -126,7 +126,7 @@
 :global(.MuiTypography-root).kpiValue,
 :global(.MuiTypography-root).kpiValue.kpiValue {
   margin: 0;
-  color: #1a3a6b;
+  color: #ffffff;
   font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
   font-size: 52px;
   font-weight: 400;
@@ -138,7 +138,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #1a3a6b;
+  color: #ffffff;
   margin-top: 4px;
   flex-shrink: 0;
 }
@@ -147,7 +147,7 @@
 :global(.MuiTypography-root).kpiLabel,
 :global(.MuiTypography-root).kpiLabel.kpiLabel {
   margin: 8px 0 0;
-  color: #1a3a6b;
+  color: #ffffff;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
   font-size: 14px;
   font-weight: 400;
@@ -161,12 +161,13 @@
 
 .kpiDivider {
   height: 1px;
-  background: rgba(26, 58, 107, 0.2);
+  background: rgba(255, 255, 255, 0.5);
   margin: 12px 0 10px;
+  width: 100%;
 }
 
 .kpiViewBtn:global(.MuiButtonBase-root) {
-  color: #1a3a6b;
+  color: #ffffff;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
   font-size: 16px;
   font-weight: 400;
@@ -178,7 +179,7 @@
 }
 
 .kpiViewBtn:global(.MuiButtonBase-root):hover {
-  color: #03478C;
+  color: rgba(255, 255, 255, 0.75);
 }
 
 /* ── Pipeline Section ────────────────────────────────────────────────── */
@@ -212,7 +213,7 @@
 
 /* ── Pipeline Wrapper ────────────────────────────────────────────────── */
 .pipelineWrapper {
-  min-width: 1000px;
+  min-width: 944px;
   border-radius: 8px;
   overflow: hidden;
   border: 1px solid #92c9e5;

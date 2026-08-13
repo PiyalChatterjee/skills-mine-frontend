@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import candidateReducer, {
   setUserId,
+  setSelectedJobId,
   setSavedJobs,
   addSavedJob,
   removeSavedJob,
@@ -16,7 +17,7 @@ import candidateReducer, {
   updateBuildMyCvLanguages,
   clearCandidateState,
 } from './candidateSlice'
-import type { SavedJob, UserSkill, BuildMyCvState, CandidateExperience, CandidateLanguage } from '@/types/api'
+import type { UserSkill, BuildMyCvState, CandidateExperience, CandidateLanguage } from '@/types/api'
 
 const buildInitialState = () => candidateReducer(undefined, { type: '@@INIT' })
 
@@ -24,16 +25,6 @@ const mockSkill = (id: string, selected = false): UserSkill => ({
   skillId: id,
   skillName: `Skill ${id}`,
   selected,
-})
-
-const mockJob = (id: string): SavedJob => ({
-  jobId: id,
-  title: `Job ${id}`,
-  company: 'Acme',
-  salaryRange: 'R500k - R700k',
-  workType: 'Hybrid',
-  employmentType: 'Permanent',
-  savedAt: '2024-01-01',
 })
 
 const emptyBuildMyCv: BuildMyCvState = {
@@ -49,6 +40,7 @@ describe('candidateSlice', () => {
   it('returns the initial state', () => {
     const state = buildInitialState()
     expect(state.userId).toBeNull()
+    expect(state.selectedJobId).toBeNull()
     expect(state.savedJobs).toEqual([])
     expect(state.availableSkills).toEqual([])
     expect(state.selectedSkillIds).toEqual([])
@@ -64,34 +56,46 @@ describe('candidateSlice', () => {
     })
   })
 
+  describe('setSelectedJobId', () => {
+    it('sets selected job id', () => {
+      const state = candidateReducer(buildInitialState(), setSelectedJobId('j001'))
+      expect(state.selectedJobId).toBe('j001')
+    })
+
+    it('clears selected job id', () => {
+      let state = candidateReducer(buildInitialState(), setSelectedJobId('j001'))
+      state = candidateReducer(state, setSelectedJobId(null))
+      expect(state.selectedJobId).toBeNull()
+    })
+  })
+
   describe('setSavedJobs', () => {
     it('replaces saved jobs list', () => {
-      const jobs = [mockJob('j1'), mockJob('j2')]
-      const state = candidateReducer(buildInitialState(), setSavedJobs(jobs))
-      expect(state.savedJobs).toEqual(jobs)
+      const state = candidateReducer(buildInitialState(), setSavedJobs(['j1', 'j2']))
+      expect(state.savedJobs).toEqual(['j1', 'j2'])
     })
   })
 
   describe('addSavedJob', () => {
-    it('adds a job to the list', () => {
-      const state = candidateReducer(buildInitialState(), addSavedJob(mockJob('j1')))
+    it('adds a job id to the list', () => {
+      const state = candidateReducer(buildInitialState(), addSavedJob('j1'))
       expect(state.savedJobs).toHaveLength(1)
-      expect(state.savedJobs[0].jobId).toBe('j1')
+      expect(state.savedJobs[0]).toBe('j1')
     })
 
-    it('does not add duplicate job', () => {
-      let state = candidateReducer(buildInitialState(), addSavedJob(mockJob('j1')))
-      state = candidateReducer(state, addSavedJob(mockJob('j1')))
+    it('does not add duplicate job id', () => {
+      let state = candidateReducer(buildInitialState(), addSavedJob('j1'))
+      state = candidateReducer(state, addSavedJob('j1'))
       expect(state.savedJobs).toHaveLength(1)
     })
   })
 
   describe('removeSavedJob', () => {
     it('removes a job by jobId', () => {
-      let state = candidateReducer(buildInitialState(), setSavedJobs([mockJob('j1'), mockJob('j2')]))
+      let state = candidateReducer(buildInitialState(), setSavedJobs(['j1', 'j2']))
       state = candidateReducer(state, removeSavedJob('j1'))
       expect(state.savedJobs).toHaveLength(1)
-      expect(state.savedJobs[0].jobId).toBe('j2')
+      expect(state.savedJobs[0]).toBe('j2')
     })
   })
 
@@ -230,9 +234,11 @@ describe('candidateSlice', () => {
   describe('clearCandidateState', () => {
     it('resets to initial state', () => {
       let state = candidateReducer(buildInitialState(), setUserId('u-1'))
+      state = candidateReducer(state, setSelectedJobId('j001'))
       state = candidateReducer(state, setBuildMyCvExists(true))
       state = candidateReducer(state, clearCandidateState())
       expect(state.userId).toBeNull()
+      expect(state.selectedJobId).toBeNull()
       expect(state.buildMyCvExists).toBe(false)
       expect(state.savedJobs).toEqual([])
     })

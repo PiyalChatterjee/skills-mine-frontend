@@ -267,6 +267,17 @@ export const candidateApi = {
     );
   },
 
+  async updateUserProfile(
+    userId: string,
+    payload: Partial<UserProfile>,
+  ): Promise<UserProfile> {
+    await apiClient.put<SuccessEnvelope<{ userId: string; updatedAt: string }>>(
+      resolveEndpoint(apiEndpoints.users.profile, { userId }),
+      payload,
+    );
+    return this.getUserProfile(userId);
+  },
+
   searchSkills(keyword: string, userId?: string): Promise<UserSkill[]> {
     return unwrapResponseData(
       apiClient.get<SuccessEnvelope<unknown> | unknown>(apiEndpoints.skills.search, {
