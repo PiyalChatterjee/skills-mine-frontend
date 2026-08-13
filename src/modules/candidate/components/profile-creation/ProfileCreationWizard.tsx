@@ -1,8 +1,7 @@
 import { Alert, Box, Button, CircularProgress, Typography } from '@mui/material'
 import { FormProvider } from 'react-hook-form'
 import arrowRightIconSrc from '@/assets/cv-builder/arrow-right.svg'
-import patternOneSrc from '@/assets/cv-builder/pattern-1.svg'
-import patternTwoSrc from '@/assets/cv-builder/pattern-2.svg'
+import { GradientPatternHero } from '@/components/hero'
 import { useProfileCreationWizard } from '@/modules/candidate/hooks/useProfileCreationWizard'
 import styles from '@/modules/candidate/pages/ProfileCreationPage.module.css'
 import ProfileCreationBasicStep from './ProfileCreationBasicStep'
@@ -60,36 +59,21 @@ const ProfileCreationWizard = () => {
   return (
     <FormProvider {...form}>
       <Box className={styles.pageRoot}>
-        <Box component="section" className={styles.heroSection}>
-          <img
-            src={patternOneSrc}
-            alt=""
-            aria-hidden="true"
-            className={styles.heroPattern1}
-          />
-          <img
-            src={patternTwoSrc}
-            alt=""
-            aria-hidden="true"
-            className={styles.heroPattern2}
-          />
+        <GradientPatternHero height={200}>
+          <Typography component="h1" className={styles.heroHeading}>
+            Create your profile
+          </Typography>
 
-          <Box className={styles.heroContent}>
-            <Typography component="h1" className={styles.heroHeading}>
-              Create your profile
-            </Typography>
-
-            <Box className={styles.stepsIndicator} aria-label="Profile creation progress">
-              {Array.from({ length: totalSteps }, (_, index) => (
-                <span
-                  key={index}
-                  className={`${styles.step} ${index === currentStepIndex ? styles.stepActive : ''}`}
-                  aria-hidden="true"
-                />
-              ))}
-            </Box>
+          <Box className={styles.stepsIndicator} aria-label="Profile creation progress">
+            {Array.from({ length: totalSteps }, (_, index) => (
+              <span
+                key={index}
+                className={`${styles.step} ${index === currentStepIndex ? styles.stepActive : ''}`}
+                aria-hidden="true"
+              />
+            ))}
           </Box>
-        </Box>
+        </GradientPatternHero>
 
         <Box component="section" className={styles.contentSection}>
           {isBasicDetailsStep ? (

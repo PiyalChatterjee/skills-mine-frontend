@@ -12,38 +12,6 @@
     padding: 32px 16px;
 }
 
-.heroSection {
-    position: relative;
-    width: 100%;
-    height: 200px;
-    overflow: hidden;
-    background: linear-gradient(63.37deg, #2b96d9 0%, #32abbf 100%);
-}
-
-.heroPattern1 {
-    position: absolute;
-    top: -220px;
-    left: calc(50% + 347px);
-    width: 906.964px;
-    height: 569px;
-    pointer-events: none;
-}
-
-.heroPattern2 {
-    position: absolute;
-    top: -544px;
-    left: calc(50% - 1146px);
-    width: 946.25px;
-    height: 1069.954px;
-    transform-origin: center;
-    pointer-events: none;
-}
-
-.heroContent {
-    position: absolute;
-    inset: 0;
-}
-
 .heroHeading,
 .heroHeading:global(.MuiTypography-root) {
     position: absolute;

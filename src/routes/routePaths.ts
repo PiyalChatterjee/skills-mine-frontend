@@ -7,6 +7,7 @@ export const ROUTE_PATHS = {
   candidateDashboard: '/candidate/dashboard',
   cvBuilder: '/candidate/cv-builder',
   jobs: '/jobs',
+  jobDetails: '/jobs/:jobId',
   savedJobs: '/jobs/saved',
   latestJobs: '/jobs/latest',
   recommendedJobs: '/jobs/recommended',
