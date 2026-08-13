@@ -1,0 +1,72 @@
+.searchWrap {
+  position: relative;
+  width: 100%;
+}
+
+.searchInput {
+  width: 100%;
+}
+
+.searchInput :global(.MuiOutlinedInput-root) {
+  min-height: 48px;
+  border-radius: 100px;
+  background: #ffffff;
+  color: #5a5e63;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
+  padding-left: 8px;
+}
+
+.searchInput :global(.MuiOutlinedInput-input) {
+  padding: 11.5px 0 11.5px 8px;
+}
+
+.searchInput :global(.MuiOutlinedInput-input::placeholder) {
+  color: #5a5e63;
+  opacity: 1;
+}
+
+.searchInput :global(.MuiOutlinedInput-notchedOutline) {
+  border-color: #b0b4b8;
+}
+
+.searchInput :global(.MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline) {
+  border-color: #b0b4b8;
+}
+
+.searchInput :global(.MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline) {
+  border-color: #2b96d9;
+  border-width: 1px;
+}
+
+.searchIconButton,
+.searchIconButton:global(.MuiIconButton-root) {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #e1e3e6;
+  border-radius: 100px;
+  background: #ffffff;
+  display: grid;
+  place-items: center;
+  padding: 0;
+}
+
+.searchIconButton:global(.MuiIconButton-root):hover {
+  background: #ffffff;
+}
+
+.searchIconShell {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #e1e3e6;
+  border-radius: 100px;
+  background: #ffffff;
+  display: grid;
+  place-items: center;
+}
+
+.searchInput :global(.MuiInputAdornment-root) {
+  margin-right: 7px;
+}

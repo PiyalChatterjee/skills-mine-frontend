@@ -257,6 +257,7 @@ const ProfilePage = () => {
 				open={isChangePasswordModalOpen}
 				prefillEmail={user?.email ?? ""}
 				onClose={() => setIsChangePasswordModalOpen(false)}
+				mode="change"
 			/>
 			<Typography component="h1" className={styles.pageTitle}>
 				Profile settings

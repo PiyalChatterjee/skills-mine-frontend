@@ -17,6 +17,8 @@ const mockApiLogin = vi.hoisted(() => vi.fn())
 const mockExchangeGoogleToken = vi.hoisted(() => vi.fn())
 const mockGetCandidateProfile = vi.hoisted(() => vi.fn())
 const mockIsProfileComplete = vi.hoisted(() => vi.fn())
+const mockForgotPassword = vi.hoisted(() => vi.fn())
+const mockDispatch = vi.hoisted(() => vi.fn())
 const mockAuthState = vi.hoisted(() => ({
   login: mockLogin,
   isAuthenticated: false,
@@ -30,6 +32,10 @@ vi.mock('react-router-dom', async () => {
 
 vi.mock('@/app/auth/AuthContext', () => ({
   useAuth: () => mockAuthState,
+}))
+
+vi.mock('react-redux', () => ({
+  useDispatch: () => mockDispatch,
 }))
 
 const mockGoogleLoginBehavior = vi.hoisted(() => ({
@@ -54,6 +60,12 @@ vi.mock('@/services/api/authApi', () => ({
   mapLoginResponseToSession: (r: unknown) => Promise.resolve(r),
 }))
 
+vi.mock('@/services/api', () => ({
+  authApi: {
+    forgotPassword: mockForgotPassword,
+  },
+}))
+
 vi.mock('@/services/api/candidateApi', () => ({
   candidateApi: {
     getById: mockGetCandidateProfile,
@@ -66,9 +78,9 @@ vi.mock('@/modules/candidate/utils/profileCompleteness', () => ({
 
 const mockAuthApi = { login: mockApiLogin, exchangeGoogleToken: mockExchangeGoogleToken }
 
-const renderPage = () =>
+const renderPage = (initialEntry = '/login') =>
   render(
-    <MemoryRouter>
+    <MemoryRouter initialEntries={[initialEntry]}>
       <LoginPage />
     </MemoryRouter>,
   )
@@ -86,6 +98,19 @@ describe('LoginPage', () => {
     renderPage()
     expect(screen.getByPlaceholderText('Email')).toBeInTheDocument()
     expect(screen.getByPlaceholderText('Password')).toBeInTheDocument()
+  })
+
+  it('opens the reset modal from the forgot password link url', async () => {
+    renderPage('/login')
+
+    const forgotPasswordLink = screen.getByRole('link', { name: /forgot password/i })
+    expect(forgotPasswordLink).toHaveAttribute('href', '/login?forgot-password=1')
+
+    await userEvent.click(forgotPasswordLink)
+
+    await waitFor(() => {
+      expect(screen.getByText(/reset your password/i)).toBeInTheDocument()
+    })
   })
 
   it('renders the Sign in button', () => {

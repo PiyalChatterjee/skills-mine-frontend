@@ -16,12 +16,14 @@ type ChangePasswordModalProps = {
   open: boolean;
   prefillEmail?: string;
   onClose: () => void;
+  mode?: "reset" | "change";
 };
 
 const ChangePasswordModal = ({
   open,
   prefillEmail = "",
   onClose,
+  mode = "reset",
 }: ChangePasswordModalProps) => {
   const {
     email,
@@ -38,6 +40,7 @@ const ChangePasswordModal = ({
   } = useChangePasswordModal({
     open,
     prefillEmail,
+    mode,
   });
 
   return (
@@ -56,11 +59,15 @@ const ChangePasswordModal = ({
         <Box className={styles.body}>
           {view === "request" ? (
             <>
-              <Typography className={styles.title}>Change your password</Typography>
+              <Typography className={styles.title}>
+                {mode === "change" ? "Change your password" : "Reset your password"}
+              </Typography>
 
               <Box className={styles.bodyContent}>
                 <Typography className={styles.description}>
-                  Enter your email address below to receive instructions for changing your password.
+                  {mode === "change"
+                    ? "Enter your email address below to receive instructions for changing your password."
+                    : "Enter your email address below to receive instructions for resetting your password."}
                 </Typography>
 
                 <Box className={styles.fieldBlock}>
@@ -104,7 +111,7 @@ const ChangePasswordModal = ({
 
               <Box className={styles.bodyContent}>
                 <Typography className={styles.description}>
-                  Enter the OTP you received via email to reset your password.
+                  Enter the OTP you received via email to {mode === "change" ? "change" : "reset"} your password.
                 </Typography>
 
                 <Box className={styles.otpRow}>

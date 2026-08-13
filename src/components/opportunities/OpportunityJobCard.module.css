@@ -1,0 +1,273 @@
+.card {
+  background: #ffffff;
+  border: 1px solid #e1e3e6;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(42, 49, 50, 0.08);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.card:global(.MuiCard-root) {
+  box-shadow: 0 2px 8px rgba(42, 49, 50, 0.08);
+}
+
+.short {
+  min-height: 326px;
+}
+
+.top {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.header {
+  min-height: 70px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: start;
+  gap: 16px;
+}
+
+.title {
+  margin: 0;
+  color: #03478c;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 24px;
+  line-height: 1.5;
+  font-weight: 500;
+  letter-spacing: 0.1px;
+  align-self: center;
+}
+
+.title:global(.MuiTypography-root) {
+  margin: 0;
+  color: #03478c;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 24px;
+  line-height: 1.5;
+  font-weight: 500;
+  letter-spacing: 0.1px;
+}
+
+.rule {
+  width: 100%;
+  height: 1px;
+  background: #e1e3e6;
+}
+
+.body {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.contentColumn {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.tagAndCopy {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tagRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.tagChip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid #32abbf;
+  border-radius: 999px;
+  color: #32abbf;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 12px;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
+}
+
+.tagChip:global(.MuiChip-root) {
+  height: 26px;
+  min-width: max-content;
+  max-width: 180px;
+  border-radius: 999px;
+  background: transparent;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tagChip:global(.MuiChip-root):global(.MuiChip-outlined) {
+  border-width: 1px;
+  border-style: solid;
+  border-color: #32abbf;
+  background: transparent;
+}
+
+.tagChip :global(.MuiChip-label) {
+  color: #32abbf;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 12px;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
+  padding-left: 16px;
+  padding-right: 16px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.description {
+  margin: 0;
+  color: #000000;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
+}
+
+.description:global(.MuiTypography-root) {
+  margin: 0;
+  color: #000000;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
+}
+
+.cta,
+.cta:global(.MuiButton-root):global(.MuiButton-contained) {
+  align-self: flex-start;
+  min-height: 48px;
+  padding: 12px 30px;
+  border-radius: 100px;
+  background: #03478c;
+  color: #ffffff;
+  text-transform: none;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
+  box-shadow: none;
+}
+
+.cta:global(.MuiButton-root):global(.MuiButton-contained):hover {
+  background: #2b96d9;
+  box-shadow: none;
+}
+
+.saveButton {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #b0b4b8;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #b0b4b8;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+}
+
+.saveButton:global(.MuiIconButton-root) {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #b0b4b8;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #b0b4b8;
+  padding: 0;
+}
+
+.saveButton:global(.MuiIconButton-root):hover {
+  background: #ffffff;
+}
+
+.saveButtonActive,
+.saveButtonActive:global(.MuiIconButton-root) {
+  border-color: #32abbf;
+  color: #32abbf;
+}
+
+.saveIcon {
+  width: 12px;
+  height: 16px;
+  display: block;
+}
+
+.matchBadge {
+  width: 48px;
+  height: 48px;
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  background: conic-gradient(var(--ring-fill) var(--ring-angle), var(--ring-bg) 0deg);
+  border-radius: 50%;
+}
+
+.matchBadge::before {
+  content: '';
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #ffffff;
+}
+
+.matchBadgeLabel {
+  margin: 0;
+  position: relative;
+  z-index: 1;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.1px;
+  color: var(--ring-fill);
+}
+
+@media (max-width: 1100px) {
+  .card {
+    min-height: 0;
+  }
+
+  .title,
+  .title:global(.MuiTypography-root) {
+    font-size: 24px;
+  }
+}
+
+@media (max-width: 768px) {
+  .card {
+    padding: 20px;
+  }
+
+  .header {
+    grid-template-columns: auto 1fr;
+    grid-template-areas:
+      'match save'
+      'title title';
+    gap: 12px;
+  }
+
+  .title {
+    grid-area: title;
+  }
+}

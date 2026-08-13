@@ -28,6 +28,11 @@ type UpdateCandidateProfileArgs = {
   payload: CandidateProfileUpdatePayload;
 };
 
+type SaveJobArgs = {
+  userId: string;
+  savedJobs: string[];
+};
+
 export const apiSlice = createApi({
   reducerPath: "api",
   baseQuery: fakeBaseQuery<ApiError>(),
@@ -84,10 +89,14 @@ export const apiSlice = createApi({
         { type: "UserProfile", id: userId },
       ],
     }),
-    saveJob: build.mutation<{ success: boolean }, string>({
-      queryFn: (jobId) => withMappedApiError(() => jobsApi.save(jobId)),
-      // invalidate UserProfile so savedJobs list refetches
-      invalidatesTags: () => [{ type: "UserProfile", id: "SELF" }],
+    saveJob: build.mutation<UserProfile, SaveJobArgs>({
+      queryFn: ({ userId, savedJobs }) =>
+        withMappedApiError(() =>
+          candidateApi.updateUserProfile(userId, { savedJobs }),
+        ),
+      invalidatesTags: (_result, _error, args) => [
+        { type: "UserProfile", id: args.userId },
+      ],
     }),
     searchSkills: build.query<
       UserSkill[],

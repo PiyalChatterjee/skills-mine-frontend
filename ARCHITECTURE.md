@@ -84,6 +84,7 @@ graph TD
     PublicLayout["PublicLayout"]
     Landing["/ – LandingPage"]
     Login["/login – LoginPage"]
+    ResetPassword["/reset-password – ResetPasswordPage"]
     Signup["/signup – SignupPage"]
 
     ProtectedRoute["ProtectedRoute\n(JWT expiry + persisted session fallback)"]
@@ -119,6 +120,7 @@ graph TD
     Root --> PublicLayout
     PublicLayout --> Landing
     PublicLayout --> Login
+    PublicLayout --> ResetPassword
     PublicLayout --> Signup
 
     Root --> ProtectedRoute
@@ -209,6 +211,7 @@ The original candidate onboarding flow used an intermediate `/portal` hop plus r
 The current flow removes active `/portal` routing from `AppRoutes` and resolves navigation directly inside `LoginPage`:
 
 - candidate sign-up success redirects to `/login`
+- the login page exposes a public `/reset-password` route for forgotten-password recovery
 - after login, `LoginPage` sends non-candidate roles straight to their role default route
 - for `JOB_SEEKER`, `LoginPage` fetches candidate profile data and checks completeness
 - incomplete candidate profile routes to `/profile/create`; complete profile routes to `/candidate/dashboard`
