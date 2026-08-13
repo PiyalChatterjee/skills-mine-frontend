@@ -26,6 +26,15 @@ const CvBuilderPage = lazy(
   () => import("@/modules/cv-builder/pages/CvBuilderPage"),
 );
 const JobsPage = lazy(() => import("@/modules/candidate/pages/JobsPage"));
+const SavedJobsPage = lazy(
+  () => import("@/modules/candidate/pages/SavedJobsPage"),
+);
+const LatestJobsPage = lazy(
+  () => import("@/modules/candidate/pages/LatestJobsPage"),
+);
+const RecommendedJobsPage = lazy(
+  () => import("@/modules/candidate/pages/RecommendedJobsPage"),
+);
 const ProfileCreationPage = lazy(
   () => import("@/modules/candidate/pages/ProfileCreationPage"),
 );
@@ -95,6 +104,9 @@ export const AppRoutes = () => {
               />
             </Route>
             <Route path={ROUTE_PATHS.jobs} element={<JobsPage />} />
+            <Route path={ROUTE_PATHS.savedJobs} element={<SavedJobsPage />} />
+            <Route path={ROUTE_PATHS.latestJobs} element={<LatestJobsPage />} />
+            <Route path={ROUTE_PATHS.recommendedJobs} element={<RecommendedJobsPage />} />
             <Route path={ROUTE_PATHS.profile} element={<ProfilePage />} />
           </Route>
 

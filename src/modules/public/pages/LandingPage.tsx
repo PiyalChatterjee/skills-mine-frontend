@@ -1,12 +1,8 @@
 import {
   Box,
   Button,
-  Card,
-  Chip,
   CircularProgress,
-  IconButton,
-  InputAdornment,
-  TextField,
+  Card,
   Typography,
 } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
@@ -16,8 +12,6 @@ import chartIconUrl from "@/assets/landing-page/chart-icon.svg";
 import patternOneUrl from "@/assets/landing-page/pattern-one.svg";
 import patternThreeUrl from "@/assets/landing-page/pattern-three.svg";
 import patternTwoUrl from "@/assets/landing-page/pattern-two.svg";
-import searchClearIconUrl from "@/assets/landing-page/search-clear-icon.svg";
-import searchIconUrl from "@/assets/landing-page/search-icon.svg";
 import shieldIconUrl from "@/assets/landing-page/shield-icon.svg";
 import starIconUrl from "@/assets/landing-page/star-icon.svg";
 import timeIconUrl from "@/assets/landing-page/time-icon.svg";
@@ -25,6 +19,10 @@ import {
   heroContent,
   type HeroMode,
 } from "@/modules/public/constants/landingPage.constants";
+import {
+  OpportunitiesSearchInput,
+  OpportunityJobCard,
+} from "@/components/opportunities";
 import { useJobsSearch } from "@/modules/public/hooks/useJobsSearch";
 import { useSearchQueryState } from "@/hooks/useSearchQueryState";
 import type { PublicLayoutOutletContext } from "@/layouts/PublicLayout";
@@ -376,47 +374,10 @@ const LandingPage = () => {
               </Typography>
             </Box>
             <Box className={styles.searchWrap}>
-              <TextField
-                className={styles.searchInput}
-                placeholder="Search"
-                aria-label="Search opportunities"
-                variant="outlined"
-                fullWidth
+              <OpportunitiesSearchInput
                 value={searchInputValue}
                 onChange={handleSearchChange}
-                slotProps={{
-                  input: {
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        {searchInputValue.length > 0 ? (
-                          <IconButton
-                            type="button"
-                            aria-label="Clear search"
-                            onClick={handleClearSearch}
-                            className={styles.searchIconButton}
-                          >
-                            <img
-                              src={searchClearIconUrl}
-                              alt=""
-                              aria-hidden="true"
-                            />
-                          </IconButton>
-                        ) : (
-                          <Box
-                            className={styles.searchIconShell}
-                            aria-hidden="true"
-                          >
-                            <img
-                              src={searchIconUrl}
-                              alt=""
-                              aria-hidden="true"
-                            />
-                          </Box>
-                        )}
-                      </InputAdornment>
-                    ),
-                  },
-                }}
+                onClear={handleClearSearch}
               />
             </Box>
           </Box>
@@ -438,92 +399,18 @@ const LandingPage = () => {
               <>
                 <Box className={styles.cardGrid}>
                   {visibleJobs.map((job) => (
-                    <Card
-                      component="article"
+                    <OpportunityJobCard
                       key={job.jobId}
-                      className={`${styles.jobCard} ${styles.jobCardShort}`}
-                      elevation={0}
-                    >
-                      <Box className={styles.cardTop}>
-                        <Box className={styles.cardHeader}>
-                          <Typography
-                            component="h3"
-                            className={styles.cardTitle}
-                            sx={{ m: 0 }}
-                          >
-                            {job.title}
-                          </Typography>
-                          {/* <IconButton
-                              type="button"
-                              className={styles.bookmarkButton}
-                              aria-label={`Save ${job.title}`}
-                              disableRipple
-                            >
-                              <img
-                                src={bookmarkIconUrl}
-                                alt=""
-                                className={styles.bookmarkIcon}
-                                aria-hidden="true"
-                              />
-                            </IconButton> */}
-                        </Box>
-                        <Box className={styles.cardRule} />
-                      </Box>
-
-                      <Box className={styles.cardBody}>
-                        <Box className={styles.cardContentColumn}>
-                          <Box className={styles.tagAndCopy}>
-                            <Box className={styles.tagRow}>
-                              {[
-                                job.industry,
-                                toCityFromLocation(job.location ?? ''),
-                                job.employmentType,
-                              ].map((tag) => (
-                                <Chip
-                                  key={`${job.jobId}-${tag}`}
-                                  label={tag}
-                                  variant="outlined"
-                                  className={styles.tagChip}
-                                />
-                              ))}
-                            </Box>
-
-                            <Typography
-                              component="p"
-                              className={styles.cardDescription}
-                              sx={{ m: 0 }}
-                            >
-                              {job.description}
-                            </Typography>
-                          </Box>
-
-                          <Button
-                            variant="contained"
-                            className={styles.cardCta}
-                            onClick={handleCardCtaClick}
-                          >
-                            Sign Up to View
-                          </Button>
-                        </Box>
-
-                        {/* <Box className={styles.companyThumb} aria-hidden="true">
-                            <Box
-                              className={`${styles.companyOrbImage} ${styles.companyOrbImageBlurred}`}
-                              style={{
-                                ["--orb-core" as string]: job.employerOrbColor,
-                                ["--orb-glow" as string]: job.employerOrbGlow,
-                              }}
-                            />
-                            <Typography
-                              component="span"
-                              className={`${styles.companyName} ${styles.companyNameBlurred}`}
-                              sx={{ m: 0 }}
-                            >
-                              {job.employerName}
-                            </Typography>
-                          </Box> */}
-                      </Box>
-                    </Card>
+                      title={job.title}
+                      description={job.description ?? ""}
+                      tags={[
+                        job.industry,
+                        toCityFromLocation(job.location ?? ""),
+                        job.employmentType,
+                      ].filter(Boolean) as string[]}
+                      actionLabel="Sign Up to View"
+                      onAction={handleCardCtaClick}
+                    />
                   ))}
                 </Box>
                 {hasNextPage ? (

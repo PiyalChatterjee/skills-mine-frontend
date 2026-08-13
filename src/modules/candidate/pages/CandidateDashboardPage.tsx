@@ -255,7 +255,7 @@ const CandidateDashboardPage = () => {
           <ButtonBase
             type="button"
             className={`${styles.quickCard} ${styles.quickCardNavy}`}
-            onClick={() => navigate(ROUTE_PATHS.jobs)}
+            onClick={() => navigate(ROUTE_PATHS.latestJobs)}
             disableRipple
           >
             <Box className={styles.quickCardHeader}>
@@ -280,7 +280,7 @@ const CandidateDashboardPage = () => {
           <ButtonBase
             type="button"
             className={`${styles.quickCard} ${styles.quickCardPurple}`}
-            onClick={() => navigate(ROUTE_PATHS.jobs)}
+            onClick={() => navigate(ROUTE_PATHS.recommendedJobs)}
             disableRipple
           >
             <Box className={styles.quickCardHeader}>
@@ -379,7 +379,7 @@ const CandidateDashboardPage = () => {
         <ButtonBase
           type="button"
           className={`${styles.quickCard} ${styles.quickCardTeal}`}
-          onClick={() => navigate(ROUTE_PATHS.jobs)}
+          onClick={() => navigate(ROUTE_PATHS.savedJobs)}
           disableRipple
         >
           <Box className={styles.quickCardHeader}>
@@ -404,7 +404,7 @@ const CandidateDashboardPage = () => {
         <ButtonBase
           type="button"
           className={`${styles.quickCard} ${styles.quickCardNavy}`}
-          onClick={() => navigate(ROUTE_PATHS.jobs)}
+          onClick={() => navigate(ROUTE_PATHS.latestJobs)}
           disableRipple
         >
           <Box className={styles.quickCardHeader}>
@@ -429,10 +429,7 @@ const CandidateDashboardPage = () => {
         <ButtonBase
           type="button"
           className={`${styles.quickCard} ${styles.quickCardPurple}`}
-          onClick={() => {
-            // quickLinks are string keys e.g. "RECOMMENDED_JOBS"
-            navigate(ROUTE_PATHS.jobs);
-          }}
+          onClick={() => navigate(ROUTE_PATHS.recommendedJobs)}
           disableRipple
         >
           <Box className={styles.quickCardHeader}>
