@@ -271,12 +271,20 @@ describe('candidateApi', () => {
     it('calls GET /users/:userId and unwraps envelope data', async () => {
       const userProfileData = {
         data: {
-          data: { userId: 'u-1', savedJobs: [] },
+          data: {
+            userId: 'u-1',
+            savedJobs: [],
+            recommendedJobs: ['job-2', 'job-4'],
+          },
         },
       }
       mockGet.mockResolvedValue(userProfileData)
       const result = await candidateApi.getUserProfile('u-1')
-      expect(result).toEqual({ userId: 'u-1', savedJobs: [] })
+      expect(result).toEqual({
+        userId: 'u-1',
+        savedJobs: [],
+        recommendedJobs: ['job-2', 'job-4'],
+      })
     })
   })
 

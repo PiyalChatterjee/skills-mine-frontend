@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { Box, ButtonBase, CircularProgress, Typography } from '@mui/material'
 import { useDispatch } from 'react-redux'
+import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { OpportunitiesSearchInput, OpportunityJobCard } from '@/components/opportunities'
 import { useInfiniteScrollTrigger } from '@/hooks/useInfiniteScrollTrigger'
@@ -8,6 +9,7 @@ import { useSearchQueryState } from '@/hooks/useSearchQueryState'
 import { useJobsSearch } from '@/modules/public/hooks/useJobsSearch'
 import { ROUTE_PATHS } from '@/routes/routePaths'
 import { setSelectedJobId } from '@/store/slices/candidateSlice'
+import { selectRecommendedJobIds } from '@/store/selectors'
 
 import type { AppDispatch } from '@/store'
 import arrowRight from '@/assets/cv-builder/arrow-right.svg'
@@ -25,7 +27,7 @@ const getMatchScore = (index: number) => {
   return fallbackMatchScores[index % fallbackMatchScores.length]
 }
 
-export type JobsFeedMode = 'latest' | 'saved'
+export type JobsFeedMode = 'latest' | 'saved' | 'recommended'
 
 type JobsFeedPageProps = {
   mode: JobsFeedMode
@@ -36,6 +38,8 @@ export const JobsFeedPage = ({ mode }: JobsFeedPageProps) => {
   const dispatch = useDispatch<AppDispatch>()
   const { savedJobIds, isJobSaved, isJobSaving, toggleJobSaved } = useOptimisticSaveJob()
   const isSavedOnlyMode = mode === 'saved'
+  const isRecommendedOnlyMode = mode === 'recommended'
+  const recommendedJobIds = useSelector(selectRecommendedJobIds)
 
   const {
     inputValue: searchInputValue,
@@ -66,7 +70,7 @@ export const JobsFeedPage = ({ mode }: JobsFeedPageProps) => {
     debouncedSearchTerm,
   })
   const jobsLoadTriggerRef = useInfiniteScrollTrigger({
-    enabled: !isSavedOnlyMode,
+    enabled: !isSavedOnlyMode && !isRecommendedOnlyMode,
     hasNextPage,
     isFetchingNextPage,
     isError: isJobsError,
@@ -77,13 +81,15 @@ export const JobsFeedPage = ({ mode }: JobsFeedPageProps) => {
   const jobsWithMatch = useMemo(() => {
     const candidateJobs = isSavedOnlyMode
       ? visibleJobs.filter((job) => savedJobIds.has(job.jobId))
-      : visibleJobs
+      : isRecommendedOnlyMode
+        ? visibleJobs.filter((job) => recommendedJobIds.has(job.jobId))
+        : visibleJobs
 
     return candidateJobs.map((job, index) => ({
       ...job,
       matchScore: getMatchScore(index),
     }))
-  }, [isSavedOnlyMode, savedJobIds, visibleJobs])
+  }, [isRecommendedOnlyMode, isSavedOnlyMode, recommendedJobIds, savedJobIds, visibleJobs])
 
   return (
     <Box className={styles.pageRoot}>
@@ -101,7 +107,7 @@ export const JobsFeedPage = ({ mode }: JobsFeedPageProps) => {
             <span className={styles.backButtonText}>Back</span>
           </ButtonBase>
           <Typography component="h1" className={styles.pageTitle}>
-            {isSavedOnlyMode ? 'Saved Jobs' : 'Latest Opportunities'}
+            {isSavedOnlyMode ? 'Saved Jobs' : isRecommendedOnlyMode ? 'Recommended Jobs' : 'Latest Opportunities'}
           </Typography>
         </Box>
 
@@ -157,7 +163,7 @@ export const JobsFeedPage = ({ mode }: JobsFeedPageProps) => {
             })}
           </Box>
 
-          {!isSavedOnlyMode && hasNextPage ? (
+          {!isSavedOnlyMode && !isRecommendedOnlyMode && hasNextPage ? (
             <Box
               ref={jobsLoadTriggerRef}
               className={styles.feedback}
@@ -170,12 +176,12 @@ export const JobsFeedPage = ({ mode }: JobsFeedPageProps) => {
         </>
       ) : (
         <Typography component="p" className={styles.feedback}>
-          {isSavedOnlyMode
-            ? savedJobIds.size === 0
-              ? 'You have no saved jobs yet.'
+          {isSavedOnlyMode || isRecommendedOnlyMode
+            ? (isSavedOnlyMode ? savedJobIds : recommendedJobIds).size === 0
+              ? `You have no ${isSavedOnlyMode ? 'saved' : 'recommended'} jobs yet.`
               : shouldFilterOpportunities
-                ? 'No saved jobs found for your search.'
-                : 'No saved jobs available right now.'
+                ? `No ${isSavedOnlyMode ? 'saved' : 'recommended'} jobs found for your search.`
+                : `No ${isSavedOnlyMode ? 'saved' : 'recommended'} jobs available right now.`
             : shouldFilterOpportunities
               ? 'No jobs found for your search.'
               : allJobs.length === 0

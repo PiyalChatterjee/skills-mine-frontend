@@ -95,6 +95,7 @@ export interface CandidateProfileResponse {
   data: {
     userId?: string;
     savedJobs?: string[];
+    recommendedJobs?: string[];
     personalDetails: PersonalDetails & { userId: string };
     desiredJob: DesiredJob;
     education: ProfileEducation | null;
@@ -210,6 +211,8 @@ export interface UserProfile {
   userId: string;
   /** API returns an array of job ID strings */
   savedJobs: string[];
+  /** API returns an array of recommended job ID strings */
+  recommendedJobs: string[];
 }
 
 export interface UserSkill {

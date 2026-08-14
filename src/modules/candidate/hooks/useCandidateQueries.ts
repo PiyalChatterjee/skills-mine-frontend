@@ -11,7 +11,7 @@ import {
   useUpdateBuildMyCvMutation,
   useUpdateCandidateProfileMutation as useUpdateCandidateProfileRtkMutation,
 } from '@/store/api/apiSlice'
-import { setSavedJobs, setAvailableSkills, setBuildMyCv, setBuildMyCvExists } from '@/store/slices/candidateSlice'
+import { setSavedJobs, setRecommendedJobs, setAvailableSkills, setBuildMyCv, setBuildMyCvExists } from '@/store/slices/candidateSlice'
 import type { CandidateProfileUpdatePayload } from '@/modules/candidate/types'
 import type { ApiError, BuildMyCvData, BuildMyCvState, SaveBuildMyCvRequest, UpdateBuildMyCvRequest } from '@/types'
 import type { AppDispatch } from '@/store'
@@ -73,6 +73,7 @@ export const useUserProfile = (userId?: string) => {
   useEffect(() => {
     if (result.data) {
       dispatch(setSavedJobs(result.data.savedJobs))
+      dispatch(setRecommendedJobs(result.data.recommendedJobs ?? []))
     }
   }, [dispatch, result.data])
 
