@@ -64,7 +64,7 @@ export const PublicLayout = () => {
   };
 
   const handleSavedJobPostsClick = () => {
-    // TODO: Implement saved job posts navigation
+    navigate(ROUTE_PATHS.savedJobs);
   };
 
   const handleCvBuilderClick = () => {
