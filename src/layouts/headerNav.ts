@@ -76,7 +76,8 @@ const HEADER_NAV_DEFINITIONS: Record<HeaderNavKey, HeaderNavDefinition> = {
   },
   candidateSavedJobPosts: {
     label: 'Saved Job Posts',
-    actionId: 'savedJobPosts',
+    to: ROUTE_PATHS.savedJobs,
+    requiresAuth: true,
   },
   candidateCvBuilder: {
     label: 'CV Builder',

@@ -12,6 +12,7 @@ interface CandidateState {
   userId: string | null;
   selectedJobId: string | null;
   savedJobs: string[];
+  recommendedJobs: string[];
   availableSkills: UserSkill[];
   selectedSkillIds: string[];
   buildMyCv: BuildMyCvState;
@@ -33,6 +34,7 @@ const initialState: CandidateState = {
   userId: null,
   selectedJobId: null,
   savedJobs: [],
+  recommendedJobs: [],
   availableSkills: [],
   selectedSkillIds: [],
   buildMyCv: initialBuildMyCv,
@@ -55,6 +57,10 @@ const candidateSlice = createSlice({
 
     setSavedJobs: (state, action: PayloadAction<string[]>) => {
       state.savedJobs = action.payload;
+    },
+
+    setRecommendedJobs: (state, action: PayloadAction<string[]>) => {
+      state.recommendedJobs = action.payload;
     },
 
     addSavedJob: (state, action: PayloadAction<string>) => {
@@ -146,6 +152,7 @@ export const {
   setUserId,
   setSelectedJobId,
   setSavedJobs,
+  setRecommendedJobs,
   addSavedJob,
   removeSavedJob,
   setAvailableSkills,

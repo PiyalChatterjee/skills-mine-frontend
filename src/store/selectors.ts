@@ -21,6 +21,11 @@ export const selectSavedJobIds = createSelector(
   (jobs) => new Set(jobs),
 );
 
+export const selectRecommendedJobIds = createSelector(
+  (state: RootState) => state.candidate.recommendedJobs,
+  (jobs) => new Set(jobs),
+);
+
 export const selectIsJobSaved = (jobId: string) =>
   createSelector(selectSavedJobs, (ids) => ids.includes(jobId));
 
