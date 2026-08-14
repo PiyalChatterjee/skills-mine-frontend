@@ -98,7 +98,7 @@ export const JobsFeedPage = ({ mode }: JobsFeedPageProps) => {
           <ButtonBase
             type="button"
             className={styles.backButton}
-            onClick={() => navigate(-1)}
+            onClick={() => navigate(ROUTE_PATHS.candidateDashboard)}
             disableRipple
           >
             <span className={styles.backButtonIconWrap} aria-hidden="true">
