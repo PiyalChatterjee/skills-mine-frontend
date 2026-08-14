@@ -5,7 +5,7 @@ import {
   Card,
   Typography,
 } from "@mui/material";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import aiIconUrl from "@/assets/landing-page/ai-icon.svg";
 import chartIconUrl from "@/assets/landing-page/chart-icon.svg";
@@ -23,6 +23,7 @@ import {
   OpportunitiesSearchInput,
   OpportunityJobCard,
 } from "@/components/opportunities";
+import { useInfiniteScrollTrigger } from "@/hooks/useInfiniteScrollTrigger";
 import { useJobsSearch } from "@/modules/public/hooks/useJobsSearch";
 import { useSearchQueryState } from "@/hooks/useSearchQueryState";
 import type { PublicLayoutOutletContext } from "@/layouts/PublicLayout";
@@ -92,7 +93,6 @@ const LandingPage = () => {
     minCharacters: 3,
     debounceMs: 250,
   });
-  const jobsLoadTriggerRef = useRef<HTMLDivElement | null>(null);
 
   const {
     allJobs,
@@ -109,6 +109,13 @@ const LandingPage = () => {
     shouldUseDebouncedQuery: shouldUseApiSearch,
     debouncedSearchTerm,
   });
+  const jobsLoadTriggerRef = useInfiniteScrollTrigger({
+    hasNextPage,
+    isFetchingNextPage,
+    isError: isJobsError,
+    itemCount: visibleJobs.length,
+    onLoadMore: fetchNextPage,
+  });
 
   useEffect(() => {
     dispatch(setLandingMode(activeHeroMode));
@@ -117,40 +124,6 @@ const LandingPage = () => {
       dispatch(setLandingMode("findJob"));
     };
   }, [activeHeroMode, dispatch]);
-
-  useEffect(() => {
-    if (!hasNextPage || isFetchingNextPage || isJobsError || visibleJobs.length === 0) {
-      return;
-    }
-
-    const triggerNode = jobsLoadTriggerRef.current;
-    if (!triggerNode) {
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const [entry] = entries;
-
-        if (!entry?.isIntersecting) {
-          return;
-        }
-
-        void fetchNextPage();
-      },
-      {
-        root: null,
-        rootMargin: "240px 0px",
-        threshold: 0,
-      },
-    );
-
-    observer.observe(triggerNode);
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [fetchNextPage, hasNextPage, isFetchingNextPage, isJobsError, visibleJobs.length]);
 
  /*  const handleFindJobClick = () => {
     setActiveHeroMode("findJob");
