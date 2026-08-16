@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Box, ButtonBase, CircularProgress, Typography } from '@mui/material'
 import { recruiterCandidatesApi } from '@/services/api/recruiterCandidatesApi'
 import type { CandidateListItem } from '@/types/api'
+import { ROUTE_PATHS } from '@/routes/routePaths'
 import styles from './CandidatesScreen.module.css'
 
 type CandidatesScreenProps = {
@@ -9,6 +11,7 @@ type CandidatesScreenProps = {
 }
 
 export const CandidatesScreen = ({}: CandidatesScreenProps) => {
+  const navigate = useNavigate()
   const [candidates, setCandidates] = useState<CandidateListItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -87,9 +90,20 @@ export const CandidatesScreen = ({}: CandidatesScreenProps) => {
 
             {candidates.map((row) => (
               <Box key={row.candidateId} className={styles.tableRow}>
-                <Typography component="span" className={styles.cellName}>
+                <ButtonBase
+                  className={styles.cellNameBtn}
+                  disableRipple
+                  onClick={() =>
+                    navigate(
+                      ROUTE_PATHS.recruiterCandidateDetail.replace(
+                        ':candidateId',
+                        row.candidateId,
+                      ),
+                    )
+                  }
+                >
                   {row.fullName}
-                </Typography>
+                </ButtonBase>
                 <Typography component="span" className={styles.cellTitle}>
                   {row.currentTitle}
                 </Typography>

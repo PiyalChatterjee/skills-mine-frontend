@@ -678,3 +678,8 @@ export interface JobPostsParams {
   recruiterId?: string
   search?: string
 }
+
+export interface Industry {
+  industryId: string
+  name: string
+}

@@ -91,6 +91,12 @@ export const apiEndpoints = {
     listPageParam: withDefault(import.meta.env.VITE_JOBS_PAGE_PARAM, "page"),
     listLimitParam: withDefault(import.meta.env.VITE_JOBS_LIMIT_PARAM, "limit"),
   },
+  industries: {
+    list: withDefault(
+      import.meta.env.VITE_INDUSTRIES_LIST_ENDPOINT,
+      "/industries",
+    ),
+  },
   skills: {
     search: withDefault(
       import.meta.env.VITE_SKILLS_SEARCH_ENDPOINT,

@@ -1,5 +1,5 @@
-import { Box, Button, ButtonBase, Checkbox, CircularProgress, Popover, Typography } from '@mui/material'
-import { useEffect, useRef, useState } from 'react'
+import { Box, Button, ButtonBase, CircularProgress, Popover, Typography } from '@mui/material'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { mandateApi } from '@/services/api/mandateApi'
 import type { JobPost } from '@/types/api'
 import styles from './MandatesScreen.module.css'
@@ -50,6 +50,14 @@ export const MandatesScreen = ({ onNewJobPost, onEditJobPost }: MandatesScreenPr
   const [statusAnchorEl, setStatusAnchorEl]     = useState<HTMLButtonElement | null>(null)
   const [selectedStatuses, setSelectedStatuses] = useState<StatusOption[]>([])
 
+  // Company filter dropdown
+  const companyBtnRef = useRef<HTMLButtonElement | null>(null)
+  const [companyAnchorEl, setCompanyAnchorEl]     = useState<HTMLButtonElement | null>(null)
+  const [selectedCompanies, setSelectedCompanies] = useState<string[]>([])
+
+  // Search query
+  const [searchQuery, setSearchQuery] = useState('')
+
   // Location filter dropdown
   const locationBtnRef = useRef<HTMLButtonElement | null>(null)
   const [locationAnchorEl, setLocationAnchorEl]   = useState<HTMLButtonElement | null>(null)
@@ -72,8 +80,21 @@ export const MandatesScreen = ({ onNewJobPost, onEditJobPost }: MandatesScreenPr
       })
   }, [])
 
+  // ── Derived company options from loaded data ──────────────────────────────
+  const companyOptions = useMemo(
+    () => [...new Set(jobPosts.map((p) => p.client).filter(Boolean))].sort(),
+    [jobPosts],
+  )
+
   // ── Client-side filtering ─────────────────────────────────────────────────
   const filteredRows = jobPosts.filter((post) => {
+    const q = searchQuery.trim().toLowerCase()
+    const searchMatch =
+      q === '' ||
+      post.title.toLowerCase().includes(q) ||
+      post.client.toLowerCase().includes(q) ||
+      post.location?.toLowerCase().includes(q) ||
+      post.industry?.toLowerCase().includes(q)
     const statusMatch =
       selectedStatuses.length === 0 ||
       selectedStatuses.some(
@@ -84,10 +105,22 @@ export const MandatesScreen = ({ onNewJobPost, onEditJobPost }: MandatesScreenPr
       selectedLocations.some((l) =>
         post.location?.toLowerCase().includes(l.toLowerCase()),
       )
-    return statusMatch && locationMatch
+    const companyMatch =
+      selectedCompanies.length === 0 ||
+      selectedCompanies.includes(post.client)
+    return searchMatch && statusMatch && locationMatch && companyMatch
   })
 
   // ── Handlers ──────────────────────────────────────────────────────────────
+  const handleCompanyChipClick = () => setCompanyAnchorEl(companyBtnRef.current)
+  const handleCompanyClose     = () => setCompanyAnchorEl(null)
+
+  const toggleCompany = (option: string) => {
+    setSelectedCompanies((prev) =>
+      prev.includes(option) ? prev.filter((c) => c !== option) : [...prev, option],
+    )
+  }
+
   const handleStatusChipClick = () => setStatusAnchorEl(statusBtnRef.current)
   const handleStatusClose     = () => setStatusAnchorEl(null)
 
@@ -106,6 +139,7 @@ export const MandatesScreen = ({ onNewJobPost, onEditJobPost }: MandatesScreenPr
     )
   }
 
+  const companyOpen  = Boolean(companyAnchorEl)
   const statusOpen   = Boolean(statusAnchorEl)
   const locationOpen = Boolean(locationAnchorEl)
 
@@ -161,7 +195,16 @@ export const MandatesScreen = ({ onNewJobPost, onEditJobPost }: MandatesScreenPr
       </Box>
 
       <Box className={styles.filtersRow}>
-        <ButtonBase className={styles.filterChip} disableRipple>
+        {/* Company dropdown chip */}
+        <ButtonBase
+          ref={companyBtnRef}
+          component="button"
+          className={`${styles.filterChip} ${selectedCompanies.length > 0 || companyOpen ? styles.filterChipActive : ''}`}
+          disableRipple
+          onClick={handleCompanyChipClick}
+          aria-haspopup="true"
+          aria-expanded={companyOpen ? 'true' : undefined}
+        >
           {/* Building / company icon */}
           <svg className={styles.filterChipSvgIcon} viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <rect x="2" y="5" width="8" height="9" rx="0.5" stroke="currentColor" strokeWidth="1.3" />
@@ -211,17 +254,47 @@ export const MandatesScreen = ({ onNewJobPost, onEditJobPost }: MandatesScreenPr
           Status
         </ButtonBase>
 
-        <Box className={styles.searchField}>
+        <Box component="label" className={styles.searchField}>
           {/* Magnifier / search icon */}
           <svg className={styles.filterChipSvgIcon} viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <circle cx="6.5" cy="6.5" r="4" stroke="currentColor" strokeWidth="1.3" />
             <path d="M10 10l3 3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
           </svg>
-          <Typography component="span" className={styles.searchPlaceholder}>
-            Search job posts
-          </Typography>
+          <input
+            className={styles.searchInput}
+            type="search"
+            placeholder="Search job posts"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            aria-label="Search job posts"
+          />
         </Box>
       </Box>
+
+      {/* Company dropdown popover */}
+      <Popover
+        open={companyOpen}
+        anchorEl={companyAnchorEl}
+        onClose={handleCompanyClose}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+        slotProps={{ paper: { className: styles.filterDropdownPaper } }}
+      >
+        {companyOptions.map((option) => (
+          <div
+            key={option}
+            role="menuitemcheckbox"
+            aria-checked={selectedCompanies.includes(option)}
+            tabIndex={0}
+            className={styles.filterDropdownItem}
+            onClick={() => toggleCompany(option)}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleCompany(option) } }}
+          >
+            <span className={`${styles.filterCheckboxIcon} ${selectedCompanies.includes(option) ? styles.filterCheckboxIconChecked : ''}`} aria-hidden="true" />
+            <span className={styles.filterDropdownLabel}>{option}</span>
+          </div>
+        ))}
+      </Popover>
 
       {/* Status dropdown popover */}
       <Popover
@@ -233,24 +306,18 @@ export const MandatesScreen = ({ onNewJobPost, onEditJobPost }: MandatesScreenPr
         slotProps={{ paper: { className: styles.filterDropdownPaper } }}
       >
         {STATUS_OPTIONS.map((option) => (
-          <ButtonBase
+          <div
             key={option}
-            component="button"
+            role="menuitemcheckbox"
+            aria-checked={selectedStatuses.includes(option)}
+            tabIndex={0}
             className={styles.filterDropdownItem}
-            disableRipple
             onClick={() => toggleStatus(option)}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleStatus(option) } }}
           >
-            <Checkbox
-              checked={selectedStatuses.includes(option)}
-              tabIndex={-1}
-              disableRipple
-              size="small"
-              classes={{ root: styles.filterCheckbox, checked: styles.filterCheckboxChecked }}
-            />
-            <Typography component="span" className={styles.filterDropdownLabel}>
-              {option}
-            </Typography>
-          </ButtonBase>
+            <span className={`${styles.filterCheckboxIcon} ${selectedStatuses.includes(option) ? styles.filterCheckboxIconChecked : ''}`} aria-hidden="true" />
+            <span className={styles.filterDropdownLabel}>{option}</span>
+          </div>
         ))}
       </Popover>
 
@@ -264,24 +331,18 @@ export const MandatesScreen = ({ onNewJobPost, onEditJobPost }: MandatesScreenPr
         slotProps={{ paper: { className: styles.filterDropdownPaper } }}
       >
         {LOCATION_OPTIONS.map((option) => (
-          <ButtonBase
+          <div
             key={option}
-            component="button"
+            role="menuitemcheckbox"
+            aria-checked={selectedLocations.includes(option)}
+            tabIndex={0}
             className={styles.filterDropdownItem}
-            disableRipple
             onClick={() => toggleLocation(option)}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleLocation(option) } }}
           >
-            <Checkbox
-              checked={selectedLocations.includes(option)}
-              tabIndex={-1}
-              disableRipple
-              size="small"
-              classes={{ root: styles.filterCheckbox, checked: styles.filterCheckboxChecked }}
-            />
-            <Typography component="span" className={styles.filterDropdownLabel}>
-              {option}
-            </Typography>
-          </ButtonBase>
+            <span className={`${styles.filterCheckboxIcon} ${selectedLocations.includes(option) ? styles.filterCheckboxIconChecked : ''}`} aria-hidden="true" />
+            <span className={styles.filterDropdownLabel}>{option}</span>
+          </div>
         ))}
       </Popover>
 

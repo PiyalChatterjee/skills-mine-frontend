@@ -124,7 +124,7 @@
   line-height: 1.2;
 }
 
-/* NAME column — bold, dark */
+/* NAME column — bold, dark; clickable button variant */
 .cellName,
 :global(.MuiTypography-root).cellName {
   color: #1a1a2e;
@@ -132,6 +132,26 @@
   font-size: 13px;
   font-weight: 700;
   line-height: 1.35;
+}
+
+.cellNameBtn:global(.MuiButtonBase-root) {
+  color: #03478c;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.35;
+  text-align: left;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.cellNameBtn:global(.MuiButtonBase-root):hover {
+  color: #2470c2;
+  text-decoration: underline;
 }
 
 /* TITLE column — regular, mid-gray */
