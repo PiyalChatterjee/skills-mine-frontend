@@ -150,7 +150,7 @@ const MandateDetailPage = () => {
           </ButtonBase>
           <Box className={styles.breadcrumbDivider} />
           <ButtonBase className={styles.breadcrumbLink} onClick={() => navigate(ROUTE_PATHS.recruiter)} disableRipple>
-            Mandates
+            Job Posts
           </ButtonBase>
           <Box className={styles.breadcrumbArrow}><ChevronRightIcon /></Box>
           <Typography component="span" className={styles.breadcrumbCurrent}>

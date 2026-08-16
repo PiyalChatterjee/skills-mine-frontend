@@ -57,6 +57,15 @@ const CandidateProfilePage = lazy(
 const NewMandatePage = lazy(
   () => import("@/modules/recruiter/pages/NewMandatePage"),
 );
+const EditMandatePage = lazy(
+  () => import("@/modules/recruiter/pages/EditMandatePage"),
+);
+const CandidatesPage = lazy(
+  () => import("@/modules/recruiter/pages/CandidatesPage"),
+);
+const CandidateDetailPage = lazy(
+  () => import("@/modules/recruiter/pages/CandidateDetailPage"),
+);
 const RecruiterCrmPage = lazy(
   () => import("@/modules/recruiter/pages/RecruiterCrmPage"),
 );
@@ -110,19 +119,26 @@ export const AppRoutes = () => {
             <Route path={ROUTE_PATHS.jobDetails} element={<JobDetailsPage />} />
             <Route path={ROUTE_PATHS.savedJobs} element={<SavedJobsPage />} />
             <Route path={ROUTE_PATHS.latestJobs} element={<LatestJobsPage />} />
-            <Route path={ROUTE_PATHS.recommendedJobs} element={<RecommendedJobsPage />} />
+            <Route
+              path={ROUTE_PATHS.recommendedJobs}
+              element={<RecommendedJobsPage />}
+            />
             <Route path={ROUTE_PATHS.profile} element={<ProfilePage />} />
           </Route>
 
           <Route element={<RecruiterLayout />}>
             <Route path={ROUTE_PATHS.recruiter} element={<RecruiterPage />} />
             <Route
-              path={ROUTE_PATHS.recruiterMandates}
+              path={ROUTE_PATHS.recruiterJobPosts}
               element={<RecruiterMandatesPage />}
             />
             <Route
-              path={ROUTE_PATHS.recruiterNewMandate}
+              path={ROUTE_PATHS.recruiterNewJobPost}
               element={<NewMandatePage />}
+            />
+            <Route
+              path={ROUTE_PATHS.recruiterEditJobPost}
+              element={<EditMandatePage />}
             />
             <Route
               path={ROUTE_PATHS.recruiterMandate}
@@ -131,6 +147,14 @@ export const AppRoutes = () => {
             <Route
               path={ROUTE_PATHS.recruiterCandidate}
               element={<CandidateProfilePage />}
+            />
+            <Route
+              path={ROUTE_PATHS.recruiterCandidates}
+              element={<CandidatesPage />}
+            />
+            <Route
+              path={ROUTE_PATHS.recruiterCandidateDetail}
+              element={<CandidateDetailPage />}
             />
             <Route
               path={ROUTE_PATHS.recruiterCrm}

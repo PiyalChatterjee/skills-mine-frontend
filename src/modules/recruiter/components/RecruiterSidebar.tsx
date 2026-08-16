@@ -27,8 +27,8 @@ export const RecruiterSidebar = () => {
   const location = useLocation()
 
   const navigate = useNavigate()
-  const handleNewMandateClick = () => {
-    navigate(ROUTE_PATHS.recruiterNewMandate)
+  const handleNewJobPostClick = () => {
+    navigate(ROUTE_PATHS.recruiterNewJobPost)
   }
 
   const handleSettingsClick = () => {
@@ -39,7 +39,7 @@ export const RecruiterSidebar = () => {
     // TODO: Open help panel
   }
 
-  /** Plain plus sign — New Mandate (no dedicated asset) */
+  /** Plain plus sign — New Job Post (no dedicated asset) */
   const PlusIcon = () => (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -58,9 +58,9 @@ export const RecruiterSidebar = () => {
 
   const mainNavItems: NavItem[] = [
     { id: 'dashboard',  label: 'Dashboard',   to: ROUTE_PATHS.recruiter, icon: <img src={dashboardIcon} width={20} height={20} alt="" aria-hidden="true" /> },
-    { id: 'mandates',   label: 'Mandates',    to: ROUTE_PATHS.recruiterMandates, icon: <img src={mandatesIcon}  width={20} height={20} alt="" aria-hidden="true" /> },
-    { id: 'newMandate', label: 'New Mandate', icon: <PlusIcon />,        onClick: handleNewMandateClick },
-    { id: 'candidates', label: 'Candidates',  to: ROUTE_PATHS.recruiter, icon: <CandidatesIcon /> },
+    { id: 'jobPosts',   label: 'Job Posts',   to: ROUTE_PATHS.recruiterJobPosts, icon: <img src={mandatesIcon}  width={20} height={20} alt="" aria-hidden="true" /> },
+    { id: 'newJobPost', label: 'New Job Post', icon: <PlusIcon />,       onClick: handleNewJobPostClick },
+    { id: 'candidates', label: 'Candidates',  to: ROUTE_PATHS.recruiterCandidates, icon: <CandidatesIcon /> },
     { id: 'crm',        label: 'CRM',         to: ROUTE_PATHS.recruiterCrm, icon: <img src={crmIcon}      width={20} height={20} alt="" aria-hidden="true" /> },
   ]
 

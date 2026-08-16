@@ -277,8 +277,8 @@ const RecruiterPage = () => {
 
   const defaultMandateId = PIPELINE_COLUMNS[0]?.cards[0]?.id ?? 'c1'
 
-  const handleNewMandate = () => {
-    navigate(ROUTE_PATHS.recruiterNewMandate)
+  const handleNewJobPost = () => {
+    navigate(ROUTE_PATHS.recruiterNewJobPost)
   }
 
   const handleViewCvsDue = () => {
@@ -338,10 +338,10 @@ const RecruiterPage = () => {
         <Button
           variant="contained"
           className={styles.newMandateBtn}
-          onClick={handleNewMandate}
+          onClick={handleNewJobPost}
           disableElevation
         >
-          New Mandate
+          New Job Post
         </Button>
       </Box>
 

@@ -3,9 +3,10 @@ import styles from './StickyFooter.module.css'
 interface Props {
   onCancel: () => void
   isSubmitting: boolean
+  submitLabel?: string
 }
 
-export const StickyFooter = ({ onCancel, isSubmitting }: Props) => (
+export const StickyFooter = ({ onCancel, isSubmitting, submitLabel = 'Post Job Post' }: Props) => (
   <footer className={styles.footer}>
     <div className={styles.inner}>
       <button
@@ -21,7 +22,7 @@ export const StickyFooter = ({ onCancel, isSubmitting }: Props) => (
         className={styles.submitBtn}
         disabled={isSubmitting}
       >
-        {isSubmitting ? 'Posting...' : 'Post Mandate'}
+        {isSubmitting ? '...' : submitLabel}
       </button>
     </div>
   </footer>
