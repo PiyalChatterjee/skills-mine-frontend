@@ -1,0 +1,493 @@
+.pageRoot {
+    min-height: 100vh;
+    background: #ffffff;
+    display: flex;
+    flex-direction: column;
+}
+
+.statusBox {
+    min-height: 60vh;
+    display: grid;
+    place-items: center;
+    padding: 32px 16px;
+}
+
+.heroHeading,
+.heroHeading:global(.MuiTypography-root) {
+    position: absolute;
+    top: 54px;
+    left: 50%;
+    margin: 0;
+    transform: translateX(-50%);
+    color: #ffffff;
+    font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 32px;
+    font-weight: 600;
+    line-height: 1.5;
+    letter-spacing: 0.1px;
+    white-space: nowrap;
+}
+
+.stepsIndicator {
+    position: absolute;
+    top: 125px;
+    left: 50%;
+    display: flex;
+    gap: 7px;
+    align-items: center;
+    padding: 6px;
+    transform: translateX(-50%);
+}
+
+.step {
+    display: inline-block;
+    width: 10px;
+    height: 8px;
+    border-radius: 10px;
+    background: #55abe1;
+}
+
+.stepActive {
+    width: 30px;
+    background: #ffffff;
+}
+
+.contentSection {
+    width: 100%;
+    max-width: 721px;
+    margin: 0 auto;
+    padding: 55px 16px 128px;
+}
+
+.pageTitle,
+.pageTitle:global(.MuiTypography-root) {
+    margin: 0 0 16px;
+    color: #03478c;
+    font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 32px;
+    font-weight: 600;
+    line-height: 1.5;
+    letter-spacing: 0.1px;
+}
+
+.pageSubtitle,
+.pageSubtitle:global(.MuiTypography-root) {
+    margin: 0 0 48px;
+    color: #03478c;
+    font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 24px;
+    font-weight: 500;
+    line-height: 1.5;
+    letter-spacing: 0.1px;
+}
+
+.introText,
+.introText:global(.MuiTypography-root) {
+    margin: 0 0 48px;
+    color: #03478c;
+    font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 24px;
+    font-weight: 500;
+    line-height: 1.5;
+    letter-spacing: 0.1px;
+}
+
+.alertBanner:global(.MuiAlert-root) {
+    margin-bottom: 20px;
+    border-radius: 12px;
+}
+
+.formWrap {
+    width: 100%;
+}
+
+.sectionsStack {
+    display: flex;
+    flex-direction: column;
+    gap: 72px;
+}
+
+.sectionBlock {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+.sectionHeader {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+}
+
+.sectionIconBadge {
+    width: 64px;
+    height: 64px;
+    border-radius: 999px;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+}
+
+.sectionIcon {
+    display: block;
+    width: 64px;
+    height: 64px;
+}
+
+.sectionTitle,
+.sectionTitle:global(.MuiTypography-root) {
+    margin: 0;
+    color: #03478c;
+    font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 24px;
+    font-weight: 500;
+    line-height: 1.5;
+    letter-spacing: 0.1px;
+}
+
+.sectionBody {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.fieldsGrid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+}
+
+.educationFieldsStack {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.educationAddButton,
+.educationAddButton:global(.MuiButton-root) {
+    width: 100%;
+    min-height: 48px;
+    padding: 12px 30px;
+    border: 1px solid #b0b4b8;
+    border-radius: 100px;
+    background: #f6f7f8;
+    color: #2a3132;
+    font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.5;
+    letter-spacing: 0.1px;
+    text-transform: none;
+}
+
+.requiredHint,
+.requiredHint:global(.MuiTypography-root) {
+    margin: 0;
+    color: #000000;
+    font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.5;
+    letter-spacing: 0.1px;
+}
+
+.reviewSectionsList {
+    border-top: 1px solid #e1e3e6;
+}
+
+.reviewSectionItem {
+    border-bottom: 1px solid #e1e3e6;
+}
+
+.reviewSectionToggle,
+.reviewSectionToggle:global(.MuiButton-root) {
+    width: 100%;
+    min-width: 0;
+    padding: 16px 0;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    color: #03478c;
+    text-transform: none;
+    box-shadow: none;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 32px;
+}
+
+.reviewSectionToggle:global(.MuiButton-root):hover {
+    background: transparent;
+}
+
+.reviewSectionIconBadge {
+    width: 56px;
+    height: 56px;
+    border-radius: 999px;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+}
+
+.reviewSectionIcon {
+    width: 56px;
+    height: 56px;
+}
+
+.reviewSectionLabel,
+.reviewSectionLabel:global(.MuiTypography-root) {
+    color: #03478c;
+    font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 24px;
+    font-weight: 500;
+    line-height: 1.35;
+    letter-spacing: 0.1px;
+    margin-right: auto;
+    text-align: left;
+}
+
+.reviewSectionExpandIcon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+.reviewSectionContent {
+    padding: 0 0 24px;
+}
+
+.reviewEmbeddedSectionContent .sectionHeader {
+    display: none;
+}
+
+.reviewEmbeddedSectionContent .requiredHint,
+.reviewEmbeddedSectionContent .requiredHint:global(.MuiTypography-root) {
+    display: none;
+}
+
+.doneButton,
+.doneButton:global(.MuiButton-root) {
+    background: #03478c;
+}
+
+.doneButton:global(.MuiButton-root):hover {
+    background: #0a5aa9;
+}
+
+.footerBar {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    background: #ffffff;
+    border-top: 1px solid #e1e3e6;
+    box-shadow: 0 -5px 10px rgba(3, 71, 140, 0.08);
+}
+
+.footerInner {
+    max-width: 721px;
+    min-height: 80px;
+    margin: 0 auto;
+    padding: 16px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+.footerRight {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+}
+
+.backButton,
+.backButton:global(.MuiButton-root) {
+    min-width: 0;
+    height: 48px;
+    padding: 12px 30px;
+    border: 1px solid #b0b4b8;
+    border-radius: 100px;
+    background: #f6f7f8;
+    color: #2a3132;
+    font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.5;
+    letter-spacing: 0.1px;
+    text-transform: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.backButton:global(.MuiButton-root):hover {
+    background: #eef0f2;
+}
+
+.nextButton,
+.nextButton:global(.MuiButton-root) {
+    min-width: 0;
+    height: 48px;
+    padding: 12px 30px;
+    border-radius: 100px;
+    background: #32abbf;
+    color: #ffffff;
+    font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.5;
+    letter-spacing: 0.1px;
+    text-transform: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+
+.nextButton:global(.MuiButton-root):hover {
+    background: #299cb0;
+}
+
+.nextButton:global(.MuiButton-root.Mui-disabled) {
+    background: #a7dbe2;
+    color: #ffffff;
+}
+
+.buttonArrowBack,
+.buttonArrowNext {
+    display: block;
+    width: 16px;
+    height: 16px;
+}
+
+.nextButton .buttonArrowNext,
+.nextButton:global(.MuiButton-root) .buttonArrowNext {
+    display: block;
+    width: 16px;
+    height: 16px;
+    filter: brightness(0) invert(1);
+}
+
+.buttonArrowBack {
+    transform: rotate(180deg);
+}
+
+@media (max-width: 1024px) {
+    .contentSection {
+        padding-bottom: 112px;
+    }
+}
+
+@media (max-width: 768px) {
+
+    .heroHeading,
+    .heroHeading:global(.MuiTypography-root) {
+        font-size: 28px;
+    }
+
+    .contentSection {
+        padding-top: 40px;
+    }
+
+    .pageTitle,
+    .pageTitle:global(.MuiTypography-root) {
+        font-size: 28px;
+    }
+
+    .pageSubtitle,
+    .pageSubtitle:global(.MuiTypography-root) {
+        margin-bottom: 40px;
+        font-size: 22px;
+    }
+
+    .introText,
+    .introText:global(.MuiTypography-root) {
+        margin-bottom: 40px;
+        font-size: 22px;
+    }
+
+    .sectionsStack {
+        gap: 56px;
+    }
+
+    .fieldsGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .reviewSectionLabel,
+    .reviewSectionLabel:global(.MuiTypography-root) {
+        font-size: 24px;
+    }
+
+    .footerInner {
+        align-items: center;
+    }
+}
+
+@media (max-width: 480px) {
+
+    .heroHeading,
+    .heroHeading:global(.MuiTypography-root) {
+        top: 60px;
+        font-size: 24px;
+    }
+
+    .pageTitle,
+    .pageTitle:global(.MuiTypography-root) {
+        font-size: 24px;
+    }
+
+    .pageSubtitle,
+    .pageSubtitle:global(.MuiTypography-root) {
+        font-size: 20px;
+    }
+
+    .introText,
+    .introText:global(.MuiTypography-root) {
+        font-size: 20px;
+    }
+
+    .sectionHeader {
+        gap: 20px;
+    }
+
+    .sectionIconBadge,
+    .sectionIcon {
+        width: 56px;
+        height: 56px;
+    }
+
+    .sectionTitle,
+    .sectionTitle:global(.MuiTypography-root) {
+        font-size: 22px;
+    }
+
+    .reviewSectionLabel,
+    .reviewSectionLabel:global(.MuiTypography-root) {
+        font-size: 20px;
+    }
+
+    .reviewSectionIconBadge,
+    .reviewSectionIcon {
+        width: 56px;
+        height: 56px;
+    }
+
+    .footerInner {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .footerRight {
+        align-items: stretch;
+    }
+
+    .backButton,
+    .backButton:global(.MuiButton-root),
+    .nextButton,
+    .nextButton:global(.MuiButton-root) {
+        width: 100%;
+        justify-content: center;
+    }
+}

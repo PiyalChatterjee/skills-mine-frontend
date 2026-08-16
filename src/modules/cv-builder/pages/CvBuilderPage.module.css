@@ -563,12 +563,6 @@
     color 160ms ease;
 }
 
-.addDashedButton:global(.MuiButton-root):hover {
-  background-color: #2b96d9;
-  border-color: #2b96d9;
-  color: #ffffff;
-}
-
 .addPositionButton,
 .addPositionButton:global(.MuiButton-root) {
   min-width: 0;
@@ -587,11 +581,6 @@
   justify-content: center;
   margin-top: 8px;
   transition: background-color 160ms ease;
-}
-
-.addPositionButton:global(.MuiButton-root):hover {
-  background-color: #2b96d9;
-  box-shadow: none;
 }
 
 /* ─── Skills ─────────────────────────────────────────────────────────────── */
@@ -693,14 +682,6 @@
     background-color 160ms ease,
     border-color 160ms ease,
     color 160ms ease;
-}
-
-.addMutedPillButton:global(.MuiButton-root):hover,
-.addSkillButton:global(.MuiButton-root):hover,
-.addPillButton:global(.MuiButton-root):hover {
-  background-color: #2b96d9;
-  border-color: #2b96d9;
-  color: #ffffff;
 }
 
 .skillRow .fieldControl {
@@ -1222,12 +1203,6 @@
   width: 100%;
 }
 
-.previewPageDownloadButton:global(.MuiButton-root):hover {
-  background-color: #2b96d9;
-  border-color: #2b96d9;
-  color: #ffffff;
-}
-
 .previewPageCloseButton,
 .previewPageCloseButton:global(.MuiButton-root) {
   position: absolute;
@@ -1326,11 +1301,6 @@
   font-size: 12px;
   font-weight: 500;
   line-height: 1.2;
-}
-
-.previewPageSubmitButton:global(.MuiButton-root):hover {
-  background: #2b96d9;
-  box-shadow: none;
 }
 
 .previewPageCvTitle,
@@ -1720,10 +1690,6 @@
   line-height: 1.5;
   letter-spacing: 0.1px;
   transition: background-color 160ms ease;
-}
-
-.nextButton:global(.MuiButton-root):hover {
-  background-color: #2b96d9;
 }
 
 .nextButton:global(.MuiButton-root):global(.Mui-disabled) {

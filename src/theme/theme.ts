@@ -39,6 +39,26 @@ export const appTheme = createTheme({
     borderRadius: spacing.sm,
   },
   components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          '&:not(.wizard-back-button):not(.no-global-hover):not(.Mui-disabled):hover': {
+            backgroundColor: '#2b96d9',
+            borderColor: '#2b96d9',
+            color: '#ffffff',
+            '& *': {
+              color: '#ffffff',
+            },
+            '& .MuiSvgIcon-root': {
+              color: '#ffffff',
+            },
+            '& img, & svg': {
+              filter: 'brightness(0) saturate(100%) invert(100%)',
+            },
+          },
+        },
+      },
+    },
     MuiInputBase: {
       styleOverrides: {
         input: {

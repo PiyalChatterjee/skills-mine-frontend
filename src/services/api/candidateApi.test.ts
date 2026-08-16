@@ -64,6 +64,11 @@ const mockProfileResponse = {
         salaryExpectation: 50000,
         availableFrom: '1 Month',
       },
+      authentication: {
+        password: 'Password123',
+        provider: 'LOCAL',
+        accountStatus: 'ACTIVE',
+      },
       education: [],
       experience: [],
       skills: ['React'],
@@ -85,7 +90,37 @@ describe('candidateApi', () => {
       expect(profile.personalDetails.firstName).toBe('Jane')
       expect(profile.skills).toEqual(['React'])
       expect(profile.languages).toEqual([{ language: 'English', proficiency: 'Fluent' }])
+      expect(profile.authentication?.provider).toBe('LOCAL')
       expect(mockGet).toHaveBeenCalledWith('/users/u-1')
+    })
+
+    it('maps desiredJob when API returns jobType/industries/locations fields', async () => {
+      const nextResponse = {
+        data: {
+          status: 'success',
+          data: {
+            ...mockProfileResponse.data.data,
+            desiredJob: {
+              jobTitle: 'Senior Software Engineer',
+              jobType: 'Permanent',
+              workType: 'Hybrid',
+              salaryExpectation: 85000,
+              currency: 'ZAR',
+              availableFrom: '2025-02-01',
+              industries: ['Technology', 'Financial Services'],
+              locations: ['Johannesburg', 'Remote'],
+            },
+          },
+        },
+      }
+
+      mockGet.mockResolvedValue(nextResponse)
+      const profile = await candidateApi.getById('u-1')
+
+      expect(profile.desiredJob.employmentType).toBe('Permanent')
+      expect(profile.desiredJob.industry).toBe('Technology, Financial Services')
+      expect(profile.desiredJob.workType).toBe('Hybrid')
+      expect(profile.desiredJob.currency).toBe('ZAR')
     })
 
     it('defaults skills and languages to empty arrays when absent', async () => {
@@ -236,12 +271,20 @@ describe('candidateApi', () => {
     it('calls GET /users/:userId and unwraps envelope data', async () => {
       const userProfileData = {
         data: {
-          data: { userId: 'u-1', savedJobs: [] },
+          data: {
+            userId: 'u-1',
+            savedJobs: [],
+            recommendedJobs: ['job-2', 'job-4'],
+          },
         },
       }
       mockGet.mockResolvedValue(userProfileData)
       const result = await candidateApi.getUserProfile('u-1')
-      expect(result).toEqual({ userId: 'u-1', savedJobs: [] })
+      expect(result).toEqual({
+        userId: 'u-1',
+        savedJobs: [],
+        recommendedJobs: ['job-2', 'job-4'],
+      })
     })
   })
 

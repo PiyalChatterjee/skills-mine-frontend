@@ -84,15 +84,16 @@ graph TD
     PublicLayout["PublicLayout"]
     Landing["/ – LandingPage"]
     Login["/login – LoginPage"]
+    ResetPassword["/reset-password – ResetPasswordPage"]
     Signup["/signup – SignupPage"]
 
-    ProtectedRoute["ProtectedRoute\n(JWT expiry check)"]
-    PortalRoute["/portal – PortalRoute\n(role redirect)"]
+    ProtectedRoute["ProtectedRoute\n(JWT expiry + persisted session fallback)"]
 
     CandidateLayout["CandidateLayout"]
     RoleGuardJobs["RoleGuard: JOB_SEEKER"]
     CandidateDashboard["/candidate/dashboard"]
     CvBuilder["/candidate/cv-builder"]
+    ProfileCreation["/profile/create"]
     Jobs["/jobs"]
     Profile["/profile"]
 
@@ -109,7 +110,7 @@ graph TD
     Manco["/manco"]
 
     ExcoLayout["ExcoLayout"]
-    RoleGuardExco["RoleGuard: ADMIN"]
+    RoleGuardExco["RoleGuard: EXCO | ADMIN"]
     Exco["/exco"]
 
     AdminLayout["AdminLayout"]
@@ -119,15 +120,16 @@ graph TD
     Root --> PublicLayout
     PublicLayout --> Landing
     PublicLayout --> Login
+    PublicLayout --> ResetPassword
     PublicLayout --> Signup
 
     Root --> ProtectedRoute
-    ProtectedRoute --> PortalRoute
-    PortalRoute --> CandidateLayout
+    ProtectedRoute --> CandidateLayout
 
     CandidateLayout --> RoleGuardJobs
     RoleGuardJobs --> CandidateDashboard
     RoleGuardJobs --> CvBuilder
+    RoleGuardJobs --> ProfileCreation
     CandidateLayout --> Jobs
     CandidateLayout --> Profile
 
@@ -156,9 +158,8 @@ graph TD
 
 | Guard | File | Behaviour |
 |---|---|---|
-| `ProtectedRoute` | `src/routes/guards/ProtectedRoute.tsx` | Redirects to `/login` when not authenticated or JWT is expired. Preserves `from` location in state. |
-| `PortalRoute` | `src/routes/PortalRoute.tsx` | On `/portal`, reads user role and immediately redirects to the role's default landing route. |
-| `RoleGuard` | `src/routes/guards/RoleGuard.tsx` | Restricts a subtree to specific roles. Falls through to a configurable `fallbackPath`. |
+| `ProtectedRoute` | `src/routes/guards/ProtectedRoute.tsx` | Redirects to `/login` when there is no authenticated session in context and no valid persisted access token in session storage. Preserves `from` location in state. |
+| `RoleGuard` | `src/routes/guards/RoleGuard.tsx` | Restricts a subtree to specific roles. Uses persisted user role fallback during auth hydration, then falls through to a configurable `fallbackPath`. |
 | `PermissionGuard` | `src/routes/guards/PermissionGuard.tsx` | Restricts a subtree to specific permission tokens derived from role. |
 
 ### Role → Default Route
@@ -167,6 +168,7 @@ graph TD
 JOB_SEEKER  → /candidate/dashboard
 RECRUITER   → /recruiter
 MANCO       → /manco
+EXCO        → /exco
 ADMIN       → /dashboard
 ```
 
@@ -196,9 +198,27 @@ sequenceDiagram
     LoginPage->>AuthContext: login(payload)
     AuthContext->>tokenStorage: setTokens + setUser → sessionStorage
     AuthContext->>AuthContext: setSession (isAuthenticated = true)
-    LoginPage->>Router: navigate(/portal)
-    Router->>PortalRoute: role-based redirect
+    LoginPage->>candidateApi: getById(userId) for JOB_SEEKER
+    candidateApi-->>LoginPage: CandidateProfile
+    LoginPage->>Router: route by profile completeness (JOB_SEEKER) or role default
+    Note over LoginPage,Router: Incomplete candidate profile → /profile/create<br/>Complete profile → /candidate/dashboard
 ```
+
+### Candidate Onboarding Follow-Up
+
+The original candidate onboarding flow used an intermediate `/portal` hop plus role guards. In practice, the login request and `/auth/me` request completed successfully, but the router could still bounce the user back to `/login` for one render because auth context hydration lagged behind route evaluation.
+
+The current flow removes active `/portal` routing from `AppRoutes` and resolves navigation directly inside `LoginPage`:
+
+- candidate sign-up success redirects to `/login`
+- the login page exposes a public `/reset-password` route for forgotten-password recovery
+- after login, `LoginPage` sends non-candidate roles straight to their role default route
+- for `JOB_SEEKER`, `LoginPage` fetches candidate profile data and checks completeness
+- incomplete candidate profile routes to `/profile/create`; complete profile routes to `/candidate/dashboard`
+
+To keep this deterministic, `ProtectedRoute` and `RoleGuard` both accept persisted `sessionStorage` auth data as a temporary fallback while `AuthContext` finishes hydrating.
+
+Within the profile creation wizard itself, data is now persisted only on final `Done` (step transitions no longer save on every `Next`).
 
 ### Session Storage Layout
 
@@ -409,7 +429,7 @@ src/
 │   ├── recruiter/          Recruiter dashboard, mandate detail, new mandate, candidate profile
 │   ├── reports/            Reports placeholder
 │   └── skills-builder/     Skills builder placeholder
-├── routes/                 Route definitions, guards (ProtectedRoute, RoleGuard, PermissionGuard), PortalRoute
+├── routes/                 Route definitions, guards (ProtectedRoute, RoleGuard, PermissionGuard)
 ├── services/               API transport layer
 │   └── api/                axios client, endpoint config, all service modules
 ├── store/                  Redux store, slices, RTK Query slice, thunks, selectors
@@ -468,13 +488,18 @@ flowchart TD
     H --> I[AuthContext.login payload]
     I --> J[tokenStorage.setTokens + setUser\n→ sessionStorage]
     I --> K[setSession → isAuthenticated = true]
-    K --> L[navigate /portal]
-    L --> M[PortalRoute reads user.role]
-    M --> N{Role?}
-    N -- JOB_SEEKER --> O[/candidate/dashboard]
-    N -- RECRUITER --> P[/recruiter]
-    N -- MANCO --> Q[/manco]
-    N -- ADMIN --> R[/dashboard]
+    K --> L{Role?}
+    L -- RECRUITER --> P["/recruiter"]
+    L -- MANCO --> Q["/manco"]
+    L -- EXCO --> R["/exco"]
+    L -- ADMIN --> S["/dashboard"]
+    L -- JOB_SEEKER --> T[candidateApi.getById]
+    T --> U{Profile complete?}
+    U -- No --> M["/profile/create"]
+    U -- Yes --> O["/candidate/dashboard"]
+
+    T[ProtectedRoute] -. checks AuthContext first .-> K
+    U[tokenStorage fallback] -. used during hydration .-> T
 ```
 
 ---

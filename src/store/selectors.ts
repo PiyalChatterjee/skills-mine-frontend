@@ -5,9 +5,12 @@ import { apiSlice } from "@/store/api/apiSlice";
 // ── Auth / Identity ────────────────────────────────────────────────────────
 
 export const selectUserId = (state: RootState): string | null =>
-  state.auth.user?.userId ?? state.candidate.userId ?? null;
+  state.auth.currentUser?.userId ?? state.candidate.userId ?? null;
 
-export const selectAuthUser = (state: RootState) => state.auth.user;
+export const selectAuthUser = (state: RootState) => state.auth.currentUser;
+
+export const selectSelectedJobId = (state: RootState) =>
+  state.candidate.selectedJobId;
 
 // ── User Profile & Saved Jobs ──────────────────────────────────────────────
 
@@ -15,11 +18,16 @@ export const selectSavedJobs = (state: RootState) => state.candidate.savedJobs;
 
 export const selectSavedJobIds = createSelector(
   selectSavedJobs,
-  (jobs) => new Set(jobs.map((j) => j.jobId)),
+  (jobs) => new Set(jobs),
+);
+
+export const selectRecommendedJobIds = createSelector(
+  (state: RootState) => state.candidate.recommendedJobs,
+  (jobs) => new Set(jobs),
 );
 
 export const selectIsJobSaved = (jobId: string) =>
-  createSelector(selectSavedJobIds, (ids) => ids.has(jobId));
+  createSelector(selectSavedJobs, (ids) => ids.includes(jobId));
 
 // ── Skills ─────────────────────────────────────────────────────────────────
 

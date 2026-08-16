@@ -1,0 +1,380 @@
+.pageRoot {
+    background: #ffffff;
+    min-height: 100%;
+}
+
+.heroSection {
+    position: relative;
+    height: 380px;
+    overflow: hidden;
+    background: linear-gradient(75.217deg, #2b96d9 0%, #32abbf 100%);
+}
+
+.heroPatternRight,
+.heroPatternLeft {
+    position: absolute;
+    pointer-events: none;
+    user-select: none;
+}
+
+.heroPatternRight {
+    width: 906.964px;
+    height: 569px;
+    top: -220px;
+    left: auto;
+    right: -534px;
+}
+
+.heroPatternLeft {
+    width: 884.964px;
+    height: 542px;
+    left: -548px;
+    top: -264px;
+    transform: rotate(-120deg);
+    transform-origin: center;
+}
+
+.heroInner {
+    position: relative;
+    width: min(100%, 1280px);
+    margin: 0 auto;
+    padding: 140px 80px 0;
+    z-index: 1;
+}
+
+.headerRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+.titleWrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.backButton.backButton {
+    min-width: 72px;
+    height: 33px;
+    border-radius: 8px;
+    border: 1px solid #80c0e8;
+    background: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 6px 8px;
+    color: #b0b4b8;
+    font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    letter-spacing: 0.1px;
+}
+
+.backButtonArrow {
+    width: 16px;
+    height: 16px;
+    display: block;
+}
+
+.jobTitle,
+.jobTitle:global(.MuiTypography-root) {
+    color: #ffffff;
+    font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 32px;
+    font-weight: 600;
+    line-height: 1.5;
+    letter-spacing: 0.1px;
+    margin: 0;
+}
+
+.heroActions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.heroSaveButton,
+.heroSaveButton:global(.MuiIconButton-root) {
+    width: 48px;
+    height: 48px;
+    border: 1px solid #ffffff;
+    border-radius: 100px;
+    background: transparent;
+    padding: 0;
+    color: #ffffff;
+}
+
+.heroSaveButton:global(.MuiIconButton-root):hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.heroSaveIcon {
+    width: 12px;
+    height: 16px;
+    display: block;
+}
+
+.applyButton,
+.applyButton:global(.MuiButton-root):global(.MuiButton-contained) {
+    min-height: 48px;
+    border-radius: 100px;
+    padding: 12px 30px;
+    background: #ffffff;
+    color: #03478c;
+    text-transform: none;
+    box-shadow: none;
+    font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.5;
+    letter-spacing: 0.1px;
+}
+
+.tagsRow {
+    margin-top: 22px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.heroTag {
+    border: 1px solid #ffffff;
+    border-radius: 100px;
+    color: #ffffff;
+    padding: 4px 24px;
+    font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    letter-spacing: 0.1px;
+}
+
+.contentSection {
+    width: min(100%, 1280px);
+    margin: 0 auto;
+    padding: 80px;
+    background: #ffffff;
+}
+
+.sectionTitle,
+.sectionTitle:global(.MuiTypography-root) {
+    margin: 0 0 32px;
+    color: #03478c;
+    font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 32px;
+    font-weight: 600;
+    line-height: 1.5;
+    letter-spacing: 0.1px;
+}
+
+.contentRow {
+    display: grid;
+    grid-template-columns: 258px minmax(0, 1fr);
+    gap: 56px;
+}
+
+.metaCard {
+    background: #f6f7f8;
+    border-radius: 8px;
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    height: fit-content;
+}
+
+.metaItem {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.metaLabel,
+.metaLabel:global(.MuiTypography-root) {
+    margin: 0;
+    color: #03478c;
+    font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 1.5;
+    letter-spacing: 0.1px;
+}
+
+.metaValue,
+.metaValue:global(.MuiTypography-root) {
+    margin: 0;
+    color: #2a3132;
+    font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.5;
+    letter-spacing: 0.1px;
+}
+
+.detailsColumn {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+.subSectionTitle,
+.subSectionTitle:global(.MuiTypography-root) {
+    margin: 0 0 12px;
+    color: #2b96d9;
+    font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 1.5;
+    letter-spacing: 0.1px;
+}
+
+.bulletList {
+    margin: 0;
+    padding-left: 24px;
+    color: #2a3132;
+    font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    letter-spacing: 0.1px;
+}
+
+.bulletList li {
+    margin: 0;
+}
+
+.skillsWrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 10px;
+}
+
+.skillTag {
+    border-radius: 100px;
+    padding: 4px 16px;
+    color: #ffffff;
+    font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    letter-spacing: 0.1px;
+}
+
+.industryTag {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #03478c;
+    border-radius: 100px;
+    padding: 4px 16px;
+    color: #03478c;
+    font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    letter-spacing: 0.1px;
+}
+
+.footerActions {
+    margin-top: 52px;
+    padding-top: 16px;
+    border-top: 1px solid #e1e3e6;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.footerApply,
+.footerApply:global(.MuiButton-root):global(.MuiButton-contained) {
+    min-height: 48px;
+    border-radius: 100px;
+    padding: 12px 30px;
+    background: #03478c;
+    color: #ffffff;
+    text-transform: none;
+    box-shadow: none;
+    font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.5;
+    letter-spacing: 0.1px;
+}
+
+.footerSave,
+.footerSave:global(.MuiButton-root):global(.MuiButton-outlined) {
+    min-height: 48px;
+    border-radius: 100px;
+    padding: 12px 30px;
+    border-color: #e1e3e6;
+    color: #2a3132;
+    text-transform: none;
+    font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.5;
+    letter-spacing: 0.1px;
+}
+
+.stateText,
+.stateText:global(.MuiTypography-root) {
+    margin: 0;
+    color: #03478c;
+    font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    letter-spacing: 0.1px;
+}
+
+@media (max-width: 1100px) {
+
+    .heroInner,
+    .contentSection {
+        padding-left: 32px;
+        padding-right: 32px;
+    }
+
+    .contentRow {
+        grid-template-columns: 1fr;
+        gap: 28px;
+    }
+
+    .heroSection {
+        height: auto;
+        min-height: 380px;
+    }
+
+    .heroActions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .headerRow {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 768px) {
+
+    .heroInner,
+    .contentSection {
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+
+    .jobTitle,
+    .jobTitle:global(.MuiTypography-root) {
+        font-size: 28px;
+    }
+
+    .sectionTitle,
+    .sectionTitle:global(.MuiTypography-root) {
+        font-size: 24px;
+    }
+
+    .footerActions {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+}

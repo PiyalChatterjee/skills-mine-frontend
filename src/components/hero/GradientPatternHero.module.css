@@ -1,0 +1,34 @@
+.heroRoot {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  background: linear-gradient(63.37deg, #2b96d9 0%, #32abbf 100%);
+}
+
+.heroPatternRight,
+.heroPatternLeft {
+  position: absolute;
+  pointer-events: none;
+  user-select: none;
+}
+
+.heroPatternRight {
+  top: -220px;
+  left: calc(50% + 347px);
+  width: 906.964px;
+  height: 569px;
+}
+
+.heroPatternLeft {
+  top: -544px;
+  left: calc(50% - 1146px);
+  width: 946.25px;
+  height: 1069.954px;
+  transform-origin: center;
+}
+
+.heroContent {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}

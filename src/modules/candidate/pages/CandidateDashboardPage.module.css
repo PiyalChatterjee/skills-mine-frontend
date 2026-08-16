@@ -1,7 +1,8 @@
 .pageRoot {
-  background: #d7edf6;
+  width: min(100%, 885px);
   min-height: 100%;
-  padding: 40px 80px 60px;
+  margin: 0 auto;
+  padding: 40px 0 72px;
 }
 
 .loadingContainer {
@@ -27,7 +28,6 @@
 
 .welcomeBannerInner {
   width: 100%;
-  max-width: none;
   margin: 0;
   padding: 24px;
   background: #03478c;
@@ -50,19 +50,19 @@
 :global(.MuiTypography-root).welcomeSubtitle,
 :global(.MuiTypography-root).welcomeSubtitle.welcomeSubtitle {
   margin: 0 0 14px;
-  color: #ffffff;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  color: #f2f9fd;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
   font-size: 18px;
-  font-weight: 400;
+  font-weight: 500;
   line-height: 1.5;
-  letter-spacing: 0;
+  letter-spacing: 0.1px;
 }
 
 /* ── Stat Cards ──────────────────────────────────────────────────────── */
 .statsRow {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
+  gap: 24px;
 }
 
 .statCard {
@@ -98,7 +98,7 @@
   margin: 0;
   color: #ffffff;
   font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 64px;
+  font-size: 52px;
   font-weight: 400;
   line-height: 1;
   letter-spacing: 0;
@@ -151,19 +151,19 @@
 }
 
 .quickCard {
+  cursor: pointer;
+}
+
+.quickCard:global(.MuiButtonBase-root) {
   padding: 24px;
   display: flex;
   flex-direction: column;
   gap: 24px;
-  cursor: pointer;
   border: none;
   border-radius: 16px;
   box-shadow: 2px 4px 5px rgba(3, 71, 140, 0.32);
   text-align: left;
   transition: filter 0.15s ease;
-}
-
-.quickCard:global(.MuiButtonBase-root) {
   align-items: flex-start;
   justify-content: flex-start;
 }
@@ -177,20 +177,20 @@
   outline-offset: -4px;
 }
 
-.quickCardBlue {
-  background: #2b96d9;
+.quickCard.quickCardBlue {
+  background-color: #2b96d9;
 }
 
-.quickCardTeal {
-  background: #32abbf;
+.quickCard.quickCardTeal {
+  background-color: #32abbf;
 }
 
-.quickCardNavy {
-  background: #03478c;
+.quickCard.quickCardNavy {
+  background-color: #03478c;
 }
 
-.quickCardPurple {
-  background: #957dd2;
+.quickCard.quickCardPurple {
+  background-color: #957dd2;
 }
 
 .quickCardHeader {
@@ -247,6 +247,7 @@
   letter-spacing: 0.1px;
   display: flex;
   flex-direction: column;
+  max-width: 116px;
 }
 
 .quickCardTitleLine {
@@ -268,47 +269,64 @@
 /* ── Applications Section ────────────────────────────────────────────── */
 .applicationsSection {
   width: 100%;
-  max-width: none;
-  margin: 40px 0 0;
+  margin: 24px 0 0;
   padding: 0;
 }
 
 .sectionTitle,
 :global(.MuiTypography-root).sectionTitle,
 :global(.MuiTypography-root).sectionTitle.sectionTitle {
-  margin: 0 0 14px;
-  color: #1a1a2e;
+  margin: 0;
+  color: #2a3132;
   font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 26px;
-  font-weight: 700;
-  line-height: 1.3;
-  letter-spacing: 0;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
 }
 
 .applicationsList {
   background: #ffffff;
   border-radius: 16px;
-  border: 1px solid #e2e8f0;
-  padding: 0 32px;
-  box-shadow: 0 6px 16px rgba(20, 54, 105, 0.08);
+  border: none;
+  padding: 24px 0;
+  box-shadow: 2px 4px 5px rgba(3, 71, 140, 0.32);
+}
+
+.applicationsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 10px 24px 24px;
 }
 
 .applicationEntry {
-  padding: 16px 0 0;
+  padding: 0 24px;
 }
 
 .applicationEntry:first-child {
-  padding-top: 24px;
+  padding-top: 0;
 }
 
 .applicationEntry:last-child {
-  padding-bottom: 24px;
+  padding-bottom: 0;
 }
 
 .applicationDivider {
-  height: 1px;
-  background: #e2e8f0;
-  margin-bottom: 16px;
+  position: relative;
+  width: 100%;
+  height: 32px;
+}
+
+.applicationDivider::after {
+  content: '';
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  top: 50%;
+  height: 1.5px;
+  background: #eef2f5;
+  transform: translateY(-50%);
 }
 
 .applicationHeader {
@@ -316,13 +334,13 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .applicationTitleRow {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 16px;
   flex: 1;
   min-width: 0;
 }
@@ -331,19 +349,20 @@
 :global(.MuiTypography-root).applicationTitle,
 :global(.MuiTypography-root).applicationTitle.applicationTitle {
   margin: 0;
-  color: #1e6fa5;
+  color: #03478c;
   font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 20px;
-  font-weight: 600;
-  line-height: 1.3;
-  letter-spacing: 0;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
 }
 
-.expandButton {
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  border: 1px solid #d0dbe8;
+.expandButton,
+.expandButton:global(.MuiButtonBase-root) {
+  width: 29px;
+  height: 29px;
+  border-radius: 8px;
+  border: 1px solid #80c0e8;
   background: #ffffff;
   display: grid;
   place-items: center;
@@ -373,27 +392,62 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 34px;
-  padding: 0 20px;
+  min-height: 29px;
+  padding: 4px 16px;
   border-radius: 999px;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
   font-size: 14px;
-  font-weight: 500;
-  line-height: 1;
-  letter-spacing: 0;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
   white-space: nowrap;
   flex-shrink: 0;
   color: #ffffff;
 }
 
-.statusPill[data-status='applied']        { background: #72c4e0; }
-.statusPill[data-status='screening']      { background: #4db8c8; }
-.statusPill[data-status='interview']      { background: #7c5cd8; }
-.statusPill[data-status='rejected']       { background: #e07070; }
-.statusPill[data-status='offer_extended'] { background: #5bbf8a; }
-.statusPill[data-status='shortlisted']    { background: #e085c2; }
-.statusPill[data-status='placed']         { background: #329d72; }
-.statusPill[data-status='unknown']        { background: #7a8694; }
+.statusPill[data-status='applied'] {
+  background: #84cdd9;
+}
+
+.statusPill[data-status='screening'] {
+  background: #32abbf;
+}
+
+.statusPill[data-status='assessment'] {
+  background: #80c0e8;
+}
+
+.statusPill[data-status='interview'] {
+  background: #957dd2;
+}
+
+.statusPill[data-status='rejected'] {
+  background: #e07070;
+}
+
+.statusPill[data-status='offer_extended'] {
+  background: #5bbf8a;
+}
+
+.statusPill[data-status='offer_accepted'] {
+  background: #4BAF73;
+}
+
+.statusPill[data-status='offer_declined'] {
+  background: #D64545;
+}
+
+.statusPill[data-status='shortlisted'] {
+  background: #93cfab;
+}
+
+.statusPill[data-status='placed'] {
+  background: #329d72;
+}
+
+.statusPill[data-status='unknown'] {
+  background: #7a8694;
+}
 
 .emptyApplications {
   text-align: center;
@@ -401,65 +455,175 @@
   color: #9CA3AF;
 }
 
+/* ── New-user empty state ────────────────────────────────────────────── */
+.emptyHeroBanner {
+  background: #03478c;
+  border-radius: 20px;
+  padding: 32px 40px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.emptyHeroGreeting,
+:global(.MuiTypography-root).emptyHeroGreeting,
+:global(.MuiTypography-root).emptyHeroGreeting.emptyHeroGreeting {
+  margin: 0;
+  color: #ffffff;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
+}
+
+.emptyHeroMessage,
+:global(.MuiTypography-root).emptyHeroMessage,
+:global(.MuiTypography-root).emptyHeroMessage.emptyHeroMessage {
+  margin: 0;
+  color: #ffffff;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
+}
+
+.emptyHeroCta:global(.MuiButtonBase-root) {
+  height: 40px;
+  padding: 0 24px;
+  background: #32abbf;
+  border-radius: 999px;
+  color: #ffffff;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.1px;
+  white-space: nowrap;
+  transition: filter 0.15s ease;
+}
+
+.emptyHeroCta:hover {
+  filter: brightness(1.08);
+}
+
+.emptyQuickActionsRow {
+  width: 100%;
+  margin: 24px 0 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+
+@media (max-width: 900px) {
+  .emptyQuickActionsRow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .emptyQuickActionsRow {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ── Pipeline Progress Bar ───────────────────────────────────────────── */
 .pipelineWrap {
-  border: 1px solid #e2e8f0;
+  border: 1px solid #e1e3e6;
   border-radius: 8px;
-  padding: 16px 16px 12px;
-  margin-bottom: 14px;
+  padding: 8px 16px;
+  margin-bottom: 8px;
 }
 
 .pipelineLabels {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .pipelineLabel {
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 400;
-  color: #4a5568;
-  line-height: 1.4;
+  color: #2a3132;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
   text-align: center;
 }
 
 .pipelineTrack {
   width: 100%;
-  height: 8px;
-  background: #d0e8f5;
+  height: 12px;
+  background: #d5eaf7;
   border-radius: 999px;
   overflow: hidden;
   position: relative;
 }
 
-.pipelineFill {
+.pipelineFill,
+.pipelineFillOfferExtended,
+.pipelineFillOfferAccepted,
+.pipelineFillClosed {
   height: 100%;
-  background: #3399cc;
   border-radius: 999px;
   transition: width 0.3s ease;
 }
 
+.pipelineFillClosed {
+  background: #b0b4b8;
+}
+
+.pipelineFill {
+  background: #2b96d9;
+}
+
+.pipelineFillOfferExtended {
+  background: #D64545;
+}
+
 /* 7 stages → 0..6 index; fill covers to end of that segment */
-.pipelineFill0 { width: 8%; }
-.pipelineFill1 { width: 25%; }
-.pipelineFill2 { width: 42%; }
-.pipelineFill3 { width: 59%; }
-.pipelineFill4 { width: 79%; }
-.pipelineFill5 { width: 92%; }
-.pipelineFill6 { width: 100%; }
+.pipelineFill0 {
+  width: 8%;
+}
+
+.pipelineFill1 {
+  width: 25%;
+}
+
+.pipelineFill2 {
+  width: 42%;
+}
+
+.pipelineFill3 {
+  width: 59%;
+}
+
+.pipelineFill4 {
+  width: 79%;
+}
+
+.pipelineFill5 {
+  width: 92%;
+}
+
+.pipelineFill6 {
+  width: 100%;
+}
 
 /* ── Application Message ─────────────────────────────────────────────── */
 .applicationMessage,
 :global(.MuiTypography-root).applicationMessage,
 :global(.MuiTypography-root).applicationMessage.applicationMessage {
   margin: 0;
-  color: #4a5568;
+  color: #5a5e63;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
   font-size: 14px;
   font-weight: 400;
   line-height: 1.5;
-  letter-spacing: 0;
+  letter-spacing: 0.1px;
 }
 
 .applicationMessageLink {
@@ -476,16 +640,13 @@
 
 /* ── Responsive ──────────────────────────────────────────────────────── */
 @media (max-width: 1100px) {
-  .welcomeBannerInner,
-  .quickActionsRow,
-  .applicationsSection {
-    max-width: none;
-    margin-left: 20px;
-    margin-right: 20px;
+  .pageRoot {
+    width: 100%;
+    padding: 32px 20px 60px;
   }
 
   .quickActionsRow {
-    padding-top: 14px;
+    margin-top: 24px;
   }
 }
 
@@ -509,18 +670,11 @@
 
 @media (max-width: 600px) {
   .pageRoot {
-    padding-top: 16px;
-  }
-
-  .welcomeBannerInner,
-  .quickActionsRow,
-  .applicationsSection {
-    margin-left: 12px;
-    margin-right: 12px;
+    padding: 24px 12px 48px;
   }
 
   .applicationsList {
-    padding: 0 16px;
+    padding: 20px 0;
   }
 
   .quickActionsRow {
@@ -533,5 +687,15 @@
 
   .applicationTitle {
     font-size: 17px;
+  }
+
+  .applicationEntry {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .applicationDivider::after {
+    left: 16px;
+    right: 16px;
   }
 }

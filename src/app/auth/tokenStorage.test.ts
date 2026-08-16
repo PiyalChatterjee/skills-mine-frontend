@@ -4,7 +4,8 @@ import type { AuthUser, JwtTokens } from '@/types/auth'
 
 const mockTokens: JwtTokens = {
   accessToken: 'access-123',
-  refreshToken: 'refresh-456',
+  idToken: 'id-456',
+  refreshToken: 'refresh-789',
 }
 
 const mockUser: AuthUser = {
@@ -29,10 +30,11 @@ describe('tokenStorage', () => {
       expect(tokenStorage.getTokens()).toBeNull()
     })
 
-    it('stores and retrieves tokens', () => {
+    it('stores and retrieves tokens including idToken', () => {
       tokenStorage.setTokens(mockTokens)
       const retrieved = tokenStorage.getTokens()
       expect(retrieved).toEqual(mockTokens)
+      expect(retrieved?.idToken).toBe('id-456')
     })
 
     it('clearTokens removes tokens', () => {

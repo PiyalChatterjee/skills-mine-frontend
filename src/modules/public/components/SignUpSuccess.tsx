@@ -41,7 +41,7 @@ export const SignUpSuccess = ({
         variant="contained"
         className={styles.signInButton}
         onClick={() => {
-          navigate(navigateTo);
+          navigate(navigateTo, { replace: true });
         }}
       >
         {ctaLabel}

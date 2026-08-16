@@ -8,9 +8,12 @@ import {
   type PropsWithChildren,
 } from 'react'
 import { tokenStorage } from '@/app/auth/tokenStorage'
+import { authEvents } from '@/app/auth/authEvents'
 import { isJwtExpired } from '@/app/auth/jwt'
 import { store } from '@/store'
 import { apiSlice } from '@/store/api/apiSlice'
+import { clearAuthSession } from '@/store/slices/authSlice'
+import { clearCandidateState } from '@/store/slices/candidateSlice'
 import type {
   AuthSession,
   AuthUser,
@@ -42,6 +45,14 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 export const AuthProvider = ({ children }: PropsWithChildren) => {
   const [session, setSession] = useState<AuthSession>(defaultState)
 
+  const clearSession = useCallback(() => {
+    tokenStorage.clearAuth()
+    store.dispatch(apiSlice.util.resetApiState())
+    store.dispatch(clearAuthSession())
+    store.dispatch(clearCandidateState())
+    setSession(defaultState)
+  }, [])
+
   useEffect(() => {
     const tokens = tokenStorage.getTokens()
     const user = tokenStorage.getUser()
@@ -63,6 +74,12 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     })
   }, [])
 
+  useEffect(() => {
+    authEvents.onUnauthorized(() => {
+      clearSession()
+    })
+  }, [clearSession])
+
   const login = useCallback((payload: LoginPayload) => {
     tokenStorage.setTokens(payload.tokens)
     tokenStorage.setUser(payload.user)
@@ -74,11 +91,8 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   }, [])
 
   const logout = useCallback(() => {
-    tokenStorage.clearAuth()
-    store.dispatch(apiSlice.util.resetApiState())
-    store.dispatch({ type: 'candidate/clearCandidateState' })
-    setSession(defaultState)
-  }, [])
+    clearSession()
+  }, [clearSession])
 
   const hasRole = useCallback(
     (roles: Role[]) => Boolean(session.user && roles.includes(session.user.role)),

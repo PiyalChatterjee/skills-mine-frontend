@@ -5,13 +5,14 @@ import type {
   BuildMyCvState,
   CandidateExperience,
   CandidateLanguage,
-  SavedJob,
   UserSkill,
 } from "@/types/api";
 
 interface CandidateState {
   userId: string | null;
-  savedJobs: SavedJob[];
+  selectedJobId: string | null;
+  savedJobs: string[];
+  recommendedJobs: string[];
   availableSkills: UserSkill[];
   selectedSkillIds: string[];
   buildMyCv: BuildMyCvState;
@@ -31,7 +32,9 @@ const initialBuildMyCv: BuildMyCvState = {
 
 const initialState: CandidateState = {
   userId: null,
+  selectedJobId: null,
   savedJobs: [],
+  recommendedJobs: [],
   availableSkills: [],
   selectedSkillIds: [],
   buildMyCv: initialBuildMyCv,
@@ -48,23 +51,26 @@ const candidateSlice = createSlice({
       state.userId = action.payload;
     },
 
-    setSavedJobs: (state, action: PayloadAction<SavedJob[]>) => {
+    setSelectedJobId: (state, action: PayloadAction<string | null>) => {
+      state.selectedJobId = action.payload;
+    },
+
+    setSavedJobs: (state, action: PayloadAction<string[]>) => {
       state.savedJobs = action.payload;
     },
 
-    addSavedJob: (state, action: PayloadAction<SavedJob>) => {
-      const exists = state.savedJobs.some(
-        (j) => j.jobId === action.payload.jobId,
-      );
-      if (!exists) {
+    setRecommendedJobs: (state, action: PayloadAction<string[]>) => {
+      state.recommendedJobs = action.payload;
+    },
+
+    addSavedJob: (state, action: PayloadAction<string>) => {
+      if (!state.savedJobs.includes(action.payload)) {
         state.savedJobs.push(action.payload);
       }
     },
 
     removeSavedJob: (state, action: PayloadAction<string>) => {
-      state.savedJobs = state.savedJobs.filter(
-        (j) => j.jobId !== action.payload,
-      );
+      state.savedJobs = state.savedJobs.filter((id) => id !== action.payload);
     },
 
     setAvailableSkills: (state, action: PayloadAction<UserSkill[]>) => {
@@ -144,7 +150,9 @@ const candidateSlice = createSlice({
 
 export const {
   setUserId,
+  setSelectedJobId,
   setSavedJobs,
+  setRecommendedJobs,
   addSavedJob,
   removeSavedJob,
   setAvailableSkills,

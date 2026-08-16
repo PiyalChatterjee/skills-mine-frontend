@@ -205,6 +205,38 @@ Removed deprecated service:
 - Command: `npm run -s build`
 - Result: success
 
+## Post-Migration Follow-Up: Candidate Onboarding Routing
+
+### What Happened
+- Candidate registration returned `201 Created`, login returned `200 OK`, and current-user lookup also succeeded, but some signup-to-login journeys still landed back on `/login` instead of continuing into candidate onboarding.
+- The issue was most visible for new `JOB_SEEKER` accounts that should have been taken to `/profile/create` immediately after their first successful login.
+
+### Root Cause
+- The frontend still had an architecture shaped around an intermediate `/portal` redirect and guard-driven role resolution.
+- During the first render after login, route guards could evaluate before `AuthContext` had fully rehydrated from persisted storage.
+- That timing gap made protected candidate routes treat the session as unauthenticated or missing a role for a moment, causing redirect churn and occasional bounce-back to `/login`.
+
+### Final Frontend Behavior
+- Candidate sign-up success redirects to `/login` (no onboarding localStorage key or query-string intent).
+- After login succeeds, `LoginPage` performs role-first routing:
+  - non-candidate roles go straight to their role default route
+  - `JOB_SEEKER` users fetch candidate profile data and run a profile-completeness check
+- If candidate profile data is incomplete, the app navigates to `/profile/create`.
+- If candidate profile data is complete, the app navigates to `/candidate/dashboard`.
+- Active `/portal` route wiring was removed from `AppRoutes`.
+- Profile creation persistence now occurs on final `Done` only (intermediate steps are local-only).
+
+### Code-Level Safeguards Added
+- `ProtectedRoute` now accepts a valid persisted access token from `tokenStorage` as a temporary fallback while auth context hydrates.
+- `RoleGuard` now accepts a persisted user role from `tokenStorage` for the same hydration window.
+- This keeps protected navigation stable without changing the long-term source of truth, which remains `AuthContext`.
+
+### Verification
+- Build passed after the guard changes.
+- A fresh candidate sign-up and login flow was exercised in the browser.
+- Verified final URL: `/profile/create`.
+- Verified page content: `Create your profile` and `Let’s create your profile.`.
+
 ## Deprecated/Obsolete Code Removed
 - `src/services/api/dashboardApi.ts` removed
 - Legacy candidate applications query endpoint usage removed from RTK Query

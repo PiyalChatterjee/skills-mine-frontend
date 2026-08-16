@@ -1,0 +1,1 @@
+export { GradientPatternHero } from './GradientPatternHero'

@@ -4,58 +4,71 @@ import authReducer, {
   clearAuthSession,
   setAuthStatus,
 } from './authSlice'
-import type { AuthUser, JwtTokens } from '@/types/auth'
+import type { JwtTokens } from '@/types/auth'
 
 const mockTokens: JwtTokens = {
   accessToken: 'access-token-123',
+  idToken: 'id-token-789',
   refreshToken: 'refresh-token-456',
 }
 
-const mockUser: AuthUser = {
-  id: 'user-1',
+const mockCurrentUser = {
   userId: 'user-1',
   email: 'test@example.com',
-  firstName: 'Test',
-  lastName: 'User',
-  displayName: 'Test User',
-  role: 'JOB_SEEKER',
-  roles: ['JOB_SEEKER'],
-  permissions: ['VIEW_JOBS', 'APPLY_JOB', 'UPLOAD_CV', 'VIEW_DASHBOARD'],
+  roles: ['JOB_SEEKER'] as ('JOB_SEEKER' | 'RECRUITER' | 'MANCO' | 'EXCO' | 'ADMIN')[],
+  accountStatus: 'ACTIVE',
 }
 
 describe('authSlice', () => {
   describe('initial state', () => {
-    it('has null user, null tokens, isAuthenticated false, and idle status', () => {
+    it('has null currentUser, null token values, isAuthenticated false, and idle status', () => {
       const state = authReducer(undefined, { type: '@@INIT' })
-      expect(state.user).toBeNull()
-      expect(state.tokens).toBeNull()
+      expect(state.currentUser).toBeNull()
+      expect(state.tokens.accessToken).toBeNull()
+      expect(state.tokens.idToken).toBeNull()
+      expect(state.tokens.refreshToken).toBeNull()
       expect(state.isAuthenticated).toBe(false)
       expect(state.status).toBe('idle')
     })
   })
 
   describe('setAuthSession', () => {
-    it('sets user and tokens, marks isAuthenticated true and status authenticated', () => {
+    it('sets currentUser and tokens, marks isAuthenticated true and status authenticated', () => {
       const state = authReducer(
         undefined,
-        setAuthSession({ user: mockUser, tokens: mockTokens }),
+        setAuthSession({
+          currentUser: mockCurrentUser,
+          tokens: {
+            accessToken: mockTokens.accessToken,
+            idToken: mockTokens.idToken ?? null,
+            refreshToken: mockTokens.refreshToken ?? null,
+          },
+        }),
       )
-      expect(state.user).toEqual(mockUser)
-      expect(state.tokens).toEqual(mockTokens)
+      expect(state.currentUser).toEqual(mockCurrentUser)
+      expect(state.tokens.accessToken).toBe('access-token-123')
+      expect(state.tokens.idToken).toBe('id-token-789')
       expect(state.isAuthenticated).toBe(true)
       expect(state.status).toBe('authenticated')
     })
   })
 
   describe('clearAuthSession', () => {
-    it('clears user and tokens, marks isAuthenticated false and status unauthenticated', () => {
+    it('clears currentUser and tokens, marks isAuthenticated false and status unauthenticated', () => {
       const authenticatedState = authReducer(
         undefined,
-        setAuthSession({ user: mockUser, tokens: mockTokens }),
+        setAuthSession({
+          currentUser: mockCurrentUser,
+          tokens: {
+            accessToken: mockTokens.accessToken,
+            idToken: mockTokens.idToken ?? null,
+            refreshToken: mockTokens.refreshToken ?? null,
+          },
+        }),
       )
       const clearedState = authReducer(authenticatedState, clearAuthSession())
-      expect(clearedState.user).toBeNull()
-      expect(clearedState.tokens).toBeNull()
+      expect(clearedState.currentUser).toBeNull()
+      expect(clearedState.tokens.accessToken).toBeNull()
       expect(clearedState.isAuthenticated).toBe(false)
       expect(clearedState.status).toBe('unauthenticated')
     })

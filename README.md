@@ -59,6 +59,9 @@ npm run test:coverage
 - Refactored auth persistence so both JWT tokens and authenticated user data are stored and cleared together via session storage.
 - `AuthProvider` now hydrates state from storage on boot, clears invalid sessions, and persists user data on login.
 - JWT expiry checks are stricter: tokens without an `exp` claim are treated as expired.
+- Candidate onboarding now routes from login based on candidate profile completeness. For `JOB_SEEKER`, incomplete profile data routes to `/profile/create`, while complete profile data routes to `/candidate/dashboard`. The old active `/portal` hop was removed because it amplified auth hydration races and caused occasional redirects back to `/login` despite successful login and `/auth/me` responses.
+- `ProtectedRoute` and `RoleGuard` now use persisted session storage as a temporary fallback during auth hydration so protected candidate routes do not flicker or bounce on first render.
+- Public auth routes now include `/login` and `/reset-password`. The reset-password page is reached through the public login flow, not a protected shell.
 
 ### Public/Candidate Layout and Navigation
 
@@ -132,8 +135,8 @@ flowchart TD
 
     E --> E1[PublicLayout]
     E1 --> E2["/login"]
+    E1 --> E3["/reset-password"]
 
-    F --> G[PortalRoute]
     F --> H[CandidateLayout]
     F --> I[RecruiterLayout]
     F --> J[MancoLayout]
@@ -142,6 +145,7 @@ flowchart TD
 
     H --> H1["/jobs"]
     H --> H2["/profile"]
+    H --> H3["/profile/create"]
     I --> I1["/recruiter"]
     I --> I2["PermissionGuard to /crm"]
     J --> J1["RoleGuard to /manco"]
@@ -162,7 +166,7 @@ flowchart TD
     O --> O3[candidateApi.ts]
     O --> O4[mandateApi.ts]
     O --> O5[crmApi.ts]
-    O --> O6[dashboardApi.ts]
+    O --> O6[jobsApi.ts / crmApi.ts / mandateApi.ts]
 
     C --> P[Workflow Service]
     P --> P1[workflow.config.ts]
@@ -323,6 +327,7 @@ routes/
 | Path | Access | Layout | Target Page |
 | --- | --- | --- | --- |
 | `/login` | Public | `PublicLayout` | `LoginPage` |
+| `/reset-password` | Public | `PublicLayout` | `ResetPasswordPage` |
 | `/jobs` | Authenticated | `CandidateLayout` | `JobsPage` |
 | `/profile` | Authenticated | `CandidateLayout` | `ProfilePage` |
 | `/recruiter` | Authenticated | `RecruiterLayout` | `RecruiterPage` |

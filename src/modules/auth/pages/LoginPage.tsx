@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Alert,
   Box,
@@ -7,20 +7,25 @@ import {
   Typography,
 } from "@mui/material";
 import { useGoogleLogin, type TokenResponse } from "@react-oauth/google";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/app/auth/AuthContext";
 import { useZodForm } from "@/hooks/useZodForm";
 import AuthHero from "@/modules/auth/components/AuthHero";
 import AuthPasswordField from "@/modules/auth/components/AuthPasswordField";
+import ChangePasswordModal from "@/modules/candidate/components/ChangePasswordModal";
+import { roleToDefaultRoute } from "@/routes/roleDefaultRoutes";
 import { loginSchema, type LoginFormValues } from "@/modules/auth/types";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import { authApi, mapLoginResponseToSession } from "@/services/api/authApi";
+import { candidateApi } from "@/services/api/candidateApi";
+import { isCandidateProfileCompleteForOnboarding } from "@/modules/candidate/utils/profileCompleteness";
 import googleLogoUrl from "@/assets/public-layout/google-logo.png";
 import styles from "./LoginPage.module.css";
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { login, isAuthenticated, user } = useAuth();
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [googleAuthError, setGoogleAuthError] = useState<string | null>(null);
   const [pendingGoogleAuth, setPendingGoogleAuth] = useState(false);
@@ -38,6 +43,57 @@ const LoginPage = () => {
     },
   });
   const passwordValue = watch("password");
+  const usernameValue = watch("username");
+  const isForgotPasswordModalOpen = searchParams.get("forgot-password") === "1";
+
+  const handleForgotPasswordClose = () => {
+    const nextSearchParams = new URLSearchParams(searchParams);
+    nextSearchParams.delete("forgot-password");
+    setSearchParams(nextSearchParams, { replace: true });
+  };
+
+  useEffect(() => {
+    if (!isAuthenticated || !user) {
+      return;
+    }
+
+    let isActive = true;
+
+    const routeAuthenticatedUser = async () => {
+      if (user.role !== "JOB_SEEKER") {
+        navigate(roleToDefaultRoute[user.role], { replace: true });
+        return;
+      }
+
+      try {
+        const profile = await candidateApi.getById(user.userId);
+        if (!isActive) {
+          return;
+        }
+
+        const isProfileComplete = isCandidateProfileCompleteForOnboarding(profile);
+        navigate(
+          isProfileComplete
+            ? roleToDefaultRoute[user.role]
+            : ROUTE_PATHS.profileCreation,
+          { replace: true },
+        );
+      } catch {
+        if (!isActive) {
+          return;
+        }
+
+        // Fallback to the default route if profile fetch fails.
+        navigate(roleToDefaultRoute[user.role], { replace: true });
+      }
+    };
+
+    void routeAuthenticatedUser();
+
+    return () => {
+      isActive = false;
+    };
+  }, [isAuthenticated, navigate, user]);
 
   const handleGoogleAuthSuccess = async (tokenResponse: TokenResponse) => {
     try {
@@ -45,8 +101,8 @@ const LoginPage = () => {
       const response = await authApi.exchangeGoogleToken({
         accessToken: tokenResponse.access_token,
       });
-      login(mapLoginResponseToSession(response));
-      navigate(ROUTE_PATHS.portal, { replace: true });
+      const session = await mapLoginResponseToSession(response);
+      login(session);
     } catch {
       setGoogleAuthError("Google sign-in failed. Please try again.");
     } finally {
@@ -83,8 +139,8 @@ const LoginPage = () => {
       setSubmitError(null);
 
       const response = await authApi.login(values);
-      login(mapLoginResponseToSession(response));
-      navigate(ROUTE_PATHS.portal, { replace: true });
+      const session = await mapLoginResponseToSession(response);
+      login(session);
     } catch {
       setSubmitError("Login failed. Check your credentials and try again.");
     }
@@ -92,6 +148,12 @@ const LoginPage = () => {
 
   return (
     <Box className={styles.pageRoot}>
+      <ChangePasswordModal
+        open={isForgotPasswordModalOpen}
+        prefillEmail={usernameValue}
+        onClose={handleForgotPasswordClose}
+        mode="reset"
+      />
       <AuthHero
         headline="Where talent meets opportunity."
         headlineClassName={styles.heroHeadlineOverride}
@@ -142,6 +204,17 @@ const LoginPage = () => {
           >
             {isSubmitting ? "Signing in..." : "Log In"}
           </Button>
+
+          <Box className={styles.forgotPasswordRow}>
+            <Typography
+              component={Link}
+              to="?forgot-password=1"
+              replace
+              className={styles.forgotPasswordLink}
+            >
+              Forgot password?
+            </Typography>
+          </Box>
 
           <Button
             type="button"

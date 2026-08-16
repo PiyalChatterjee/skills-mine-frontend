@@ -20,8 +20,8 @@
   margin: 0;
   color: #03478c;
   font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 22px;
-  font-weight: 700;
+  font-size: 19px;
+  font-weight: 500;
   line-height: 1.3;
 }
 
@@ -35,13 +35,13 @@
 
 .filterChip:global(.MuiButtonBase-root),
 .searchField {
-  height: 26px;
+  height: 33px;
   border: 1px solid #9cc5df;
-  border-radius: 6px;
-  background: #f7f7f7;
+  border-radius: 999px;
+  background: #ffffff;
   color: #7f8b95;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1;
 }
 
@@ -58,27 +58,100 @@
   align-items: center;
   gap: 6px;
   padding: 0 10px;
-  min-width: 180px;
+  min-width: 23rem;
   flex: 0 1 180px;
 }
 
-.filterChipIcon {
-  display: inline-flex;
+.filterChipActive:global(.MuiButtonBase-root) {
+  background: #e8f4fc;
+  border-color: #4da6d8;
+  color: #1a7abd;
+}
+
+.filterChipSvgIcon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: inherit;
+}
+
+/* Filter dropdown popover */
+.filterDropdownPaper:global(.MuiPaper-root) {
+  min-width: 192px;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.1);
+  padding: 8px 0;
+  margin-top: 4px;
+  background: #ffffff;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.filterDropdownItem {
+  display: flex;
   align-items: center;
-  justify-content: center;
-  width: 12px;
-  min-width: 12px;
-  color: #93a0aa;
-  font-size: 11px;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 18px 8px 16px;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  box-sizing: border-box;
+  user-select: none;
+}
+
+.filterDropdownItem:hover {
+  background: #f5f8fb;
+}
+
+.filterCheckboxIcon {
+  flex-shrink: 0;
+  display: inline-block;
+  width: 18px;
+  min-width: 18px;
+  height: 18px;
+  border: 1.5px solid #c8d0d8;
+  border-radius: 3px;
+  background: #ffffff;
+  box-sizing: border-box;
+}
+
+.filterCheckboxIconChecked {
+  border-color: #4da6d8;
+  background: #4da6d8;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18'%3E%3Cpath d='M3.5 9l3.5 3.5 7-7' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 14px 14px;
+}
+
+.filterDropdownLabel {
+  color: #2e3a47;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.searchInput {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #2e3a47;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 14px;
   line-height: 1;
 }
 
-.searchPlaceholder,
-:global(.MuiTypography-root).searchPlaceholder {
+.searchInput::placeholder {
   color: #9aa5ad;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 12px;
-  line-height: 1;
+}
+
+/* remove the browser-native ✕ clear button on type=search */
+.searchInput::-webkit-search-cancel-button {
+  -webkit-appearance: none;
 }
 
 .tableWrap {
@@ -116,24 +189,14 @@
 
 .headerCell,
 :global(.MuiTypography-root).headerCell {
-  color: #1f66a3;
+  color: #03478c;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
+  font-size: 12px;
+  font-weight: 400;
   line-height: 1.2;
 }
 
 /* NAME column — bold, dark; clickable button variant */
-.cellName,
-:global(.MuiTypography-root).cellName {
-  color: #1a1a2e;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 13px;
-  font-weight: 700;
-  line-height: 1.35;
-}
-
 .cellNameBtn:global(.MuiButtonBase-root) {
   color: #03478c;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
@@ -178,16 +241,6 @@
 .cellLocation,
 :global(.MuiTypography-root).cellLocation {
   color: #7a8590;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 13px;
-  font-weight: 400;
-  line-height: 1.35;
-}
-
-/* fallback — kept for any other cell uses */
-.cellValue,
-:global(.MuiTypography-root).cellValue {
-  color: #4d4d4d;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
   font-size: 13px;
   font-weight: 400;
@@ -252,7 +305,7 @@
   .pageTitle,
   :global(.MuiTypography-root).pageTitle,
   :global(.MuiTypography-root).pageTitle.pageTitle {
-    font-size: 20px;
+    font-size: 18px;
   }
 
   .filterChip:global(.MuiButtonBase-root),

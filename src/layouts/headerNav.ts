@@ -54,7 +54,7 @@ const HEADER_NAV_DEFINITIONS: Record<HeaderNavKey, HeaderNavDefinition> = {
   },
   dashboard: {
     label: 'Dashboard',
-    to: ROUTE_PATHS.portal,
+    to: ROUTE_PATHS.candidateDashboard,
     requiresAuth: true,
   },
   skillsBuild: {
@@ -76,7 +76,8 @@ const HEADER_NAV_DEFINITIONS: Record<HeaderNavKey, HeaderNavDefinition> = {
   },
   candidateSavedJobPosts: {
     label: 'Saved Job Posts',
-    actionId: 'savedJobPosts',
+    to: ROUTE_PATHS.savedJobs,
+    requiresAuth: true,
   },
   candidateCvBuilder: {
     label: 'CV Builder',

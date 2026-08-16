@@ -265,12 +265,6 @@
     box-shadow: none;
 }
 
-.heroCta:global(.MuiButton-root):global(.MuiButton-contained):hover {
-    background: #2B96D9;
-    color: #ffffff;
-    box-shadow: none;
-}
-
 .heroCtaGroup {
     display: flex;
     align-items: center;
@@ -294,10 +288,6 @@
     font-weight: 400;
     line-height: 1.5;
     letter-spacing: 0.1px;
-}
-
-.heroSecondaryCta:global(.MuiButton-root):global(.MuiButton-outlined):hover {
-    background: #2B96D9;
 }
 
 .metricsGrid {

@@ -1,84 +1,12 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { Alert, Box, Button, Chip, CircularProgress, Stack, Typography } from '@mui/material'
-import { useSelector } from 'react-redux'
 import { useJobs } from '@/modules/public/hooks/useJobs'
-import { useAuth } from '@/app/auth/AuthContext'
-import { useUserProfile, useSaveJob } from '@/modules/candidate/hooks/useCandidateQueries'
-import { selectSavedJobIds } from '@/store/selectors'
-import { addSavedJob, removeSavedJob } from '@/store/slices/candidateSlice'
-import { useDispatch } from 'react-redux'
-import type { AppDispatch } from '@/store'
-import type { Job } from '@/types'
-
-const BookmarkOutlineIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <path d="M5 3h14a1 1 0 0 1 1 1v17l-8-4-8 4V4a1 1 0 0 1 1-1z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-)
-
-const BookmarkFilledIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-    <path d="M5 3h14a1 1 0 0 1 1 1v17l-8-4-8 4V4a1 1 0 0 1 1-1z" />
-  </svg>
-)
+import { useOptimisticSaveJob } from '@/modules/candidate/hooks/useOptimisticSaveJob'
+import bookmarkOutlineIcon from '@/assets/icons/bookmark-outline.svg'
+import bookmarkFilledIcon from '@/assets/icons/bookmark-filled.svg'
 
 const JobsPage = () => {
-  const { user } = useAuth()
-  const dispatch = useDispatch<AppDispatch>()
-  const savedJobIds = useSelector(selectSavedJobIds)
-  const [savingIds, setSavingIds] = useState<Set<string>>(new Set())
-
-  // Hydrate saved jobs into Redux from user profile
-  useUserProfile(user?.userId)
-  const [saveJobTrigger] = useSaveJob()
-
-  const handleSave = async (job: Job) => {
-    if (savingIds.has(job.jobId)) return
-    const isCurrentlySaved = savedJobIds.has(job.jobId)
-
-    // Optimistic update
-    if (isCurrentlySaved) {
-      dispatch(removeSavedJob(job.jobId))
-    } else {
-      dispatch(addSavedJob({
-        jobId: job.jobId,
-        title: job.title,
-        company: job.company,
-        location: job.location,
-        industry: job.industry,
-        salaryRange: job.salaryRange,
-        workType: job.workType,
-        employmentType: job.employmentType,
-      }))
-    }
-
-    setSavingIds((prev) => new Set(prev).add(job.jobId))
-    try {
-      await saveJobTrigger(job.jobId).unwrap()
-    } catch {
-      // Roll back optimistic update on failure
-      if (isCurrentlySaved) {
-        dispatch(addSavedJob({
-          jobId: job.jobId,
-          title: job.title,
-          company: job.company,
-          location: job.location,
-          industry: job.industry,
-          salaryRange: job.salaryRange,
-          workType: job.workType,
-          employmentType: job.employmentType,
-        }))
-      } else {
-        dispatch(removeSavedJob(job.jobId))
-      }
-    } finally {
-      setSavingIds((prev) => {
-        const next = new Set(prev)
-        next.delete(job.jobId)
-        return next
-      })
-    }
-  }
+  const { isJobSaved, isJobSaving, toggleJobSaved } = useOptimisticSaveJob()
   const {
     data,
     isError,
@@ -123,8 +51,8 @@ const JobsPage = () => {
       ) : (
         <Stack spacing={2}>
           {jobs.map((job) => {
-            const isSaved = savedJobIds.has(job.jobId)
-            const isSaving = savingIds.has(job.jobId)
+            const isSaved = isJobSaved(job.jobId)
+            const isSaving = isJobSaving(job.jobId)
             return (
               <Box
                 key={job.jobId}
@@ -160,8 +88,16 @@ const JobsPage = () => {
                   size="small"
                   variant={isSaved ? 'contained' : 'outlined'}
                   disabled={isSaving}
-                  startIcon={isSaved ? <BookmarkFilledIcon /> : <BookmarkOutlineIcon />}
-                  onClick={() => { void handleSave(job) }}
+                  startIcon={(
+                    <Box
+                      component="img"
+                      src={isSaved ? bookmarkFilledIcon : bookmarkOutlineIcon}
+                      alt=""
+                      aria-hidden="true"
+                      sx={{ width: 18, height: 18, display: 'block' }}
+                    />
+                  )}
+                  onClick={() => { void toggleJobSaved(job.jobId) }}
                   aria-label={isSaved ? `Unsave ${job.title}` : `Save ${job.title}`}
                 >
                   {isSaving ? 'Saving...' : isSaved ? 'Saved' : 'Save'}

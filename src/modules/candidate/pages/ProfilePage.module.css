@@ -1,12 +1,8 @@
-/* ── Page root ───────────────────────────────────────────────────────────── */
-
 .pageRoot {
   background: #d6eef2;
   min-height: 100%;
   padding: 40px 80px 64px;
 }
-
-/* ── Page title ──────────────────────────────────────────────────────────── */
 
 .pageTitle,
 .pageTitle:global(.MuiTypography-root) {
@@ -20,17 +16,13 @@
   letter-spacing: 0.1px;
 }
 
-/* ── Two-column layout ───────────────────────────────────────────────────── */
-
 .layout {
   display: flex;
   align-items: flex-start;
   gap: 24px;
-  width: 912px; /* 630 form + 24 gap + 258 sidebar — exact Figma dimensions */
+  width: 912px;
   margin: 0 auto;
 }
-
-/* ── Sidebar / photo card ────────────────────────────────────────────────── */
 
 .sidebar {
   flex-shrink: 0;
@@ -39,8 +31,6 @@
   flex-direction: column;
   gap: 16px;
 }
-
-/* ── Application Status Legend ──────────────────────────────────────────── */
 
 .statusLegendCard {
   background: #ffffff;
@@ -158,8 +148,6 @@
   text-align: center;
 }
 
-/* ── Form stack (right column) ───────────────────────────────────────────── */
-
 .formStack {
   width: 630px;
   flex-shrink: 0;
@@ -167,8 +155,6 @@
   flex-direction: column;
   gap: 24px;
 }
-
-/* ── Section card ────────────────────────────────────────────────────────── */
 
 .sectionCard {
   background: #ffffff;
@@ -211,8 +197,6 @@
   letter-spacing: 0.1px;
 }
 
-/* ── Edit button ─────────────────────────────────────────────────────────── */
-
 .editButton,
 .editButton:global(.MuiButton-root) {
   width: 123px;
@@ -233,12 +217,6 @@
   gap: 8px;
 }
 
-.editButton:global(.MuiButton-root):hover {
-  background: #eef0f2;
-  box-shadow: none;
-  border-color: #2a3132;
-}
-
 .editButton:global(.MuiButton-root) :global(.MuiButton-startIcon) {
   margin-right: 0;
 }
@@ -249,14 +227,10 @@
   height: 24px;
 }
 
-/* ── Section divider ─────────────────────────────────────────────────────── */
-
 .sectionDivider:global(.MuiDivider-root) {
   border-color: #e1e3e6;
   margin: 0;
 }
-
-/* ── Fields grid (2-column) ──────────────────────────────────────────────── */
 
 .fieldsGrid {
   display: grid;
@@ -269,8 +243,6 @@
   grid-template-columns: 1fr;
   gap: 24px;
 }
-
-/* ── Field block ─────────────────────────────────────────────────────────── */
 
 .fieldBlock {
   display: flex;
@@ -292,8 +264,6 @@
   line-height: 1.5;
   letter-spacing: 0.1px;
 }
-
-/* ── Readonly input (always-enabled visual state) ────────────────────────── */
 
 .readonlyInput {
   margin: 0;
@@ -346,8 +316,6 @@
   letter-spacing: 0.1px;
 }
 
-/* ── Readonly input (filled / charcoal value) ────────────────────────────── */
-
 .readonlyInputFilled {
   margin: 0;
 }
@@ -387,8 +355,6 @@
   line-height: 1.5;
   letter-spacing: 0.1px;
 }
-
-/* ── Select input (with dropdown chevron) ────────────────────────────────── */
 
 .selectInput {
   min-height: 48px;
@@ -439,15 +405,12 @@
   display: block;
 }
 
-/* ── Education section body ──────────────────────────────────────────────── */
-
 .educationBody {
   display: flex;
   flex-direction: column;
   gap: 24px;
 }
 
-/* cert grid: single column, all rows full-width, 10px row gap (Figma: gap 10px 24px) */
 .certGrid {
   display: flex;
   flex-direction: column;
@@ -507,12 +470,11 @@
   width: 100%;
 }
 
-.addCertButton:global(.MuiButton-root):hover {
-  background: #eef0f2;
-  box-shadow: none;
+.addCertButton:global(.Mui-disabled) {
+  pointer-events: none;
+  cursor: default;
+  color: #B0B4B8;
 }
-
-/* ── Change password button ──────────────────────────────────────────────── */
 
 .changePasswordButton,
 .changePasswordButton:global(.MuiButton-root) {
@@ -531,13 +493,6 @@
   text-transform: none;
   box-shadow: none;
 }
-
-.changePasswordButton:global(.MuiButton-root):hover {
-  background: #eef0f2;
-  box-shadow: none;
-}
-
-/* ── Footer action ───────────────────────────────────────────────────────── */
 
 .footerAction {
   display: flex;
@@ -572,8 +527,6 @@
   background: #0a5aa9;
   box-shadow: none;
 }
-
-/* ── Responsive ──────────────────────────────────────────────────────────── */
 
 @media (max-width: 1100px) {
   .pageRoot {
@@ -624,15 +577,5 @@
   .sectionCardTitleGroup {
     width: auto;
     gap: 16px;
-  }
-
-  .sectionIconCircle {
-    width: 40px;
-    height: 40px;
-  }
-
-  .sectionIconCircle svg {
-    width: 40px;
-    height: 40px;
   }
 }
