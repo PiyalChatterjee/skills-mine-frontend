@@ -94,14 +94,21 @@ graph TD
     CandidateDashboard["/candidate/dashboard"]
     CvBuilder["/candidate/cv-builder"]
     ProfileCreation["/profile/create"]
-    Jobs["/jobs"]
+    Jobs["/jobs, /jobs/latest"]
+    SavedJobs["/jobs/saved"]
+    RecommendedJobs["/jobs/recommended"]
+    JobDetails["/jobs/:jobId"]
     Profile["/profile"]
 
     RecruiterLayout["RecruiterLayout"]
     Recruiter["/recruiter"]
-    NewMandate["/recruiter/new-mandate"]
+    RecruiterJobPosts["/recruiter/job-posts"]
+    NewJobPost["/recruiter/new-job-post"]
+    EditJobPost["/recruiter/edit-job-post/:mandateId"]
     MandateDetail["/recruiter/mandate/:cardId"]
     CandidateProfile["/recruiter/mandate/:cardId/candidate/:candidateId"]
+    RecruiterCandidates["/recruiter/candidates"]
+    RecruiterCandidateDetail["/recruiter/candidates/:candidateId"]
     PermGuardCRM["PermissionGuard: CRM_EDIT"]
     CRM["/crm"]
 
@@ -131,13 +138,20 @@ graph TD
     RoleGuardJobs --> CvBuilder
     RoleGuardJobs --> ProfileCreation
     CandidateLayout --> Jobs
+    CandidateLayout --> SavedJobs
+    CandidateLayout --> RecommendedJobs
+    CandidateLayout --> JobDetails
     CandidateLayout --> Profile
 
     ProtectedRoute --> RecruiterLayout
     RecruiterLayout --> Recruiter
-    RecruiterLayout --> NewMandate
+    RecruiterLayout --> RecruiterJobPosts
+    RecruiterLayout --> NewJobPost
+    RecruiterLayout --> EditJobPost
     RecruiterLayout --> MandateDetail
     RecruiterLayout --> CandidateProfile
+    RecruiterLayout --> RecruiterCandidates
+    RecruiterLayout --> RecruiterCandidateDetail
     RecruiterLayout --> PermGuardCRM
     PermGuardCRM --> CRM
 
@@ -302,7 +316,9 @@ File: [`src/services/api/axios.ts`](src/services/api/axios.ts)
 | `authApi.ts` | register, login, googleExchange, forgotPassword, changePassword, logout |
 | `candidateApi.ts` | users profile (get/update/photo), candidate dashboard, buildMyCv, resume preview/download, recommended jobs, application CV upload, application stage transition |
 | `jobsApi.ts` | list jobs (paginated), getById, save, apply, create |
-| `mandateApi.ts` | recruiter dashboard, mandate CRUD, application stage update, candidate search, ATS profile, pipeline advance, MANCO dashboard, recruiter performance |
+| `mandateApi.ts` | recruiter dashboard, legacy mandate APIs, job-post CRUD, application stage update, ATS profile, pipeline advance, MANCO dashboard, recruiter performance |
+| `industryApi.ts` | industry catalog used by the job-post industry autocomplete |
+| `recruiterCandidatesApi.ts` | recruiter candidate directory with optional list filters |
 | `crmApi.ts` | list clients, add note |
 
 ---
@@ -349,9 +365,12 @@ apiEndpoints
 ├── candidate   dashboard / buildMyCv / resumePreview / resumeDownload / recommendedJobs
 ├── applications cvUpload / stageTransition / recruiterStageUpdate
 ├── jobs        list / details / save / apply / listQueryParam / listPageParam / listLimitParam
+├── industries  list
+├── candidates  list
 ├── recruiter   dashboard / mandates / candidatesSearch / mandateDetail / candidateProfile
 ├── pipeline    stageUpdate
 ├── manco       dashboard / recruiterPerformance
+├── jobPosts    list / create / detail / update / delete
 └── crm         clients / clientNotes / statusParam
 ```
 
@@ -365,6 +384,7 @@ graph LR
         auth["auth slice\nauthSlice.ts"]
         permission["permission slice\npermissionSlice.ts"]
         recruiterPipeline["recruiterPipeline slice\nrecruiterPipelineSlice.ts"]
+        candidate["candidate slice\ncandidateSlice.ts"]
         ui["ui slice\nuiSlice.ts"]
         notification["notification slice\nnotificationSlice.ts"]
         api["RTK Query cache\napiSlice.ts"]
@@ -375,6 +395,7 @@ graph LR
 
     Pages -->|"useSelector / useDispatch"| auth
     Pages -->|"useSelector / useDispatch"| recruiterPipeline
+    Pages -->|"useSelector / useDispatch\n(saved and recommended job IDs)"| candidate
     Pages -->|"useSelector / useDispatch"| ui
     Pages -->|"useDispatch (pushNotification)"| notification
     Pages -->|"useGetCandidateProfileQuery\nuseGetCandidateDashboardQuery\nuseLazyListJobsPageQuery"| api
@@ -389,9 +410,10 @@ graph LR
 | `auth` | Legacy auth flags | — |
 | `permission` | Permission token set | — |
 | `recruiterPipeline` | Recruiter mock pipeline state (mandates, candidates, stage counts) | `selectMandate`, `moveCandidateToStage`, `addRecruiterNote`, `addDocument` |
+| `candidate` | Candidate dashboard identity, saved job IDs, recommended job IDs, CV/profile flags | `setSavedJobs`, `addSavedJob`, `removeSavedJob`, `setRecommendedJobs` |
 | `ui` | Landing mode toggle (candidate vs recruiter) | `setLandingMode` |
 | `notification` | Toast notification queue | `pushNotification`, `dismissNotification` |
-| `api` (RTK Query) | Server cache for profile, dashboard, jobs | auto-generated hooks |
+| `api` (RTK Query) | Server cache for candidate profile/dashboard, user profile, skills, CV state, and paginated jobs | auto-generated hooks |
 
 ### RTK Query Endpoints
 
@@ -401,6 +423,10 @@ graph LR
 | `getCandidateDashboard()` | `CandidateDashboard:SELF` | CandidateDashboardPage |
 | `updateCandidateProfile({userId, payload})` | Invalidates profile + dashboard | ProfilePage save |
 | `listJobsPage({searchQuery, page, pageSize})` | `Jobs:{query}:{page}:{pageSize}` | LandingPage, JobsPage |
+| `getUserProfile(userId)` | `UserProfile:{userId}` | Candidate saved/recommended job state |
+| `saveJob({userId, savedJobs})` | Invalidates `UserProfile:{userId}` | Optimistic save/unsave from job cards and details |
+| `searchSkills({keyword, userId})` | `Skills:{keyword}` | Profile skills search |
+| `getBuildMyCv()` / CV mutations | `BuildMyCv:SELF` | CV builder state and save/update |
 
 ---
 
@@ -417,7 +443,7 @@ src/
 ├── layouts/                Layout shells per role (PublicLayout, CandidateLayout, RecruiterLayout, etc.)
 ├── modules/                Feature modules (one directory per domain)
 │   ├── auth/               Login, Signup pages + form types
-│   ├── candidate/          Dashboard, Profile, Jobs pages + hooks + services + types
+│   ├── candidate/          Dashboard, Profile, Jobs feeds, Job Details + hooks + services + types
 │   ├── crm/                CRM page (clients list + note creation)
 │   ├── cv-builder/         Multi-step CV builder, preview, review + hooks
 │   ├── dashboard/          Admin dashboard entry placeholder
@@ -426,7 +452,7 @@ src/
 │   ├── mandates/           Mandate-related types
 │   ├── pipeline/           Pipeline types
 │   ├── public/             Landing page, sign-up drawers, public jobs search hooks
-│   ├── recruiter/          Recruiter dashboard, mandate detail, new mandate, candidate profile
+│   ├── recruiter/          Recruiter dashboard, job-post CRUD, mandate detail, candidate directory and profile views
 │   ├── reports/            Reports placeholder
 │   └── skills-builder/     Skills builder placeholder
 ├── routes/                 Route definitions, guards (ProtectedRoute, RoleGuard, PermissionGuard)
@@ -539,6 +565,7 @@ All variables are declared in [`src/vite-env.d.ts`](src/vite-env.d.ts) and resol
 | `VITE_JOBS_QUERY_PARAM` | Search query param name | `q` |
 | `VITE_JOBS_PAGE_PARAM` | Page param name | `page` |
 | `VITE_JOBS_LIMIT_PARAM` | Limit param name | `limit` |
+| `VITE_INDUSTRIES_LIST_ENDPOINT` | GET industry catalog | `/industries` |
 | `VITE_SKILLS_SEARCH_ENDPOINT` | GET skills search | `/skills/search` |
 | `VITE_RECRUITER_DASHBOARD_ENDPOINT` | GET recruiter dashboard | `/recruiter/dashboard` |
 | `VITE_RECRUITER_MANDATES_ENDPOINT` | GET/POST mandates | `/recruiter/mandates` |
@@ -547,6 +574,12 @@ All variables are declared in [`src/vite-env.d.ts`](src/vite-env.d.ts) and resol
 | `VITE_MANDATE_DETAIL_ENDPOINT` | GET mandate detail | `/mandates/:mandateId` |
 | `VITE_APPLICATION_STAGE_TRANSITION_ENDPOINT` | GET stage transition | `/applications/:applicationId/stage-transition` |
 | `VITE_RECRUITER_CANDIDATE_PROFILE_ENDPOINT` | GET ATS candidate profile | `/v1/candidates/:candidateId/profile` |
+| `VITE_CANDIDATES_LIST_ENDPOINT` | GET recruiter candidate directory | `/candidates` |
+| `VITE_JOB_POSTS_ENDPOINT` | GET job posts | `/job-posts` |
+| `VITE_JOB_POST_CREATE_ENDPOINT` | POST job post | `/job-posts` |
+| `VITE_JOB_POST_DETAIL_ENDPOINT` | GET job post | `/job-posts/:mandateId` |
+| `VITE_JOB_POST_UPDATE_ENDPOINT` | PUT job post | `/job-posts/:mandateId` |
+| `VITE_JOB_POST_DELETE_ENDPOINT` | DELETE job post | `/job-posts/:mandateId` |
 | `VITE_PIPELINE_STAGE_UPDATE_ENDPOINT` | PATCH pipeline stage | `/v1/pipeline/:pipelineId/stage` |
 | `VITE_MANCO_DASHBOARD_ENDPOINT` | GET MANCO dashboard | `/v1/manco/:mancoId/dashboard` |
 | `VITE_MANCO_RECRUITER_PERFORMANCE_ENDPOINT` | GET recruiter performance | `/v1/manco/recruiters/:id/performance` |
@@ -582,7 +615,7 @@ flowchart TD
 
 ### RTK Query + Axios coexistence
 
-RTK Query is used for the three most frequently cached entities (candidate profile, candidate dashboard, jobs list). Direct Axios service calls are used everywhere else. This avoids over-caching entities like mandate submission or CRM notes while still getting automatic cache invalidation on profile saves.
+RTK Query owns the server-state cache for candidate profile/dashboard data, user profile data, skills, CV state, and paginated jobs. Direct Axios service calls are used for the remaining domain operations. Candidate save/unsave actions update the candidate slice optimistically and persist the complete saved-job ID list through the user-profile mutation.
 
 ### Session-only token storage
 

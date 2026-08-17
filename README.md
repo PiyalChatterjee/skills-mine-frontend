@@ -68,6 +68,21 @@ npm run test:coverage
 - Candidate layout now uses shared public header/footer composition.
 - Header navigation is generated from role-aware presets and supports protected links that redirect unauthenticated users to login.
 - Added profile menu behavior (profile settings + sign out), notification affordance, and improved logo routing for authenticated users.
+- Candidate navigation now exposes the dashboard, latest opportunities, saved jobs, recommended jobs, profile, and CV builder destinations. Jobs-feed back navigation returns to the candidate dashboard.
+
+### Candidate Dashboard and Jobs
+- Added the candidate dashboard view with summary metrics, application activity, profile completion/build-CV actions, and recommended-job navigation.
+- Added latest, saved, and recommended jobs feeds plus job details navigation.
+- Jobs feeds support debounced search with a three-character minimum, paginated infinite scrolling for latest jobs, and empty/loading/error states.
+- Added optimistic save/unsave behavior for job cards and job details. Saved job IDs and recommended job IDs are kept in the candidate Redux slice and hydrated from candidate dashboard/profile responses.
+
+### Recruiter Job Posts and Candidates
+
+- Added recruiter job-post list, creation, editing, detail, and deletion flows. Job-post endpoints are configured independently from the legacy recruiter mandate endpoints.
+- Added industry catalog loading with autocomplete support in the job-post form.
+- Added a recruiter candidate directory and dedicated candidate detail screen.
+- Recruiter paths are now `/recruiter/job-posts`, `/recruiter/new-job-post`, `/recruiter/edit-job-post/:mandateId`, `/recruiter/candidates`, and `/recruiter/candidates/:candidateId`.
+- The former `/recruiter/mandates` and `/recruiter/new-mandate` frontend paths are replaced by the job-post paths above.
 
 ### Form UX and Validation
 
@@ -143,11 +158,14 @@ flowchart TD
     F --> K[ExcoLayout]
     F --> L[AdminLayout]
 
-    H --> H1["/jobs"]
-    H --> H2["/profile"]
-    H --> H3["/profile/create"]
+    H --> H1["/candidate/dashboard"]
+    H --> H2["/jobs/latest, /jobs/saved, /jobs/recommended"]
+    H --> H3["/jobs/:jobId"]
+    H --> H4["/profile, /profile/create, /candidate/cv-builder"]
     I --> I1["/recruiter"]
-    I --> I2["PermissionGuard to /crm"]
+    I --> I2["/recruiter/job-posts and job-post editor"]
+    I --> I3["/recruiter/candidates and candidate detail"]
+    I --> I4["PermissionGuard to /crm"]
     J --> J1["RoleGuard to /manco"]
     K --> K1["RoleGuard to /exco"]
     L --> L1["RoleGuard to /dashboard"]
@@ -237,6 +255,7 @@ Redux is used for global cross-cutting UI and identity state:
 
 - `authSlice`: session state
 - `permissionSlice`: granted permissions
+- `candidateSlice`: candidate dashboard identity, saved job IDs, recommended job IDs, and CV/profile flags
 - `uiSlice`: layout/global loading/theme preference state
 - `notificationSlice`: global notification queue
 
@@ -260,7 +279,7 @@ Rule of thumb:
 - `axios.ts` creates the shared client and interceptors.
 - `authApi.ts`, `candidateApi.ts`, `mandateApi.ts`, `crmApi.ts`, `dashboardApi.ts` define typed request/response contracts.
 
-`store/api/apiSlice.ts` composes these service contracts into cache-aware, generated RTK Query hooks for page-level consumption.
+`store/api/apiSlice.ts` composes these service contracts into cache-aware, generated RTK Query hooks for page-level consumption. Candidate dashboard/profile data and paginated jobs are consumed through RTK Query; saved-job updates use the candidate profile mutation and invalidate the relevant user-profile cache.
 
 There is no business logic in this layer yet. That is deliberate.
 
@@ -328,9 +347,23 @@ routes/
 | --- | --- | --- | --- |
 | `/login` | Public | `PublicLayout` | `LoginPage` |
 | `/reset-password` | Public | `PublicLayout` | `ResetPasswordPage` |
+| `/candidate/dashboard` | Authenticated + `JOB_SEEKER` | `CandidateLayout` | `CandidateDashboardPage` |
+| `/candidate/cv-builder` | Authenticated + `JOB_SEEKER` | `CandidateLayout` | `CvBuilderPage` |
+| `/profile/create` | Authenticated + `JOB_SEEKER` | `CandidateLayout` | `ProfileCreationPage` |
 | `/jobs` | Authenticated | `CandidateLayout` | `JobsPage` |
+| `/jobs/:jobId` | Authenticated | `CandidateLayout` | `JobDetailsPage` |
+| `/jobs/latest` | Authenticated | `CandidateLayout` | `LatestJobsPage` |
+| `/jobs/saved` | Authenticated | `CandidateLayout` | `SavedJobsPage` |
+| `/jobs/recommended` | Authenticated | `CandidateLayout` | `RecommendedJobsPage` |
 | `/profile` | Authenticated | `CandidateLayout` | `ProfilePage` |
 | `/recruiter` | Authenticated | `RecruiterLayout` | `RecruiterPage` |
+| `/recruiter/job-posts` | Authenticated | `RecruiterLayout` | `RecruiterMandatesPage` |
+| `/recruiter/new-job-post` | Authenticated | `RecruiterLayout` | `NewMandatePage` |
+| `/recruiter/edit-job-post/:mandateId` | Authenticated | `RecruiterLayout` | `EditMandatePage` |
+| `/recruiter/mandate/:cardId` | Authenticated | `RecruiterLayout` | `MandateDetailPage` |
+| `/recruiter/mandate/:cardId/candidate/:candidateId` | Authenticated | `RecruiterLayout` | `CandidateProfilePage` |
+| `/recruiter/candidates` | Authenticated | `RecruiterLayout` | `CandidatesPage` |
+| `/recruiter/candidates/:candidateId` | Authenticated | `RecruiterLayout` | `CandidateDetailPage` |
 | `/crm` | Authenticated + `CRM_VIEW` | `RecruiterLayout` | `CrmPage` |
 | `/manco` | Role: `manco` or `admin` | `MancoLayout` | `MancoPage` |
 | `/exco` | Role: `exco` or `admin` | `ExcoLayout` | `ExcoPage` |
