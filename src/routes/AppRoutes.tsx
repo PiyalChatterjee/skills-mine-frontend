@@ -69,6 +69,9 @@ const CandidateDetailPage = lazy(
 const RecruiterCrmPage = lazy(
   () => import("@/modules/recruiter/pages/RecruiterCrmPage"),
 );
+const RecruiterMancoPage = lazy(
+  () => import("@/modules/recruiter/pages/RecruiterMancoPage"),
+);
 const CrmPage = lazy(() => import("@/modules/crm/pages/CrmPage"));
 const MancoPage = lazy(() => import("@/modules/manco/pages/MancoPage"));
 const ExcoPage = lazy(() => import("@/modules/exco/pages/ExcoPage"));
@@ -159,6 +162,10 @@ export const AppRoutes = () => {
             <Route
               path={ROUTE_PATHS.recruiterCrm}
               element={<RecruiterCrmPage />}
+            />
+            <Route
+              path={ROUTE_PATHS.recruiterManco}
+              element={<RecruiterMancoPage />}
             />
             <Route
               element={<PermissionGuard requiredPermissions={["CRM_EDIT"]} />}

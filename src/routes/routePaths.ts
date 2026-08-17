@@ -24,5 +24,6 @@ export const ROUTE_PATHS = {
   crm: '/crm',
   recruiterCrm: '/recruiter/crm',
   manco: '/manco',
+  recruiterManco: '/recruiter/manco',
   exco: '/exco',
 } as const
