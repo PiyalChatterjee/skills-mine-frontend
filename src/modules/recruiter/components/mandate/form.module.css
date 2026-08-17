@@ -218,6 +218,48 @@
   background: #f0f8ff;
 }
 
+/* ── Industry autocomplete ────────────────────────────────────────────── */
+.industryAutocompleteWrap {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+}
+
+.industryDropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 100;
+  min-width: 220px;
+  max-height: 224px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 4px 0;
+  list-style: none;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.industryOption {
+  padding: 8px 14px;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 14px;
+  color: #1f2328;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.industryOption:hover {
+  background: #f0f8ff;
+}
+
+.industryOptionActive {
+  background: #e8f4fc;
+  color: #2B96D9;
+}
+
 /* ── Job board cards ──────────────────────────────────────────────────── */
 .jobBoardGrid {
   display: flex;
@@ -259,29 +301,4 @@
   color: #57606a;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
   font-size: 16px;
-}
-
-/* ── Bullet textarea preview ─────────────────────────────────────────── */
-.bulletPreview {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 12px 14px;
-  border: 1px solid #d1d5db;
-  border-top: none;
-  border-radius: 0 0 8px 8px;
-  background: #f9fafb;
-}
-
-.bulletItem {
-  display: flex;
-  gap: 8px;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 13px;
-  color: #57606a;
-}
-
-.bulletDot {
-  color: #9ca3af;
-  flex-shrink: 0;
 }

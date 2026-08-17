@@ -117,6 +117,12 @@ export const apiEndpoints = {
     listPageParam: withDefault(import.meta.env.VITE_JOBS_PAGE_PARAM, "page"),
     listLimitParam: withDefault(import.meta.env.VITE_JOBS_LIMIT_PARAM, "limit"),
   },
+  industries: {
+    list: withDefault(
+      import.meta.env.VITE_INDUSTRIES_LIST_ENDPOINT,
+      "/industries",
+    ),
+  },
   skills: {
     search: withDefault(
       import.meta.env.VITE_SKILLS_SEARCH_ENDPOINT,
@@ -129,6 +135,12 @@ export const apiEndpoints = {
     limitParam: withDefault(
       import.meta.env.VITE_SKILLS_SEARCH_LIMIT_PARAM,
       "limit",
+    ),
+  },
+  candidates: {
+    list: withDefault(
+      import.meta.env.VITE_CANDIDATES_LIST_ENDPOINT,
+      "/candidates",
     ),
   },
   recruiter: {
@@ -167,6 +179,28 @@ export const apiEndpoints = {
     recruiterPerformance: withDefault(
       import.meta.env.VITE_MANCO_RECRUITER_PERFORMANCE_ENDPOINT,
       "/v1/manco/recruiters/:id/performance",
+    ),
+  },
+  jobPosts: {
+    list: withDefault(
+      import.meta.env.VITE_JOB_POSTS_ENDPOINT,
+      "/job-posts",
+    ),
+    create: withDefault(
+      import.meta.env.VITE_JOB_POST_CREATE_ENDPOINT,
+      "/job-posts",
+    ),
+    detail: withDefault(
+      import.meta.env.VITE_JOB_POST_DETAIL_ENDPOINT,
+      "/job-posts/:mandateId",
+    ),
+    update: withDefault(
+      import.meta.env.VITE_JOB_POST_UPDATE_ENDPOINT,
+      "/job-posts/:mandateId",
+    ),
+    delete: withDefault(
+      import.meta.env.VITE_JOB_POST_DELETE_ENDPOINT,
+      "/job-posts/:mandateId",
     ),
   },
   crm: {

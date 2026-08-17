@@ -610,3 +610,101 @@ export interface RecruiterPerformanceData {
   activeMandates: number;
   closedMandates: number;
 }
+
+// ── Candidate List (GET /candidates) ───────────────────────────────────────
+export interface CandidateListEducation {
+  institution: string
+  qualification: string
+  year: number
+}
+
+export interface CandidateListExperience {
+  company: string
+  title: string
+  from: string
+  to: string
+}
+
+export interface CandidateListDocument {
+  docId: string
+  type: string
+  uploadedAt: string
+}
+
+export interface CandidateListItem {
+  candidateId: string
+  fullName: string
+  email: string
+  phone: string
+  location: string
+  currentTitle: string
+  currentCompany: string
+  experienceYears: number
+  skills: string[]
+  education: CandidateListEducation[]
+  experience: CandidateListExperience[]
+  documents: CandidateListDocument[]
+  languages: string[]
+  profileComplete: number
+  applications: string[]
+}
+
+export interface CandidateListParams {
+  page?: number
+  limit?: number
+  search?: string
+  location?: string
+  skill?: string
+}
+
+export interface CandidateListData {
+  candidates: CandidateListItem[]
+  pagination: Pagination
+}
+
+export interface JobPost {
+  mandateId: string
+  jobId: string
+  title: string
+  client: string
+  clientId: string
+  recruiterId: string
+  recruiterName: string
+  industry: string
+  industries: string[]
+  status: 'POSTED' | 'DRAFT' | 'CLOSED' | string
+  priority: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' | string
+  openDate: string
+  targetCloseDate: string
+  salaryBand: string
+  salaryMin: number
+  salaryMax: number
+  location: string
+  workType: string
+  employmentType: string
+  experienceLevel: string
+  eeTarget: boolean
+  eeRequirement: string
+  jobDescription: string
+  requirements: string[]
+  responsibilities: string[]
+  benefits: string[]
+  skills: string[]
+  jobBoards: string[]
+  applicantCount: number
+  shortlistedCount: number
+  interviewCount: number
+  pipeline: Record<string, number>
+}
+
+export interface JobPostsParams {
+  status?: string
+  priority?: string
+  recruiterId?: string
+  search?: string
+}
+
+export interface Industry {
+  industryId: string
+  name: string
+}

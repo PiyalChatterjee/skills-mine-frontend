@@ -2,6 +2,8 @@ import { apiClient } from "@/services/api/axios";
 import { apiEndpoints, resolveEndpoint } from "@/services/api/endpoints";
 import type {
   AtsCandidateProfileData,
+  JobPost,
+  JobPostsParams,
   MancoDashboardData,
   MandateDetail,
   ManualStageUpdateData,
@@ -142,6 +144,45 @@ export const mandateApi = {
       .get<
         SuccessEnvelope<RecruiterPerformanceData>
       >(resolveEndpoint(apiEndpoints.manco.recruiterPerformance, { id: recruiterId }))
+      .then((response) => response.data);
+  },
+  createJobPost(payload: CreateMandateRequest) {
+    return apiClient
+      .post<SuccessEnvelope<{ mandateId: string }>>(
+        apiEndpoints.jobPosts.create,
+        payload,
+      )
+      .then((response) => response.data);
+  },
+
+  getJobPosts(params?: JobPostsParams) {
+    return apiClient
+      .get<SuccessEnvelope<JobPost[]>>(apiEndpoints.jobPosts.list, { params })
+      .then((response) => response.data);
+  },
+
+  getJobPostDetail(mandateId: string) {
+    return apiClient
+      .get<SuccessEnvelope<JobPost>>(
+        resolveEndpoint(apiEndpoints.jobPosts.detail, { mandateId }),
+      )
+      .then((response) => response.data);
+  },
+
+  updateJobPost(mandateId: string, payload: CreateMandateRequest) {
+    return apiClient
+      .put<SuccessEnvelope<{ mandateId: string }>>(
+        resolveEndpoint(apiEndpoints.jobPosts.update, { mandateId }),
+        payload,
+      )
+      .then((response) => response.data);
+  },
+
+  deleteJobPost(mandateId: string) {
+    return apiClient
+      .delete<SuccessEnvelope<{ mandateId: string }>>(
+        resolveEndpoint(apiEndpoints.jobPosts.delete, { mandateId }),
+      )
       .then((response) => response.data);
   },
 };
