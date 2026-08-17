@@ -43,6 +43,7 @@ export const JobsFeedPage = ({ mode }: JobsFeedPageProps) => {
   const { savedJobIds, isJobSaved, isJobSaving, toggleJobSaved } = useOptimisticSaveJob()
   const isSavedOnlyMode = mode === 'saved'
   const isRecommendedOnlyMode = mode === 'recommended'
+  const isLatestMode = !isSavedOnlyMode && !isRecommendedOnlyMode
   const recommendedJobIds = useSelector(selectRecommendedJobIds)
   const savedJobsQuery = useSavedJobsQuery(isSavedOnlyMode)
   const recommendedPositionsQuery = useRecommendedPositionsQuery(isRecommendedOnlyMode)
@@ -74,6 +75,7 @@ export const JobsFeedPage = ({ mode }: JobsFeedPageProps) => {
     shouldFilter: shouldFilterOpportunities,
     shouldUseDebouncedQuery: shouldUseApiSearch,
     debouncedSearchTerm,
+    enabled: isLatestMode,
   })
   const jobsLoadTriggerRef = useInfiniteScrollTrigger({
     enabled: !isSavedOnlyMode && !isRecommendedOnlyMode,

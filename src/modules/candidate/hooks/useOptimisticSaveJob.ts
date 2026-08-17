@@ -4,7 +4,7 @@ import { useAuth } from '@/app/auth/AuthContext'
 import { selectSavedJobIds } from '@/store/selectors'
 import { addSavedJob, removeSavedJob } from '@/store/slices/candidateSlice'
 import type { AppDispatch } from '@/store'
-import { useSavedJobsQuery, useCandidateResourceId } from './useCandidateQueries'
+import { useCandidateResourceId } from './useCandidateQueries'
 import { useSaveJobMutation, useRemoveSavedJobMutation } from '@/store/api/apiSlice'
 
 export const useOptimisticSaveJob = () => {
@@ -16,8 +16,6 @@ export const useOptimisticSaveJob = () => {
 
   const [saveJob] = useSaveJobMutation()
   const [removeSavedJobMutation] = useRemoveSavedJobMutation()
-
-  useSavedJobsQuery(Boolean(candidateId), candidateId)
 
   const isJobSaved = useCallback((jobId: string) => savedJobIds.has(jobId), [savedJobIds])
   const isJobSaving = useCallback((jobId: string) => savingIds.has(jobId), [savingIds])

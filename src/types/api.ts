@@ -258,6 +258,7 @@ export interface SavedJob {
 
 export interface UserProfile {
   userId: string;
+  authentication?: CandidateAuthentication | null;
   /** API returns an array of job ID strings */
   savedJobs: string[];
   /** API returns an array of recommended job ID strings */
@@ -403,8 +404,14 @@ export interface RecommendedJob {
   title: string;
   company: string;
   location: string;
+  industry?: string;
   workType: string;
+  employmentType?: string;
   salaryRange: string;
+  description?: string;
+  requirements?: string[];
+  responsibilities?: string[];
+  applicationCount?: number;
   matchScore: number;
   skills: string[];
   postedDate: string;
