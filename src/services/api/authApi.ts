@@ -104,6 +104,7 @@ const buildAuthUserFromCurrentUser = (
   return {
     id: currentUser.userId,
     userId: currentUser.userId,
+    candidateId: currentUser.candidateId ?? payload?.candidateId ?? payload?.candidate_id,
     email: currentUser.email,
     firstName,
     lastName,
@@ -131,6 +132,7 @@ const buildAuthUserFromJwt = (accessToken: string): AuthUser => {
   return {
     id: payload?.userId ?? payload?.sub ?? "",
     userId: payload?.userId ?? payload?.sub ?? "",
+    candidateId: payload?.candidateId ?? payload?.candidate_id,
     email: payload?.email ?? "",
     firstName,
     lastName,

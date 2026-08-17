@@ -24,10 +24,13 @@ export const CandidateLayout = () => {
   const { isAuthenticated, tokens, user } = useAuth();
 
   useEffect(() => {
-    if (user?.userId) {
-      dispatch(fetchCandidateProfileThunk(user.userId));
+    // The session carries userId; candidateId is only known once a
+    // candidate-scoped response has been read, so fall back to userId here.
+    const resourceId = user?.candidateId ?? user?.userId;
+    if (resourceId) {
+      dispatch(fetchCandidateProfileThunk(resourceId, user?.userId));
     }
-  }, [user?.userId, dispatch]);
+  }, [user?.candidateId, user?.userId, dispatch]);
 
   const accessToken = tokens?.accessToken;
   const hasValidAccessToken = accessToken ? !isJwtExpired(accessToken) : false;

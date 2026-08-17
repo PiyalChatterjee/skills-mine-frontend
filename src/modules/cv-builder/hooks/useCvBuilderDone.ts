@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/app/auth/AuthContext";
 import {
   useSaveBuildMyCvMutation,
   useUpdateBuildMyCvMutation,
@@ -176,6 +177,7 @@ export const useCvBuilderDone = ({
 }: UseCvBuilderDoneArgs) => {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
+  const { user } = useAuth();
   const [triggerCreate, { isLoading: isCreating }] = useSaveBuildMyCvMutation();
   const [triggerUpdate, { isLoading: isUpdating }] =
     useUpdateBuildMyCvMutation();
@@ -195,8 +197,8 @@ export const useCvBuilderDone = ({
 
     try {
       const result = buildMyCvExists
-        ? await triggerUpdate(payload).unwrap()
-        : await triggerCreate(payload).unwrap();
+        ? await triggerUpdate({ candidateId: user?.candidateId ?? "", payload }).unwrap()
+        : await triggerCreate({ candidateId: user?.candidateId ?? "", payload }).unwrap();
 
       dispatch(setBuildMyCvExists(true));
       dispatch(

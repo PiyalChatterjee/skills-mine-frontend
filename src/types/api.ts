@@ -24,15 +24,21 @@ export interface PersonalDetails {
   firstName: string;
   lastName: string;
   email: string;
-  mobileNumber: string;
-  location: string;
-  nationality: string;
-  idNumber: string;
-  eeStatus: string;
-  profileImageUrl: string;
-  thumbnailUrl: string;
-  linkedinUrl: string;
-  portfolioUrl: string;
+  mobileNumber?: string;
+  race?: string;
+  gender?: string;
+  disabilityStatus?: string;
+  nationality?: string;
+  location?: string;
+  currentCompany?: string;
+  currentPosition?: string;
+  noticePeriod?: string;
+  idNumber?: string;
+  eeStatus?: string | null;
+  profileImageUrl?: string;
+  thumbnailUrl?: string;
+  linkedinUrl?: string;
+  portfolioUrl?: string;
 }
 
 export interface DesiredJob {
@@ -63,6 +69,8 @@ export interface CandidateEducation {
 export interface ProfileEducation {
   certifications: string[];
   highestEarned: string;
+  tertiary?: Array<Record<string, unknown>>;
+  secondary?: Record<string, unknown> | null;
 }
 
 export interface CandidateExperience {
@@ -81,6 +89,8 @@ export interface CandidateLanguage {
 export interface CandidateProfile {
   candidateId?: string;
   userId: string;
+  accountStatus?: string;
+  profileCompleted?: number;
   personalDetails: PersonalDetails;
   desiredJob: DesiredJob;
   education: ProfileEducation | null;
@@ -88,18 +98,34 @@ export interface CandidateProfile {
   skills: string[];
   languages: CandidateLanguage[];
   authentication?: CandidateAuthentication | null;
+  applications?: CandidateApplication[];
+  savedJobs?: string[];
+  recommendedJobs?: string[];
+  resume?: ResumeRef | null;
+}
+
+export interface ResumeRef {
+  resumeId: string;
+  previewUrl: string;
+  downloadUrl: string;
+  updatedAt: string;
 }
 
 export interface CandidateProfileResponse {
   status: string;
   data: {
+    candidateId?: string;
     userId?: string;
-    savedJobs?: string[];
+    accountStatus?: string;
+    profileCompleted?: number;
+    savedJobs?: Array<string | { jobId: string }>;
     recommendedJobs?: string[];
     personalDetails: PersonalDetails & { userId: string };
     desiredJob: DesiredJob;
     education: ProfileEducation | null;
     experience: CandidateExperience[];
+    applications?: CandidateApplication[];
+    resume?: ResumeRef | null;
     skills?: string[];
     languages?: CandidateLanguage[];
     authentication?: CandidateAuthentication;
@@ -145,7 +171,6 @@ export interface DashboardApplication {
   stage: string;
   statusMessage: string;
   pipeline: string[];
-  isOfferAccepted?: boolean;
 }
 
 export interface CandidateDashboardData {
@@ -156,6 +181,30 @@ export interface CandidateDashboardData {
   applications: DashboardApplication[];
   quickLinks: string[];
 }
+
+export type CandidateDashboardQuery = {
+  page?: number;
+  size?: number;
+  status?: "SUBMITTED" | "ACTIVE" | "ON_HOLD";
+};
+
+export type CandidatePipelineStage =
+  | "APPLIED"
+  | "SCREENING"
+  | "ASSESSMENT"
+  | "INTERVIEW"
+  | "SHORTLISTED"
+  | "OFFER";
+
+export type CandidateInternalStage =
+  | "Inbound"
+  | "Screening"
+  | "Assessment"
+  | "Interview"
+  | "Shortlisted"
+  | "Offer"
+  | "Placed"
+  | "Closed";
 
 export interface JobsListData {
   showEmployerDetails?: boolean;
@@ -261,6 +310,9 @@ export interface BuildMyCvState {
   education: BuildMyCvEducationSection;
   languages: CandidateLanguage[];
   validation: string[];
+  extractionStatus?: string;
+  createdAt?: string | null;
+  lastModified?: string | null;
 }
 
 export interface SaveBuildMyCvRequest {
@@ -291,6 +343,11 @@ export interface ApplyJobResponse {
   matchScore: number;
   status: string;
   nextStep: "view_dashboard" | "account_prompt" | string;
+}
+
+export interface SaveJobRequest {
+  candidateId: string;
+  jobProfileId: string;
 }
 
 export interface BuildMyCvData {
@@ -357,6 +414,53 @@ export interface RecommendedJobsData {
   candidateId: string;
   jobs: RecommendedJob[];
   total: number;
+}
+
+export type CandidateLandingData = {
+  stats: {
+    totalJobs: number;
+    totalCandidates: number;
+    totalPlacements: number;
+  };
+  featuredJobs: Array<{
+    jobId: string;
+    title: string;
+    company: string;
+    location: string;
+    workType: string;
+    employmentType: string;
+    salaryRange?: string;
+    skills?: string[];
+    postedDate?: string;
+  }>;
+};
+
+export interface SavedJobsData {
+  candidateId: string;
+  jobs: Array<RecommendedJob & {
+    employmentType?: string;
+    savedAt?: string;
+  }>;
+  total: number;
+}
+
+export type AiActionType =
+  | "MATCH_SUMMARY"
+  | "SKILL_GAP"
+  | "CAREER_NUDGE"
+  | "SEND_MATCHED_JOBS";
+
+export interface AiAction {
+  actionId: string;
+  type: AiActionType;
+  label: string;
+  description?: string;
+  payload?: Record<string, unknown> | null;
+}
+
+export interface AiActionsData {
+  candidateId: string;
+  actions: AiAction[];
 }
 
 export interface RecruiterDashboardData {
@@ -707,4 +811,33 @@ export interface JobPostsParams {
 export interface Industry {
   industryId: string
   name: string
+}
+
+export interface SimpleCandidateProfileInput {
+  personalDetails: {
+    fullName: string;
+    email: string;
+    phoneNumber: string;
+    residentialLocation: string;
+  };
+  jobDetails: {
+    preferredJobTitle: string;
+    targetedIndustries: string;
+    preferredLocation: "REMOTE" | "HYBRID" | "ONSITE";
+    employmentType: "FULL_TIME" | "PART_TIME" | "CONTRACT" | "TEMPORARY" | "INTERNSHIP" | "FREELANCE";
+    availability: "IMMEDIATELY" | "2_WEEKS" | "1_MONTH" | "2_MONTHS" | "3_MONTHS" | "NOTICE_REQUIRED";
+  };
+  experience?: {
+    currentJobTitle?: string;
+    currentEmployer?: string;
+    totalYearsExperience?: number;
+  } | null;
+}
+
+export interface SimpleCandidateProfileResponse {
+  candidateId: string;
+  profileStatus: "INCOMPLETE" | "ACTIVE" | "INACTIVE" | "DELETED";
+  message: string;
+  createdAt?: string | null;
+  updatedAt?: string | null;
 }

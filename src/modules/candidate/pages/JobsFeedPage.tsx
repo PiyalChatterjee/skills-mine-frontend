@@ -14,6 +14,10 @@ import { selectRecommendedJobIds } from '@/store/selectors'
 import type { AppDispatch } from '@/store'
 import arrowRight from '@/assets/cv-builder/arrow-right.svg'
 import { useOptimisticSaveJob } from '../hooks/useOptimisticSaveJob'
+import {
+  useRecommendedPositionsQuery,
+  useSavedJobsQuery,
+} from '../hooks/useCandidateQueries'
 import styles from './LatestJobsPage.module.css'
 
 const toCityFromLocation = (location: string) => {
@@ -40,6 +44,8 @@ export const JobsFeedPage = ({ mode }: JobsFeedPageProps) => {
   const isSavedOnlyMode = mode === 'saved'
   const isRecommendedOnlyMode = mode === 'recommended'
   const recommendedJobIds = useSelector(selectRecommendedJobIds)
+  const savedJobsQuery = useSavedJobsQuery(isSavedOnlyMode)
+  const recommendedPositionsQuery = useRecommendedPositionsQuery(isRecommendedOnlyMode)
 
   const {
     inputValue: searchInputValue,
@@ -79,17 +85,33 @@ export const JobsFeedPage = ({ mode }: JobsFeedPageProps) => {
   })
 
   const jobsWithMatch = useMemo(() => {
-    const candidateJobs = isSavedOnlyMode
-      ? visibleJobs.filter((job) => savedJobIds.has(job.jobId))
+    const contractJobs = isSavedOnlyMode
+      ? (savedJobsQuery.data?.jobs ?? []).map((job) => ({
+          ...job,
+          industry: job.industry,
+          employmentType: job.employmentType ?? 'Permanent',
+          status: 'Open' as const,
+          applicationCount: job.applicationCount ?? 0,
+          requirements: job.requirements ?? [],
+          responsibilities: job.responsibilities ?? [],
+        }))
       : isRecommendedOnlyMode
-        ? visibleJobs.filter((job) => recommendedJobIds.has(job.jobId))
+        ? (recommendedPositionsQuery.data?.jobs ?? []).map((job) => ({
+            ...job,
+            industry: job.industry,
+            employmentType: job.employmentType ?? 'Permanent',
+            status: 'Open' as const,
+            applicationCount: job.applicationCount ?? 0,
+            requirements: job.requirements ?? [],
+            responsibilities: job.responsibilities ?? [],
+          }))
         : visibleJobs
 
-    return candidateJobs.map((job, index) => ({
+    return contractJobs.map((job, index) => ({
       ...job,
       matchScore: getMatchScore(index),
     }))
-  }, [isRecommendedOnlyMode, isSavedOnlyMode, recommendedJobIds, savedJobIds, visibleJobs])
+  }, [isRecommendedOnlyMode, isSavedOnlyMode, recommendedPositionsQuery.data, savedJobsQuery.data, visibleJobs])
 
   return (
     <Box className={styles.pageRoot}>
@@ -120,11 +142,11 @@ export const JobsFeedPage = ({ mode }: JobsFeedPageProps) => {
         </Box>
       </Box>
 
-      {isJobsError ? (
+      {(isJobsError || savedJobsQuery.isError || recommendedPositionsQuery.isError) ? (
         <Typography component="p" className={styles.feedback}>
           {jobsError?.message || 'Failed to load jobs.'}
         </Typography>
-      ) : isJobsLoading ? (
+      ) : isJobsLoading || savedJobsQuery.isLoading || recommendedPositionsQuery.isLoading ? (
         <Box className={styles.loadingState} aria-live="polite" aria-busy="true">
           <CircularProgress size={28} />
         </Box>

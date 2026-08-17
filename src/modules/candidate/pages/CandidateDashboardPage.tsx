@@ -187,18 +187,15 @@ const transformApplicationToDisplay = (
     stage: app.stage,
     pipeline: app.pipeline,
     fillPercent: getPipelineFillPercent(app.stage, app.pipeline),
-    message: APPLICATION_STATUS_CONFIG[status].caption ?? app.statusMessage,
-    offerAccepted: app.isOfferAccepted ?? false,
+    message: app.statusMessage,
+    offerAccepted: false,
   };
 };
 
 const CandidateDashboardPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { data: dashboard, isLoading } = useCandidateDashboardQuery(
-    user?.userId,
-    Boolean(user),
-  );
+  const { data: dashboard, isLoading } = useCandidateDashboardQuery(Boolean(user));
 
   const statCards = useMemo(() => {
     const summary = dashboard?.summary;

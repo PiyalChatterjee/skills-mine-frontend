@@ -7,6 +7,7 @@ import uploadIcon from "@/assets/cv-builder/upload-2-line.svg";
 import {
   useBuildMyCvQuery,
   useCandidateProfileQuery,
+  useCandidateResourceId,
 } from "@/modules/candidate/hooks/useCandidateQueries";
 import { useSelector } from "react-redux";
 import {
@@ -43,15 +44,17 @@ import CvBuilderViewCvPage from "../components/CvBuilderViewCvPage";
 const CvBuilderPage = () => {
   const { user } = useAuth();
   const userId = user?.userId;
+  const candidateId = useCandidateResourceId();
 
-  // Load existing CV Builder state from GET endpoint and hydrate Redux
-  const { isLoading: isBuildMyCvLoading } = useBuildMyCvQuery(Boolean(userId));
+  // Load the saved CV record from the CV builder endpoint (the resume store),
+  // not the profile endpoint, and hydrate Redux from it.
+  const { isLoading: isBuildMyCvLoading } = useBuildMyCvQuery(Boolean(candidateId), candidateId);
   const buildMyCvData = useSelector(selectBuildMyCv);
   const buildMyCvLoaded = useSelector(selectBuildMyCvLoaded);
   const buildMyCvExists = useSelector(selectBuildMyCvExists);
   const buildMyCvLastModified = useSelector(selectBuildMyCvLastModified);
 
-  const { data: candidateProfile } = useCandidateProfileQuery(userId);
+  const { data: candidateProfile } = useCandidateProfileQuery(candidateId, userId, Boolean(candidateId));
 
   // Prefer buildMyCv API data; fall back to candidate profile for prefill
   const cvBuilderPrefillData = useMemo(() => {

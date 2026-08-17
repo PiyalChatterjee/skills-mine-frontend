@@ -33,6 +33,10 @@ export const useJobsSearch = ({
     const mergedJobs: Job[] = [];
 
     pages.forEach((page) => {
+      if (!page || !Array.isArray(page.jobs)) {
+        return;
+      }
+
       page.jobs.forEach((job) => {
         if (seenJobIds.has(job.jobId)) {
           return;

@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useDispatch } from 'react-redux'
+import { useAuth } from '@/app/auth/AuthContext'
 import {
   useGetCandidateDashboardQuery,
   useGetCandidateProfileQuery,
@@ -7,35 +8,53 @@ import {
   useSaveJobMutation,
   useSearchSkillsQuery,
   useGetBuildMyCvQuery,
+  useGetSavedJobsQuery,
+  useGetRecommendedPositionsQuery,
   useSaveBuildMyCvMutation,
   useUpdateBuildMyCvMutation,
   useUpdateCandidateProfileMutation as useUpdateCandidateProfileRtkMutation,
 } from '@/store/api/apiSlice'
-import { setSavedJobs, setRecommendedJobs, setAvailableSkills, setBuildMyCv, setBuildMyCvExists } from '@/store/slices/candidateSlice'
+import { setSavedJobs, setRecommendedJobs, setAvailableSkills, setBuildMyCv, setBuildMyCvExists, setBuildMyCvLastModified } from '@/store/slices/candidateSlice'
 import type { CandidateProfileUpdatePayload } from '@/modules/candidate/types'
 import type { ApiError, BuildMyCvData, BuildMyCvState, SaveBuildMyCvRequest, UpdateBuildMyCvRequest } from '@/types'
 import type { AppDispatch } from '@/store'
 
+/**
+ * Identity used to address candidate-owned resources.
+ *
+ * The backend resolves the candidate from the bearer token, and `candidateId`
+ * only becomes known once a candidate-scoped response (dashboard/profile) has
+ * been read. Falling back to `userId` keeps the request cache keyed per user so
+ * candidate screens are not blocked waiting for an id the session never carries.
+ */
+export const useCandidateResourceId = (): string => {
+  const { user } = useAuth()
+  return user?.candidateId ?? user?.userId ?? ''
+}
+
+
 export const useCandidateProfileQuery = (
+  candidateId?: string,
   userId?: string,
   enabled = true,
 ) => {
-  return useGetCandidateProfileQuery(userId as string, {
-    skip: !enabled || !userId,
+  const fallbackId = useCandidateResourceId()
+  const resolvedId = candidateId || fallbackId
+
+  return useGetCandidateProfileQuery({ candidateId: resolvedId, userId }, {
+    skip: !enabled || !resolvedId,
   })
 }
 
-export const useCandidateDashboardQuery = (userId?: string, enabled = true) =>
-  useGetCandidateDashboardQuery(userId as string, { skip: !enabled || !userId })
+export const useCandidateDashboardQuery = (enabled = true) =>
+  useGetCandidateDashboardQuery({}, { skip: !enabled })
 
 type UpdateCandidateProfileVariables = {
   userId: string
   payload: CandidateProfileUpdatePayload
 }
 
-export const useUpdateCandidateProfileMutation = (
-  _options?: unknown,
-) => {
+export const useUpdateCandidateProfileMutation = () => {
   const [trigger, result] = useUpdateCandidateProfileRtkMutation()
 
   return {
@@ -82,6 +101,31 @@ export const useUserProfile = (userId?: string) => {
 
 export const useSaveJob = () => useSaveJobMutation()
 
+export const useSavedJobsQuery = (enabled = true, candidateId?: string) => {
+  const dispatch = useDispatch<AppDispatch>()
+  const fallbackId = useCandidateResourceId()
+  const resolvedId = candidateId || fallbackId
+  const result = useGetSavedJobsQuery({ candidateId: resolvedId }, { skip: !enabled || !resolvedId })
+
+  useEffect(() => {
+    if (result.data) {
+      dispatch(setSavedJobs(result.data.jobs.map((job) => job.jobId)))
+    }
+  }, [dispatch, result.data])
+
+  return result
+}
+
+export const useRecommendedPositionsQuery = (enabled = true, candidateId?: string) => {
+  const fallbackId = useCandidateResourceId()
+  const resolvedId = candidateId || fallbackId
+
+  return useGetRecommendedPositionsQuery(
+    { candidateId: resolvedId },
+    { skip: !enabled || !resolvedId },
+  )
+}
+
 // Fetches skills search results and hydrates Redux available/selected skills
 export const useSkillsSearch = (keyword: string, userId?: string, enabled = true) => {
   const dispatch = useDispatch<AppDispatch>()
@@ -97,9 +141,11 @@ export const useSkillsSearch = (keyword: string, userId?: string, enabled = true
 }
 
 // Fetches CV builder state and hydrates Redux buildMyCv slice
-export const useBuildMyCvQuery = (enabled = true) => {
+export const useBuildMyCvQuery = (enabled = true, candidateId?: string) => {
   const dispatch = useDispatch<AppDispatch>()
-  const result = useGetBuildMyCvQuery(undefined, { skip: !enabled })
+  const fallbackId = useCandidateResourceId()
+  const resolvedId = candidateId || fallbackId
+  const result = useGetBuildMyCvQuery({ candidateId: resolvedId }, { skip: !enabled || !resolvedId })
 
   useEffect(() => {
     if (result.data) {
@@ -113,6 +159,7 @@ export const useBuildMyCvQuery = (enabled = true) => {
         (data.careerHistory?.length ?? 0) > 0 ||
         (data.skills?.length ?? 0) > 0
       dispatch(setBuildMyCvExists(exists))
+      dispatch(setBuildMyCvLastModified(data.lastModified ?? null))
     }
   }, [dispatch, result.data])
 
@@ -123,9 +170,9 @@ export const useSaveBuildMyCv = () => {
   const [trigger, result] = useSaveBuildMyCvMutation()
   return {
     ...result,
-    save: async (payload: SaveBuildMyCvRequest) => {
+    save: async (candidateId: string, payload: SaveBuildMyCvRequest) => {
       try {
-        return await trigger(payload).unwrap()
+        return await trigger({ candidateId, payload }).unwrap()
       } catch (error) {
         throw mapApiError(error)
       }
@@ -137,9 +184,9 @@ export const useUpdateBuildMyCv = () => {
   const [trigger, result] = useUpdateBuildMyCvMutation()
   return {
     ...result,
-    update: async (payload: UpdateBuildMyCvRequest): Promise<BuildMyCvData> => {
+    update: async (candidateId: string, payload: UpdateBuildMyCvRequest): Promise<BuildMyCvData> => {
       try {
-        return await trigger(payload).unwrap()
+        return await trigger({ candidateId, payload }).unwrap()
       } catch (error) {
         throw mapApiError(error)
       }
