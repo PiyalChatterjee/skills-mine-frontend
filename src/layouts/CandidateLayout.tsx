@@ -1,98 +1,90 @@
-import { useEffect } from 'react'
-import { Box } from '@mui/material'
-import type { MouseEvent } from 'react'
-import { Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { useDispatch } from 'react-redux'
-import { useAuth } from '@/app/auth/AuthContext'
-import { isJwtExpired } from '@/app/auth/jwt'
+import { useEffect } from "react";
+import { Box } from "@mui/material";
+import type { MouseEvent } from "react";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { useAuth } from "@/app/auth/AuthContext";
+import { isJwtExpired } from "@/app/auth/jwt";
 import {
   buildHeaderNavItems,
   getRoleHeaderNavKeys,
   type HeaderNavActionMap,
-} from '@/layouts/headerNav'
-import { ROUTE_PATHS } from '@/routes/routePaths'
-import type { AppDispatch } from '@/store'
-import { fetchCandidateProfileThunk } from '@/store/slices/candidateThunks'
-import { PublicFooter } from './components/PublicFooter'
-import { PublicHeader } from './components/PublicHeader'
-import styles from './CandidateLayout.module.css'
+} from "@/layouts/headerNav";
+import { ROUTE_PATHS } from "@/routes/routePaths";
+import type { AppDispatch } from "@/store";
+import { fetchCandidateProfileThunk } from "@/store/slices/candidateThunks";
+import { PublicFooter } from "./components/PublicFooter";
+import { PublicHeader } from "./components/PublicHeader";
+import styles from "./CandidateLayout.module.css";
 
 export const CandidateLayout = () => {
-  const location = useLocation()
-  const navigate = useNavigate()
-  const dispatch = useDispatch<AppDispatch>()
-  const { isAuthenticated, tokens, user } = useAuth()
+  const location = useLocation();
+  const navigate = useNavigate();
+  const dispatch = useDispatch<AppDispatch>();
+  const { isAuthenticated, tokens, user } = useAuth();
 
   useEffect(() => {
     if (user?.userId) {
-      dispatch(fetchCandidateProfileThunk(user.userId))
+      dispatch(fetchCandidateProfileThunk(user.userId));
     }
-  }, [user?.userId, dispatch])
+  }, [user?.userId, dispatch]);
 
-  const accessToken = tokens?.accessToken
-  const hasValidAccessToken = accessToken ? !isJwtExpired(accessToken) : false
-  const canAccessProtectedRoutes = isAuthenticated && hasValidAccessToken
+  const accessToken = tokens?.accessToken;
+  const hasValidAccessToken = accessToken ? !isJwtExpired(accessToken) : false;
+  const canAccessProtectedRoutes = isAuthenticated && hasValidAccessToken;
 
   const handleHelpClick = () => {
     // TODO: Implement help action
-  }
+  };
 
   const handleSignUpClick = () => {
     // TODO: Implement sign-up action
-  }
+  };
 
   const handleSearchClick = () => {
     // TODO: Implement search action
-  }
-
-  const handleJobApplicationsClick = () => {
-    // TODO: Implement job applications navigation
-  }
+  };
 
   const handleSavedJobPostsClick = () => {
-    navigate(ROUTE_PATHS.savedJobs)
-  }
+    navigate(ROUTE_PATHS.savedJobs);
+  };
 
   const handleCvBuilderClick = () => {
-    navigate(ROUTE_PATHS.cvBuilder)
-  }
+    navigate(ROUTE_PATHS.cvBuilder);
+  };
 
   const handleSkillsBuildClick = () => {
     // TODO: Implement skills build navigation
-  }
+    window.open("https://skillsbuild.org/", "_blank");
+  };
 
   const handleBlogClick = () => {
     // TODO: Implement blog navigation
-  }
-
-  const handleNotificationClick = () => {
-    // TODO: Implement notifications panel
-  }
+  };
 
   const handleProtectedNavClick = (
     event: MouseEvent<HTMLAnchorElement>,
     targetPath: string,
   ) => {
     if (canAccessProtectedRoutes) {
-      return
+      return;
     }
-    event.preventDefault()
-    navigate(ROUTE_PATHS.login, { state: { from: targetPath } })
-  }
+    event.preventDefault();
+    navigate(ROUTE_PATHS.login, { state: { from: targetPath } });
+  };
 
   const candidateHeaderActions: HeaderNavActionMap = {
-    jobApplications: handleJobApplicationsClick,
     savedJobPosts: handleSavedJobPostsClick,
     cvBuilder: handleCvBuilderClick,
     skillsBuild: handleSkillsBuildClick,
     blog: handleBlogClick,
-  }
+  };
 
   const candidateNavItems = buildHeaderNavItems({
-    keys: getRoleHeaderNavKeys(user?.role ?? 'JOB_SEEKER'),
+    keys: getRoleHeaderNavKeys(user?.role ?? "JOB_SEEKER"),
     pathname: location.pathname,
     actions: candidateHeaderActions,
-  })
+  });
 
   return (
     <Box className={styles.layoutRoot}>
@@ -101,12 +93,11 @@ export const CandidateLayout = () => {
         navItems={candidateNavItems}
         onProtectedNavClick={handleProtectedNavClick}
         onHelpClick={handleHelpClick}
-        onNotificationClick={handleNotificationClick}
         onSignUpClick={handleSignUpClick}
         onSearchClick={handleSearchClick}
         showHelpButton={false}
         showSignUp={false}
-        showNotificationButton={true}
+        showNotificationButton={false}
         showProfileBadge={true}
         showSearchButton={true}
       />
@@ -117,5 +108,5 @@ export const CandidateLayout = () => {
 
       <PublicFooter showContactLink={true} />
     </Box>
-  )
-}
+  );
+};
