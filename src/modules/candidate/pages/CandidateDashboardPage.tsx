@@ -166,6 +166,7 @@ const mapStageToStatusKey = (
 
 type DisplayApplication = {
   id: string;
+  jobId: string;
   title: string;
   status: ApplicationStatusKey;
   stage: string;
@@ -182,6 +183,7 @@ const transformApplicationToDisplay = (
 
   return {
     id: app.id,
+    jobId: app.job.id,
     title: `${app.job.title} at ${app.job.company}`,
     status,
     stage: app.stage,
@@ -518,6 +520,14 @@ const CandidateDashboardPage = () => {
                           className={styles.expandButton}
                           aria-label={`View details for ${app.title}`}
                           disableRipple
+                          disabled={!app.jobId}
+                          onClick={() => {
+                            if (!app.jobId) return;
+                            navigate(
+                              ROUTE_PATHS.jobDetails.replace(":jobId", app.jobId),
+                              { state: { from: ROUTE_PATHS.candidateDashboard } },
+                            );
+                          }}
                         >
                           <Box
                             component="img"

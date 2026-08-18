@@ -14,6 +14,7 @@ import { selectRecommendedJobIds } from '@/store/selectors'
 import type { AppDispatch } from '@/store'
 import arrowRight from '@/assets/cv-builder/arrow-right.svg'
 import { useOptimisticSaveJob } from '../hooks/useOptimisticSaveJob'
+import { useAppliedJobIds } from '../hooks/useAppliedJobIds'
 import {
   useRecommendedPositionsQuery,
   useSavedJobsQuery,
@@ -41,6 +42,7 @@ export const JobsFeedPage = ({ mode }: JobsFeedPageProps) => {
   const navigate = useNavigate()
   const dispatch = useDispatch<AppDispatch>()
   const { savedJobIds, isJobSaved, isJobSaving, toggleJobSaved } = useOptimisticSaveJob()
+  const { appliedJobIds } = useAppliedJobIds()
   const isSavedOnlyMode = mode === 'saved'
   const isRecommendedOnlyMode = mode === 'recommended'
   const isLatestMode = !isSavedOnlyMode && !isRecommendedOnlyMode
@@ -120,6 +122,12 @@ export const JobsFeedPage = ({ mode }: JobsFeedPageProps) => {
     }))
   }, [isRecommendedOnlyMode, isSavedOnlyMode, recommendedPositionsQuery.data, savedJobsQuery.data, visibleJobs])
 
+  // Jobs already applied to are never offered again in any feed
+  const feedJobs = useMemo(
+    () => jobsWithMatch.filter((job) => !appliedJobIds.has(job.jobId)),
+    [appliedJobIds, jobsWithMatch],
+  )
+
   return (
     <Box className={styles.pageRoot}>
       <Box className={styles.headerRow}>
@@ -157,10 +165,10 @@ export const JobsFeedPage = ({ mode }: JobsFeedPageProps) => {
         <Box className={styles.loadingState} aria-live="polite" aria-busy="true">
           <CircularProgress size={28} />
         </Box>
-      ) : jobsWithMatch.length > 0 ? (
+      ) : feedJobs.length > 0 ? (
         <>
           <Box className={styles.cardGrid}>
-            {jobsWithMatch.map((job) => {
+            {feedJobs.map((job) => {
               const isSaved = isJobSaved(job.jobId)
               const isSaving = isJobSaving(job.jobId)
 
