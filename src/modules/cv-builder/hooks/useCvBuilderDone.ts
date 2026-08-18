@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/app/auth/AuthContext";
+import { useCandidateResourceId } from "@/modules/candidate/hooks/useCandidateQueries";
 import {
   useSaveBuildMyCvMutation,
   useUpdateBuildMyCvMutation,
@@ -177,7 +177,8 @@ export const useCvBuilderDone = ({
 }: UseCvBuilderDoneArgs) => {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
-  const { user } = useAuth();
+  // Must match the id used by the getBuildMyCv query so its cache tag is invalidated.
+  const candidateId = useCandidateResourceId();
   const [triggerCreate, { isLoading: isCreating }] = useSaveBuildMyCvMutation();
   const [triggerUpdate, { isLoading: isUpdating }] =
     useUpdateBuildMyCvMutation();
@@ -197,8 +198,8 @@ export const useCvBuilderDone = ({
 
     try {
       const result = buildMyCvExists
-        ? await triggerUpdate({ candidateId: user?.candidateId ?? "", payload }).unwrap()
-        : await triggerCreate({ candidateId: user?.candidateId ?? "", payload }).unwrap();
+        ? await triggerUpdate({ candidateId, payload }).unwrap()
+        : await triggerCreate({ candidateId, payload }).unwrap();
 
       dispatch(setBuildMyCvExists(true));
       dispatch(
@@ -237,6 +238,7 @@ export const useCvBuilderDone = ({
     activeView,
     goNext,
     buildMyCvExists,
+    candidateId,
     dispatch,
     getFormValues,
     selectedLanguageEntries,
