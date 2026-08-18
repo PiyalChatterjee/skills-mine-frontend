@@ -12,6 +12,7 @@ type UseJobsSearchOptions = {
   shouldFilter: boolean;
   shouldUseDebouncedQuery: boolean;
   debouncedSearchTerm: string;
+  enabled?: boolean;
 };
 
 export const useJobsSearch = ({
@@ -19,12 +20,13 @@ export const useJobsSearch = ({
   shouldFilter,
   shouldUseDebouncedQuery,
   debouncedSearchTerm,
+  enabled = true,
 }: UseJobsSearchOptions) => {
   const activeSearchQuery = shouldUseDebouncedQuery
     ? debouncedSearchTerm
     : undefined;
 
-  const jobsQuery = useJobs(activeSearchQuery, true, DEFAULT_JOBS_PAGE_SIZE);
+  const jobsQuery = useJobs(activeSearchQuery, enabled, DEFAULT_JOBS_PAGE_SIZE);
 
   const pages = jobsQuery.data?.pages ?? [];
 
@@ -33,6 +35,10 @@ export const useJobsSearch = ({
     const mergedJobs: Job[] = [];
 
     pages.forEach((page) => {
+      if (!page || !Array.isArray(page.jobs)) {
+        return;
+      }
+
       page.jobs.forEach((job) => {
         if (seenJobIds.has(job.jobId)) {
           return;

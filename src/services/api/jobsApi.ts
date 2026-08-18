@@ -65,6 +65,12 @@ export const jobsApi = {
       .then((response) => response.data);
   },
 
+  remove(jobId: string): Promise<SaveJobResponse> {
+    return apiClient
+      .delete(resolveEndpoint(apiEndpoints.jobs.save, { jobId }))
+      .then((response) => response.data);
+  },
+
   apply(jobId: string, payload: ApplyJobRequest): Promise<ApplyJobResponse> {
     return apiClient
       .post(resolveEndpoint(apiEndpoints.jobs.apply, { jobId }), payload)

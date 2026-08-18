@@ -33,16 +33,48 @@ type ApplicationStatusKey =
 
 const APPLICATION_STATUS_CONFIG: Record<
   ApplicationStatusKey,
-  { label: string; color: string }
+  { label: string; color: string; caption?: string }
 > = {
-  applied: { label: "Applied", color: "#72c4e0" },
-  screening: { label: "Screening", color: "#4db8c8" },
-  assessment: { label: "Assessment", color: "#f0a500" },
-  interview: { label: "Interview", color: "#7c5cd8" },
-  shortlisted: { label: "Shortlisted", color: "#e085c2" },
-  offer_extended: { label: "Offer", color: "#5bbf8a" },
-  offer_accepted: { label: "Closed", color: "#4BAF73" },
-  offer_declined: { label: "Closed", color: "#D64545" },
+  applied: {
+    label: "Applied",
+    color: "#72c4e0",
+    caption: "Your application has been submitted.",
+  },
+  screening: {
+    label: "Screening",
+    color: "#4db8c8",
+    caption: "Your application is under review.",
+  },
+  assessment: {
+    label: "Assessment",
+    color: "#f0a500",
+    caption: "You have been invited to complete an assessment.",
+  },
+  interview: {
+    label: "Interview",
+    color: "#7c5cd8",
+    caption: "You have been selected for an interview.",
+  },
+  shortlisted: {
+    label: "Shortlisted",
+    color: "#e085c2",
+    caption: "You have been shortlisted for this role.",
+  },
+  offer_extended: {
+    label: "Offer",
+    color: "#5bbf8a",
+    caption: "You have received an offer.",
+  },
+  offer_accepted: {
+    label: "Closed",
+    color: "#4BAF73",
+    caption: "You have accepted the offer.",
+  },
+  offer_declined: {
+    label: "Closed",
+    color: "#D64545",
+    caption: "You have declined the offer.",
+  },
   unknown: { label: "Unknown stage", color: "#7a8694" },
 };
 
@@ -134,6 +166,7 @@ const mapStageToStatusKey = (
 
 type DisplayApplication = {
   id: string;
+  jobId: string;
   title: string;
   status: ApplicationStatusKey;
   stage: string;
@@ -145,24 +178,26 @@ type DisplayApplication = {
 
 const transformApplicationToDisplay = (
   app: DashboardApplication,
-): DisplayApplication => ({
-  id: app.id,
-  title: `${app.job.title} at ${app.job.company}`,
-  status: mapStageToStatusKey(app.stage),
-  stage: app.stage,
-  pipeline: app.pipeline,
-  fillPercent: getPipelineFillPercent(app.stage, app.pipeline),
-  message: app.statusMessage,
-  offerAccepted: app.isOfferAccepted ?? false,
-});
+): DisplayApplication => {
+  const status = mapStageToStatusKey(app.stage);
+
+  return {
+    id: app.id,
+    jobId: app.job.id,
+    title: `${app.job.title} at ${app.job.company}`,
+    status,
+    stage: app.stage,
+    pipeline: app.pipeline,
+    fillPercent: getPipelineFillPercent(app.stage, app.pipeline),
+    message: app.statusMessage,
+    offerAccepted: false,
+  };
+};
 
 const CandidateDashboardPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { data: dashboard, isLoading } = useCandidateDashboardQuery(
-    user?.userId,
-    Boolean(user),
-  );
+  const { data: dashboard, isLoading } = useCandidateDashboardQuery(Boolean(user));
 
   const statCards = useMemo(() => {
     const summary = dashboard?.summary;
@@ -485,6 +520,14 @@ const CandidateDashboardPage = () => {
                           className={styles.expandButton}
                           aria-label={`View details for ${app.title}`}
                           disableRipple
+                          disabled={!app.jobId}
+                          onClick={() => {
+                            if (!app.jobId) return;
+                            navigate(
+                              ROUTE_PATHS.jobDetails.replace(":jobId", app.jobId),
+                              { state: { from: ROUTE_PATHS.candidateDashboard } },
+                            );
+                          }}
                         >
                           <Box
                             component="img"

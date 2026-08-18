@@ -63,14 +63,27 @@ export const apiEndpoints = {
       "/users/:userId/profile-photo",
     ),
   },
+  // Candidate resources are resolved from the bearer token by the backend, so the
+  // default templates carry no :candidateId segment. Deployments that expose the
+  // candidate-scoped variant can opt in through the matching VITE_* override
+  // (e.g. VITE_CANDIDATE_PROFILE_ENDPOINT=/candidates/profile/:candidateId) —
+  // resolveEndpoint only substitutes placeholders that the template declares.
   candidate: {
+    landing: withDefault(
+      import.meta.env.VITE_CANDIDATE_LANDING_ENDPOINT,
+      "/candidates/landing",
+    ),
     dashboard: withDefault(
       import.meta.env.VITE_CANDIDATE_DASHBOARD_ENDPOINT,
-      "/candidate/:userId/dashboard",
+      "/candidates/dashboard",
     ),
     buildMyCv: withDefault(
       import.meta.env.VITE_CANDIDATE_BUILDMYCV_ENDPOINT,
-      "/candidate/buildmycv",
+      "/candidates/cv-build/",
+    ),
+    profile: withDefault(
+      import.meta.env.VITE_CANDIDATE_PROFILE_ENDPOINT,
+      "/candidates/profile/",
     ),
     resumePreview: withDefault(
       import.meta.env.VITE_CANDIDATE_RESUME_PREVIEW_ENDPOINT,
@@ -82,7 +95,19 @@ export const apiEndpoints = {
     ),
     recommendedJobs: withDefault(
       import.meta.env.VITE_CANDIDATE_RECOMMENDED_JOBS_ENDPOINT,
-      "/candidate/:candidateId/recommended-jobs",
+      "/candidates/recommended-positions",
+    ),
+    savedJobs: withDefault(
+      import.meta.env.VITE_CANDIDATE_SAVED_JOBS_ENDPOINT,
+      "/candidates/saved-jobs",
+    ),
+    savedJob: withDefault(
+      import.meta.env.VITE_CANDIDATE_SAVED_JOB_ENDPOINT,
+      "/candidates/saved-jobs/:jobProfileId",
+    ),
+    aiActions: withDefault(
+      import.meta.env.VITE_CANDIDATE_AI_ACTIONS_ENDPOINT,
+      "/candidates/ai-actions/",
     ),
   },
   applications: {
@@ -117,6 +142,12 @@ export const apiEndpoints = {
     listPageParam: withDefault(import.meta.env.VITE_JOBS_PAGE_PARAM, "page"),
     listLimitParam: withDefault(import.meta.env.VITE_JOBS_LIMIT_PARAM, "limit"),
   },
+  industries: {
+    list: withDefault(
+      import.meta.env.VITE_INDUSTRIES_LIST_ENDPOINT,
+      "/industries",
+    ),
+  },
   skills: {
     search: withDefault(
       import.meta.env.VITE_SKILLS_SEARCH_ENDPOINT,
@@ -129,6 +160,12 @@ export const apiEndpoints = {
     limitParam: withDefault(
       import.meta.env.VITE_SKILLS_SEARCH_LIMIT_PARAM,
       "limit",
+    ),
+  },
+  candidates: {
+    list: withDefault(
+      import.meta.env.VITE_CANDIDATES_LIST_ENDPOINT,
+      "/candidates",
     ),
   },
   recruiter: {
@@ -167,6 +204,28 @@ export const apiEndpoints = {
     recruiterPerformance: withDefault(
       import.meta.env.VITE_MANCO_RECRUITER_PERFORMANCE_ENDPOINT,
       "/v1/manco/recruiters/:id/performance",
+    ),
+  },
+  jobPosts: {
+    list: withDefault(
+      import.meta.env.VITE_JOB_POSTS_ENDPOINT,
+      "/job-posts",
+    ),
+    create: withDefault(
+      import.meta.env.VITE_JOB_POST_CREATE_ENDPOINT,
+      "/job-posts",
+    ),
+    detail: withDefault(
+      import.meta.env.VITE_JOB_POST_DETAIL_ENDPOINT,
+      "/job-posts/:mandateId",
+    ),
+    update: withDefault(
+      import.meta.env.VITE_JOB_POST_UPDATE_ENDPOINT,
+      "/job-posts/:mandateId",
+    ),
+    delete: withDefault(
+      import.meta.env.VITE_JOB_POST_DELETE_ENDPOINT,
+      "/job-posts/:mandateId",
     ),
   },
   crm: {

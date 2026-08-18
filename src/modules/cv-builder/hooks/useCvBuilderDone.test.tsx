@@ -208,6 +208,16 @@ vi.mock('react-router-dom', async () => {
   return { ...actual, useNavigate: () => mockNavigate }
 })
 
+vi.mock('@/app/auth/AuthContext', async () => {
+  const actual = await vi.importActual<typeof import('@/app/auth/AuthContext')>(
+    '@/app/auth/AuthContext',
+  )
+  return {
+    ...actual,
+    useAuth: () => ({ user: { userId: 'u-1', candidateId: 'c-1' } }),
+  }
+})
+
 const makeTestStore = () =>
   configureStore({
     reducer: {

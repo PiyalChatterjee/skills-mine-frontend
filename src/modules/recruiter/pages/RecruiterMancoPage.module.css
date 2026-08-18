@@ -1,0 +1,413 @@
+/* ── Shell ───────────────────────────────────────────────────────────── */
+.shell {
+  display: flex;
+  align-items: stretch;
+  min-height: 100vh;
+  margin-left: 240px;
+}
+
+/* ── Page Root ───────────────────────────────────────────────────────── */
+.pageRoot {
+  flex: 1;
+  background: #f0f4f8;
+  min-height: 100vh;
+  padding: 32px 40px 48px;
+  overflow-x: auto;
+}
+
+/* ── Page Header ─────────────────────────────────────────────────────── */
+.pageTitle,
+:global(.MuiTypography-root).pageTitle {
+  margin: 0 0 4px;
+  color: #0d47a1;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: 0;
+}
+
+.pageSubtitle,
+:global(.MuiTypography-root).pageSubtitle {
+  margin: 0 0 24px;
+  color: #1976d2;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+/* ── Top Banner (navy wrapper containing stat cards) ─────────────────── */
+.topBanner {
+  background: #1a4a82;
+  border-radius: 12px;
+  padding: 12px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+/* ── Alert / Attention Card (amber/golden) ───────────────────────────── */
+.alertCard {
+  background: #e8a53a;
+  border-radius: 8px;
+  padding: 20px 24px 18px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.alertCardTopRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.alertCardValue,
+:global(.MuiTypography-root).alertCardValue {
+  margin: 0;
+  color: #ffffff;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 52px;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: -1px;
+}
+
+.alertCardActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.alertCardIconBtn {
+  display: flex;
+  align-items: center;
+  color: rgba(255, 255, 255, 0.9);
+  padding: 0;
+  line-height: 1;
+}
+
+.alertCardLabel,
+:global(.MuiTypography-root).alertCardLabel {
+  margin: 12px 0 0;
+  color: rgba(255, 255, 255, 0.92);
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+/* ── CRM Integration Card (cyan/teal) ────────────────────────────────── */
+.crmCard {
+  background: #2196f3;
+  border-radius: 8px;
+  padding: 20px 24px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.crmCardLabel,
+:global(.MuiTypography-root).crmCardLabel {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.95);
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.crmCardIcon {
+  display: flex;
+  align-items: center;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* ── Search Employees Section ────────────────────────────────────────── */
+.searchSection {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 24px 28px 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.searchSectionTitle,
+:global(.MuiTypography-root).searchSectionTitle {
+  margin: 0 0 16px;
+  color: #1f2328;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.searchInputWrap {
+  position: relative;
+  margin-bottom: 16px;
+}
+
+.searchInputIcon {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  color: #8c959f;
+  pointer-events: none;
+}
+
+.searchInput {
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid #d0d7de;
+  border-radius: 24px;
+  padding: 10px 42px 10px 18px;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 14px;
+  color: #57606a;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
+}
+
+.searchInput::placeholder {
+  color: #8c959f;
+}
+
+.searchInput:focus {
+  border-color: #0969da;
+}
+
+/* ── Sort Bar ────────────────────────────────────────────────────────── */
+.sortBar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.sortLabel,
+:global(.MuiTypography-root).sortLabel {
+  margin: 0;
+  color: #1f2328;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+  flex-shrink: 0;
+}
+
+.sortBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+  white-space: nowrap;
+  border: 1px solid #d0d7de;
+  background: #ffffff;
+  color: #1f2328;
+}
+
+.sortBtn:hover {
+  background: #f6f8fa;
+}
+
+.sortBtnActive {
+  background: #1a4a82;
+  border-color: #1a4a82;
+  color: #ffffff;
+}
+
+.sortBtnActive:hover {
+  background: #163d72;
+  border-color: #163d72;
+}
+
+.sortChevron {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* ── Employee Cards ──────────────────────────────────────────────────── */
+.employeeCard {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 24px 28px 0;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.employeeCardTopRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.employeeName,
+:global(.MuiTypography-root).employeeName {
+  margin: 0 0 4px;
+  color: #1f2328;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.employeeMeta,
+:global(.MuiTypography-root).employeeMeta {
+  margin: 0;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.employeeRole {
+  color: #1976d2;
+}
+
+.employeeMetaDivider {
+  color: #8c959f;
+  margin: 0 4px;
+}
+
+.employeeDept {
+  color: #1976d2;
+}
+
+.viewDetailsBtn:global(.MuiButtonBase-root) {
+  background: #1a4a82;
+  border-radius: 24px;
+  padding: 10px 22px;
+  color: #ffffff;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+  white-space: nowrap;
+  transition: background 0.15s ease;
+  flex-shrink: 0;
+}
+
+.viewDetailsBtn:global(.MuiButtonBase-root):hover {
+  background: #163d72;
+}
+
+/* ── Stats Row ───────────────────────────────────────────────────────── */
+.statsRow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  margin-bottom: 20px;
+}
+
+.statCell {
+  text-align: center;
+  padding: 0 16px;
+  position: relative;
+}
+
+.statCell:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 4px;
+  bottom: 4px;
+  width: 1px;
+  background: #d0d7de;
+}
+
+.statCellLabel,
+:global(.MuiTypography-root).statCellLabel {
+  margin: 0 0 6px;
+  color: #1976d2;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.statCellValue,
+:global(.MuiTypography-root).statCellValue {
+  margin: 0;
+  color: #43a5c2;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 32px;
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: -0.5px;
+  text-align: center;
+}
+
+/* ── Card Divider ────────────────────────────────────────────────────── */
+.cardDivider {
+  height: 1px;
+  background: #d0d7de;
+  margin: 0 -28px;
+}
+
+/* ── Pipeline Distribution Row ───────────────────────────────────────── */
+.pipelineRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0;
+  cursor: pointer;
+}
+
+.pipelineRowLabel,
+:global(.MuiTypography-root).pipelineRowLabel {
+  margin: 0;
+  color: #1976d2;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.pipelineChevron {
+  display: flex;
+  align-items: center;
+  color: #57606a;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .topBanner {
+    grid-template-columns: 1fr;
+  }
+  .statsRow {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px 0;
+  }
+  .pageRoot {
+    padding: 20px 20px 40px;
+  }
+}
+
+@media (max-width: 600px) {
+  .statsRow {
+    grid-template-columns: 1fr 1fr;
+  }
+  .pageRoot {
+    padding: 16px 12px 32px;
+  }
+  .sortBar {
+    flex-wrap: wrap;
+  }
+}

@@ -66,7 +66,7 @@ const LoginPage = () => {
       }
 
       try {
-        const profile = await candidateApi.getById(user.userId);
+        const profile = await candidateApi.getById(user.candidateId ?? user.userId, user.userId);
         if (!isActive) {
           return;
         }

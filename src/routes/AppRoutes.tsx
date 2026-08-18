@@ -57,8 +57,20 @@ const CandidateProfilePage = lazy(
 const NewMandatePage = lazy(
   () => import("@/modules/recruiter/pages/NewMandatePage"),
 );
+const EditMandatePage = lazy(
+  () => import("@/modules/recruiter/pages/EditMandatePage"),
+);
+const CandidatesPage = lazy(
+  () => import("@/modules/recruiter/pages/CandidatesPage"),
+);
+const CandidateDetailPage = lazy(
+  () => import("@/modules/recruiter/pages/CandidateDetailPage"),
+);
 const RecruiterCrmPage = lazy(
   () => import("@/modules/recruiter/pages/RecruiterCrmPage"),
+);
+const RecruiterMancoPage = lazy(
+  () => import("@/modules/recruiter/pages/RecruiterMancoPage"),
 );
 const CrmPage = lazy(() => import("@/modules/crm/pages/CrmPage"));
 const MancoPage = lazy(() => import("@/modules/manco/pages/MancoPage"));
@@ -110,19 +122,26 @@ export const AppRoutes = () => {
             <Route path={ROUTE_PATHS.jobDetails} element={<JobDetailsPage />} />
             <Route path={ROUTE_PATHS.savedJobs} element={<SavedJobsPage />} />
             <Route path={ROUTE_PATHS.latestJobs} element={<LatestJobsPage />} />
-            <Route path={ROUTE_PATHS.recommendedJobs} element={<RecommendedJobsPage />} />
+            <Route
+              path={ROUTE_PATHS.recommendedJobs}
+              element={<RecommendedJobsPage />}
+            />
             <Route path={ROUTE_PATHS.profile} element={<ProfilePage />} />
           </Route>
 
           <Route element={<RecruiterLayout />}>
             <Route path={ROUTE_PATHS.recruiter} element={<RecruiterPage />} />
             <Route
-              path={ROUTE_PATHS.recruiterMandates}
+              path={ROUTE_PATHS.recruiterJobPosts}
               element={<RecruiterMandatesPage />}
             />
             <Route
-              path={ROUTE_PATHS.recruiterNewMandate}
+              path={ROUTE_PATHS.recruiterNewJobPost}
               element={<NewMandatePage />}
+            />
+            <Route
+              path={ROUTE_PATHS.recruiterEditJobPost}
+              element={<EditMandatePage />}
             />
             <Route
               path={ROUTE_PATHS.recruiterMandate}
@@ -133,8 +152,20 @@ export const AppRoutes = () => {
               element={<CandidateProfilePage />}
             />
             <Route
+              path={ROUTE_PATHS.recruiterCandidates}
+              element={<CandidatesPage />}
+            />
+            <Route
+              path={ROUTE_PATHS.recruiterCandidateDetail}
+              element={<CandidateDetailPage />}
+            />
+            <Route
               path={ROUTE_PATHS.recruiterCrm}
               element={<RecruiterCrmPage />}
+            />
+            <Route
+              path={ROUTE_PATHS.recruiterManco}
+              element={<RecruiterMancoPage />}
             />
             <Route
               element={<PermissionGuard requiredPermissions={["CRM_EDIT"]} />}

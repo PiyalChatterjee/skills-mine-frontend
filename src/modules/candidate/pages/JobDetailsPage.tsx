@@ -16,12 +16,21 @@ import { GradientPatternHero } from "@/components/hero";
 import { useJobs } from "@/modules/public/hooks/useJobs";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import { useOptimisticSaveJob } from "@/modules/candidate/hooks/useOptimisticSaveJob";
+import { useAppliedJobIds } from "@/modules/candidate/hooks/useAppliedJobIds";
 import type { Job } from "@/types";
 import styles from "./JobDetailsPage.module.css";
 
 type LocationState = {
   job?: Job;
+  from?: string;
 };
+
+const allowedBackRoutes = new Set<string>([
+  ROUTE_PATHS.latestJobs,
+  ROUTE_PATHS.savedJobs,
+  ROUTE_PATHS.recommendedJobs,
+  ROUTE_PATHS.candidateDashboard,
+]);
 const fallbackSkillPalette = [
   "#cabee9",
   "#efb5b5",
@@ -59,10 +68,16 @@ const JobDetailsPage = () => {
   const { jobId } = useParams<{ jobId: string }>();
   const location = useLocation();
   const { isJobSaved, isJobSaving, toggleJobSaved } = useOptimisticSaveJob();
+  const { isJobApplied } = useAppliedJobIds();
 
   const { data, isLoading, isError } = useJobs(undefined, true, 50);
 
-  const stateJob = (location.state as LocationState | null)?.job;
+  const locationState = location.state as LocationState | null;
+  const stateJob = locationState?.job;
+  const backRoute =
+    locationState?.from && allowedBackRoutes.has(locationState.from)
+      ? locationState.from
+      : ROUTE_PATHS.latestJobs;
 
   const allJobs = useMemo(() => {
     return (data?.pages ?? []).flatMap((page) => page.jobs);
@@ -82,6 +97,7 @@ const JobDetailsPage = () => {
 
   const isSaved = resolvedJob ? isJobSaved(resolvedJob.jobId) : false;
   const isSaving = resolvedJob ? isJobSaving(resolvedJob.jobId) : false;
+  const isApplied = resolvedJob ? isJobApplied(resolvedJob.jobId) : false;
 
   if (isLoading && !resolvedJob) {
     return (
@@ -155,7 +171,7 @@ const JobDetailsPage = () => {
                 type="button"
                 className={styles.backButton}
                 disableRipple
-                onClick={() => navigate(ROUTE_PATHS.latestJobs)}
+                onClick={() => navigate(backRoute)}
               >
                 <img
                   src={arrowLeftFill}
@@ -184,8 +200,12 @@ const JobDetailsPage = () => {
                 <BookmarkIcon filled={isSaved} className={styles.heroSaveIcon} />
               </IconButton>
 
-              <Button variant="contained" className={styles.applyButton}>
-                Apply now
+              <Button
+                variant="contained"
+                className={styles.applyButton}
+                disabled={isApplied}
+              >
+                {isApplied ? "Applied" : "Apply now"}
               </Button>
             </Box>
           </Box>
@@ -304,8 +324,12 @@ const JobDetailsPage = () => {
         </Box>
 
         <Box className={styles.footerActions}>
-          <Button variant="contained" className={styles.footerApply}>
-            Apply now
+          <Button
+            variant="contained"
+            className={styles.footerApply}
+            disabled={isApplied}
+          >
+            {isApplied ? "Applied" : "Apply now"}
           </Button>
           <Button
             variant="outlined"
