@@ -28,7 +28,7 @@ import {
 	PROFILE_SELECT_OPTIONS,
 	profileFormSchema,
 } from "@/modules/candidate/pages/profileForm.config";
-import { useCandidateProfileQuery } from "@/modules/candidate/hooks/useCandidateQueries";
+import { useCandidateProfileQuery, useCandidateResourceId, useUserProfile } from "@/modules/candidate/hooks/useCandidateQueries";
 import ChangePasswordModal from "@/modules/candidate/components/ChangePasswordModal";
 import cameraPlaceholderIconSrc from "@/assets/icons/camera-placeholder.svg";
 import eyeOffIconSrc from "@/assets/icons/eye-off.svg";
@@ -94,13 +94,15 @@ const ProfilePage = () => {
 	const dispatch = useDispatch<AppDispatch>();
 	const { user } = useAuth();
 	const userId = user?.userId;
+	const candidateId = useCandidateResourceId();
 	const {
 		data: candidateProfile,
 		isLoading,
 		isFetching,
 		isError,
 		error,
-	} = useCandidateProfileQuery(userId, Boolean(userId));
+	} = useCandidateProfileQuery(candidateId, userId, Boolean(candidateId));
+	const { data: userProfile } = useUserProfile(userId);
 	const resolvedCandidateProfile = candidateProfile ?? null;
 	const {
 		control,
@@ -129,8 +131,12 @@ const ProfilePage = () => {
 	const profilePhotoInputRef = useRef<HTMLInputElement | null>(null);
 
 	useEffect(() => {
-		reset(getProfileFormValues(resolvedCandidateProfile));
-	}, [resolvedCandidateProfile, reset]);
+		const formValues = getProfileFormValues(resolvedCandidateProfile);
+		reset({
+			...formValues,
+			password: userProfile?.authentication?.password ?? formValues.password,
+		});
+	}, [resolvedCandidateProfile, userProfile, reset]);
 
 	const handleEditPersonal = () => {
 		setIsPersonalEditing(true);
