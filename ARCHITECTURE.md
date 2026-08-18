@@ -1,634 +1,585 @@
-# SkillsMine Frontend – Architecture Reference
+# SkillsMine Frontend Architecture
 
-> **Audience:** developers contributing to or onboarding into this codebase.
-> This document describes the current runtime architecture, API contract integration, state management decisions, route guards, auth session model, and environment configuration system.
-
----
+This document describes the current frontend runtime, route composition, authentication model, API boundary, state ownership, and configuration. It is intended for contributors and maintainers. The repository README covers setup and common commands.
 
 ## Table of Contents
 
-1. [High-Level System Overview](#1-high-level-system-overview)
-2. [Application Bootstrap](#2-application-bootstrap)
-3. [Route Architecture & Access Guards](#3-route-architecture--access-guards)
-4. [Auth System](#4-auth-system)
-5. [API Layer Architecture](#5-api-layer-architecture)
-6. [Endpoint Configuration System](#6-endpoint-configuration-system)
-7. [State Management](#7-state-management)
-8. [Module Structure](#8-module-structure)
-9. [Data Flow: Candidate Profile](#9-data-flow-candidate-profile)
-10. [Data Flow: Login & Session Establishment](#10-data-flow-login--session-establishment)
-11. [Environment Variable Catalog](#11-environment-variable-catalog)
-12. [Error Handling Strategy](#12-error-handling-strategy)
-13. [Key Design Decisions](#13-key-design-decisions)
+1. [System Overview](#system-overview)
+2. [Bootstrap and Providers](#bootstrap-and-providers)
+3. [Routes and Access Control](#routes-and-access-control)
+4. [Authentication and Session State](#authentication-and-session-state)
+5. [API Layer](#api-layer)
+6. [State Ownership](#state-ownership)
+7. [Feature Structure](#feature-structure)
+8. [Endpoint Configuration](#endpoint-configuration)
+9. [Data Flows](#data-flows)
+10. [Error Handling](#error-handling)
+11. [Testing and Verification](#testing-and-verification)
+12. [Design Decisions](#design-decisions)
 
----
+## System Overview
 
-## 1. High-Level System Overview
+```mermaid
+flowchart LR
+    Browser[React SPA] --> Router[React Router]
+    Router --> Pages[Layouts and feature pages]
+    Pages --> Services[Axios API modules]
+    Pages --> RTK[RTK Query endpoints]
+    RTK --> Services
+    Services --> Client[Axios client]
+    Client --> Backend[Configured backend or mock server]
+    Client --> Session[sessionStorage]
+```
+
+The application is a client-rendered React 19 SPA. `src/main.tsx` mounts the application; `src/routes/AppRoutes.tsx` owns route composition; API requests use Axios and the configured backend base URL. There is no server-side rendering in this project.
+
+## Bootstrap and Providers
+
+The provider order in `src/app/AppProviders.tsx` is:
+
+1. Redux `Provider`
+2. `BrowserRouter`
+3. `AuthProvider`
+4. Material UI `ThemeProvider` and `CssBaseline`
+5. Application routes and the global `NotificationToaster`
+
+`GoogleOAuthProvider` wraps this tree only when `VITE_GOOGLE_CLIENT_ID` is present. The application therefore remains usable without Google OAuth configuration; the Google action reports that configuration is missing.
+
+Routes are wrapped in `Suspense` because feature pages are lazy-loaded. A shared route fallback is rendered while a page bundle is loading.
 
 ```mermaid
 graph TD
-    Browser["Browser (React 19 SPA)"]
-    Vite["Vite Dev Server / Built Assets"]
-    MockServer["SkillsMine Mock Server\nhttp://localhost:4000"]
-    SessionStorage["sessionStorage\nskillsmine.auth.*"]
+  main["main.tsx\nReactDOM.createRoot"]
+  providers[AppProviders]
+  google["GoogleOAuthProvider\nonly when client ID exists"]
+  redux["Redux Provider"]
+  router[BrowserRouter]
+  auth["AuthProvider\nsession rehydration"]
+  theme["MUI ThemeProvider"]
+  routes[AppRoutes]
+  toaster[NotificationToaster]
 
-    Browser -->|"HTTP requests via Axios"| MockServer
-    Browser -->|"Session tokens & user"| SessionStorage
-    Vite -->|"Bundles & serves"| Browser
+  main --> providers
+  providers --> google
+  google --> redux
+  providers --> redux
+  redux --> router --> auth --> theme --> routes
+  theme --> toaster
 ```
 
-The application is a React 19 SPA. There is no server-side rendering. All routing is client-side. The backend API base URL is configurable via `VITE_API_BASE_URL`.
+## Routes and Access Control
 
----
+Public routes are rendered by `PublicLayout`:
 
-## 2. Application Bootstrap
+| Route | Page |
+|---|---|
+| `/` | Landing page |
+| `/login` | Login |
+| `/signup` | Sign-up |
+| `/reset-password` | Password reset |
 
-The app mounts in [src/main.tsx](src/main.tsx) and wraps the component tree with a single `AppProviders` composable.
+All other application routes are children of `ProtectedRoute`. Role-specific and shared routes are composed with these layouts:
+
+| Layout | Routes and guard |
+|---|---|
+| `CandidateLayout` | `/candidate/dashboard`, `/candidate/cv-builder`, `/profile/create` are restricted to `JOB_SEEKER`; `/jobs`, `/jobs/latest`, `/jobs/saved`, `/jobs/recommended`, `/jobs/:jobId`, and `/profile` are candidate-facing routes |
+| `RecruiterLayout` | `/recruiter`, `/recruiter/job-posts`, `/recruiter/new-job-post`, `/recruiter/edit-job-post/:mandateId`, `/recruiter/mandate/:cardId`, `/recruiter/mandate/:cardId/candidate/:candidateId`, `/recruiter/candidates`, `/recruiter/candidates/:candidateId`, `/recruiter/crm`, and `/recruiter/manco` |
+| `PermissionGuard` | `/crm` requires `CRM_EDIT` |
+| `MancoLayout` | `/manco` requires `MANCO` or `ADMIN` |
+| `ExcoLayout` | `/exco` requires `EXCO` or `ADMIN` |
+| `AdminLayout` | `/dashboard` requires `ADMIN` |
+
+### Route Composition Diagram
 
 ```mermaid
-graph TD
-    main["main.tsx\nReactDOM.createRoot"]
-    AppProviders["AppProviders"]
-    GoogleOAuth["GoogleOAuthProvider\n(only if VITE_GOOGLE_CLIENT_ID is set)"]
-    ReduxProvider["Provider (Redux store)"]
-    BrowserRouter["BrowserRouter"]
-    AuthProvider["AuthProvider\n(session rehydration on mount)"]
-    ThemeProvider["ThemeProvider (MUI)"]
-    AppRoutes["AppRoutes"]
-    NotificationToaster["NotificationToaster"]
+flowchart TD
+  root["AppRoutes"]
+  public["PublicLayout"]
+  landing["/"]
+  login["/login"]
+  signup["/signup"]
+  reset["/reset-password"]
+  protected["ProtectedRoute"]
 
-    main --> AppProviders
-    AppProviders --> GoogleOAuth
-    GoogleOAuth --> ReduxProvider
-    ReduxProvider --> BrowserRouter
-    BrowserRouter --> AuthProvider
-    AuthProvider --> ThemeProvider
-    ThemeProvider --> AppRoutes
-    ThemeProvider --> NotificationToaster
+  candidate["CandidateLayout"]
+  candidateGuard["RoleGuard: JOB_SEEKER"]
+  candidateDashboard["/candidate/dashboard"]
+  cvBuilder["/candidate/cv-builder"]
+  profileCreate["/profile/create"]
+  jobs["Candidate job routes\n/jobs, /jobs/latest, /jobs/saved, /jobs/recommended"]
+  jobDetails["/jobs/:jobId"]
+  profile["/profile"]
+
+  recruiter["RecruiterLayout"]
+  recruiterHome["/recruiter"]
+  jobPosts["/recruiter/job-posts"]
+  newJobPost["/recruiter/new-job-post"]
+  editJobPost["/recruiter/edit-job-post/:mandateId"]
+  mandate["/recruiter/mandate/:cardId"]
+  recruiterCandidate["/recruiter/mandate/:cardId/candidate/:candidateId"]
+  candidates["/recruiter/candidates\nand /recruiter/candidates/:candidateId"]
+  recruiterCrm["/recruiter/crm"]
+  recruiterManco["/recruiter/manco"]
+  crmGuard["PermissionGuard: CRM_EDIT"]
+  crm["/crm"]
+
+  mancoLayout["MancoLayout"]
+  mancoGuard["RoleGuard: MANCO | ADMIN"]
+  manco["/manco"]
+  excoLayout["ExcoLayout"]
+  excoGuard["RoleGuard: EXCO | ADMIN"]
+  exco["/exco"]
+  adminLayout["AdminLayout"]
+  adminGuard["RoleGuard: ADMIN"]
+  dashboard["/dashboard"]
+  fallback["Unknown path -> /"]
+
+  root --> public
+  public --> landing
+  public --> login
+  public --> signup
+  public --> reset
+  root --> protected
+
+  protected --> candidate
+  candidate --> candidateGuard
+  candidateGuard --> candidateDashboard
+  candidateGuard --> cvBuilder
+  candidateGuard --> profileCreate
+  candidate --> jobs
+  candidate --> jobDetails
+  candidate --> profile
+
+  protected --> recruiter
+  recruiter --> recruiterHome
+  recruiter --> jobPosts
+  recruiter --> newJobPost
+  recruiter --> editJobPost
+  recruiter --> mandate
+  recruiter --> recruiterCandidate
+  recruiter --> candidates
+  recruiter --> recruiterCrm
+  recruiter --> recruiterManco
+  recruiter --> crmGuard
+  crmGuard --> crm
+
+  protected --> mancoLayout
+  mancoLayout --> mancoGuard --> manco
+  protected --> excoLayout
+  excoLayout --> excoGuard --> exco
+  protected --> adminLayout
+  adminLayout --> adminGuard --> dashboard
+  root --> fallback
 ```
 
-**Files:**
-- [`src/main.tsx`](src/main.tsx)
-- [`src/app/AppProviders.tsx`](src/app/AppProviders.tsx)
+`ProtectedRoute` redirects unauthenticated users to `/login` and preserves the attempted location. During initial auth hydration it can use valid persisted session data. `RoleGuard` and `PermissionGuard` use the authenticated user from `AuthContext`; failed checks use their configured fallback behavior. The canonical path constants are in [src/routes/routePaths.ts](src/routes/routePaths.ts).
 
-`GoogleOAuthProvider` is conditionally applied — if `VITE_GOOGLE_CLIENT_ID` is absent the tree renders without it rather than crashing.
+Default destinations are defined in [src/routes/roleDefaultRoutes.ts](src/routes/roleDefaultRoutes.ts):
 
----
-
-## 3. Route Architecture & Access Guards
-
-```mermaid
-graph TD
-    Root["/ (wildcard → /)"]
-
-    PublicLayout["PublicLayout"]
-    Landing["/ – LandingPage"]
-    Login["/login – LoginPage"]
-    ResetPassword["/reset-password – ResetPasswordPage"]
-    Signup["/signup – SignupPage"]
-
-    ProtectedRoute["ProtectedRoute\n(JWT expiry + persisted session fallback)"]
-
-    CandidateLayout["CandidateLayout"]
-    RoleGuardJobs["RoleGuard: JOB_SEEKER"]
-    CandidateDashboard["/candidate/dashboard"]
-    CvBuilder["/candidate/cv-builder"]
-    ProfileCreation["/profile/create"]
-    Jobs["/jobs, /jobs/latest"]
-    SavedJobs["/jobs/saved"]
-    RecommendedJobs["/jobs/recommended"]
-    JobDetails["/jobs/:jobId"]
-    Profile["/profile"]
-
-    RecruiterLayout["RecruiterLayout"]
-    Recruiter["/recruiter"]
-    RecruiterJobPosts["/recruiter/job-posts"]
-    NewJobPost["/recruiter/new-job-post"]
-    EditJobPost["/recruiter/edit-job-post/:mandateId"]
-    MandateDetail["/recruiter/mandate/:cardId"]
-    CandidateProfile["/recruiter/mandate/:cardId/candidate/:candidateId"]
-    RecruiterCandidates["/recruiter/candidates"]
-    RecruiterCandidateDetail["/recruiter/candidates/:candidateId"]
-    PermGuardCRM["PermissionGuard: CRM_EDIT"]
-    CRM["/crm"]
-
-    MancoLayout["MancoLayout"]
-    RoleGuardManco["RoleGuard: MANCO | ADMIN"]
-    Manco["/manco"]
-
-    ExcoLayout["ExcoLayout"]
-    RoleGuardExco["RoleGuard: EXCO | ADMIN"]
-    Exco["/exco"]
-
-    AdminLayout["AdminLayout"]
-    RoleGuardAdmin["RoleGuard: ADMIN"]
-    Dashboard["/dashboard"]
-
-    Root --> PublicLayout
-    PublicLayout --> Landing
-    PublicLayout --> Login
-    PublicLayout --> ResetPassword
-    PublicLayout --> Signup
-
-    Root --> ProtectedRoute
-    ProtectedRoute --> CandidateLayout
-
-    CandidateLayout --> RoleGuardJobs
-    RoleGuardJobs --> CandidateDashboard
-    RoleGuardJobs --> CvBuilder
-    RoleGuardJobs --> ProfileCreation
-    CandidateLayout --> Jobs
-    CandidateLayout --> SavedJobs
-    CandidateLayout --> RecommendedJobs
-    CandidateLayout --> JobDetails
-    CandidateLayout --> Profile
-
-    ProtectedRoute --> RecruiterLayout
-    RecruiterLayout --> Recruiter
-    RecruiterLayout --> RecruiterJobPosts
-    RecruiterLayout --> NewJobPost
-    RecruiterLayout --> EditJobPost
-    RecruiterLayout --> MandateDetail
-    RecruiterLayout --> CandidateProfile
-    RecruiterLayout --> RecruiterCandidates
-    RecruiterLayout --> RecruiterCandidateDetail
-    RecruiterLayout --> PermGuardCRM
-    PermGuardCRM --> CRM
-
-    ProtectedRoute --> MancoLayout
-    MancoLayout --> RoleGuardManco
-    RoleGuardManco --> Manco
-
-    ProtectedRoute --> ExcoLayout
-    ExcoLayout --> RoleGuardExco
-    RoleGuardExco --> Exco
-
-    ProtectedRoute --> AdminLayout
-    AdminLayout --> RoleGuardAdmin
-    RoleGuardAdmin --> Dashboard
+```text
+JOB_SEEKER -> /candidate/dashboard
+RECRUITER  -> /recruiter
+MANCO      -> /manco
+EXCO       -> /exco
+ADMIN      -> /dashboard
 ```
 
-### Guard Hierarchy
+Unknown paths redirect to `/`.
 
-| Guard | File | Behaviour |
-|---|---|---|
-| `ProtectedRoute` | `src/routes/guards/ProtectedRoute.tsx` | Redirects to `/login` when there is no authenticated session in context and no valid persisted access token in session storage. Preserves `from` location in state. |
-| `RoleGuard` | `src/routes/guards/RoleGuard.tsx` | Restricts a subtree to specific roles. Uses persisted user role fallback during auth hydration, then falls through to a configurable `fallbackPath`. |
-| `PermissionGuard` | `src/routes/guards/PermissionGuard.tsx` | Restricts a subtree to specific permission tokens derived from role. |
+## Authentication and Session State
 
-### Role → Default Route
+`AuthProvider` owns the in-memory session and exposes `useAuth()`, `login`, `logout`, `hasRole`, and `hasPermission`. On mount it reads `skillsmine.auth.tokens` and `skillsmine.auth.user` from `sessionStorage`. A missing user, missing access token, or expired JWT clears the stored session.
 
-```
-JOB_SEEKER  → /candidate/dashboard
-RECRUITER   → /recruiter
-MANCO       → /manco
-EXCO        → /exco
-ADMIN       → /dashboard
-```
+Logout clears auth storage, candidate state, auth state, and the RTK Query cache. The Axios 401 interceptor also clears authentication through the auth event boundary; navigation is then handled by route protection.
 
-Defined in [`src/routes/roleDefaultRoutes.ts`](src/routes/roleDefaultRoutes.ts).
+The login flow calls `/auth/me` after login when possible to build the current user. If that request is unavailable, it falls back to claims from the access-token JWT. Candidate login then checks profile data and routes to `/profile/create` when incomplete or `/candidate/dashboard` when complete. Other roles use their default route.
 
----
+Supported roles are `JOB_SEEKER`, `RECRUITER`, `MANCO`, `EXCO`, and `ADMIN`. Permissions are derived once from roles in `src/services/api/authApi.ts`; `ADMIN` expands to all known permissions. The browser currently stores tokens in session storage, so a production hardening plan should consider short-lived in-memory access tokens and refresh tokens in secure HttpOnly cookies.
 
-## 4. Auth System
+### Role Permissions
+
+| Role | Derived permissions |
+|---|---|
+| `JOB_SEEKER` | `VIEW_JOBS`, `APPLY_JOB`, `UPLOAD_CV`, `VIEW_DASHBOARD` |
+| `RECRUITER` | `MANDATE_CREATE`, `MANDATE_EDIT`, `PIPELINE_ADVANCE`, `CRM_EDIT`, `CANDIDATE_VIEW`, `VIEW_DASHBOARD` |
+| `MANCO` | `PIPELINE_VIEW`, `REPORT_VIEW`, `RECRUITER_VIEW`, `VIEW_DASHBOARD` |
+| `EXCO` | `PIPELINE_VIEW`, `REPORT_VIEW`, `RECRUITER_VIEW`, `VIEW_DASHBOARD` |
+| `ADMIN` | `ALL`, expanded to every permission in `PERMISSIONS` |
+
+### Google OAuth Flow
 
 ```mermaid
 sequenceDiagram
-    participant User
-    participant LoginPage
-    participant authApi
-    participant MockServer
-    participant tokenStorage
-    participant AuthContext
+  participant User
+  participant Login as LoginPage
+  participant OAuth as GoogleOAuthProvider
+  participant Auth as authApi
+  participant Backend
+  participant Context as AuthProvider
 
-    User->>LoginPage: Submit email + password
-    LoginPage->>authApi: login({ username, password })
-    authApi->>MockServer: POST /auth/login
-    MockServer-->>authApi: { accessToken, refreshToken, roles, profileCompleted }
-    authApi-->>LoginPage: LoginResponse
-    LoginPage->>authApi: mapLoginResponseToSession(response)
-    Note over authApi: Decode JWT payload<br/>Derive permissions from roles
-    authApi-->>LoginPage: { user: AuthUser, tokens: JwtTokens }
-    LoginPage->>AuthContext: login(payload)
-    AuthContext->>tokenStorage: setTokens + setUser → sessionStorage
-    AuthContext->>AuthContext: setSession (isAuthenticated = true)
-    LoginPage->>candidateApi: getById(userId) for JOB_SEEKER
-    candidateApi-->>LoginPage: CandidateProfile
-    LoginPage->>Router: route by profile completeness (JOB_SEEKER) or role default
-    Note over LoginPage,Router: Incomplete candidate profile → /profile/create<br/>Complete profile → /candidate/dashboard
+  User->>Login: Select Google sign-in
+  Login->>OAuth: Request Google access token
+  OAuth-->>Login: TokenResponse
+  Login->>Auth: exchangeGoogleToken({ accessToken })
+  Auth->>Backend: POST /auth/google/exchange
+  Backend-->>Auth: LoginResponse
+  Auth-->>Login: Session payload
+  Login->>Context: login(payload)
 ```
 
-### Candidate Onboarding Follow-Up
-
-The original candidate onboarding flow used an intermediate `/portal` hop plus role guards. In practice, the login request and `/auth/me` request completed successfully, but the router could still bounce the user back to `/login` for one render because auth context hydration lagged behind route evaluation.
-
-The current flow removes active `/portal` routing from `AppRoutes` and resolves navigation directly inside `LoginPage`:
-
-- candidate sign-up success redirects to `/login`
-- the login page exposes a public `/reset-password` route for forgotten-password recovery
-- after login, `LoginPage` sends non-candidate roles straight to their role default route
-- for `JOB_SEEKER`, `LoginPage` fetches candidate profile data and checks completeness
-- incomplete candidate profile routes to `/profile/create`; complete profile routes to `/candidate/dashboard`
-
-To keep this deterministic, `ProtectedRoute` and `RoleGuard` both accept persisted `sessionStorage` auth data as a temporary fallback while `AuthContext` finishes hydrating.
-
-Within the profile creation wizard itself, data is now persisted only on final `Done` (step transitions no longer save on every `Next`).
-
-### Session Storage Layout
-
-| Key | Storage | Content |
-|---|---|---|
-| `skillsmine.auth.tokens` | `sessionStorage` | `{ accessToken, refreshToken }` |
-| `skillsmine.auth.user` | `sessionStorage` | `AuthUser` object |
-
-**Rehydration:** `AuthProvider` reads both keys on mount. If the access token is expired (checked via `isJwtExpired`), both keys are cleared and the user remains unauthenticated.
-
-**Logout:** Clears both storage keys and resets the RTK Query cache via `apiSlice.util.resetApiState()`.
-
-### Permission Model
-
-Permissions are derived from roles at login time by `normalizePermissions` in [`src/services/api/authApi.ts`](src/services/api/authApi.ts). Roles → permission sets:
-
-| Role | Permissions |
-|---|---|
-| `JOB_SEEKER` | VIEW_JOBS, APPLY_JOB, UPLOAD_CV, VIEW_DASHBOARD |
-| `RECRUITER` | MANDATE_CREATE, MANDATE_EDIT, PIPELINE_ADVANCE, CRM_EDIT, CANDIDATE_VIEW, VIEW_DASHBOARD |
-| `MANCO` | PIPELINE_VIEW, REPORT_VIEW, RECRUITER_VIEW, VIEW_DASHBOARD |
-| `ADMIN` | ALL (expands to every permission) |
-
-### Google OAuth
+## API Layer
 
 ```mermaid
-sequenceDiagram
-    participant User
-    participant LoginPage
-    participant GoogleOAuthProvider
-    participant authApi
-    participant MockServer
-    participant AuthContext
-
-    User->>LoginPage: Click "Sign in with Google"
-    LoginPage->>GoogleOAuthProvider: useGoogleLogin (implicit flow)
-    GoogleOAuthProvider-->>LoginPage: TokenResponse { access_token }
-    LoginPage->>authApi: exchangeGoogleToken({ accessToken })
-    authApi->>MockServer: POST /auth/google/exchange
-    MockServer-->>authApi: LoginResponse (same shape as /auth/login)
-    authApi-->>LoginPage: session payload
-    LoginPage->>AuthContext: login(payload)
-    AuthContext->>AuthContext: session established
+flowchart TD
+    Feature[Page or hook] --> Query[RTK Query endpoint when server cache is needed]
+    Feature --> Module[Direct API module for other operations]
+    Query --> Module
+    Module --> Endpoints[apiEndpoints and resolveEndpoint]
+    Endpoints --> Axios[Axios client]
+    Axios --> Backend[Backend API]
 ```
 
----
+The API boundary is split deliberately:
 
-## 5. API Layer Architecture
+- `src/services/api/axios.ts` creates the Axios client, applies the base URL and timeout, and attaches the bearer token from session storage.
+- `src/services/api/endpoints.ts` resolves endpoint templates from `VITE_*` variables and hardcoded defaults. Dynamic `:param` values are URI encoded by `resolveEndpoint`.
+- `src/services/api/*.ts` contains domain service modules and response mapping.
+- `src/store/api/apiSlice.ts` exposes RTK Query endpoints for server state that benefits from caching, invalidation, optimistic updates, or pagination.
 
-```mermaid
-graph TD
-    Page["Page / Hook"]
-    RTKQuery["RTK Query endpoint\nsrc/store/api/apiSlice.ts"]
-    ServiceModule["Service module\nsrc/services/api/*.ts"]
-    EndpointConfig["apiEndpoints + resolveEndpoint\nsrc/services/api/endpoints.ts"]
-    AxiosClient["apiClient (Axios)\nsrc/services/api/axios.ts"]
-    MockServer["Mock Server\nlocalhost:4000/api"]
+Current service modules include `authApi`, `candidateApi`, `jobsApi`, `industryApi`, `mandateApi`, `recruiterCandidatesApi`, and `crmApi`. Candidate profile, dashboard, user-profile, skills, CV, and paginated jobs operations are represented in RTK Query. Remaining domain operations may call the service modules directly.
 
-    Page -->|"useGetCandidateProfileQuery\nuseGetCandidateDashboardQuery\nuseLazyListJobsPageQuery"| RTKQuery
-    RTKQuery -->|"queryFn (withMappedApiError)"| ServiceModule
-    Page -->|"Direct: crmApi, mandateApi,\ncandidateApi, authApi"| ServiceModule
-    ServiceModule -->|"resolveEndpoint(template, params)"| EndpointConfig
-    EndpointConfig -->|"reads import.meta.env.VITE_*\nwith hardcoded fallbacks"| EndpointConfig
-    ServiceModule -->|"apiClient.get/post/put/patch/delete"| AxiosClient
-    AxiosClient -->|"Authorization: Bearer {token}\nbaseURL: VITE_API_BASE_URL"| MockServer
-```
+API errors from RTK Query operations are normalized by `withMappedApiError` in `src/store/api/queryHelpers.ts`. Pages either render inline error states or dispatch a notification through `NotificationToaster`.
 
-### Axios Client Behaviour
+### Axios Client Behavior
 
-- **Base URL:** `VITE_API_BASE_URL` (defaults to `/api`)
-- **Timeout:** `VITE_REQUEST_TIMEOUT_MS` (defaults to 5000 ms)
-- **Request interceptor:** Reads `skillsmine.auth.tokens` from sessionStorage and injects `Authorization: Bearer` header when present
-- **Response interceptor:** On HTTP 401, calls `tokenStorage.clearAuth()` — no redirect (redirect is handled by route guard on next navigation)
+- Base URL: `VITE_API_BASE_URL`, defaulting to `/api`.
+- Timeout: `VITE_REQUEST_TIMEOUT_MS`, defaulting to 5000 milliseconds.
+- Request interceptor: reads `skillsmine.auth.tokens` and adds `Authorization: Bearer <accessToken>` when available.
+- Response interceptor: clears auth storage on HTTP 401 and emits the unauthorized event; it does not perform router navigation itself.
 
-File: [`src/services/api/axios.ts`](src/services/api/axios.ts)
+### Service Module Responsibilities
 
-### Service Modules
-
-| Module | Endpoints covered |
+| Module | Responsibility |
 |---|---|
-| `authApi.ts` | register, login, googleExchange, forgotPassword, changePassword, logout |
-| `candidateApi.ts` | users profile (get/update/photo), candidate dashboard, buildMyCv, resume preview/download, recommended jobs, application CV upload, application stage transition |
-| `jobsApi.ts` | list jobs (paginated), getById, save, apply, create |
-| `mandateApi.ts` | recruiter dashboard, legacy mandate APIs, job-post CRUD, application stage update, ATS profile, pipeline advance, MANCO dashboard, recruiter performance |
-| `industryApi.ts` | industry catalog used by the job-post industry autocomplete |
-| `recruiterCandidatesApi.ts` | recruiter candidate directory with optional list filters |
-| `crmApi.ts` | list clients, add note |
+| `authApi.ts` | Login, current user, Google exchange, candidate/staff registration, invitation validation, password recovery, reset/change password, logout |
+| `candidateApi.ts` | Candidate landing/dashboard, profile, CV build, resume preview/download, recommended/saved jobs, AI actions, application uploads and stage transitions |
+| `jobsApi.ts` | Job listing, details, save, apply, and job creation operations |
+| `mandateApi.ts` | Recruiter dashboard, legacy mandate operations, job-post CRUD, mandate/candidate detail, pipeline, application stage, and MANCO operations |
+| `industryApi.ts` | Industry catalog for recruiter job-post forms |
+| `recruiterCandidatesApi.ts` | Recruiter candidate directory and filters |
+| `crmApi.ts` | CRM clients and client notes |
 
----
-
-## 6. Endpoint Configuration System
-
-All API endpoint strings are resolved at startup from environment variables. Hardcoded string fallbacks are provided so the app works with no extra env configuration (e.g., in CI).
+### Endpoint Resolution
 
 ```mermaid
 graph LR
-    ENV[".env / VITE_* keys"]
-    Endpoints["src/services/api/endpoints.ts\napiEndpoints object"]
-    Resolve["resolveEndpoint(template, params)\nReplaces :param tokens"]
-    Services["Service modules"]
-
-    ENV -->|"import.meta.env lookup\nwith withDefault fallback"| Endpoints
-    Endpoints --> Services
-    Services -->|"dynamic path params"| Resolve
-    Resolve --> Services
+  env[".env / VITE_* keys"] --> config[apiEndpoints]
+  config --> resolve[resolveEndpoint(template, params)]
+  resolve --> service[Service modules]
+  service --> axios[Axios client]
 ```
 
-### `resolveEndpoint` usage
+For example:
 
 ```ts
-// Template from env: '/users/:userId'
-resolveEndpoint(apiEndpoints.users.profile, { userId: '123' })
-// → '/users/123'
-
-// Template from env: '/v1/pipeline/:pipelineId/stage'
-resolveEndpoint(apiEndpoints.pipeline.stageUpdate, { pipelineId: 'p-42' })
-// → '/v1/pipeline/p-42/stage'
+resolveEndpoint('/users/:userId', { userId: 'USR100001' })
+// '/users/USR100001'
 ```
 
-Path params are `encodeURIComponent`-encoded. Templates with no dynamic segments are passed through unchanged.
+Template parameters are URI encoded. Templates without matching parameters are left unchanged. Defaults are evaluated from `import.meta.env` when `apiEndpoints` is created, making endpoint overrides explicit and centralized.
 
-File: [`src/services/api/endpoints.ts`](src/services/api/endpoints.ts)
+## State Ownership
 
-### `apiEndpoints` Structure
+The Redux store in `src/store/index.ts` contains:
 
-```
-apiEndpoints
-├── auth        register / login / forgotPassword / changePassword / logout / googleExchange
-├── users       profile / profilePhoto
-├── candidate   dashboard / buildMyCv / resumePreview / resumeDownload / recommendedJobs
-├── applications cvUpload / stageTransition / recruiterStageUpdate
-├── jobs        list / details / save / apply / listQueryParam / listPageParam / listLimitParam
-├── industries  list
-├── candidates  list
-├── recruiter   dashboard / mandates / candidatesSearch / mandateDetail / candidateProfile
-├── pipeline    stageUpdate
-├── manco       dashboard / recruiterPerformance
-├── jobPosts    list / create / detail / update / delete
-└── crm         clients / clientNotes / statusParam
-```
+| State | Responsibility |
+|---|---|
+| `auth` | Legacy/auth slice state used by existing flows |
+| `candidate` | Candidate dashboard identity, saved and recommended job IDs, and profile/CV flags |
+| `permission` | Permission token state |
+| `recruiterPipeline` | Recruiter pipeline selections, stages, notes, and documents |
+| `ui` | Cross-cutting UI state such as landing mode |
+| `notification` | Global toast queue |
+| `api` | RTK Query reducer and server cache |
 
----
+Use RTK Query for remote data and cache invalidation. Use slices for cross-page client state or transient UI state. Do not create a second Redux mirror of data already owned by RTK Query.
 
-## 7. State Management
+### RTK Query Endpoint Inventory
 
-```mermaid
-graph LR
-    subgraph "Redux Store"
-        auth["auth slice\nauthSlice.ts"]
-        permission["permission slice\npermissionSlice.ts"]
-        recruiterPipeline["recruiterPipeline slice\nrecruiterPipelineSlice.ts"]
-        candidate["candidate slice\ncandidateSlice.ts"]
-        ui["ui slice\nuiSlice.ts"]
-        notification["notification slice\nnotificationSlice.ts"]
-        api["RTK Query cache\napiSlice.ts"]
-    end
-
-    AuthContext["AuthContext\n(session state)"]
-    Pages["Pages / Components"]
-
-    Pages -->|"useSelector / useDispatch"| auth
-    Pages -->|"useSelector / useDispatch"| recruiterPipeline
-    Pages -->|"useSelector / useDispatch\n(saved and recommended job IDs)"| candidate
-    Pages -->|"useSelector / useDispatch"| ui
-    Pages -->|"useDispatch (pushNotification)"| notification
-    Pages -->|"useGetCandidateProfileQuery\nuseGetCandidateDashboardQuery\nuseLazyListJobsPageQuery"| api
-    AuthContext -->|"login() → setSession"| AuthContext
-    AuthContext -.->|"logout() → resetApiState"| api
-```
-
-### Slice Summary
-
-| Slice | Purpose | Key actions |
+| Endpoint | Cache/invalidation role | Main consumers |
 |---|---|---|
-| `auth` | Legacy auth flags | — |
-| `permission` | Permission token set | — |
-| `recruiterPipeline` | Recruiter mock pipeline state (mandates, candidates, stage counts) | `selectMandate`, `moveCandidateToStage`, `addRecruiterNote`, `addDocument` |
-| `candidate` | Candidate dashboard identity, saved job IDs, recommended job IDs, CV/profile flags | `setSavedJobs`, `addSavedJob`, `removeSavedJob`, `setRecommendedJobs` |
-| `ui` | Landing mode toggle (candidate vs recruiter) | `setLandingMode` |
-| `notification` | Toast notification queue | `pushNotification`, `dismissNotification` |
-| `api` (RTK Query) | Server cache for candidate profile/dashboard, user profile, skills, CV state, and paginated jobs | auto-generated hooks |
+| `getCandidateProfile(userId)` | `CandidateProfile:{userId}` | Profile and CV builder |
+| `getCandidateDashboard()` | `CandidateDashboard:SELF` | Candidate dashboard |
+| `updateCandidateProfile({ userId, payload })` | Invalidates profile and dashboard | Profile save |
+| `listJobsPage({ searchQuery, page, pageSize })` | Page/query-specific jobs tags | Public and candidate jobs feeds |
+| `getUserProfile(userId)` | `UserProfile:{userId}` | Saved/recommended job hydration |
+| `saveJob({ userId, savedJobs })` | Invalidates user profile | Optimistic save/unsave actions |
+| `searchSkills({ keyword, userId })` | `Skills:{keyword}` | Profile skills search |
+| CV queries and mutations | `BuildMyCv:SELF` | CV builder |
 
-### RTK Query Endpoints
+RTK Query query functions call the existing service modules and pass failures through `withMappedApiError`. This keeps HTTP transport and response mapping reusable while giving selected pages cache lifecycle, pagination, and invalidation behavior.
 
-| Endpoint | Tag | Usage |
-|---|---|---|
-| `getCandidateProfile(userId)` | `CandidateProfile:{userId}` | ProfilePage, CvBuilderPage |
-| `getCandidateDashboard()` | `CandidateDashboard:SELF` | CandidateDashboardPage |
-| `updateCandidateProfile({userId, payload})` | Invalidates profile + dashboard | ProfilePage save |
-| `listJobsPage({searchQuery, page, pageSize})` | `Jobs:{query}:{page}:{pageSize}` | LandingPage, JobsPage |
-| `getUserProfile(userId)` | `UserProfile:{userId}` | Candidate saved/recommended job state |
-| `saveJob({userId, savedJobs})` | Invalidates `UserProfile:{userId}` | Optimistic save/unsave from job cards and details |
-| `searchSkills({keyword, userId})` | `Skills:{keyword}` | Profile skills search |
-| `getBuildMyCv()` / CV mutations | `BuildMyCv:SELF` | CV builder state and save/update |
+## Feature Structure
 
----
-
-## 8. Module Structure
-
-```
+```text
 src/
-├── app/                    Application-level providers, auth context, validation schemas
-│   ├── auth/               AuthContext, jwt utilities, tokenStorage
-│   └── validation.schema.ts  Shared Zod schemas (email, signup)
-├── assets/                 Static images/icons per feature domain
-├── components/             Shared UI primitives (PasswordVisibilityAdornment, NotificationToaster, placeholders)
-├── hooks/                  Shared React hooks (useDebouncedValue, useSearchQueryState, useZodForm)
-├── layouts/                Layout shells per role (PublicLayout, CandidateLayout, RecruiterLayout, etc.)
-├── modules/                Feature modules (one directory per domain)
-│   ├── auth/               Login, Signup pages + form types
-│   ├── candidate/          Dashboard, Profile, Jobs feeds, Job Details + hooks + services + types
-│   ├── crm/                CRM page (clients list + note creation)
-│   ├── cv-builder/         Multi-step CV builder, preview, review + hooks
-│   ├── dashboard/          Admin dashboard entry placeholder
-│   ├── exco/               Exco placeholder
-│   ├── manco/              MANCO placeholder
-│   ├── mandates/           Mandate-related types
-│   ├── pipeline/           Pipeline types
-│   ├── public/             Landing page, sign-up drawers, public jobs search hooks
-│   ├── recruiter/          Recruiter dashboard, job-post CRUD, mandate detail, candidate directory and profile views
-│   ├── reports/            Reports placeholder
-│   └── skills-builder/     Skills builder placeholder
-├── routes/                 Route definitions, guards (ProtectedRoute, RoleGuard, PermissionGuard)
-├── services/               API transport layer
-│   └── api/                axios client, endpoint config, all service modules
-├── store/                  Redux store, slices, RTK Query slice, thunks, selectors
-├── test/                   Vitest setup
-├── theme/                  MUI theme tokens (colors, spacing, typography)
-├── types/                  Shared TypeScript types (api.ts, auth.ts, common.ts, jobs.ts)
-├── vite-env.d.ts           ImportMetaEnv declarations for all VITE_* keys
-└── workflow/               Workflow config and service (pipeline stage definitions)
+  app/          Providers, auth context, JWT, storage, shared validation
+  assets/       Feature assets
+  components/  Reusable UI components
+  hooks/        Reusable hooks such as debounced search state
+  layouts/      Public and role-specific shells
+  modules/      Domain pages, hooks, services, and types
+  routes/       Route definitions, paths, and guards
+  services/api/ Axios client, endpoint config, and transport modules
+  store/        Redux slices and RTK Query API
+  theme/        Material UI theme
+  types/        Shared TypeScript contracts
+  workflow/     Pipeline workflow configuration and service
 ```
 
----
+Feature pages should stay inside their domain module. Shared layout concerns belong in `layouts`, reusable controls belong in `components`, and backend-specific mapping belongs in the API service boundary.
 
-## 9. Data Flow: Candidate Profile
+### Detailed Source Tree
+
+```text
+src/
+├── app/                    Providers, auth context, JWT, storage, validation
+│   └── auth/               AuthContext, auth events, JWT helpers, tokenStorage
+├── assets/                 Images and icons grouped by feature
+├── components/             Shared UI primitives and notification surfaces
+├── hooks/                  Shared hooks such as debounce and search state
+├── layouts/                Public, candidate, recruiter, MANCO, EXCO, admin shells
+├── modules/
+│   ├── auth/               Login, sign-up, reset-password pages and forms
+│   ├── candidate/          Dashboard, profile, jobs, job details, and candidate hooks
+│   ├── crm/                CRM clients and notes
+│   ├── cv-builder/         Multi-step CV builder and preview
+│   ├── dashboard/          Admin dashboard entry
+│   ├── exco/               EXCO entry
+│   ├── manco/              MANCO entry
+│   ├── public/             Landing page, public search, and sign-up drawers
+│   └── recruiter/          Dashboard, mandates, job posts, candidates, and CRM
+├── routes/                 AppRoutes, route paths, role and permission guards
+├── services/api/           Axios client, endpoint config, service modules
+├── store/                  Redux store, slices, selectors, RTK Query API
+├── test/                   Vitest setup and shared test utilities
+├── theme/                  Material UI design tokens
+├── types/                  Shared API, auth, jobs, and common contracts
+└── workflow/               Pipeline stage definitions and transitions
+```
+
+## Endpoint Configuration
+
+All declared frontend environment keys are in [src/vite-env.d.ts](src/vite-env.d.ts). The most important runtime settings are:
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `VITE_API_BASE_URL` | `/api` | Axios base URL |
+| `VITE_REQUEST_TIMEOUT_MS` | `5000` | Axios request timeout |
+| `VITE_GOOGLE_CLIENT_ID` | none | Enables Google OAuth provider |
+| `VITE_MOCK_ERROR_RATE` | mock-server setting | Error injection when supported by the mock server |
+| `VITE_MOCK_DELAY_MIN_MS` | mock-server setting | Minimum mock response delay |
+| `VITE_MOCK_DELAY_MAX_MS` | mock-server setting | Maximum mock response delay |
+
+Endpoint overrides are grouped by resource in `apiEndpoints`:
+
+```text
+auth, admin, users, candidate, applications, jobs, industries,
+skills, candidates, recruiter, pipeline, manco, jobPosts, crm
+```
+
+Relevant keys include auth registration/login/recovery, user profile, candidate dashboard/profile/CV/jobs, applications, jobs pagination, industries, skills search, recruiter and pipeline operations, management dashboards, job-post CRUD, and CRM clients/notes. Defaults and exact variable names live in `src/services/api/endpoints.ts`; update that file and `src/vite-env.d.ts` together when adding an override.
+
+## Data Flows
+
+### Candidate Profile Read and Save
 
 ```mermaid
 sequenceDiagram
-    participant ProfilePage
-    participant useCandidateProfileQuery
-    participant apiSlice (RTK Query)
-    participant candidateApi
-    participant endpoints.ts
-    participant Axios
-    participant MockServer
+  participant Page as ProfilePage
+  participant Hook as useCandidateProfileQuery
+  participant RTK as apiSlice
+  participant Service as candidateApi
+  participant Config as endpoints.ts
+  participant Axios
+  participant Backend
 
-    ProfilePage->>useCandidateProfileQuery: useCandidateProfileQuery(userId)
-    useCandidateProfileQuery->>apiSlice (RTK Query): getCandidateProfile(userId)
-    apiSlice (RTK Query)->>candidateApi: candidateApi.getById(userId)
-    candidateApi->>endpoints.ts: resolveEndpoint(users.profile, {userId})
-    endpoints.ts-->>candidateApi: "/users/USR100001"
-    candidateApi->>Axios: GET /users/USR100001
-    Axios->>MockServer: GET http://localhost:4000/api/users/USR100001
-    MockServer-->>Axios: CandidateProfileResponse
-    Axios-->>candidateApi: response.data
-    candidateApi->>candidateApi: mapProfileResponse(payload)
-    Note over candidateApi: Maps nested personalDetails,\ndesiredJob, education, experience,\nskills, languages
-    candidateApi-->>apiSlice (RTK Query): CandidateProfile
-    apiSlice (RTK Query)-->>ProfilePage: { data: CandidateProfile, isLoading, isError }
-    ProfilePage->>ProfilePage: reset form with getProfileFormValues(profile)
+  Page->>Hook: Request profile(userId)
+  Hook->>RTK: getCandidateProfile(userId)
+  RTK->>Service: candidateApi.getById(userId)
+  Service->>Config: resolveEndpoint(profile, params)
+  Config-->>Service: Resolved path
+  Service->>Axios: GET profile endpoint
+  Axios->>Backend: Authenticated HTTP request
+  Backend-->>Axios: Profile response
+  Axios-->>Service: response.data
+  Service->>Service: Map backend shape to CandidateProfile
+  Service-->>RTK: CandidateProfile
+  RTK-->>Hook: data, isLoading, isError
+  Hook-->>Page: Reset form from mapped profile
 ```
 
-**Save flow** follows the reverse path: form values → `getCandidateProfileUpdatePayload` → `saveProfileThunk` → `updateCandidateProfile` mutation → `PUT /users/:userId` → invalidates profile + dashboard cache.
+The save path maps form values to the backend payload, calls the RTK Query mutation, and invalidates the candidate profile and dashboard tags. Candidate profile mapping remains in the service boundary so page components do not depend on backend envelope or field naming.
 
----
-
-## 10. Data Flow: Login & Session Establishment
+### Login and Session Establishment
 
 ```mermaid
 flowchart TD
-    A([User submits login form]) --> B[authApi.login]
-    B --> C[POST /auth/login]
-    C --> D{Response OK?}
-    D -- No --> E[Show error alert]
-    D -- Yes --> F[mapLoginResponseToSession]
-    F --> G["decodeJwtPayload(accessToken)\nExtract: userId, email, firstName,\nlastName, recruiterId"]
-    G --> H[normalizePermissions from roles]
-    H --> I[AuthContext.login payload]
-    I --> J[tokenStorage.setTokens + setUser\n→ sessionStorage]
-    I --> K[setSession → isAuthenticated = true]
-    K --> L{Role?}
-    L -- RECRUITER --> P["/recruiter"]
-    L -- MANCO --> Q["/manco"]
-    L -- EXCO --> R["/exco"]
-    L -- ADMIN --> S["/dashboard"]
-    L -- JOB_SEEKER --> T[candidateApi.getById]
-    T --> U{Profile complete?}
-    U -- No --> M["/profile/create"]
-    U -- Yes --> O["/candidate/dashboard"]
-
-    T[ProtectedRoute] -. checks AuthContext first .-> K
-    U[tokenStorage fallback] -. used during hydration .-> T
+  submit[Login form submitted] --> login[authApi.login]
+  login --> request[POST auth login endpoint]
+  request --> result{Response successful?}
+  result -- No --> error[Display login error]
+  result -- Yes --> map[mapLoginResponseToSession]
+  map --> jwt[Decode access-token claims]
+  jwt --> current[Request current user]
+  current --> permissions[Normalize roles and permissions]
+  permissions --> context[AuthProvider.login]
+  context --> storage[Persist tokens and user in sessionStorage]
+  storage --> role{Role?}
+  role -- JOB_SEEKER --> profile[Fetch candidate profile]
+  profile --> complete{Profile complete?}
+  complete -- No --> create["/profile/create"]
+  complete -- Yes --> candidate["/candidate/dashboard"]
+  role -- RECRUITER --> recruiter["/recruiter"]
+  role -- MANCO --> manco["/manco"]
+  role -- EXCO --> exco["/exco"]
+  role -- ADMIN --> admin["/dashboard"]
 ```
 
----
+The current-user request is preferred because it supplies server-authoritative identity and roles. JWT claims are the fallback when that request is unavailable. During the first render after login, route guards can read the persisted session while React context finishes hydration.
 
-## 11. Environment Variable Catalog
+## Full Environment Variable Catalog
 
-All variables are declared in [`src/vite-env.d.ts`](src/vite-env.d.ts) and resolved via [`src/services/api/endpoints.ts`](src/services/api/endpoints.ts).
+All variables are declared in [src/vite-env.d.ts](src/vite-env.d.ts) and resolved through [src/services/api/endpoints.ts](src/services/api/endpoints.ts). Every endpoint override is optional and has a default in `apiEndpoints`.
 
-| Variable | Description | Default fallback |
+| Variable | Description | Default |
 |---|---|---|
-| `VITE_GOOGLE_CLIENT_ID` | Google OAuth Web Client ID | (optional — OAuth disabled if absent) |
+| `VITE_GOOGLE_CLIENT_ID` | Google OAuth web client ID | Optional; provider disabled when absent |
 | `VITE_API_BASE_URL` | Backend API base URL | `/api` |
-| `VITE_REQUEST_TIMEOUT_MS` | Axios timeout in ms | `5000` |
-| `VITE_MOCK_ERROR_RATE` | Mock server error injection rate | `0.02` |
-| `VITE_MOCK_DELAY_MIN_MS` | Mock server min response delay | `300` |
-| `VITE_MOCK_DELAY_MAX_MS` | Mock server max response delay | `900` |
-| `VITE_AUTH_REGISTER_ENDPOINT` | POST register | `/auth/register` |
-| `VITE_AUTH_LOGIN_ENDPOINT` | POST login | `/auth/login` |
-| `VITE_AUTH_FORGOT_PASSWORD_ENDPOINT` | POST forgot password | `/auth/forgot-password` |
-| `VITE_AUTH_CHANGE_PASSWORD_ENDPOINT` | POST change password | `/auth/change-password` |
-| `VITE_AUTH_LOGOUT_ENDPOINT` | POST logout | `/auth/logout` |
-| `VITE_AUTH_GOOGLE_EXCHANGE_ENDPOINT` | POST Google token exchange | `/auth/google/exchange` |
-| `VITE_AUTH_ME_ENDPOINT` | GET current user | `/auth/me` |
-| `VITE_USERS_PROFILE_ENDPOINT` | GET/PUT user profile | `/users/:userId` |
-| `VITE_USERS_PROFILE_PHOTO_ENDPOINT` | POST/DELETE profile photo | `/users/:userId/profile-photo` |
-| `VITE_CANDIDATE_DASHBOARD_ENDPOINT` | GET candidate dashboard | `/candidate/dashboard` |
-| `VITE_CANDIDATE_BUILDMYCV_ENDPOINT` | POST build my CV | `/candidate/buildmycv` |
-| `VITE_CANDIDATE_RESUME_PREVIEW_ENDPOINT` | GET resume preview | `/candidate/:resumeId/preview` |
-| `VITE_CANDIDATE_RESUME_DOWNLOAD_ENDPOINT` | GET resume download | `/candidate/:resumeId/download` |
-| `VITE_CANDIDATE_RECOMMENDED_JOBS_ENDPOINT` | GET recommended jobs | `/candidate/:candidateId/recommended-jobs` |
-| `VITE_APPLICATION_CV_UPLOAD_ENDPOINT` | POST CV upload | `/applications/:applicationId/cv/upload` |
-| `VITE_JOBS_ENDPOINT` | GET/POST jobs | `/jobs` |
-| `VITE_JOB_DETAILS_ENDPOINT` | GET job by ID | `/jobs/:jobId` |
-| `VITE_JOB_SAVE_ENDPOINT` | POST save job | `/jobs/:jobId/save` |
-| `VITE_JOB_APPLY_ENDPOINT` | POST apply to job | `/jobs/:jobId/apply` |
-| `VITE_OPPORTUNITIES_ENDPOINT` | GET public opportunities | `/opportunities` |
-| `VITE_JOBS_QUERY_PARAM` | Search query param name | `q` |
-| `VITE_JOBS_PAGE_PARAM` | Page param name | `page` |
-| `VITE_JOBS_LIMIT_PARAM` | Limit param name | `limit` |
-| `VITE_INDUSTRIES_LIST_ENDPOINT` | GET industry catalog | `/industries` |
-| `VITE_SKILLS_SEARCH_ENDPOINT` | GET skills search | `/skills/search` |
-| `VITE_RECRUITER_DASHBOARD_ENDPOINT` | GET recruiter dashboard | `/recruiter/dashboard` |
-| `VITE_RECRUITER_MANDATES_ENDPOINT` | GET/POST mandates | `/recruiter/mandates` |
-| `VITE_RECRUITER_APPLICATION_STAGE_ENDPOINT` | PUT application stage | `/recruiter/applications/:applicationId/stage` |
-| `VITE_RECRUITER_CANDIDATES_SEARCH_ENDPOINT` | GET candidates search | `/recruiter/candidates/search` |
-| `VITE_MANDATE_DETAIL_ENDPOINT` | GET mandate detail | `/mandates/:mandateId` |
-| `VITE_APPLICATION_STAGE_TRANSITION_ENDPOINT` | GET stage transition | `/applications/:applicationId/stage-transition` |
-| `VITE_RECRUITER_CANDIDATE_PROFILE_ENDPOINT` | GET ATS candidate profile | `/v1/candidates/:candidateId/profile` |
-| `VITE_CANDIDATES_LIST_ENDPOINT` | GET recruiter candidate directory | `/candidates` |
-| `VITE_JOB_POSTS_ENDPOINT` | GET job posts | `/job-posts` |
-| `VITE_JOB_POST_CREATE_ENDPOINT` | POST job post | `/job-posts` |
-| `VITE_JOB_POST_DETAIL_ENDPOINT` | GET job post | `/job-posts/:mandateId` |
-| `VITE_JOB_POST_UPDATE_ENDPOINT` | PUT job post | `/job-posts/:mandateId` |
-| `VITE_JOB_POST_DELETE_ENDPOINT` | DELETE job post | `/job-posts/:mandateId` |
-| `VITE_PIPELINE_STAGE_UPDATE_ENDPOINT` | PATCH pipeline stage | `/v1/pipeline/:pipelineId/stage` |
-| `VITE_MANCO_DASHBOARD_ENDPOINT` | GET MANCO dashboard | `/v1/manco/:mancoId/dashboard` |
-| `VITE_MANCO_RECRUITER_PERFORMANCE_ENDPOINT` | GET recruiter performance | `/v1/manco/recruiters/:id/performance` |
-| `VITE_CRM_CLIENTS_ENDPOINT` | GET CRM clients | `/v1/crm/clients` |
-| `VITE_CRM_CLIENT_NOTES_ENDPOINT` | POST CRM client note | `/v1/crm/clients/:clientId/notes` |
-| `VITE_CRM_STATUS_PARAM` | CRM status query param name | `status` |
+| `VITE_REQUEST_TIMEOUT_MS` | Axios timeout in milliseconds | `5000` |
+| `VITE_MOCK_ERROR_RATE` | Mock error injection rate | Mock-server configuration |
+| `VITE_MOCK_DELAY_MIN_MS` | Mock minimum delay | Mock-server configuration |
+| `VITE_MOCK_DELAY_MAX_MS` | Mock maximum delay | Mock-server configuration |
+| `VITE_AUTH_REGISTER_ENDPOINT` | Legacy registration endpoint | `/auth/register` |
+| `VITE_AUTH_CANDIDATE_REGISTER_ENDPOINT` | Candidate registration endpoint | `/api/v1/auth/candidates/register` |
+| `VITE_AUTH_STAFF_REGISTER_ENDPOINT` | Staff registration endpoint | `/api/v1/auth/staff/register` |
+| `VITE_AUTH_STAFF_INVITATION_VALIDATE_ENDPOINT` | Staff invitation validation | `/api/v1/auth/staff-invitations/validate` |
+| `VITE_AUTH_LOGIN_ENDPOINT` | Login | `/auth/login` |
+| `VITE_AUTH_FORGOT_PASSWORD_ENDPOINT` | Forgot-password request | `/auth/forgot-password` |
+| `VITE_AUTH_RESET_PASSWORD_ENDPOINT` | Reset password | `/api/v1/auth/reset-password` |
+| `VITE_AUTH_CHANGE_PASSWORD_ENDPOINT` | Change password | `/auth/change-password` |
+| `VITE_AUTH_LOGOUT_ENDPOINT` | Logout | `/auth/logout` |
+| `VITE_AUTH_GOOGLE_EXCHANGE_ENDPOINT` | Google token exchange | `/auth/google/exchange` |
+| `VITE_AUTH_ME_ENDPOINT` | Current-user lookup | `/api/v1/users/me` |
+| `VITE_ADMIN_STAFF_INVITATIONS_ENDPOINT` | Admin staff invitations | `/api/v1/admin/staff-invitations` |
+| `VITE_USERS_PROFILE_ENDPOINT` | User profile read/update | `/users/:userId` |
+| `VITE_USERS_PROFILE_PHOTO_ENDPOINT` | Profile photo operations | `/users/:userId/profile-photo` |
+| `VITE_CANDIDATE_LANDING_ENDPOINT` | Candidate landing data | `/candidates/landing` |
+| `VITE_CANDIDATE_DASHBOARD_ENDPOINT` | Candidate dashboard | `/candidates/dashboard` |
+| `VITE_CANDIDATE_PROFILE_ENDPOINT` | Candidate profile | `/candidates/profile/` |
+| `VITE_CANDIDATE_BUILDMYCV_ENDPOINT` | Build CV | `/candidates/cv-build/` |
+| `VITE_CANDIDATE_RESUME_PREVIEW_ENDPOINT` | Resume preview | `/candidate/:resumeId/preview` |
+| `VITE_CANDIDATE_RESUME_DOWNLOAD_ENDPOINT` | Resume download | `/candidate/:resumeId/download` |
+| `VITE_CANDIDATE_RECOMMENDED_JOBS_ENDPOINT` | Recommended jobs | `/candidates/recommended-positions` |
+| `VITE_CANDIDATE_SAVED_JOBS_ENDPOINT` | Saved jobs | `/candidates/saved-jobs` |
+| `VITE_CANDIDATE_SAVED_JOB_ENDPOINT` | Saved-job mutation | `/candidates/saved-jobs/:jobProfileId` |
+| `VITE_CANDIDATE_AI_ACTIONS_ENDPOINT` | Candidate AI actions | `/candidates/ai-actions/` |
+| `VITE_APPLICATION_CV_UPLOAD_ENDPOINT` | Application CV upload | `/applications/:applicationId/cv/upload` |
+| `VITE_APPLICATION_STAGE_TRANSITION_ENDPOINT` | Candidate application stage transition | `/applications/:applicationId/stage-transition` |
+| `VITE_RECRUITER_APPLICATION_STAGE_ENDPOINT` | Recruiter application stage update | `/recruiter/applications/:applicationId/stage` |
+| `VITE_JOBS_ENDPOINT` | Job list/create | `/jobs` |
+| `VITE_JOB_DETAILS_ENDPOINT` | Job details | `/jobs/:jobId` |
+| `VITE_JOB_SAVE_ENDPOINT` | Save job | `/jobs/:jobId/save` |
+| `VITE_JOB_APPLY_ENDPOINT` | Apply to job | `/jobs/:jobId/apply` |
+| `VITE_JOBS_QUERY_PARAM` | Search query parameter | `q` |
+| `VITE_JOBS_PAGE_PARAM` | Page parameter | `page` |
+| `VITE_JOBS_PAGE_SIZE_PARAM` | Optional page-size parameter declaration | Declared for compatibility |
+| `VITE_JOBS_LIMIT_PARAM` | Page limit parameter | `limit` |
+| `VITE_OPPORTUNITIES_ENDPOINT` | Public opportunities endpoint declaration | Declared for compatibility |
+| `VITE_INDUSTRIES_LIST_ENDPOINT` | Industry catalog | `/industries` |
+| `VITE_SKILLS_SEARCH_ENDPOINT` | Skills search | `/skills/search` |
+| `VITE_SKILLS_SEARCH_KEYWORD_PARAM` | Skills keyword parameter | `keyword` |
+| `VITE_SKILLS_SEARCH_LIMIT_PARAM` | Skills limit parameter | `limit` |
+| `VITE_CANDIDATES_LIST_ENDPOINT` | Recruiter candidate directory | `/candidates` |
+| `VITE_RECRUITER_DASHBOARD_ENDPOINT` | Recruiter dashboard | `/recruiter/dashboard` |
+| `VITE_RECRUITER_MANDATES_ENDPOINT` | Legacy mandate operations | `/recruiter/mandates` |
+| `VITE_RECRUITER_CANDIDATES_SEARCH_ENDPOINT` | Recruiter candidate search | `/recruiter/candidates/search` |
+| `VITE_MANDATE_DETAIL_ENDPOINT` | Mandate detail | `/mandates/:mandateId` |
+| `VITE_RECRUITER_CANDIDATE_PROFILE_ENDPOINT` | ATS candidate profile | `/v1/candidates/:candidateId/profile` |
+| `VITE_PIPELINE_STAGE_UPDATE_ENDPOINT` | Pipeline stage update | `/v1/pipeline/:pipelineId/stage` |
+| `VITE_MANCO_DASHBOARD_ENDPOINT` | MANCO dashboard | `/v1/manco/:mancoId/dashboard` |
+| `VITE_MANCO_RECRUITER_PERFORMANCE_ENDPOINT` | Recruiter performance | `/v1/manco/recruiters/:id/performance` |
+| `VITE_JOB_POSTS_ENDPOINT` | Job-post list | `/job-posts` |
+| `VITE_JOB_POST_CREATE_ENDPOINT` | Create job post | `/job-posts` |
+| `VITE_JOB_POST_DETAIL_ENDPOINT` | Job-post detail | `/job-posts/:mandateId` |
+| `VITE_JOB_POST_UPDATE_ENDPOINT` | Update job post | `/job-posts/:mandateId` |
+| `VITE_JOB_POST_DELETE_ENDPOINT` | Delete job post | `/job-posts/:mandateId` |
+| `VITE_CRM_CLIENTS_ENDPOINT` | CRM clients | `/v1/crm/clients` |
+| `VITE_CRM_CLIENT_NOTES_ENDPOINT` | CRM client notes | `/v1/crm/clients/:clientId/notes` |
+| `VITE_CRM_STATUS_PARAM` | CRM status query parameter | `status` |
 
----
+When adding a new endpoint override, update `endpoints.ts` and `vite-env.d.ts` in the same change. Keep the fallback aligned with the mock server or document the intentional contract difference.
 
-## 12. Error Handling Strategy
+## Error Handling
 
 ```mermaid
 flowchart TD
-    A[API call fails] --> B{Source?}
-    B -- "Axios response error" --> C{Status code?}
-    C -- 401 --> D[tokenStorage.clearAuth\nNext navigation → login redirect]
-    C -- Other --> E[Error propagates as rejected Promise]
-    B -- "Network error" --> E
-    E --> F{Consumer type?}
-    F -- RTK Query endpoint --> G["withMappedApiError wrapper\n→ ApiError shape\n→ RTK Query error state"]
-    F -- Direct service call --> H["try/catch in page/hook\n→ pushNotification (error toast)\nor local error state"]
-    G --> I[isError flag in hook\n→ Alert component in page]
-    H --> J[NotificationToaster renders toast]
+  call[API call] --> source{Failure source}
+  source -- HTTP 401 --> unauthorized[Clear auth and emit unauthorized event]
+  source -- Other HTTP error --> rejected[Reject with Axios error]
+  source -- Network or timeout --> rejected
+  rejected --> consumer{Consumer}
+  consumer -- RTK Query --> mapped[withMappedApiError maps ApiError]
+  mapped --> inline[Page renders loading/error/empty state]
+  consumer -- Direct service --> caught[Page or hook catches error]
+  caught --> toast[pushNotification]
+  toast --> toaster[NotificationToaster]
 ```
 
-**`withMappedApiError`** (`src/store/api/queryHelpers.ts`) wraps async service calls and translates Axios errors into the `ApiError` shape RTK Query understands.
+The Axios layer owns transport concerns and unauthorized-session cleanup. `withMappedApiError` translates service failures for RTK Query consumers. Feature pages remain responsible for deciding whether an error is shown inline, surfaced as a toast, or allows a retry action. Loading, empty, and error states should remain distinct so a failed request is not presented as an empty result.
 
-**Profile and dashboard pages** show inline `<Alert severity="error">` on load failure and disable save actions until data is ready.
+## Testing and Verification
 
----
+Run the focused suite while changing a domain, then run the full checks before merging:
 
-## 13. Key Design Decisions
+```bash
+npm run test
+npm run lint
+npm run build
+```
 
-### RTK Query + Axios coexistence
+API modules and auth flows have colocated Vitest tests. Keep tests near the behavior they protect, especially for route guards, response mapping, endpoint resolution, and optimistic cache/state updates.
 
-RTK Query owns the server-state cache for candidate profile/dashboard data, user profile data, skills, CV state, and paginated jobs. Direct Axios service calls are used for the remaining domain operations. Candidate save/unsave actions update the candidate slice optimistically and persist the complete saved-job ID list through the user-profile mutation.
+## Design Constraints
 
-### Session-only token storage
+- Keep API endpoint differences configurable instead of scattering URL strings through pages.
+- Keep role and permission checks at route boundaries or shared auth helpers.
+- Preserve session cleanup on logout and unauthorized responses.
+- Prefer existing shared layouts, hooks, theme tokens, and UI components.
+- Treat backend response mapping as an explicit compatibility boundary.
 
-Auth tokens are stored in `sessionStorage` (not `localStorage`) so they are cleared automatically when the tab is closed. This avoids stale session issues between devices and reduces the risk of XSS credential theft across sessions.
+## Design Decisions
 
-### Env-driven endpoint config with hardcoded fallbacks
+### RTK Query and Axios Coexistence
 
-Every endpoint URL is resolved from `VITE_*` env keys via `apiEndpoints` in `endpoints.ts`. Hardcoded fallbacks mirror the mock server contract, so the app works out of the box without a `.env` file and also makes endpoint drift immediately visible when keys diverge.
+Axios remains the transport and contract layer because all service modules use the same base URL, bearer-token interceptor, timeout, response unwrapping, and endpoint resolution behavior. RTK Query is layered above those modules only where the UI needs server-state caching, tag invalidation, optimistic updates, or paginated subscriptions. This avoids duplicating HTTP behavior while keeping remote state separate from client-only Redux state.
 
-### Permission derivation at login, not per-request
+### Session-Only Persistence
 
-Permissions are expanded from roles once at login time and stored on the `AuthUser` object. Guards (`PermissionGuard`, `RoleGuard`) read from React context synchronously, avoiding async permission checks on every render.
+Tokens and the authenticated user are stored in `sessionStorage`, not `localStorage`, so closing the browser tab ends the persisted session. The current implementation favors predictable tab-scoped behavior and clears both records together when the JWT is invalid or the user logs out. A hardened production deployment should evaluate HttpOnly refresh cookies and in-memory access tokens based on its threat model.
 
-### Stage mapping telemetry
+### Environment-Driven Contracts
 
-The candidate dashboard stage-to-status and stage-to-pipeline mapping uses explicit lookup tables with a `console.warn` on unknown stage values (logged once per unknown stage via a `Set`). This surfaces new backend stage values in development without crashing the UI.
+Endpoint templates are centralized in `apiEndpoints` and can be overridden without changing page code. Fallbacks keep local development, CI, and the mock server usable with minimal configuration. `resolveEndpoint` is the single place where dynamic path parameters are substituted and encoded.
+
+### Permission Derivation at Login
+
+Permissions are expanded from normalized roles once when the login response is mapped to `AuthUser`. Route guards then make synchronous checks against the auth context instead of performing an asynchronous permission lookup on every render. `ADMIN` is represented as an expansion to the complete permission list, keeping guard consumers simple.
+
+### Auth Hydration Fallback
+
+React context hydration is asynchronous relative to the first route render. `ProtectedRoute` and `RoleGuard` can temporarily read valid persisted auth data so a successful login does not flicker through an unauthenticated route during that first render. Invalid or incomplete persisted data is cleared rather than treated as an authenticated session.
+
+### Explicit Stage Mapping Telemetry
+
+Candidate dashboard stage values are translated through explicit lookup tables. Unknown backend stages are warned once per value in development instead of silently producing an incorrect status or crashing the page. This makes backend contract drift visible while preserving a usable UI for known stages.
