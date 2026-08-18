@@ -2,15 +2,15 @@
 
 Enterprise React foundation for SkillsMine, built for scale-first development with production-minded auth and reusable UI primitives.
 
-This repository provides the application shell, route composition, auth boundaries, state management, API contracts, workflow engine, theming, and test setup. It now also includes implemented public and candidate-facing authentication UX (email sign-up flow scaffolding and Google OAuth sign-up entry), plus improved shared navigation and layout components.
+This repository provides the application shell, route composition, auth boundaries, state management, API contracts, workflow engine, theming, and test setup. It includes public and candidate-facing authentication UX, email sign-up flow scaffolding, Google OAuth sign-in entry, shared navigation, and role-specific layout components.
 
-> For a full breakdown of the system architecture, API contract integration, route guards, state management design, and environment configuration, see [ARCHITECTURE.md](ARCHITECTURE.md).
+> For the full runtime architecture, route guards, API integration, state ownership, data flows, environment catalog, and design decisions, see [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## Stack
 
 - React 19
 - TypeScript
-- Vite
+- Vite 8
 - Redux Toolkit + React Redux
 - RTK Query
 - React Router v7
@@ -27,79 +27,79 @@ npm install
 npm run dev
 ```
 
-Create a local `.env` from `.env.example` and set the required values.
+Create a local `.env` file when you need to point the app at a backend or enable Google sign-in:
 
-Required:
+```dotenv
+VITE_API_BASE_URL=http://localhost:4000/api
+VITE_GOOGLE_CLIENT_ID=your-google-web-client-id
+```
 
-1. Add `VITE_GOOGLE_CLIENT_ID` to your local `.env` file (Web client ID from Google Cloud Console).
-2. Set `VITE_API_BASE_URL` to your backend API base (e.g. `http://localhost:4000/api`).
-
-All other `VITE_*` endpoint keys have hardcoded fallbacks matching the mock server contract and are optional. See [ARCHITECTURE.md](ARCHITECTURE.md) for the full environment variable catalog.
+`VITE_API_BASE_URL` defaults to `/api`. `VITE_GOOGLE_CLIENT_ID` is optional; when it is absent, the app still runs and Google sign-in reports that OAuth configuration is unavailable. All endpoint-specific `VITE_*` keys have hardcoded fallbacks matching the mock-server contract and are optional. See [ARCHITECTURE.md](ARCHITECTURE.md) for the full environment variable catalog.
 
 Useful scripts:
 
 ```bash
 npm run build
+npm run lint
 npm run test
 npm run test:watch
 npm run test:coverage
+npm run preview
 ```
 
 ## What Changed Recently
 
 ### Recruiter Sign-Up Flow
 
-- Added `recruiterSignup` method to `authApi` that calls `POST /recruiters/register` (`VITE_RECRUITER_REGISTER_ENDPOINT`), separate from the candidate sign-up endpoint.
-- `useRecruiterSignUpForm` now submits to the recruiter-specific endpoint instead of the shared candidate endpoint.
-- The "Find Candidates" hero CTA on the landing page now opens `RecruiterSignUpDrawer` when the page is in `startHiring` mode. `PublicLayout` already conditionally renders the correct drawer based on landing mode, so no layout changes were required.
+- Added recruiter-specific sign-up submission through the staff/recruiter registration API boundary rather than treating recruiter registration as candidate registration.
+- The `Find Candidates` landing-page CTA opens the recruiter sign-up drawer when the page is in `startHiring` mode.
+- `PublicLayout` conditionally renders the candidate or recruiter sign-up experience based on landing mode.
 
 ### Authentication and OAuth
 
-- Added Google OAuth support with conditional provider registration in app providers. If `VITE_GOOGLE_CLIENT_ID` is missing, the app still runs and the Google sign-up action gracefully falls back.
-- Refactored auth persistence so both JWT tokens and authenticated user data are stored and cleared together via session storage.
-- `AuthProvider` now hydrates state from storage on boot, clears invalid sessions, and persists user data on login.
-- JWT expiry checks are stricter: tokens without an `exp` claim are treated as expired.
-- Candidate onboarding now routes from login based on candidate profile completeness. For `JOB_SEEKER`, incomplete profile data routes to `/profile/create`, while complete profile data routes to `/candidate/dashboard`. The old active `/portal` hop was removed because it amplified auth hydration races and caused occasional redirects back to `/login` despite successful login and `/auth/me` responses.
-- `ProtectedRoute` and `RoleGuard` now use persisted session storage as a temporary fallback during auth hydration so protected candidate routes do not flicker or bounce on first render.
-- Public auth routes now include `/login` and `/reset-password`. The reset-password page is reached through the public login flow, not a protected shell.
+- Added Google OAuth support with conditional provider registration in app providers.
+- Refactored auth persistence so JWT tokens and authenticated user data are stored and cleared together in session storage.
+- `AuthProvider` hydrates state from storage on boot, clears invalid sessions, and persists user data on login.
+- JWT expiry checks treat tokens without an `exp` claim as expired.
+- Candidate onboarding routes from login based on profile completeness. `JOB_SEEKER` users with incomplete profiles go to `/profile/create`; complete profiles go to `/candidate/dashboard`.
+- The old active `/portal` hop was removed to avoid auth hydration races and redirects back to `/login` after successful login.
+- `ProtectedRoute` and `RoleGuard` use valid persisted session data as a temporary fallback during auth hydration.
+- Public auth routes include `/login`, `/signup`, and `/reset-password`.
 
-### Public/Candidate Layout and Navigation
+### Public, Candidate, and Shared Navigation
 
-- Candidate layout now uses shared public header/footer composition.
-- Header navigation is generated from role-aware presets and supports protected links that redirect unauthenticated users to login.
-- Added profile menu behavior (profile settings + sign out), notification affordance, and improved logo routing for authenticated users.
-- Candidate navigation now exposes the dashboard, latest opportunities, saved jobs, recommended jobs, profile, and CV builder destinations. Jobs-feed back navigation returns to the candidate dashboard.
+- Candidate layout uses shared public header and footer composition.
+- Header navigation is generated from role-aware presets and protected links redirect unauthenticated users to login.
+- Added profile menu behavior, profile settings access, sign out, notification affordances, and authenticated logo routing.
+- Candidate navigation exposes dashboard, latest opportunities, saved jobs, recommended jobs, profile, and CV builder destinations.
+- Jobs-feed back navigation returns to the candidate dashboard.
 
 ### Candidate Dashboard and Jobs
-- Added the candidate dashboard view with summary metrics, application activity, profile completion/build-CV actions, and recommended-job navigation.
-- Added latest, saved, and recommended jobs feeds plus job details navigation.
-- Jobs feeds support debounced search with a three-character minimum, paginated infinite scrolling for latest jobs, and empty/loading/error states.
-- Added optimistic save/unsave behavior for job cards and job details. Saved job IDs and recommended job IDs are kept in the candidate Redux slice and hydrated from candidate dashboard/profile responses.
+
+- Added the candidate dashboard with summary metrics, application activity, profile completion, CV actions, and recommended-job navigation.
+- Added latest, saved, and recommended job feeds plus job details navigation.
+- Jobs feeds support debounced search with a three-character minimum, paginated infinite scrolling for latest jobs, and loading, empty, and error states.
+- Added optimistic save/unsave behavior for job cards and job details.
+- Saved and recommended job IDs are kept in the candidate Redux slice and hydrated from candidate dashboard/profile responses.
 
 ### Recruiter Job Posts and Candidates
 
-- Added recruiter job-post list, creation, editing, detail, and deletion flows. Job-post endpoints are configured independently from the legacy recruiter mandate endpoints.
+- Added recruiter job-post listing, creation, editing, detail, and deletion flows.
+- Job-post endpoints are configured independently from legacy recruiter mandate endpoints.
 - Added industry catalog loading with autocomplete support in the job-post form.
-- Added a recruiter candidate directory and dedicated candidate detail screen.
-- Recruiter paths are now `/recruiter/job-posts`, `/recruiter/new-job-post`, `/recruiter/edit-job-post/:mandateId`, `/recruiter/candidates`, and `/recruiter/candidates/:candidateId`.
-- The former `/recruiter/mandates` and `/recruiter/new-mandate` frontend paths are replaced by the job-post paths above.
+- Added recruiter candidate directory and dedicated candidate detail screens.
+- Current recruiter paths include `/recruiter/job-posts`, `/recruiter/new-job-post`, `/recruiter/edit-job-post/:mandateId`, `/recruiter/candidates`, and `/recruiter/candidates/:candidateId`.
+- Legacy frontend paths such as `/recruiter/mandates` and `/recruiter/new-mandate` are no longer active route paths.
 
 ### Form UX and Validation
 
-- Added candidate sign-up schema with field-level validation for:
-  - name fields
-  - email
-  - South African 9-digit phone format
-  - minimum password length
-  - confirm-password match
-  - required password hint
-  - required terms acceptance
+- Added candidate sign-up validation for name fields, email, South African 9-digit phone format, password length, password confirmation, password hint, and terms acceptance.
 - Added reusable password visibility adornment for password inputs.
 
 ### Reusable Hooks and Utilities
 
 - Added `useDebouncedValue` for delayed value updates.
-- Added `useSearchQueryState` to unify search input state, normalization, debounce handling, and min-character query gating.
+- Added `useSearchQueryState` to unify search input state, normalization, debounce handling, and minimum-character query gating.
 
 ### Branding and Styling
 
@@ -109,28 +109,28 @@ npm run test:coverage
 ### Dependency and Script Cleanup
 
 - Added `@react-oauth/google`.
-- Removed unused `httpyac` tooling/scripts.
+- Removed unused `httpyac` tooling and scripts.
 - Removed `@tanstack/react-query` after migrating server-state flows to RTK Query.
 
 ### Server-State Architecture Migration
 
-- Migrated server-state operations to `RTK Query` with a centralized API slice at `src/store/api/apiSlice.ts`.
-- `apiSlice` now handles candidate profile queries, candidate applications queries, profile mutations, and paginated jobs reads.
-- Moved cache invalidation logic to tag-based policies (`providesTags` / `invalidatesTags`) and removed QueryClient cache management.
-- Logout now resets server cache using `apiSlice.util.resetApiState()`.
-- Candidate profile/application Redux mirror slices were removed to keep a single source of truth for server data.
+- Migrated selected server-state operations to RTK Query with a centralized API slice at `src/store/api/apiSlice.ts`.
+- `apiSlice` handles candidate profile/dashboard queries, user profile state, skills search, CV state, mutations, and paginated jobs reads.
+- Moved cache invalidation to tag-based policies using `providesTags` and `invalidatesTags`.
+- Logout resets server cache through `apiSlice.util.resetApiState()`.
+- Candidate profile/application Redux mirror state was removed where RTK Query is now the source of truth.
 
 ## Architecture Overview
 
-The app is organized around a few explicit responsibilities:
+The app is organized around explicit responsibilities:
 
 - `app/` boots providers and global runtime wiring.
 - `routes/` defines navigation, guards, and layout composition.
 - `layouts/` owns shared shells and renders matched child pages through `Outlet`.
-- `modules/` is the future feature surface, split by domain.
-- `services/api/` contains transport contracts and Axios setup.
-- `store/` owns global Redux state.
-- `workflow/` contains configuration-driven stage transitions.
+- `modules/` contains domain pages, hooks, services, and types.
+- `services/api/` contains transport contracts, endpoint configuration, response mapping, and Axios setup.
+- `store/` owns global Redux state and the RTK Query API slice.
+- `workflow/` contains configuration-driven pipeline stage transitions.
 - `theme/` centralizes Material UI design tokens.
 
 ## High-Level Diagram
@@ -147,10 +147,8 @@ flowchart TD
 
     D --> E[Public Routes]
     D --> F[ProtectedRoute]
-
     E --> E1[PublicLayout]
-    E1 --> E2["/login"]
-    E1 --> E3["/reset-password"]
+    E1 --> E2["/login, /signup, /reset-password"]
 
     F --> H[CandidateLayout]
     F --> I[RecruiterLayout]
@@ -162,10 +160,9 @@ flowchart TD
     H --> H2["/jobs/latest, /jobs/saved, /jobs/recommended"]
     H --> H3["/jobs/:jobId"]
     H --> H4["/profile, /profile/create, /candidate/cv-builder"]
-    I --> I1["/recruiter"]
-    I --> I2["/recruiter/job-posts and job-post editor"]
-    I --> I3["/recruiter/candidates and candidate detail"]
-    I --> I4["PermissionGuard to /crm"]
+    I --> I1["/recruiter and job-post routes"]
+    I --> I2["/recruiter/candidates and candidate detail"]
+    I --> I3["PermissionGuard to /crm"]
     J --> J1["RoleGuard to /manco"]
     K --> K1["RoleGuard to /exco"]
     L --> L1["RoleGuard to /dashboard"]
@@ -173,10 +170,9 @@ flowchart TD
     B1 --> M[Redux Store]
     M --> M1[authSlice]
     M --> M2[permissionSlice]
-    M --> M3[uiSlice]
-    M --> M4[notificationSlice]
+    M --> M3[candidateSlice]
+    M --> M4[uiSlice and notificationSlice]
     M --> M5[apiSlice reducer]
-
     M5 --> N[RTK Query Cache]
     N --> O[API Layer]
     O --> O1[axios.ts]
@@ -184,8 +180,7 @@ flowchart TD
     O --> O3[candidateApi.ts]
     O --> O4[mandateApi.ts]
     O --> O5[crmApi.ts]
-    O --> O6[jobsApi.ts / crmApi.ts / mandateApi.ts]
-
+    O --> O6[jobsApi.ts and industryApi.ts]
     C --> P[Workflow Service]
     P --> P1[workflow.config.ts]
     P --> P2[workflow.types.ts]
@@ -202,92 +197,92 @@ Provider order is:
 1. Redux Provider
 2. BrowserRouter
 3. AuthProvider
-4. Material UI ThemeProvider
+4. Material UI ThemeProvider and `CssBaseline`
+5. Application routes and `NotificationToaster`
 
-This order matters because route guards need router context, feature code needs auth context, and all rendered UI needs theme context.
+This order matters because route guards need router context, feature code needs auth context, and all rendered UI needs theme context. `GoogleOAuthProvider` is added outside this tree only when `VITE_GOOGLE_CLIENT_ID` is configured.
 
 ### 2. Routing and layout composition
 
-`AppRoutes.tsx` controls which page renders and which shell wraps it.
+`AppRoutes.tsx` controls which page renders and which shell wraps it. Feature pages are lazy-loaded under a shared `Suspense` fallback.
 
 Example: `/dashboard`
 
 1. `ProtectedRoute` verifies the user is authenticated.
-2. `RoleGuard` verifies the user has the `admin` role.
+2. `RoleGuard` verifies the user has the `ADMIN` role.
 3. `AdminLayout` renders the shared admin shell.
 4. `DashboardEntryPage` is injected into `AdminLayout` through `Outlet`.
 
-This means feature pages do not import their own layouts directly. Route composition decides that relationship.
+Feature pages do not import their own layouts directly. Route composition decides that relationship. The detailed route hierarchy and guard relationships are documented in [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ### 3. Authentication model
 
 Current auth foundation includes:
 
 - `AuthContext` and `useAuth()`
-- JWT token helpers with expiry-first validation
-- Axios request interceptor
-- Route-level auth and authorization guards
-- Session storage-backed token + user persistence
+- JWT decoding and expiry validation
+- Axios request and response interceptors
+- Route-level authentication and authorization guards
+- Session-storage-backed token and user persistence
+- Google token exchange when OAuth is configured
 
 Supported roles:
 
-- `candidate`
-- `recruiter`
-- `manco`
-- `exco`
-- `admin`
+- `JOB_SEEKER`
+- `RECRUITER`
+- `MANCO`
+- `EXCO`
+- `ADMIN`
 
-Supported permissions:
+Permissions are derived from roles during login. Current role mappings include:
 
-- `MANDATE_CREATE`
-- `MANDATE_EDIT`
-- `PIPELINE_ADVANCE`
-- `PIPELINE_VIEW`
-- `CRM_VIEW`
-- `CRM_EDIT`
-- `REPORT_VIEW`
+- `JOB_SEEKER`: `VIEW_JOBS`, `APPLY_JOB`, `UPLOAD_CV`, `VIEW_DASHBOARD`
+- `RECRUITER`: `MANDATE_CREATE`, `MANDATE_EDIT`, `PIPELINE_ADVANCE`, `CRM_EDIT`, `CANDIDATE_VIEW`, `VIEW_DASHBOARD`
+- `MANCO` and `EXCO`: `PIPELINE_VIEW`, `REPORT_VIEW`, `RECRUITER_VIEW`, `VIEW_DASHBOARD`
+- `ADMIN`: all known permissions
 
-Note: current persistence uses browser session storage for both tokens and user profile. For hardened production environments, prefer refresh tokens in `HttpOnly` cookies and short-lived access tokens in memory.
+The current persistence uses browser session storage for both tokens and user profile. For hardened production environments, prefer refresh tokens in `HttpOnly` cookies and short-lived access tokens in memory.
 
 ### 4. State management
 
-Redux is used for global cross-cutting UI and identity state:
+Redux is used for global cross-cutting UI, identity, and workflow state:
 
-- `authSlice`: session state
-- `permissionSlice`: granted permissions
-- `candidateSlice`: candidate dashboard identity, saved job IDs, recommended job IDs, and CV/profile flags
-- `uiSlice`: layout/global loading/theme preference state
+- `authSlice`: compatibility/auth state
+- `permissionSlice`: permission state
+- `candidateSlice`: candidate identity, saved/recommended job IDs, and profile/CV flags
+- `recruiterPipelineSlice`: recruiter pipeline selections, stages, notes, and documents
+- `uiSlice`: cross-cutting UI state such as landing mode
 - `notificationSlice`: global notification queue
 
 RTK Query is used for server-state concerns through `apiSlice`:
 
 - request lifecycle
 - caching
-- retries
-- invalidation via endpoint tags
+- cache invalidation through tags
+- optimistic updates where needed
 - lazy and standard generated hooks
+- paginated job reads
 
 Rule of thumb:
 
-- Use Redux slices for UI/app state.
-- Use RTK Query endpoints for server data.
+- Use Redux slices for UI, workflow, and cross-page client state.
+- Use RTK Query endpoints for server data and cache lifecycle.
+- Do not create a second Redux mirror for data already owned by RTK Query.
 
 ### 5. API layer
 
-`services/api/` is intentionally contract-first.
+`services/api/` is intentionally contract-first:
 
-- `axios.ts` creates the shared client and interceptors.
-- `authApi.ts`, `candidateApi.ts`, `mandateApi.ts`, `crmApi.ts`, `dashboardApi.ts` define typed request/response contracts.
+- `axios.ts` creates the shared client, applies the base URL and timeout, and attaches the bearer token.
+- `endpoints.ts` centralizes environment-driven endpoint templates and fallback paths.
+- `authApi.ts`, `candidateApi.ts`, `jobsApi.ts`, `mandateApi.ts`, `industryApi.ts`, `recruiterCandidatesApi.ts`, and `crmApi.ts` define typed request/response operations and backend mapping.
+- `store/api/apiSlice.ts` composes selected service contracts into cache-aware generated RTK Query hooks.
 
-`store/api/apiSlice.ts` composes these service contracts into cache-aware, generated RTK Query hooks for page-level consumption. Candidate dashboard/profile data and paginated jobs are consumed through RTK Query; saved-job updates use the candidate profile mutation and invalidate the relevant user-profile cache.
-
-There is no business logic in this layer yet. That is deliberate.
+There is no page-level scattering of backend URL strings. Backend response mapping stays in service modules so UI components work with stable frontend types.
 
 ### 6. Workflow engine
 
-The workflow engine is configuration-driven rather than page-driven.
-
-Stages:
+The workflow engine is configuration-driven rather than page-driven. Current pipeline stages include:
 
 - `INBOUND`
 - `SCREENING`
@@ -297,40 +292,38 @@ Stages:
 - `OFFER`
 - `CLOSED`
 
-`workflow.service.ts` reads the transition map from `workflow.config.ts`, which means stage rules can evolve without being buried inside UI components.
+`workflow.service.ts` reads transition rules from `workflow.config.ts`, allowing stage rules to evolve without burying them inside UI components.
 
 ## Folder Structure
 
 ```text
 src/
-  app/
-  components/
-  hooks/
-  layouts/
+  app/                    Providers, auth context, JWT, storage, validation
+    auth/                 AuthContext, auth events, JWT helpers, tokenStorage
+  assets/                 Images and icons grouped by feature
+  components/             Shared UI primitives and notification surfaces
+  hooks/                  Shared hooks such as debounce and search state
+  layouts/                Public and role-specific shells
   modules/
-    auth/
-    dashboard/
-    candidate/
-    recruiter/
-    mandates/
-    pipeline/
-    crm/
-    applications/
-    cv-builder/
-    skills-builder/
-    reports/
-    manco/
-    exco/
-  routes/
-  services/
-    api/
-  store/
-  theme/
-  types/
-  workflow/
+    auth/                 Login, sign-up, reset-password pages and forms
+    candidate/            Dashboard, profile, jobs, job details, and hooks
+    crm/                  CRM clients and notes
+    cv-builder/           Multi-step CV builder and preview
+    dashboard/            Admin dashboard entry
+    exco/                 EXCO entry
+    manco/                MANCO entry
+    public/               Landing page, public search, and sign-up drawers
+    recruiter/            Dashboard, mandates, job posts, candidates, CRM
+  routes/                 Route definitions, paths, and guards
+  services/api/           Axios client, endpoint config, transport modules
+  store/                  Redux store, slices, selectors, RTK Query API
+  test/                   Vitest setup and shared test utilities
+  theme/                  Material UI design tokens
+  types/                  Shared API, auth, jobs, and common contracts
+  workflow/               Pipeline stage definitions and transitions
 ```
 
-Each module contains the same internal scaffold:
+Each domain module may contain:
 
 ```text
 components/
@@ -338,14 +331,17 @@ pages/
 services/
 hooks/
 types/
-routes/
 ```
+
+Shared concerns should remain in their existing top-level owner: layouts for shells, components for reusable UI, services for backend mapping, and store for cross-page state.
 
 ## Current Route Map
 
 | Path | Access | Layout | Target Page |
-| --- | --- | --- | --- |
+|---|---|---|---|
+| `/` | Public | `PublicLayout` | `LandingPage` |
 | `/login` | Public | `PublicLayout` | `LoginPage` |
+| `/signup` | Public | `PublicLayout` | `SignupPage` |
 | `/reset-password` | Public | `PublicLayout` | `ResetPasswordPage` |
 | `/candidate/dashboard` | Authenticated + `JOB_SEEKER` | `CandidateLayout` | `CandidateDashboardPage` |
 | `/candidate/cv-builder` | Authenticated + `JOB_SEEKER` | `CandidateLayout` | `CvBuilderPage` |
@@ -364,12 +360,14 @@ routes/
 | `/recruiter/mandate/:cardId/candidate/:candidateId` | Authenticated | `RecruiterLayout` | `CandidateProfilePage` |
 | `/recruiter/candidates` | Authenticated | `RecruiterLayout` | `CandidatesPage` |
 | `/recruiter/candidates/:candidateId` | Authenticated | `RecruiterLayout` | `CandidateDetailPage` |
-| `/crm` | Authenticated + `CRM_VIEW` | `RecruiterLayout` | `CrmPage` |
-| `/manco` | Role: `manco` or `admin` | `MancoLayout` | `MancoPage` |
-| `/exco` | Role: `exco` or `admin` | `ExcoLayout` | `ExcoPage` |
-| `/dashboard` | Role: `admin` | `AdminLayout` | `DashboardEntryPage` |
+| `/recruiter/crm` | Authenticated | `RecruiterLayout` | `RecruiterCrmPage` |
+| `/recruiter/manco` | Authenticated | `RecruiterLayout` | `RecruiterMancoPage` |
+| `/crm` | Authenticated + `CRM_EDIT` | `RecruiterLayout` | `CrmPage` |
+| `/manco` | `MANCO` or `ADMIN` | `MancoLayout` | `MancoPage` |
+| `/exco` | `EXCO` or `ADMIN` | `ExcoLayout` | `ExcoPage` |
+| `/dashboard` | `ADMIN` | `AdminLayout` | `DashboardEntryPage` |
 
-Candidate and public header behavior is role-aware and route-aware, and protected navigation entries trigger login redirects when no valid auth session exists.
+Unknown paths redirect to `/`. Candidate and public header behavior is role-aware and route-aware, and protected navigation entries redirect unauthenticated users to login.
 
 ## Testing
 
@@ -379,13 +377,27 @@ Vitest is configured through `vite.config.ts` and uses:
 - React Testing Library
 - `@testing-library/jest-dom`
 
-The first sample test lives under the placeholder component test suite and proves the base setup is working.
+API modules and auth flows have colocated tests. Run the focused suite while changing a domain, then run the full checks before merging:
 
+```bash
+npm run test
+npm run lint
+npm run build
+```
+
+## Backend and Mock Server
+
+The frontend can run against the SkillsMine mock server in the sibling `skills-mine-mock` project. Start that server separately, then set `VITE_API_BASE_URL` to its API base. The mock project contains route handlers, fixture data, and API documentation used by the endpoint fallbacks.
 
 ## Known Gaps / Next Steps
 
 1. Complete backend token exchange and callback handling for Google OAuth sign-up/login flows.
 2. Add refresh-token lifecycle and silent session renewal.
 3. Expand module-level route registries and feature service implementations.
-4. Add a shared `renderWithProviders` test helper and increase integration test coverage for auth + navigation flows.
+4. Add a shared `renderWithProviders` test helper and increase integration coverage for auth and navigation flows.
 5. Continue CV builder schemas, preview contracts, and PDF export flow.
+
+## Documentation
+
+- [Detailed architecture reference](ARCHITECTURE.md)
+- [API migration report](API_MIGRATION_REPORT.md)
