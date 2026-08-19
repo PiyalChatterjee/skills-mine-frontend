@@ -13,7 +13,6 @@ import { useSelector } from "react-redux";
 import {
   selectBuildMyCv,
   selectBuildMyCvExists,
-  selectBuildMyCvLastModified,
   selectBuildMyCvLoaded,
 } from "@/store/selectors";
 import CvBuilderCareerHistoryForm from "../components/CvBuilderCareerHistoryForm";
@@ -52,7 +51,6 @@ const CvBuilderPage = () => {
   const buildMyCvData = useSelector(selectBuildMyCv);
   const buildMyCvLoaded = useSelector(selectBuildMyCvLoaded);
   const buildMyCvExists = useSelector(selectBuildMyCvExists);
-  const buildMyCvLastModified = useSelector(selectBuildMyCvLastModified);
 
   const { data: candidateProfile } = useCandidateProfileQuery(candidateId, userId, Boolean(candidateId));
 
@@ -263,11 +261,6 @@ const CvBuilderPage = () => {
             isNextDisabled={isSavingCandidateProfile}
             nextLabel={isSavingCandidateProfile ? "Saving…" : "Done"}
             showNextIcon={false}
-            subLabel={
-              buildMyCvLastModified
-                ? `Last saved ${new Date(buildMyCvLastModified).toLocaleString()}`
-                : undefined
-            }
           />
         )}
       </Box>
