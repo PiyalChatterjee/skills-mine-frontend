@@ -260,6 +260,18 @@
   }
 
   .header {
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas: none;
+    gap: 12px;
+  }
+
+  .title {
+    grid-area: auto;
+  }
+}
+
+@media (max-width: 560px) {
+  .header {
     grid-template-columns: auto 1fr;
     grid-template-areas:
       'match save'

@@ -128,21 +128,20 @@ const JobDetailsPage = () => {
     );
   }
 
-  const title = toDisplayTitle(resolvedJob.title, "UX/UI Designer");
-  const industry = toDisplayTitle(resolvedJob.industry, "Digital Marketing");
+  const title = toDisplayTitle(resolvedJob.title, "");
+  const companyName = toDisplayTitle(resolvedJob.company, "");
+  const industry = toDisplayTitle(resolvedJob.industry, "");
   const locationName = toCityFromLocation(resolvedJob.location);
-  const workType = toDisplayTitle(resolvedJob.workType, "Hybrid");
-  const employmentType = toDisplayTitle(
-    resolvedJob.employmentType,
-    "Full time",
-  );
+  const workType = toDisplayTitle(resolvedJob.workType, "");
+  const employmentType = toDisplayTitle(resolvedJob.employmentType, "");
   const requirements =
     resolvedJob.requirements && resolvedJob.requirements.length > 0
       ? resolvedJob.requirements
       : [];
-  const responsibilities = resolvedJob.responsibilities && resolvedJob.responsibilities.length > 0
-    ? resolvedJob.responsibilities
-    : [];
+  const responsibilities =
+    resolvedJob.responsibilities && resolvedJob.responsibilities.length > 0
+      ? resolvedJob.responsibilities
+      : [];
   const skills =
     resolvedJob.skills && resolvedJob.skills.length > 0
       ? resolvedJob.skills.slice(0, 5)
@@ -166,26 +165,24 @@ const JobDetailsPage = () => {
       >
         <Box className={styles.heroInner}>
           <Box className={styles.headerRow}>
-            <Box className={styles.titleWrap}>
-              <ButtonBase
-                type="button"
-                className={styles.backButton}
-                disableRipple
-                onClick={() => navigate(backRoute)}
-              >
-                <img
-                  src={arrowLeftFill}
-                  alt=""
-                  className={styles.backButtonArrow}
-                  aria-hidden="true"
-                />
-                Back
-              </ButtonBase>
+            <ButtonBase
+              type="button"
+              className={styles.backButton}
+              disableRipple
+              onClick={() => navigate(backRoute)}
+            >
+              <img
+                src={arrowLeftFill}
+                alt=""
+                className={styles.backButtonArrow}
+                aria-hidden="true"
+              />
+              Back
+            </ButtonBase>
 
-              <Typography component="h1" className={styles.jobTitle}>
-                {title}
-              </Typography>
-            </Box>
+            <Typography component="h1" className={styles.jobTitle}>
+              {title}
+            </Typography>
 
             <Box className={styles.heroActions}>
               <IconButton
@@ -197,7 +194,10 @@ const JobDetailsPage = () => {
                 }}
                 disabled={isSaving}
               >
-                <BookmarkIcon filled={isSaved} className={styles.heroSaveIcon} />
+                <BookmarkIcon
+                  filled={isSaved}
+                  className={styles.heroSaveIcon}
+                />
               </IconButton>
 
               <Button
@@ -227,6 +227,14 @@ const JobDetailsPage = () => {
 
         <Box className={styles.contentRow}>
           <Box className={styles.metaCard}>
+            <Box className={styles.metaItem}>
+              <Typography component="p" className={styles.metaLabel}>
+                Company Name
+              </Typography>
+              <Typography component="p" className={styles.metaValue}>
+                {companyName}
+              </Typography>
+            </Box>
             <Box className={styles.metaItem}>
               <Typography component="p" className={styles.metaLabel}>
                 Employment type
