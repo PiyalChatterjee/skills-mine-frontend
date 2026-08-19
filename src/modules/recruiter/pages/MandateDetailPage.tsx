@@ -128,7 +128,7 @@ const MandateDetailPage = () => {
         <Box className={styles.pageRoot}>
           <Box style={{ padding: '48px 32px', color: '#57606a' }}>
             Mandate not found.{' '}
-            <ButtonBase onClick={() => navigate(ROUTE_PATHS.recruiter)} disableRipple style={{ color: '#03478C', textDecoration: 'underline' }}>
+            <ButtonBase onClick={() => navigate(ROUTE_PATHS.recruiterDashboard)} disableRipple style={{ color: '#03478C', textDecoration: 'underline' }}>
               Back to Pipeline
             </ButtonBase>
           </Box>
@@ -145,11 +145,11 @@ const MandateDetailPage = () => {
 
         {/* ── Breadcrumb header bar ── */}
         <Box className={styles.breadcrumbBar}>
-          <ButtonBase className={styles.backBtn} onClick={() => navigate(ROUTE_PATHS.recruiter)} disableRipple>
+          <ButtonBase className={styles.backBtn} onClick={() => navigate(ROUTE_PATHS.recruiterDashboard)} disableRipple>
             <BackArrowIcon /> Back
           </ButtonBase>
           <Box className={styles.breadcrumbDivider} />
-          <ButtonBase className={styles.breadcrumbLink} onClick={() => navigate(ROUTE_PATHS.recruiter)} disableRipple>
+          <ButtonBase className={styles.breadcrumbLink} onClick={() => navigate(ROUTE_PATHS.recruiterDashboard)} disableRipple>
             Job Posts
           </ButtonBase>
           <Box className={styles.breadcrumbArrow}><ChevronRightIcon /></Box>

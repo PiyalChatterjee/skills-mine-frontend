@@ -33,6 +33,7 @@ const SignupPage = () => {
       firstName: "",
       lastName: "",
       email: "",
+      staffNumber: "",
       mobileNumber: "",
       password: "",
       confirmPassword: "",
@@ -124,6 +125,17 @@ const SignupPage = () => {
                 },
               }}
               {...phoneNumberRegistration}
+              className={styles.inputField}
+            />
+          </Box>
+
+          <Box className={styles.fieldGroup}>
+            <Typography className={styles.fieldLabel}>Staff Number</Typography>
+            <TextField
+              placeholder="Staff Number"
+              error={Boolean(errors.staffNumber)}
+              helperText={errors.staffNumber?.message}
+              {...register("staffNumber")}
               className={styles.inputField}
             />
           </Box>
