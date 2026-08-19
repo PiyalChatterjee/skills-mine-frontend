@@ -126,7 +126,7 @@ const NewMandatePage = () => {
         message: `"${values.positionTitle}" at ${values.companyName} has been posted successfully.`,
       }))
 
-      navigate(ROUTE_PATHS.recruiter)
+      navigate(ROUTE_PATHS.recruiterDashboard)
     } catch (error) {
       const message =
         typeof error === 'object' && error !== null && 'message' in error
@@ -149,13 +149,13 @@ const NewMandatePage = () => {
     if (isDirty) {
       setShowCancelDialog(true)
     } else {
-      navigate(ROUTE_PATHS.recruiter)
+      navigate(ROUTE_PATHS.recruiterDashboard)
     }
   }
 
   const confirmCancel = () => {
     setShowCancelDialog(false)
-    navigate(ROUTE_PATHS.recruiter)
+    navigate(ROUTE_PATHS.recruiterDashboard)
   }
 
   // ── Back icon ────────────────────────────────────────────────────────
