@@ -43,20 +43,17 @@
 }
 
 .headerRow {
-    display: flex;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas: 'back title actions';
     align-items: center;
-    justify-content: space-between;
     gap: 24px;
 }
 
-.titleWrap {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    min-width: 0;
-}
-
 .backButton.backButton {
+    grid-area: back;
+    justify-self: start;
+    width: fit-content;
     min-width: 72px;
     height: 33px;
     border-radius: 8px;
@@ -82,6 +79,7 @@
 
 .jobTitle,
 .jobTitle:global(.MuiTypography-root) {
+    grid-area: title;
     color: #ffffff;
     font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
     font-size: 32px;
@@ -92,9 +90,11 @@
 }
 
 .heroActions {
+    grid-area: actions;
     display: flex;
     align-items: center;
     gap: 12px;
+    justify-self: end;
 }
 
 .heroSaveButton,
@@ -344,12 +344,28 @@
     }
 
     .heroActions {
-        width: 100%;
+        width: auto;
         justify-content: flex-start;
+        justify-self: end;
     }
 
     .headerRow {
-        flex-direction: column;
+        grid-template-columns: auto minmax(0, 1fr);
+        grid-template-areas:
+            'back back'
+            'title actions';
+        align-items: flex-start;
+        row-gap: 14px;
+        column-gap: 12px;
+    }
+}
+
+@media (max-width: 560px) {
+    .headerRow {
+        grid-template-columns: auto minmax(0, 1fr);
+        grid-template-areas:
+            'back back'
+            'title actions';
         align-items: flex-start;
     }
 }
