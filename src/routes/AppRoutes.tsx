@@ -97,8 +97,6 @@ export const AppRoutes = () => {
         </Route>
 
         <Route element={<ProtectedRoute />}>
-          <Route element={<PublicLayout />}></Route>
-
           <Route element={<CandidateLayout />}>
             <Route
               element={
@@ -130,7 +128,10 @@ export const AppRoutes = () => {
           </Route>
 
           <Route element={<RecruiterLayout />}>
-            <Route path={ROUTE_PATHS.recruiter} element={<RecruiterPage />} />
+            <Route
+              path={ROUTE_PATHS.recruiterDashboard}
+              element={<RecruiterPage />}
+            />
             <Route
               path={ROUTE_PATHS.recruiterJobPosts}
               element={<RecruiterMandatesPage />}

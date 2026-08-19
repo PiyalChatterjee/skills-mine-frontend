@@ -83,6 +83,7 @@ export interface CandidateRegistrationRequest {
   lastName: string
   email: string
   mobileNumber?: string
+  staffNumber?: string
   password: string
   confirmPassword: string
   acceptTerms?: boolean

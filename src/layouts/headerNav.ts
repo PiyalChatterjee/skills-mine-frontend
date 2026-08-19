@@ -87,7 +87,7 @@ const HEADER_NAV_DEFINITIONS: Record<HeaderNavKey, HeaderNavDefinition> = {
   },
   recruiterDashboard: {
     label: "Dashboard",
-    to: ROUTE_PATHS.recruiter,
+    to: ROUTE_PATHS.recruiterDashboard,
     requiresAuth: true,
   },
   recruiterLatestOpenings: {
