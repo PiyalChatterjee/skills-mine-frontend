@@ -124,8 +124,11 @@ export const JobsFeedPage = ({ mode }: JobsFeedPageProps) => {
 
   // Jobs already applied to are never offered again in any feed
   const feedJobs = useMemo(
-    () => jobsWithMatch.filter((job) => !appliedJobIds.has(job.jobId)),
-    [appliedJobIds, jobsWithMatch],
+    () =>
+      jobsWithMatch.filter(
+        (job) => isSavedOnlyMode || !appliedJobIds.has(job.jobId),
+      ),
+    [appliedJobIds, isSavedOnlyMode, jobsWithMatch],
   )
 
   return (

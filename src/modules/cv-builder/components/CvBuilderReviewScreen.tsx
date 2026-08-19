@@ -113,7 +113,7 @@ const CvBuilderReviewScreen = ({ onPreview }: CvBuilderReviewScreenProps) => {
               <Box key={section.id} className={styles.reviewSectionItem}>
                 <Button
                   type="button"
-                  className={styles.reviewSectionToggle}
+                  className={`${styles.reviewSectionToggle} no-global-hover`}
                   disableRipple
                   onClick={() => toggleSection(section.id)}
                 >

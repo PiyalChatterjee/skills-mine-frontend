@@ -417,6 +417,7 @@ const useCvBuilder = (
     setSelectedUploadFile(nextFile);
     event.target.value = "";
   };
+  const selectUploadFile = (file: File | null) => setSelectedUploadFile(file);
   const openUploadPicker = () => uploadInputRef.current?.click();
   const openBuildFlow = () => {
     setActiveView("form");
@@ -525,6 +526,7 @@ const useCvBuilder = (
     canViewCv,
     canGoNext,
     handleUploadFileSelect,
+    selectUploadFile,
     openUploadPicker,
     openBuildFlow,
     openPreview,
