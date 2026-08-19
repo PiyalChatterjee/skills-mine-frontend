@@ -5,6 +5,7 @@ const validPayload = {
   firstName: 'Jane',
   lastName: 'Doe',
   email: 'jane@example.com',
+  staffNumber: 'SM-REC-001',
   mobileNumber: '+27821234567',
   password: 'Password1',
   confirmPassword: 'Password1',
@@ -27,6 +28,14 @@ describe('inviteSignupSchema', () => {
   it('rejects empty lastName', () => {
     const result = inviteSignupSchema.safeParse({ ...validPayload, lastName: '' })
     expect(result.success).toBe(false)
+  })
+
+  it('rejects empty staffNumber', () => {
+    const result = inviteSignupSchema.safeParse({ ...validPayload, staffNumber: '' })
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.issues.some((i) => i.path.includes('staffNumber'))).toBe(true)
+    }
   })
 
   it('rejects invalid email', () => {
