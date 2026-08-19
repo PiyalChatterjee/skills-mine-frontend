@@ -16,12 +16,21 @@ import { GradientPatternHero } from "@/components/hero";
 import { useJobs } from "@/modules/public/hooks/useJobs";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import { useOptimisticSaveJob } from "@/modules/candidate/hooks/useOptimisticSaveJob";
+import { useAppliedJobIds } from "@/modules/candidate/hooks/useAppliedJobIds";
 import type { Job } from "@/types";
 import styles from "./JobDetailsPage.module.css";
 
 type LocationState = {
   job?: Job;
+  from?: string;
 };
+
+const allowedBackRoutes = new Set<string>([
+  ROUTE_PATHS.latestJobs,
+  ROUTE_PATHS.savedJobs,
+  ROUTE_PATHS.recommendedJobs,
+  ROUTE_PATHS.candidateDashboard,
+]);
 const fallbackSkillPalette = [
   "#cabee9",
   "#efb5b5",
@@ -59,10 +68,16 @@ const JobDetailsPage = () => {
   const { jobId } = useParams<{ jobId: string }>();
   const location = useLocation();
   const { isJobSaved, isJobSaving, toggleJobSaved } = useOptimisticSaveJob();
+  const { isJobApplied } = useAppliedJobIds();
 
   const { data, isLoading, isError } = useJobs(undefined, true, 50);
 
-  const stateJob = (location.state as LocationState | null)?.job;
+  const locationState = location.state as LocationState | null;
+  const stateJob = locationState?.job;
+  const backRoute =
+    locationState?.from && allowedBackRoutes.has(locationState.from)
+      ? locationState.from
+      : ROUTE_PATHS.latestJobs;
 
   const allJobs = useMemo(() => {
     return (data?.pages ?? []).flatMap((page) => page.jobs);
@@ -82,6 +97,7 @@ const JobDetailsPage = () => {
 
   const isSaved = resolvedJob ? isJobSaved(resolvedJob.jobId) : false;
   const isSaving = resolvedJob ? isJobSaving(resolvedJob.jobId) : false;
+  const isApplied = resolvedJob ? isJobApplied(resolvedJob.jobId) : false;
 
   if (isLoading && !resolvedJob) {
     return (
@@ -112,21 +128,20 @@ const JobDetailsPage = () => {
     );
   }
 
-  const title = toDisplayTitle(resolvedJob.title, "UX/UI Designer");
-  const industry = toDisplayTitle(resolvedJob.industry, "Digital Marketing");
+  const title = toDisplayTitle(resolvedJob.title, "");
+  const companyName = toDisplayTitle(resolvedJob.company, "");
+  const industry = toDisplayTitle(resolvedJob.industry, "");
   const locationName = toCityFromLocation(resolvedJob.location);
-  const workType = toDisplayTitle(resolvedJob.workType, "Hybrid");
-  const employmentType = toDisplayTitle(
-    resolvedJob.employmentType,
-    "Full time",
-  );
+  const workType = toDisplayTitle(resolvedJob.workType, "");
+  const employmentType = toDisplayTitle(resolvedJob.employmentType, "");
   const requirements =
     resolvedJob.requirements && resolvedJob.requirements.length > 0
       ? resolvedJob.requirements
       : [];
-  const responsibilities = resolvedJob.responsibilities && resolvedJob.responsibilities.length > 0
-    ? resolvedJob.responsibilities
-    : [];
+  const responsibilities =
+    resolvedJob.responsibilities && resolvedJob.responsibilities.length > 0
+      ? resolvedJob.responsibilities
+      : [];
   const skills =
     resolvedJob.skills && resolvedJob.skills.length > 0
       ? resolvedJob.skills.slice(0, 5)
@@ -150,26 +165,24 @@ const JobDetailsPage = () => {
       >
         <Box className={styles.heroInner}>
           <Box className={styles.headerRow}>
-            <Box className={styles.titleWrap}>
-              <ButtonBase
-                type="button"
-                className={styles.backButton}
-                disableRipple
-                onClick={() => navigate(ROUTE_PATHS.latestJobs)}
-              >
-                <img
-                  src={arrowLeftFill}
-                  alt=""
-                  className={styles.backButtonArrow}
-                  aria-hidden="true"
-                />
-                Back
-              </ButtonBase>
+            <ButtonBase
+              type="button"
+              className={styles.backButton}
+              disableRipple
+              onClick={() => navigate(backRoute)}
+            >
+              <img
+                src={arrowLeftFill}
+                alt=""
+                className={styles.backButtonArrow}
+                aria-hidden="true"
+              />
+              Back
+            </ButtonBase>
 
-              <Typography component="h1" className={styles.jobTitle}>
-                {title}
-              </Typography>
-            </Box>
+            <Typography component="h1" className={styles.jobTitle}>
+              {title}
+            </Typography>
 
             <Box className={styles.heroActions}>
               <IconButton
@@ -181,11 +194,18 @@ const JobDetailsPage = () => {
                 }}
                 disabled={isSaving}
               >
-                <BookmarkIcon filled={isSaved} className={styles.heroSaveIcon} />
+                <BookmarkIcon
+                  filled={isSaved}
+                  className={styles.heroSaveIcon}
+                />
               </IconButton>
 
-              <Button variant="contained" className={styles.applyButton}>
-                Apply now
+              <Button
+                variant="contained"
+                className={styles.applyButton}
+                disabled={isApplied}
+              >
+                {isApplied ? "Applied" : "Apply now"}
               </Button>
             </Box>
           </Box>
@@ -207,6 +227,14 @@ const JobDetailsPage = () => {
 
         <Box className={styles.contentRow}>
           <Box className={styles.metaCard}>
+            <Box className={styles.metaItem}>
+              <Typography component="p" className={styles.metaLabel}>
+                Company Name
+              </Typography>
+              <Typography component="p" className={styles.metaValue}>
+                {companyName}
+              </Typography>
+            </Box>
             <Box className={styles.metaItem}>
               <Typography component="p" className={styles.metaLabel}>
                 Employment type
@@ -304,8 +332,12 @@ const JobDetailsPage = () => {
         </Box>
 
         <Box className={styles.footerActions}>
-          <Button variant="contained" className={styles.footerApply}>
-            Apply now
+          <Button
+            variant="contained"
+            className={styles.footerApply}
+            disabled={isApplied}
+          >
+            {isApplied ? "Applied" : "Apply now"}
           </Button>
           <Button
             variant="outlined"

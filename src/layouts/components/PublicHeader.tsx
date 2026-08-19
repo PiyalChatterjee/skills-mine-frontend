@@ -6,8 +6,8 @@ import {
   MenuItem,
   Typography,
 } from "@mui/material";
-import { useState, type MouseEvent } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { useEffect, useState, type MouseEvent } from "react";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import notificationBell from "@/assets/icons/notification-bell.svg";
 import searchIcon from "@/assets/landing-page/search-icon.svg";
 import skillsMineLogo from "@/assets/skillsMine-logo.svg";
@@ -53,10 +53,12 @@ export const PublicHeader = ({
   onSearchClick,
 }: PublicHeaderProps) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, tokens, logout } = useAuth();
   const [profileAnchorEl, setProfileAnchorEl] = useState<HTMLElement | null>(
     null,
   );
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
 
   const isProfileMenuOpen = Boolean(profileAnchorEl);
   const accessToken = tokens?.accessToken;
@@ -96,6 +98,23 @@ export const PublicHeader = ({
 
   const renderedNavItems = navItems ?? [];
 
+  useEffect(() => {
+    setIsMobileNavOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth > 900) {
+        setIsMobileNavOpen(false);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
   return (
     <Box component="header" className={styles.topBar}>
       <Box className={styles.topBarInner}>
@@ -122,51 +141,67 @@ export const PublicHeader = ({
             Need help?
           </Button>
         ) : (
-          <Box className={styles.navGroup}>
-            {renderedNavItems.map((item) => {
-              const itemClassName = item.isActive
-                ? styles.navItemSelected
-                : styles.navItemDefault;
+          <>
+            <Box className={styles.navGroup}>
+              <Box className={styles.desktopNavItems}>
+                {renderedNavItems.map((item) => {
+                  const itemClassName = item.isActive
+                    ? styles.navItemSelected
+                    : styles.navItemDefault;
 
-              if (item.to) {
-                const targetPath = item.to;
+                  if (item.to) {
+                    const targetPath = item.to;
 
-                return (
-                  <Box
-                    key={item.id}
-                    component={NavLink}
-                    to={targetPath}
-                    aria-disabled={
-                      item.requiresAuth && !canAccessProtectedRoutes
-                    }
-                    onClick={(event) => {
-                      if (item.requiresAuth) {
-                        onProtectedNavClick(event, targetPath);
-                        if (event.defaultPrevented) {
-                          return;
+                    return (
+                      <Box
+                        key={item.id}
+                        component={NavLink}
+                        to={targetPath}
+                        aria-disabled={
+                          item.requiresAuth && !canAccessProtectedRoutes
                         }
-                      }
-                      item.onClick?.();
-                    }}
-                    className={itemClassName}
-                  >
-                    {item.label}
-                  </Box>
-                );
-              }
+                        onClick={(event) => {
+                          if (item.requiresAuth) {
+                            onProtectedNavClick(event, targetPath);
+                            if (event.defaultPrevented) {
+                              return;
+                            }
+                          }
+                          item.onClick?.();
+                        }}
+                        className={itemClassName}
+                      >
+                        {item.label}
+                      </Box>
+                    );
+                  }
 
-              return (
-                <Box
-                  key={item.id}
-                  component="button"
-                  type="button"
-                  onClick={item.onClick}
-                  className={`${styles.navButton} ${itemClassName}`}
-                >
-                  {item.label}
+                  return (
+                    <Box
+                      key={item.id}
+                      component="button"
+                      type="button"
+                      onClick={item.onClick}
+                      className={`${styles.navButton} ${itemClassName}`}
+                    >
+                      {item.label}
+                    </Box>
+                  );
+                })}
+              </Box>
+              <IconButton
+                aria-label={isMobileNavOpen ? "Close navigation menu" : "Open navigation menu"}
+                aria-expanded={isMobileNavOpen ? "true" : undefined}
+                aria-controls="mobile-nav-menu"
+                onClick={() => setIsMobileNavOpen((prev) => !prev)}
+                className={styles.mobileMenuButton}
+              >
+                <Box className={styles.mobileMenuIcon} aria-hidden="true">
+                  <span />
+                  <span />
+                  <span />
                 </Box>
-              );
-            })}
+              </IconButton>
             {showSignUp ? (
               <Button
                 variant="contained"
@@ -294,7 +329,61 @@ export const PublicHeader = ({
                 />
               </IconButton>
             ) : null}
-          </Box>
+            </Box>
+            <Box
+              id="mobile-nav-menu"
+              className={`${styles.mobileNavPanel} ${
+                isMobileNavOpen ? styles.mobileNavPanelOpen : ""
+              }`}
+            >
+              {renderedNavItems.map((item) => {
+                const itemClassName = item.isActive
+                  ? styles.navItemSelected
+                  : styles.navItemDefault;
+
+                if (item.to) {
+                  const targetPath = item.to;
+
+                  return (
+                    <Box
+                      key={`mobile-${item.id}`}
+                      component={NavLink}
+                      to={targetPath}
+                      aria-disabled={item.requiresAuth && !canAccessProtectedRoutes}
+                      onClick={(event) => {
+                        if (item.requiresAuth) {
+                          onProtectedNavClick(event, targetPath);
+                          if (event.defaultPrevented) {
+                            return;
+                          }
+                        }
+                        item.onClick?.();
+                        setIsMobileNavOpen(false);
+                      }}
+                      className={`${itemClassName} ${styles.mobileNavItem}`}
+                    >
+                      {item.label}
+                    </Box>
+                  );
+                }
+
+                return (
+                  <Box
+                    key={`mobile-${item.id}`}
+                    component="button"
+                    type="button"
+                    onClick={() => {
+                      item.onClick?.();
+                      setIsMobileNavOpen(false);
+                    }}
+                    className={`${styles.navButton} ${itemClassName} ${styles.mobileNavItem}`}
+                  >
+                    {item.label}
+                  </Box>
+                );
+              })}
+            </Box>
+          </>
         )}
       </Box>
     </Box>

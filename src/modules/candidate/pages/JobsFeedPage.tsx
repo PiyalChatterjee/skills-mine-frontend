@@ -14,6 +14,11 @@ import { selectRecommendedJobIds } from '@/store/selectors'
 import type { AppDispatch } from '@/store'
 import arrowRight from '@/assets/cv-builder/arrow-right.svg'
 import { useOptimisticSaveJob } from '../hooks/useOptimisticSaveJob'
+import { useAppliedJobIds } from '../hooks/useAppliedJobIds'
+import {
+  useRecommendedPositionsQuery,
+  useSavedJobsQuery,
+} from '../hooks/useCandidateQueries'
 import styles from './LatestJobsPage.module.css'
 
 const toCityFromLocation = (location: string) => {
@@ -37,9 +42,18 @@ export const JobsFeedPage = ({ mode }: JobsFeedPageProps) => {
   const navigate = useNavigate()
   const dispatch = useDispatch<AppDispatch>()
   const { savedJobIds, isJobSaved, isJobSaving, toggleJobSaved } = useOptimisticSaveJob()
+  const { appliedJobIds } = useAppliedJobIds()
   const isSavedOnlyMode = mode === 'saved'
   const isRecommendedOnlyMode = mode === 'recommended'
+  const isLatestMode = !isSavedOnlyMode && !isRecommendedOnlyMode
   const recommendedJobIds = useSelector(selectRecommendedJobIds)
+  const feedRoute = isSavedOnlyMode
+    ? ROUTE_PATHS.savedJobs
+    : isRecommendedOnlyMode
+      ? ROUTE_PATHS.recommendedJobs
+      : ROUTE_PATHS.latestJobs
+  const savedJobsQuery = useSavedJobsQuery(isSavedOnlyMode)
+  const recommendedPositionsQuery = useRecommendedPositionsQuery(isRecommendedOnlyMode)
 
   const {
     inputValue: searchInputValue,
@@ -68,6 +82,7 @@ export const JobsFeedPage = ({ mode }: JobsFeedPageProps) => {
     shouldFilter: shouldFilterOpportunities,
     shouldUseDebouncedQuery: shouldUseApiSearch,
     debouncedSearchTerm,
+    enabled: isLatestMode,
   })
   const jobsLoadTriggerRef = useInfiniteScrollTrigger({
     enabled: !isSavedOnlyMode && !isRecommendedOnlyMode,
@@ -79,17 +94,42 @@ export const JobsFeedPage = ({ mode }: JobsFeedPageProps) => {
   })
 
   const jobsWithMatch = useMemo(() => {
-    const candidateJobs = isSavedOnlyMode
-      ? visibleJobs.filter((job) => savedJobIds.has(job.jobId))
+    const contractJobs = isSavedOnlyMode
+      ? (savedJobsQuery.data?.jobs ?? []).map((job) => ({
+          ...job,
+          industry: job.industry,
+          employmentType: job.employmentType ?? 'Permanent',
+          status: 'Open' as const,
+          applicationCount: job.applicationCount ?? 0,
+          requirements: job.requirements ?? [],
+          responsibilities: job.responsibilities ?? [],
+        }))
       : isRecommendedOnlyMode
-        ? visibleJobs.filter((job) => recommendedJobIds.has(job.jobId))
+        ? (recommendedPositionsQuery.data?.jobs ?? []).map((job) => ({
+            ...job,
+            industry: job.industry,
+            employmentType: job.employmentType ?? 'Permanent',
+            status: 'Open' as const,
+            applicationCount: job.applicationCount ?? 0,
+            requirements: job.requirements ?? [],
+            responsibilities: job.responsibilities ?? [],
+          }))
         : visibleJobs
 
-    return candidateJobs.map((job, index) => ({
+    return contractJobs.map((job, index) => ({
       ...job,
       matchScore: getMatchScore(index),
     }))
-  }, [isRecommendedOnlyMode, isSavedOnlyMode, recommendedJobIds, savedJobIds, visibleJobs])
+  }, [isRecommendedOnlyMode, isSavedOnlyMode, recommendedPositionsQuery.data, savedJobsQuery.data, visibleJobs])
+
+  // Jobs already applied to are never offered again in any feed
+  const feedJobs = useMemo(
+    () =>
+      jobsWithMatch.filter(
+        (job) => isSavedOnlyMode || !appliedJobIds.has(job.jobId),
+      ),
+    [appliedJobIds, isSavedOnlyMode, jobsWithMatch],
+  )
 
   return (
     <Box className={styles.pageRoot}>
@@ -98,7 +138,7 @@ export const JobsFeedPage = ({ mode }: JobsFeedPageProps) => {
           <ButtonBase
             type="button"
             className={styles.backButton}
-            onClick={() => navigate(-1)}
+            onClick={() => navigate(ROUTE_PATHS.candidateDashboard)}
             disableRipple
           >
             <span className={styles.backButtonIconWrap} aria-hidden="true">
@@ -120,18 +160,18 @@ export const JobsFeedPage = ({ mode }: JobsFeedPageProps) => {
         </Box>
       </Box>
 
-      {isJobsError ? (
+      {(isJobsError || savedJobsQuery.isError || recommendedPositionsQuery.isError) ? (
         <Typography component="p" className={styles.feedback}>
           {jobsError?.message || 'Failed to load jobs.'}
         </Typography>
-      ) : isJobsLoading ? (
+      ) : isJobsLoading || savedJobsQuery.isLoading || recommendedPositionsQuery.isLoading ? (
         <Box className={styles.loadingState} aria-live="polite" aria-busy="true">
           <CircularProgress size={28} />
         </Box>
-      ) : jobsWithMatch.length > 0 ? (
+      ) : feedJobs.length > 0 ? (
         <>
           <Box className={styles.cardGrid}>
-            {jobsWithMatch.map((job) => {
+            {feedJobs.map((job) => {
               const isSaved = isJobSaved(job.jobId)
               const isSaving = isJobSaving(job.jobId)
 
@@ -148,7 +188,9 @@ export const JobsFeedPage = ({ mode }: JobsFeedPageProps) => {
                   actionLabel="View"
                   onAction={() => {
                     dispatch(setSelectedJobId(job.jobId))
-                    navigate(ROUTE_PATHS.jobDetails.replace(':jobId', job.jobId), { state: { job } })
+                    navigate(ROUTE_PATHS.jobDetails.replace(':jobId', job.jobId), {
+                      state: { job, from: feedRoute },
+                    })
                   }}
                   matchScore={job.matchScore}
                   showSaveButton

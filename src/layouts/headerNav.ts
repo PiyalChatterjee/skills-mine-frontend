@@ -1,166 +1,154 @@
-import { ROUTE_PATHS } from '@/routes/routePaths'
-import type { Role } from '@/types/auth'
+import { ROUTE_PATHS } from "@/routes/routePaths";
+import type { Role } from "@/types/auth";
 
 export type HeaderNavKey =
-  | 'exploreJobs'
-  | 'dashboard'
-  | 'skillsBuild'
-  | 'signIn'
-  | 'candidateDashboard'
-  | 'candidateJobApplications'
-  | 'candidateSavedJobPosts'
-  | 'candidateCvBuilder'
-  | 'candidateSkillsBuild'
-  | 'candidateBlog'
-  | 'recruiterDashboard'
-  | 'recruiterLatestOpenings'
-  | 'recruiterJobApplications'
-  | 'recruiterSavedJobPosts'
-  | 'recruiterCvBuilder'
-  | 'recruiterSkillsBuild'
-  | 'recruiterBlog'
+  | "exploreJobs"
+  | "dashboard"
+  | "skillsBuild"
+  | "signIn"
+  | "candidateDashboard"
+  | "candidateSavedJobPosts"
+  | "candidateCvBuilder"
+  | "candidateSkillsBuild"
+  | "candidateBlog"
+  | "recruiterDashboard"
+  | "recruiterLatestOpenings"
+  | "recruiterSavedJobPosts"
+  | "recruiterCvBuilder"
+  | "recruiterSkillsBuild"
+  | "recruiterBlog";
 
 export type HeaderNavActionId =
-  | 'jobApplications'
-  | 'savedJobPosts'
-  | 'cvBuilder'
-  | 'skillsBuild'
-  | 'blog'
-  | 'latestOpenings'
+  | "savedJobPosts"
+  | "cvBuilder"
+  | "skillsBuild"
+  | "blog"
+  | "latestOpenings";
 
 type HeaderNavDefinition = {
-  label: string
-  to?: string
-  requiresAuth?: boolean
-  actionId?: HeaderNavActionId
-}
+  label: string;
+  to?: string;
+  requiresAuth?: boolean;
+  actionId?: HeaderNavActionId;
+};
 
 export type HeaderNavItem = {
-  id: HeaderNavKey
-  label: string
-  to?: string
-  isActive: boolean
-  requiresAuth?: boolean
-  onClick?: () => void
-}
+  id: HeaderNavKey;
+  label: string;
+  to?: string;
+  isActive: boolean;
+  requiresAuth?: boolean;
+  onClick?: () => void;
+};
 
-export type HeaderNavActionMap = Partial<Record<HeaderNavActionId, () => void>>
+export type HeaderNavActionMap = Partial<Record<HeaderNavActionId, () => void>>;
 
 const HEADER_NAV_DEFINITIONS: Record<HeaderNavKey, HeaderNavDefinition> = {
   exploreJobs: {
-    label: 'Explore Jobs',
+    label: "Explore Jobs",
     to: ROUTE_PATHS.jobs,
     requiresAuth: true,
   },
   dashboard: {
-    label: 'Dashboard',
+    label: "Dashboard",
     to: ROUTE_PATHS.candidateDashboard,
     requiresAuth: true,
   },
   skillsBuild: {
-    label: 'Skills Build',
+    label: "Skills Build",
     to: ROUTE_PATHS.landing,
   },
   signIn: {
-    label: 'Sign in',
+    label: "Sign in",
     to: ROUTE_PATHS.login,
   },
   candidateDashboard: {
-    label: 'Dashboard',
+    label: "Dashboard",
     to: ROUTE_PATHS.candidateDashboard,
     requiresAuth: true,
   },
-  candidateJobApplications: {
-    label: 'Job Applications',
-    actionId: 'jobApplications',
-  },
   candidateSavedJobPosts: {
-    label: 'Saved Job Posts',
+    label: "Saved Job Posts",
     to: ROUTE_PATHS.savedJobs,
     requiresAuth: true,
   },
   candidateCvBuilder: {
-    label: 'CV Builder',
+    label: "CV Builder",
     to: ROUTE_PATHS.cvBuilder,
     requiresAuth: true,
   },
   candidateSkillsBuild: {
-    label: 'Skills Build',
-    actionId: 'skillsBuild',
+    label: "Skills Build",
+    actionId: "skillsBuild",
   },
   candidateBlog: {
-    label: 'Blog',
-    actionId: 'blog',
+    label: "Blog",
+    actionId: "blog",
   },
   recruiterDashboard: {
-    label: 'Dashboard',
-    to: ROUTE_PATHS.recruiter,
+    label: "Dashboard",
+    to: ROUTE_PATHS.recruiterDashboard,
     requiresAuth: true,
   },
   recruiterLatestOpenings: {
-    label: 'Latest Openings',
-    actionId: 'latestOpenings',
-  },
-  recruiterJobApplications: {
-    label: 'Job Applications',
-    actionId: 'jobApplications',
+    label: "Latest Openings",
+    actionId: "latestOpenings",
   },
   recruiterSavedJobPosts: {
-    label: 'Saved Job Posts',
-    actionId: 'savedJobPosts',
+    label: "Saved Job Posts",
+    actionId: "savedJobPosts",
   },
   recruiterCvBuilder: {
-    label: 'CV Builder',
-    actionId: 'cvBuilder',
+    label: "CV Builder",
+    actionId: "cvBuilder",
   },
   recruiterSkillsBuild: {
-    label: 'Skills Build',
-    actionId: 'skillsBuild',
+    label: "Skills Build",
+    actionId: "skillsBuild",
   },
   recruiterBlog: {
-    label: 'Blog',
-    actionId: 'blog',
+    label: "Blog",
+    actionId: "blog",
   },
-}
+};
 
 export const PUBLIC_HEADER_NAV_PRESETS = {
-  landing: ['signIn'] as const,
-  discovery: ['exploreJobs', 'dashboard', 'skillsBuild', 'signIn'] as const,
-} satisfies Record<string, readonly HeaderNavKey[]>
+  landing: ["signIn"] as const,
+  discovery: ["exploreJobs", "dashboard", "skillsBuild", "signIn"] as const,
+} satisfies Record<string, readonly HeaderNavKey[]>;
 
-const ROLE_HEADER_NAV_PRESETS: Partial<Record<Role, readonly HeaderNavKey[]>> = {
-  JOB_SEEKER: [
-    'candidateDashboard',
-    'candidateJobApplications',
-    'candidateSavedJobPosts',
-    'candidateCvBuilder',
-    'candidateSkillsBuild',
-    'candidateBlog',
-  ],
-  RECRUITER: [
-    'recruiterDashboard',
-    'recruiterLatestOpenings',
-    'recruiterJobApplications',
-    'recruiterSavedJobPosts',
-    'recruiterCvBuilder',
-    'recruiterSkillsBuild',
-    'recruiterBlog',
-  ],
-}
+const ROLE_HEADER_NAV_PRESETS: Partial<Record<Role, readonly HeaderNavKey[]>> =
+  {
+    JOB_SEEKER: [
+      "candidateDashboard",
+      "candidateSavedJobPosts",
+      "candidateCvBuilder",
+      "candidateSkillsBuild",
+      "candidateBlog",
+    ],
+    RECRUITER: [
+      "recruiterDashboard",
+      "recruiterLatestOpenings",
+      "recruiterSavedJobPosts",
+      "recruiterCvBuilder",
+      "recruiterSkillsBuild",
+      "recruiterBlog",
+    ],
+  };
 
 export const getRoleHeaderNavKeys = (role?: Role): readonly HeaderNavKey[] => {
   if (!role) {
-    return []
+    return [];
   }
 
-  return ROLE_HEADER_NAV_PRESETS[role] ?? []
-}
+  return ROLE_HEADER_NAV_PRESETS[role] ?? [];
+};
 
 type BuildHeaderNavItemsOptions = {
-  keys: readonly HeaderNavKey[]
-  pathname: string
-  actions?: HeaderNavActionMap
-}
+  keys: readonly HeaderNavKey[];
+  pathname: string;
+  actions?: HeaderNavActionMap;
+};
 
 export const buildHeaderNavItems = ({
   keys,
@@ -168,7 +156,7 @@ export const buildHeaderNavItems = ({
   actions = {},
 }: BuildHeaderNavItemsOptions): HeaderNavItem[] =>
   keys.map((key) => {
-    const definition = HEADER_NAV_DEFINITIONS[key]
+    const definition = HEADER_NAV_DEFINITIONS[key];
 
     return {
       id: key,
@@ -177,5 +165,5 @@ export const buildHeaderNavItems = ({
       isActive: Boolean(definition.to && definition.to === pathname),
       requiresAuth: definition.requiresAuth,
       onClick: definition.actionId ? actions[definition.actionId] : undefined,
-    }
-  })
+    };
+  });

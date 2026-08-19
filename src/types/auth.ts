@@ -29,6 +29,7 @@ export interface JwtTokens {
 export interface AuthUser {
   id: string
   userId: string
+  candidateId?: string
   email: string
   firstName: string
   lastName: string
@@ -68,6 +69,8 @@ export interface LoginResponse {
 
 export interface CurrentUserResponse {
   userId: string
+  candidateId?: string
+  candidate_id?: string
   email: string
   provider: string
   roles: Role[]
@@ -80,6 +83,7 @@ export interface CandidateRegistrationRequest {
   lastName: string
   email: string
   mobileNumber?: string
+  staffNumber?: string
   password: string
   confirmPassword: string
   acceptTerms?: boolean

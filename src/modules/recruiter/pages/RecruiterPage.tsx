@@ -298,7 +298,7 @@ const RecruiterPage = () => {
   }
 
   const handleViewMore = () => {
-    navigate(ROUTE_PATHS.recruiter)
+    navigate(ROUTE_PATHS.recruiterDashboard)
   }
 
   const handleCardView = (cardId: string, stage: PipelineStageLabel) => {
@@ -311,7 +311,7 @@ const RecruiterPage = () => {
   }
 
   const handleCardExpand = () => {
-    navigate(ROUTE_PATHS.recruiter)
+    navigate(ROUTE_PATHS.recruiterDashboard)
   }
 
   if (loading) {

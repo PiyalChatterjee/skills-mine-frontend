@@ -209,7 +209,7 @@ const CandidateProfilePage = () => {
             <BackArrowIcon /> Back
           </ButtonBase>
           <Box className={styles.breadcrumbDivider} />
-          <ButtonBase className={styles.breadcrumbLink} onClick={() => navigate(ROUTE_PATHS.recruiter)} disableRipple>
+          <ButtonBase className={styles.breadcrumbLink} onClick={() => navigate(ROUTE_PATHS.recruiterDashboard)} disableRipple>
             Job Posts
           </ButtonBase>
           <Box className={styles.breadcrumbArrow}><ChevronRightIcon /></Box>

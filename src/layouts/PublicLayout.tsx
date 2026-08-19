@@ -36,8 +36,10 @@ export const PublicLayout = () => {
   const accessToken = tokens?.accessToken;
   const hasValidAccessToken = accessToken ? !isJwtExpired(accessToken) : false;
   const canAccessProtectedRoutes = isAuthenticated && hasValidAccessToken;
-  const shouldUseAuthHeaderVariant = isResetPasswordPage && canAccessProtectedRoutes;
-  const shouldUseLoginHeaderVariant = isLoginPage || (isResetPasswordPage && !canAccessProtectedRoutes);
+  const shouldUseAuthHeaderVariant =
+    isResetPasswordPage && canAccessProtectedRoutes;
+  const shouldUseLoginHeaderVariant =
+    isLoginPage || (isResetPasswordPage && !canAccessProtectedRoutes);
 
   useEffect(() => {
     setSignUpDrawerOpen(false);
@@ -57,10 +59,6 @@ export const PublicLayout = () => {
 
   const handleSearchClick = () => {
     // TODO: Implement action
-  };
-
-  const handleJobApplicationsClick = () => {
-    // TODO: Implement job applications navigation
   };
 
   const handleSavedJobPostsClick = () => {
@@ -102,20 +100,19 @@ export const PublicLayout = () => {
           keys: PUBLIC_HEADER_NAV_PRESETS.landing,
           pathname: location.pathname,
         })
-    : isLandingPage
-      ? buildHeaderNavItems({
-          keys: PUBLIC_HEADER_NAV_PRESETS.landing,
-          pathname: location.pathname,
-        })
-      : isHiringLandingMode
-        ? []
-        : buildHeaderNavItems({
-            keys: PUBLIC_HEADER_NAV_PRESETS.discovery,
+      : isLandingPage
+        ? buildHeaderNavItems({
+            keys: PUBLIC_HEADER_NAV_PRESETS.landing,
             pathname: location.pathname,
-          });
+          })
+        : isHiringLandingMode
+          ? []
+          : buildHeaderNavItems({
+              keys: PUBLIC_HEADER_NAV_PRESETS.discovery,
+              pathname: location.pathname,
+            });
 
   const candidateHeaderActions: HeaderNavActionMap = {
-    jobApplications: handleJobApplicationsClick,
     savedJobPosts: handleSavedJobPostsClick,
     cvBuilder: handleCvBuilderClick,
     skillsBuild: handleSkillsBuildClick,
@@ -128,10 +125,9 @@ export const PublicLayout = () => {
     actions: candidateHeaderActions,
   });
 
-  const resolvedNavItems =
-    shouldUseAuthHeaderVariant
-      ? resetPasswordCandidateNavItems
-      : navItems;
+  const resolvedNavItems = shouldUseAuthHeaderVariant
+    ? resetPasswordCandidateNavItems
+    : navItems;
 
   return (
     <Box className={styles.layoutRoot}>

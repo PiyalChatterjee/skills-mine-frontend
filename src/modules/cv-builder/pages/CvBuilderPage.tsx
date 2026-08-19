@@ -1,5 +1,5 @@
 import { Box } from "@mui/material";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { FormProvider } from "react-hook-form";
 import { useAuth } from "@/app/auth/AuthContext";
 import settingsIcon from "@/assets/cv-builder/settings-4-line.svg";
@@ -7,12 +7,12 @@ import uploadIcon from "@/assets/cv-builder/upload-2-line.svg";
 import {
   useBuildMyCvQuery,
   useCandidateProfileQuery,
+  useCandidateResourceId,
 } from "@/modules/candidate/hooks/useCandidateQueries";
 import { useSelector } from "react-redux";
 import {
   selectBuildMyCv,
   selectBuildMyCvExists,
-  selectBuildMyCvLastModified,
   selectBuildMyCvLoaded,
 } from "@/store/selectors";
 import CvBuilderCareerHistoryForm from "../components/CvBuilderCareerHistoryForm";
@@ -39,19 +39,22 @@ import {
 } from "../types/cvBuilder";
 import styles from "./CvBuilderPage.module.css";
 import CvBuilderViewCvPage from "../components/CvBuilderViewCvPage";
+import CvBuilderUploadModal from "../components/CvBuilderUploadModal";
 
 const CvBuilderPage = () => {
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const { user } = useAuth();
   const userId = user?.userId;
+  const candidateId = useCandidateResourceId();
 
-  // Load existing CV Builder state from GET endpoint and hydrate Redux
-  const { isLoading: isBuildMyCvLoading } = useBuildMyCvQuery(Boolean(userId));
+  // Load the saved CV record from the CV builder endpoint (the resume store),
+  // not the profile endpoint, and hydrate Redux from it.
+  const { isLoading: isBuildMyCvLoading } = useBuildMyCvQuery(Boolean(candidateId), candidateId);
   const buildMyCvData = useSelector(selectBuildMyCv);
   const buildMyCvLoaded = useSelector(selectBuildMyCvLoaded);
   const buildMyCvExists = useSelector(selectBuildMyCvExists);
-  const buildMyCvLastModified = useSelector(selectBuildMyCvLastModified);
 
-  const { data: candidateProfile } = useCandidateProfileQuery(userId);
+  const { data: candidateProfile } = useCandidateProfileQuery(candidateId, userId, Boolean(candidateId));
 
   // Prefer buildMyCv API data; fall back to candidate profile for prefill
   const cvBuilderPrefillData = useMemo(() => {
@@ -137,6 +140,7 @@ const CvBuilderPage = () => {
     canGoNext,
     selectedLanguageEntries,
     handleUploadFileSelect,
+    selectUploadFile,
     openUploadPicker,
     openBuildFlow,
     openPreview,
@@ -168,7 +172,7 @@ const CvBuilderPage = () => {
           : "Upload your CV directly from your computer.",
         icon: uploadIcon,
         tone: "coral",
-        onClick: openUploadPicker,
+        onClick: () => setUploadModalOpen(true),
       },
       {
         id: "build",
@@ -181,7 +185,7 @@ const CvBuilderPage = () => {
         onClick: openBuildFlow,
       },
     ],
-    [selectedUploadFile, openUploadPicker, openBuildFlow, isBuildMyCvLoading],
+    [selectedUploadFile, openBuildFlow, isBuildMyCvLoading],
   );
 
   return (
@@ -260,11 +264,15 @@ const CvBuilderPage = () => {
             isNextDisabled={isSavingCandidateProfile}
             nextLabel={isSavingCandidateProfile ? "Saving…" : "Done"}
             showNextIcon={false}
-            subLabel={
-              buildMyCvLastModified
-                ? `Last saved ${new Date(buildMyCvLastModified).toLocaleString()}`
-                : undefined
-            }
+          />
+        )}
+
+        {uploadModalOpen && (
+          <CvBuilderUploadModal
+            selectedFile={selectedUploadFile}
+            onSelectFile={selectUploadFile}
+            onBrowse={openUploadPicker}
+            onClose={() => setUploadModalOpen(false)}
           />
         )}
       </Box>
