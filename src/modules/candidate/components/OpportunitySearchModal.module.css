@@ -1,0 +1,149 @@
+.paper:global(.MuiPaper-root) {
+  width: 100%;
+  max-width: none;
+  min-height: 200px;
+  margin: 0;
+  align-self: flex-start;
+  border-radius: 0 0 10px 10px;
+  box-shadow: none;
+  overflow: visible;
+}
+
+.content:global(.MuiDialogContent-root) {
+  min-height: 200px;
+  padding: 39px max(24px, calc((100% - 1096px) / 2));
+  overflow: visible;
+}
+
+.searchContent {
+  width: min(815px, 100%);
+}
+
+.title,
+.title:global(.MuiTypography-root) {
+  margin: 0 0 16px;
+  color: #03478c;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
+}
+
+.searchField {
+  height: 48px;
+  border: 1px solid #b0b4b8;
+  border-radius: 100px;
+  display: flex;
+  align-items: center;
+  padding-left: 20px;
+}
+
+.searchInput:global(.MuiInputBase-root) {
+  flex: 1;
+  min-width: 0;
+  color: #2a3132;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
+}
+
+.searchInput:global(.MuiInputBase-root) :global(input)::placeholder {
+  color: #5a5e63;
+  opacity: 1;
+}
+
+.searchIconButton:global(.MuiIconButton-root) {
+  width: 32px;
+  height: 32px;
+  margin-right: 7px;
+  padding: 0;
+  border: 1px solid #e1e3e6;
+  border-radius: 100px;
+  background: #ffffff;
+}
+
+.searchIconButton:global(.MuiIconButton-root):hover {
+  background: #ffffff;
+}
+
+.searchIcon {
+  width: 20px;
+  height: 20px;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.filterButton {
+  height: 48px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #03478c;
+  border-radius: 100px;
+  padding: 11px 24px;
+  background: transparent;
+  color: #03478c;
+  cursor: pointer;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
+}
+
+.filterButton:focus-visible,
+.closeButton:focus-visible,
+.searchIconButton:focus-visible {
+  outline: 2px solid #32abbf;
+  outline-offset: 2px;
+}
+
+.filterArrow {
+  width: 16px;
+  height: 16px;
+}
+
+.closeButton:global(.MuiIconButton-root) {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border-radius: 0;
+}
+
+.closeButton:global(.MuiIconButton-root):hover {
+  background: transparent;
+}
+
+.closeIcon {
+  width: 16px;
+  height: 16px;
+}
+
+@media (max-width: 700px) {
+  .content:global(.MuiDialogContent-root) {
+    padding: 52px 24px 24px;
+  }
+
+  .title,
+  .title:global(.MuiTypography-root) {
+    font-size: 26px;
+  }
+
+  .filters {
+    gap: 8px;
+  }
+
+  .filterButton {
+    padding-inline: 18px;
+  }
+}

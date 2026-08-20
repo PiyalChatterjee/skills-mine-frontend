@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Box } from "@mui/material";
 import type { MouseEvent } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
@@ -13,6 +13,7 @@ import {
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import type { AppDispatch } from "@/store";
 import { fetchCandidateProfileThunk } from "@/store/slices/candidateThunks";
+import { OpportunitySearchModal } from "@/modules/candidate/components/OpportunitySearchModal";
 import { PublicFooter } from "./components/PublicFooter";
 import { PublicHeader } from "./components/PublicHeader";
 import styles from "./CandidateLayout.module.css";
@@ -22,6 +23,7 @@ export const CandidateLayout = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
   const { isAuthenticated, tokens, user } = useAuth();
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 
   useEffect(() => {
     // The session carries userId; candidateId is only known once a
@@ -45,7 +47,7 @@ export const CandidateLayout = () => {
   };
 
   const handleSearchClick = () => {
-    // TODO: Implement search action
+    setIsSearchModalOpen(true);
   };
 
   const handleSavedJobPostsClick = () => {
@@ -103,6 +105,11 @@ export const CandidateLayout = () => {
         showNotificationButton={false}
         showProfileBadge={true}
         showSearchButton={true}
+      />
+
+      <OpportunitySearchModal
+        open={isSearchModalOpen}
+        onClose={() => setIsSearchModalOpen(false)}
       />
 
       <Box component="main" className={styles.contentArea}>
