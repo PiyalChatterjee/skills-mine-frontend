@@ -2,6 +2,15 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
 import { Alert, Box, Button, ButtonBase, CircularProgress, Typography } from '@mui/material'
+import {
+  DndContext,
+  PointerSensor,
+  useDraggable,
+  useDroppable,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core'
 import { RecruiterSidebar } from '@/modules/recruiter/components/RecruiterSidebar'
 import { RecruiterTour } from '@/modules/recruiter/components/RecruiterTour'
 import { ROUTE_PATHS } from '@/routes/routePaths'
@@ -169,32 +178,60 @@ type PipelineCardProps = {
   onExpand: () => void
 }
 
-const PipelineCardItem = ({ card, onView, onExpand }: PipelineCardProps) => (
-  <Box className={`${styles.pipelineCard} ${styles[`card${card.tone[0].toUpperCase()}${card.tone.slice(1)}`]}`}>
-    <Typography component="p" className={styles.pipelineCardTitle}>{card.title}</Typography>
-    <Box className={styles.pipelineCardCompany}>
-      <Box component="span" className={styles.pipelineCardCompanyIcon}>{card.companyIcon}</Box>
-      <Typography component="span" className={styles.pipelineCardCompanyName}>
-        {card.company}
-      </Typography>
+const PipelineCardItem = ({ card, onView, onExpand }: PipelineCardProps) => {
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: card.id })
+
+  return (
+    <Box
+      ref={setNodeRef}
+      className={`${styles.pipelineCard} ${styles[`card${card.tone[0].toUpperCase()}${card.tone.slice(1)}`]} ${isDragging ? styles.pipelineCardDragging : ''}`}
+      style={transform ? { transform: `translate3d(${transform.x}px, ${transform.y}px, 0)` } : undefined}
+      {...attributes}
+      {...listeners}
+    >
+      <Typography component="p" className={styles.pipelineCardTitle}>{card.title}</Typography>
+      <Box className={styles.pipelineCardCompany}>
+        <Box component="span" className={styles.pipelineCardCompanyIcon}>{card.companyIcon}</Box>
+        <Typography component="span" className={styles.pipelineCardCompanyName}>
+          {card.company}
+        </Typography>
+      </Box>
+      <Box className={styles.pipelineCardActions}>
+        <ButtonBase
+          className={styles.pipelineCardActionBtn}
+          onClick={() => onView(card.id, card.stage)}
+          disableRipple
+          aria-label="View"
+        >
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <path d="M9.99993 2.5C14.4933 2.5 18.2317 5.73313 19.0154 10C18.2317 14.2668 14.4933 17.5 9.99993 17.5C5.50644 17.5 1.76813 14.2668 0.984375 10C1.76813 5.73313 5.50644 2.5 9.99993 2.5ZM9.99993 15.8333C13.5296 15.8333 16.5499 13.3767 17.3144 10C16.5499 6.62336 13.5296 4.16667 9.99993 4.16667C6.47018 4.16667 3.44986 6.62336 2.68533 10C3.44986 13.3767 6.47018 15.8333 9.99993 15.8333ZM9.99993 13.75C7.92883 13.75 6.24989 12.0711 6.24989 10C6.24989 7.92893 7.92883 6.25 9.99993 6.25C12.0709 6.25 13.7499 7.92893 13.7499 10C13.7499 12.0711 12.0709 13.75 9.99993 13.75ZM9.99993 12.0833C11.1505 12.0833 12.0833 11.1506 12.0833 10C12.0833 8.84942 11.1505 7.91667 9.99993 7.91667C8.84934 7.91667 7.91656 8.84942 7.91656 10C7.91656 11.1506 8.84934 12.0833 9.99993 12.0833Z" fill="currentColor"/>
+          </svg>
+        </ButtonBase>
+        <ButtonBase className={styles.pipelineCardActionBtn} onClick={onExpand} disableRipple aria-label="Expand" data-tour="pipeline-expand">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-7 7M10 20H4v-6M4 20l7-7" /></svg>
+        </ButtonBase>
+      </Box>
     </Box>
-    <Box className={styles.pipelineCardActions}>
-      <ButtonBase
-        className={styles.pipelineCardActionBtn}
-        onClick={() => onView(card.id, card.stage)}
-        disableRipple
-        aria-label="View"
-      >
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-          <path d="M9.99993 2.5C14.4933 2.5 18.2317 5.73313 19.0154 10C18.2317 14.2668 14.4933 17.5 9.99993 17.5C5.50644 17.5 1.76813 14.2668 0.984375 10C1.76813 5.73313 5.50644 2.5 9.99993 2.5ZM9.99993 15.8333C13.5296 15.8333 16.5499 13.3767 17.3144 10C16.5499 6.62336 13.5296 4.16667 9.99993 4.16667C6.47018 4.16667 3.44986 6.62336 2.68533 10C3.44986 13.3767 6.47018 15.8333 9.99993 15.8333ZM9.99993 13.75C7.92883 13.75 6.24989 12.0711 6.24989 10C6.24989 7.92893 7.92883 6.25 9.99993 6.25C12.0709 6.25 13.7499 7.92893 13.7499 10C13.7499 12.0711 12.0709 13.75 9.99993 13.75ZM9.99993 12.0833C11.1505 12.0833 12.0833 11.1506 12.0833 10C12.0833 8.84942 11.1505 7.91667 9.99993 7.91667C8.84934 7.91667 7.91656 8.84942 7.91656 10C7.91656 11.1506 8.84934 12.0833 9.99993 12.0833Z" fill="currentColor"/>
-        </svg>
-      </ButtonBase>
-      <ButtonBase className={styles.pipelineCardActionBtn} onClick={onExpand} disableRipple aria-label="Expand" data-tour="pipeline-expand">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-7 7M10 20H4v-6M4 20l7-7" /></svg>
-      </ButtonBase>
+  )
+}
+
+type PipelineColumnDropProps = {
+  label: PipelineStageLabel
+  children: React.ReactNode
+}
+
+const PipelineColumnDrop = ({ label, children }: PipelineColumnDropProps) => {
+  const { setNodeRef, isOver } = useDroppable({ id: label })
+
+  return (
+    <Box
+      ref={setNodeRef}
+      className={`${styles.pipelineColumn} ${isOver ? styles.pipelineColumnOver : ''}`}
+    >
+      {children}
     </Box>
-  </Box>
-)
+  )
+}
 
 // ── Main Component ────────────────────────────────────────────────────
 
@@ -205,6 +242,8 @@ const RecruiterPage = () => {
   const [mandatesData, setMandatesData] = useState<RecruiterMandatesData | null>(null)
   const [loading, setLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [columns, setColumns] = useState<PipelineColumn[]>(PIPELINE_COLUMNS)
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
 
   useEffect(() => {
     let isActive = true
@@ -314,6 +353,38 @@ const RecruiterPage = () => {
     navigate(ROUTE_PATHS.recruiterDashboard)
   }
 
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
+    if (!over) {
+      return
+    }
+
+    const cardId = String(active.id)
+    const targetStage = over.id as PipelineStageLabel
+
+    setColumns((current) => {
+      const sourceColumn = current.find((col) => col.cards.some((card) => card.id === cardId))
+      if (!sourceColumn || sourceColumn.label === targetStage) {
+        return current
+      }
+
+      const movedCard = sourceColumn.cards.find((card) => card.id === cardId)
+      if (!movedCard) {
+        return current
+      }
+
+      return current.map((col) => {
+        if (col.label === sourceColumn.label) {
+          return { ...col, cards: col.cards.filter((card) => card.id !== cardId) }
+        }
+        if (col.label === targetStage) {
+          return { ...col, cards: [...col.cards, { ...movedCard, stage: targetStage }] }
+        }
+        return col
+      })
+    })
+  }
+
   if (loading) {
     return (
       <Box className={styles.shell}>
@@ -392,42 +463,46 @@ const RecruiterPage = () => {
         </Typography>
 
         <Box className={styles.pipelineWrapper}>
-          {/* Unified header bar */}
-          <Box className={styles.pipelineHeader}>
-            {PIPELINE_COLUMNS.map((col) => (
-              <Box key={col.label} className={styles.colHeader}>
-                <Typography component="p" className={styles.colLabel}>{col.label}</Typography>
-                <Typography component="p" className={styles.colCount}>
-                  {stageCounts[col.label]}
-                </Typography>
-              </Box>
-            ))}
-          </Box>
-
-          {/* Cards board */}
-          <Box className={styles.pipelineBoard}>
-            {PIPELINE_COLUMNS.map((col) => (
-              <Box key={col.label} className={styles.pipelineColumn}>
-                <Box className={styles.colCards}>
-                  {col.cards.map((card) => (
-                    <PipelineCardItem
-                      key={card.id}
-                      card={card}
-                      onView={handleCardView}
-                      onExpand={handleCardExpand}
-                    />
-                  ))}
+          <Box className={styles.pipelineScroll}>
+            {/* Unified header bar */}
+            <Box className={styles.pipelineHeader}>
+              {columns.map((col) => (
+                <Box key={col.label} className={styles.colHeader}>
+                  <Typography component="p" className={styles.colLabel}>{col.label}</Typography>
+                  <Typography component="p" className={styles.colCount}>
+                    {stageCounts[col.label]}
+                  </Typography>
                 </Box>
+              ))}
+            </Box>
 
-                <ButtonBase
-                  className={styles.viewMoreBtn}
-                  onClick={handleViewMore}
-                  disableRipple
-                >
-                  View more
-                </ButtonBase>
+            {/* Cards board */}
+            <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+              <Box className={styles.pipelineBoard}>
+                {columns.map((col) => (
+                  <PipelineColumnDrop key={col.label} label={col.label}>
+                    <Box className={styles.colCards}>
+                      {col.cards.map((card) => (
+                        <PipelineCardItem
+                          key={card.id}
+                          card={card}
+                          onView={handleCardView}
+                          onExpand={handleCardExpand}
+                        />
+                      ))}
+                    </Box>
+
+                    <ButtonBase
+                      className={styles.viewMoreBtn}
+                      onClick={handleViewMore}
+                      disableRipple
+                    >
+                      View more
+                    </ButtonBase>
+                  </PipelineColumnDrop>
+                ))}
               </Box>
-            ))}
+            </DndContext>
           </Box>
         </Box>
       </Box>
