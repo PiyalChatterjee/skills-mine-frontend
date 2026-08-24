@@ -53,6 +53,12 @@ export const apiEndpoints = {
       "/api/v1/admin/staff-invitations",
     ),
   },
+  documents: {
+    uploadResume: withDefault(
+      import.meta.env.VITE_DOCUMENTS_UPLOAD_RESUME_ENDPOINT,
+      "/documents/resume",
+    ),
+  },
   users: {
     profile: withDefault(
       import.meta.env.VITE_USERS_PROFILE_ENDPOINT,

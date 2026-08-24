@@ -123,13 +123,26 @@ export const JobsFeedPage = ({ mode }: JobsFeedPageProps) => {
   }, [isRecommendedOnlyMode, isSavedOnlyMode, recommendedPositionsQuery.data, savedJobsQuery.data, visibleJobs])
 
   // Jobs already applied to are never offered again in any feed
-  const feedJobs = useMemo(
-    () =>
-      jobsWithMatch.filter(
-        (job) => isSavedOnlyMode || !appliedJobIds.has(job.jobId),
-      ),
-    [appliedJobIds, isSavedOnlyMode, jobsWithMatch],
-  )
+  const feedJobs = useMemo(() => {
+    const notYetApplied = jobsWithMatch.filter(
+      (job) => isSavedOnlyMode || !appliedJobIds.has(job.jobId),
+    )
+
+    // Saved/recommended jobs are fetched in full, so search filters them client-side by title
+    if ((isSavedOnlyMode || isRecommendedOnlyMode) && shouldFilterOpportunities) {
+      const term = normalizedSearchTerm.toLowerCase()
+      return notYetApplied.filter((job) => job.title.toLowerCase().includes(term))
+    }
+
+    return notYetApplied
+  }, [
+    appliedJobIds,
+    isRecommendedOnlyMode,
+    isSavedOnlyMode,
+    jobsWithMatch,
+    normalizedSearchTerm,
+    shouldFilterOpportunities,
+  ])
 
   return (
     <Box className={styles.pageRoot}>

@@ -1,6 +1,5 @@
 import { Box, Button, Typography } from "@mui/material";
 import { type ReactNode, useState } from "react";
-import { useFormContext, useWatch } from "react-hook-form";
 import buildingIcon from "@/assets/cv-builder/building-line.svg";
 import educationIcon from "@/assets/cv-builder/education-line.svg";
 import languagesIcon from "@/assets/cv-builder/languages-line.svg";
@@ -8,14 +7,12 @@ import minusIcon from "@/assets/cv-builder/minus-line.svg";
 import plusIcon from "@/assets/cv-builder/plus-line.svg";
 import skillsIcon from "@/assets/cv-builder/skills-sparkle.svg";
 import userIcon from "@/assets/public-layout/user-icon.svg";
-import CvBuilderPreviewDocument from "./CvBuilderPreviewDocument";
 import CvBuilderCareerHistoryForm from "./CvBuilderCareerHistoryForm";
 import CvBuilderEducationForm from "./CvBuilderEducationForm";
 import CvBuilderLanguagesForm from "./CvBuilderLanguagesForm";
 import CvBuilderPersonalDetailsForm from "./CvBuilderPersonalDetailsForm";
 import CvBuilderSkillsForm from "./CvBuilderSkillsForm";
 import styles from "../pages/CvBuilderPage.module.css";
-import type { CvBuilderFormValues } from "../types/cvBuilderSchema";
 
 type ReviewSectionId =
   | "personal"
@@ -64,30 +61,10 @@ const REVIEW_SECTIONS: ReviewSectionConfig[] = [
   },
 ];
 
-type CvBuilderReviewScreenProps = {
-  onPreview: () => void;
-};
-
-const CvBuilderReviewScreen = ({ onPreview }: CvBuilderReviewScreenProps) => {
-  const { control } = useFormContext<CvBuilderFormValues>();
+const CvBuilderReviewScreen = () => {
   const [expandedSections, setExpandedSections] = useState<
     Set<ReviewSectionId>
-  >(new Set());
-
-  const formValues = useWatch({ control, name: "personalDetails" });
-  const careerHistory = useWatch({ control, name: "careerHistory" });
-  const skills = useWatch({ control, name: "skills" });
-  const tertiary = useWatch({ control, name: "tertiaryEducation" });
-  const secondary = useWatch({ control, name: "secondaryEducation" });
-  const languages = useWatch({ control, name: "languages" }) ?? [];
-  const otherLanguage = useWatch({ control, name: "otherLanguage" }) ?? "";
-
-  const selectedLanguageEntries = [
-    ...languages.filter((l: string) => l !== "Other"),
-    ...(languages.includes("Other") && otherLanguage.trim()
-      ? [otherLanguage.trim()]
-      : []),
-  ];
+  >(new Set(["personal"]));
 
   const toggleSection = (sectionId: ReviewSectionId) => {
     setExpandedSections((current) => {
@@ -153,33 +130,6 @@ const CvBuilderReviewScreen = ({ onPreview }: CvBuilderReviewScreenProps) => {
         </Box>
       </Box>
 
-      <Box className={styles.reviewPreviewColumn}>
-        <Box className={styles.reviewPreviewCard}>
-          <Box className={styles.reviewPreviewHeader}>
-            <Typography className={styles.reviewPreviewTitle}>
-              Your CV
-            </Typography>
-            <Button
-              type="button"
-              className={styles.reviewPreviewButton}
-              disableRipple
-              onClick={onPreview}
-            >
-              Preview
-            </Button>
-          </Box>
-
-          <CvBuilderPreviewDocument
-            size="compact"
-            formValues={formValues}
-            careerHistory={careerHistory ?? []}
-            skills={skills ?? []}
-            tertiaryEducation={tertiary ?? []}
-            secondaryEducation={secondary ?? []}
-            selectedLanguageEntries={selectedLanguageEntries}
-          />
-        </Box>
-      </Box>
     </Box>
   );
 };

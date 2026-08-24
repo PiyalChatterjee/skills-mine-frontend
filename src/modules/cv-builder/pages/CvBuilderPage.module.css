@@ -1067,8 +1067,7 @@
 
 .reviewLayout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 240px;
-  gap: 48px;
+  grid-template-columns: minmax(0, 1fr);
   align-items: start;
   max-width: 1060px;
   margin: 0 auto;

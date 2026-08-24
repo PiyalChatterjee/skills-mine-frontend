@@ -33,6 +33,8 @@ flowchart LR
 
 The application is a client-rendered React 19 SPA. `src/main.tsx` mounts the application; `src/routes/AppRoutes.tsx` owns route composition; API requests use Axios and the configured backend base URL. There is no server-side rendering in this project.
 
+The CV Builder completion flow has two related server operations: it persists the structured CV through the CV Builder endpoint, then serializes that payload into an A4 PDF and uploads the generated document through `documents.uploadResume`. The document upload is intentionally best-effort: if it fails, the saved CV remains successful and the user receives a warning notification.
+
 ## Bootstrap and Providers
 
 The provider order in `src/app/AppProviders.tsx` is:
@@ -227,6 +229,40 @@ sequenceDiagram
   Login->>Context: login(payload)
 ```
 
+### CV Builder Completion and Resume Upload
+
+```mermaid
+sequenceDiagram
+  participant Page as CvBuilderPage
+  participant Hook as useCvBuilderDone
+  participant RTK as apiSlice
+  participant CV as candidateApi
+  participant PDF as jsPDF
+  participant Backend
+
+  Page->>Hook: Submit completed CV
+  Hook->>RTK: saveBuildMyCv or updateBuildMyCv
+  RTK->>CV: Persist structured CV payload
+  CV->>Backend: POST or PUT CV endpoint
+  Backend-->>CV: Saved CV response
+  CV-->>RTK: Saved CV data
+  RTK-->>Hook: Save succeeds
+  Hook->>PDF: Generate A4 PDF from serialized payload
+  PDF-->>Hook: PDF Blob
+  Hook->>RTK: uploadCvResumeDocument
+  RTK->>CV: uploadResumeDocument(candidateId, blob, fileName)
+  CV->>Backend: Multipart document upload
+  alt Upload succeeds
+    Backend-->>CV: Resume document result
+  else Upload fails
+    Backend-->>CV: Upload error
+    Hook-->>Page: Warning; saved CV is preserved
+  end
+  Hook-->>Page: Navigate to candidate dashboard
+```
+
+The generated filename follows `<first>_<last>_<role>_<UTC timestamp>.pdf`. The role segment is `visitor`, `candidate`, or `recruiter`; filename parts are sanitized to alphanumeric lowercase values.
+
 ## API Layer
 
 ```mermaid
@@ -245,6 +281,8 @@ The API boundary is split deliberately:
 - `src/services/api/endpoints.ts` resolves endpoint templates from `VITE_*` variables and hardcoded defaults. Dynamic `:param` values are URI encoded by `resolveEndpoint`.
 - `src/services/api/*.ts` contains domain service modules and response mapping.
 - `src/store/api/apiSlice.ts` exposes RTK Query endpoints for server state that benefits from caching, invalidation, optimistic updates, or pagination.
+
+Resume document upload is exposed as the `uploadCvResumeDocument` RTK Query mutation. It accepts a candidate resource ID, a PDF `Blob`, and the generated filename, then delegates to `candidateApi.uploadResumeDocument`. The upload endpoint is configured independently as `VITE_DOCUMENTS_UPLOAD_RESUME_ENDPOINT` and defaults to `/documents/resume`.
 
 Current service modules include `authApi`, `candidateApi`, `jobsApi`, `industryApi`, `mandateApi`, `recruiterCandidatesApi`, and `crmApi`. Candidate profile, dashboard, user-profile, skills, CV, and paginated jobs operations are represented in RTK Query. Remaining domain operations may call the service modules directly.
 
@@ -268,6 +306,8 @@ API errors from RTK Query operations are normalized by `withMappedApiError` in `
 | `industryApi.ts` | Industry catalog for recruiter job-post forms |
 | `recruiterCandidatesApi.ts` | Recruiter candidate directory and filters |
 | `crmApi.ts` | CRM clients and client notes |
+
+CV Builder document generation uses `generateCvPdfBlobFromText` in `src/modules/cv-builder/utils/downloadCvPdf.ts`. The current completion path generates the PDF from the normalized request payload rather than depending on a rendered preview DOM node, which keeps upload behavior independent of the preview layout.
 
 ### Endpoint Resolution
 
@@ -316,6 +356,7 @@ Use RTK Query for remote data and cache invalidation. Use slices for cross-page 
 | `saveJob({ userId, savedJobs })` | Invalidates user profile | Optimistic save/unsave actions |
 | `searchSkills({ keyword, userId })` | `Skills:{keyword}` | Profile skills search |
 | CV queries and mutations | `BuildMyCv:SELF` | CV builder |
+| `uploadCvResumeDocument({ candidateId, file, fileName })` | Document upload; no cache tag | CV builder completion |
 
 RTK Query query functions call the existing service modules and pass failures through `withMappedApiError`. This keeps HTTP transport and response mapping reusable while giving selected pages cache lifecycle, pagination, and invalidation behavior.
 
@@ -391,6 +432,14 @@ skills, candidates, recruiter, pipeline, manco, jobPosts, crm
 Relevant keys include auth registration/login/recovery, user profile, candidate dashboard/profile/CV/jobs, applications, jobs pagination, industries, skills search, recruiter and pipeline operations, management dashboards, job-post CRUD, and CRM clients/notes. Defaults and exact variable names live in `src/services/api/endpoints.ts`; update that file and `src/vite-env.d.ts` together when adding an override.
 
 ## Data Flows
+
+### Candidate Opportunity Search
+
+`JobsFeedPage` uses `useSearchQueryState` to normalize input, wait 250 ms after typing, and enable API search only when the normalized term has at least three characters. Latest jobs use paginated infinite scrolling; saved and recommended jobs are fetched as complete lists and filtered client-side. Clearing the search returns the feed to its default list state.
+
+### Recruiter Pipeline Drag-and-Drop
+
+`RecruiterPage` uses `@dnd-kit/core` to make pipeline cards draggable and stage columns droppable. A completed drag updates the card’s stage and keeps the responsive pipeline layout stable; the existing pipeline state and stage transition boundary remain responsible for persistence and downstream workflow behavior.
 
 ### Candidate Profile Read and Save
 

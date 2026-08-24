@@ -423,14 +423,7 @@ const useCvBuilder = (
     setActiveView("form");
     setCurrentStepId(FIRST_STEP);
   };
-  const openPreview = () => setActiveView("preview");
-  const closePreview = () => setActiveView("review");
-
   const goBack = () => {
-    if (activeView === "preview" || activeView === "view-cv") {
-      setActiveView("review");
-      return;
-    }
     if (activeView === "review") {
       setActiveView("form");
       setCurrentStepId(LAST_STEP);
@@ -444,22 +437,6 @@ const useCvBuilder = (
   };
 
   const goNext = async () => {
-    if (activeView === "preview") return;
-    if (activeView === "view-cv") {
-      setActiveView("launcher");
-      setCurrentStepId(FIRST_STEP);
-      return;
-    }
-
-    if (activeView === "review") {
-      let allValid = true;
-      for (let step = 1; step <= LAST_STEP; step++) {
-        if (!(await validateStep(step))) allValid = false;
-      }
-      if (allValid) setActiveView("view-cv");
-      return;
-    }
-
     if (!(await validateStep(currentStepId))) return;
     if (currentStepId < LAST_STEP) {
       setCurrentStepId((prev) => prev + 1);
@@ -529,8 +506,6 @@ const useCvBuilder = (
     selectUploadFile,
     openUploadPicker,
     openBuildFlow,
-    openPreview,
-    closePreview,
     goBack,
     goNext,
     selectedLanguages,
