@@ -32,6 +32,7 @@ Create a local `.env` file when you need to point the app at a backend or enable
 ```dotenv
 VITE_API_BASE_URL=http://localhost:4000/api
 VITE_GOOGLE_CLIENT_ID=your-google-web-client-id
+VITE_DOCUMENTS_UPLOAD_RESUME_ENDPOINT=/documents/resume
 ```
 
 `VITE_API_BASE_URL` defaults to `/api`. `VITE_GOOGLE_CLIENT_ID` is optional; when it is absent, the app still runs and Google sign-in reports that OAuth configuration is unavailable. All endpoint-specific `VITE_*` keys have hardcoded fallbacks matching the mock-server contract and are optional. See [ARCHITECTURE.md](ARCHITECTURE.md) for the full environment variable catalog.
@@ -119,6 +120,14 @@ npm run preview
 - Moved cache invalidation to tag-based policies using `providesTags` and `invalidatesTags`.
 - Logout resets server cache through `apiSlice.util.resetApiState()`.
 - Candidate profile/application Redux mirror state was removed where RTK Query is now the source of truth.
+
+### CV Documents, Opportunity Search, and Recruiter Workflow
+
+- CV Builder completion now saves the structured CV, generates an A4 PDF from the saved payload, and uploads the document through the RTK Query `uploadCvResumeDocument` mutation.
+- Generated resume filenames include sanitized first and last names, the uploader role, and a UTC timestamp. A failed document upload warns the user while preserving the successfully saved CV.
+- Added the candidate opportunity search modal with debounced, minimum-length search behavior and responsive job-card layouts.
+- Recruiter pipeline cards now support drag-and-drop stage changes with responsive layout handling.
+- Added CV upload modal validation for PDF, DOC, and DOCX files.
 
 ## Architecture Overview
 

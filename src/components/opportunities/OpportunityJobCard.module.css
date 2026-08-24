@@ -272,14 +272,14 @@
 
 @media (max-width: 560px) {
   .header {
-    grid-template-columns: auto 1fr;
-    grid-template-areas:
-      'match save'
-      'title title';
-    gap: 12px;
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas: none;
+    gap: 10px;
   }
 
-  .title {
-    grid-area: title;
+  .title,
+  .title:global(.MuiTypography-root) {
+    grid-area: auto;
+    font-size: 18px;
   }
 }

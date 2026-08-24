@@ -213,16 +213,23 @@
 
 /* ── Pipeline Wrapper ────────────────────────────────────────────────── */
 .pipelineWrapper {
-  min-width: 944px;
+  width: 100%;
   border-radius: 8px;
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
   border: 1px solid #92c9e5;
+}
+
+/* Header and board share this track definition so columns stay aligned. */
+.pipelineScroll {
+  min-width: 100%;
+  width: max-content;
 }
 
 /* ── Pipeline Header Bar ─────────────────────────────────────────────── */
 .pipelineHeader {
   display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-template-columns: repeat(8, minmax(170px, 1fr));
   background: #AAD5F0;
   border-radius: 8px 8px 0 0;
 }
@@ -240,11 +247,10 @@
 /* ── Pipeline Board ──────────────────────────────────────────────────── */
 .pipelineBoard {
   display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-template-columns: repeat(8, minmax(170px, 1fr));
   gap: 0;
   background: #f0f4f8;
   border-radius: 0 0 8px 8px;
-  overflow: hidden;
 }
 
 /* ── Pipeline Column ─────────────────────────────────────────────────── */
@@ -259,6 +265,10 @@
 
 .pipelineColumn:last-child {
   border-right: 0;
+}
+
+.pipelineColumnOver {
+  background: #e3eefb;
 }
 
 .colLabel,
@@ -304,6 +314,13 @@
   flex-direction: column;
   gap: 6px;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, .08);
+  cursor: grab;
+  touch-action: none;
+}
+
+.pipelineCardDragging {
+  opacity: 0.5;
+  cursor: grabbing;
 }
 
 .cardCream { background: #FAEED8; }
@@ -404,13 +421,6 @@
 }
 
 /* ── Responsive ──────────────────────────────────────────────────────── */
-@media (max-width: 1200px) {
-  .pipelineHeader,
-  .pipelineBoard {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-}
-
 @media (max-width: 900px) {
   .pageRoot {
     padding: 20px 20px 40px;
@@ -428,11 +438,6 @@
   .kpiRow {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
-
-  .pipelineHeader,
-  .pipelineBoard {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
 }
 
 @media (max-width: 600px) {
@@ -442,11 +447,6 @@
 
   .kpiRow {
     grid-template-columns: 1fr;
-  }
-
-  .pipelineHeader,
-  .pipelineBoard {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .kpiValue {

@@ -14,10 +14,10 @@ const DEFAULT_OPTIONS: Required<DownloadCvPdfOptions> = {
     "PLEASE NOTE By receiving this Curriculum Vitae, you automatically agree to our Standard Terms and Conditions",
 };
 
-export const downloadCvPdf = async (
+export const generateCvPdfBlob = async (
   documentNode: HTMLElement,
   options: DownloadCvPdfOptions = {},
-) => {
+): Promise<Blob> => {
   const resolvedOptions = {
     ...DEFAULT_OPTIONS,
     ...options,
@@ -161,8 +161,50 @@ export const downloadCvPdf = async (
       });
     }
 
-    pdf.save(resolvedOptions.fileName);
+    return pdf.output("blob");
   } finally {
     exportContainer.remove();
   }
 };
+
+export const generateCvPdfBlobFromText = (text: string): Blob => {
+  const pdf = new jsPDF({
+    orientation: "p",
+    unit: "mm",
+    format: "a4",
+    compress: true,
+  });
+  const lines = pdf.splitTextToSize(text, 180);
+  let yPosition = 20;
+
+  pdf.setFont("helvetica", "normal");
+  pdf.setFontSize(10);
+  for (const line of lines) {
+    if (yPosition > 280) {
+      pdf.addPage();
+      yPosition = 20;
+    }
+    pdf.text(line, 15, yPosition);
+    yPosition += 5;
+  }
+
+  return pdf.output("blob");
+};
+
+export const downloadCvPdf = async (
+  documentNode: HTMLElement,
+  options: DownloadCvPdfOptions = {},
+) => {
+  const resolvedOptions = {
+    ...DEFAULT_OPTIONS,
+    ...options,
+  };
+  const blob = await generateCvPdfBlob(documentNode, options);
+  const blobUrl = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = blobUrl;
+  link.download = resolvedOptions.fileName;
+  link.click();
+  URL.revokeObjectURL(blobUrl);
+};
+
