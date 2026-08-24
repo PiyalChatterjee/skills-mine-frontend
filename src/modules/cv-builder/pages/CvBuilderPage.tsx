@@ -1,5 +1,5 @@
 import { Box } from "@mui/material";
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { FormProvider } from "react-hook-form";
 import { useAuth } from "@/app/auth/AuthContext";
 import settingsIcon from "@/assets/cv-builder/settings-4-line.svg";
@@ -22,7 +22,6 @@ import CvBuilderHeroSection from "../components/CvBuilderHeroSection";
 import CvBuilderLauncher from "../components/CvBuilderLauncher";
 import CvBuilderPersonalDetailsForm from "../components/CvBuilderPersonalDetailsForm";
 import CvBuilderProgressRail from "../components/CvBuilderProgressRail";
-import CvBuilderPreviewPage from "../components/CvBuilderPreviewPage";
 import CvBuilderReviewScreen from "../components/CvBuilderReviewScreen";
 import CvBuilderLanguagesForm from "../components/CvBuilderLanguagesForm";
 import CvBuilderSkillsForm from "../components/CvBuilderSkillsForm";
@@ -38,7 +37,6 @@ import {
   type CvActionCard,
 } from "../types/cvBuilder";
 import styles from "./CvBuilderPage.module.css";
-import CvBuilderViewCvPage from "../components/CvBuilderViewCvPage";
 import CvBuilderUploadModal from "../components/CvBuilderUploadModal";
 
 const CvBuilderPage = () => {
@@ -46,7 +44,6 @@ const CvBuilderPage = () => {
   const { user } = useAuth();
   const userId = user?.userId;
   const candidateId = useCandidateResourceId();
-  const previewDocumentRef = useRef<HTMLDivElement | null>(null);
 
   // Load the saved CV record from the CV builder endpoint (the resume store),
   // not the profile endpoint, and hydrate Redux from it.
@@ -144,8 +141,6 @@ const CvBuilderPage = () => {
     selectUploadFile,
     openUploadPicker,
     openBuildFlow,
-    openPreview,
-    closePreview,
     goBack,
     goNext,
   } = useCvBuilder(
@@ -154,15 +149,11 @@ const CvBuilderPage = () => {
   );
 
   const { handleDone, isSavingCandidateProfile } = useCvBuilderDone({
-    activeView,
-    goNext,
     userId,
     candidateProfile,
     getFormValues: form.getValues,
     selectedLanguageEntries,
     buildMyCvExists,
-    previewDocumentRef,
-    isFormDirty: form.formState.isDirty,
     userRole: user?.role,
   });
 
@@ -195,7 +186,7 @@ const CvBuilderPage = () => {
   return (
     <FormProvider {...form}>
       <Box
-        className={`${styles.pageRoot} ${activeView === "view-cv" ? styles.pageRootViewCv : ""}`}
+        className={styles.pageRoot}
       >
         <input
           ref={uploadInputRef}
@@ -207,25 +198,19 @@ const CvBuilderPage = () => {
           aria-hidden="true"
         />
 
-        {activeView !== "view-cv" && (
-          <CvBuilderHeroSection
-            totalSteps={CV_BUILDER_STEPS.length}
-            activeStepId={activeView === "launcher" ? 1 : currentStepId}
-          />
-        )}
+        <CvBuilderHeroSection
+          totalSteps={CV_BUILDER_STEPS.length}
+          activeStepId={activeView === "launcher" ? 1 : currentStepId}
+        />
 
         <Box
           component="section"
-          className={`${styles.contentSection} ${activeView === "view-cv" ? styles.contentSectionViewCv : ""}`}
+          className={styles.contentSection}
         >
           {activeView === "launcher" ? (
             <CvBuilderLauncher cards={actionCards} />
-          ) : activeView === "preview" ? (
-            <CvBuilderPreviewPage onClose={closePreview} />
           ) : activeView === "review" ? (
-            <CvBuilderReviewScreen onPreview={openPreview} />
-          ) : activeView === "view-cv" ? (
-            <CvBuilderViewCvPage previewDocumentRef={previewDocumentRef} />
+            <CvBuilderReviewScreen />
           ) : (
             <Box className={styles.contentLayout}>
               <CvBuilderProgressRail
@@ -254,18 +239,8 @@ const CvBuilderPage = () => {
         {activeView === "review" && (
           <CvBuilderFooterActions
             onBack={goBack}
-            onNext={goNext}
-            isNextDisabled={!canViewCv}
-            nextLabel="View CV"
-            showNextIcon={false}
-          />
-        )}
-
-        {activeView === "view-cv" && (
-          <CvBuilderFooterActions
-            onBack={goBack}
             onNext={handleDone}
-            isNextDisabled={isSavingCandidateProfile}
+            isNextDisabled={!canViewCv || isSavingCandidateProfile}
             nextLabel={isSavingCandidateProfile ? "Saving…" : "Done"}
             showNextIcon={false}
           />

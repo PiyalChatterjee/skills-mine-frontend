@@ -1,5 +1,4 @@
 import { useCallback } from "react";
-import type { RefObject } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { useCandidateResourceId } from "@/modules/candidate/hooks/useCandidateQueries";
@@ -18,9 +17,8 @@ import {
 } from "@/store/slices/candidateSlice";
 import type { SaveBuildMyCvRequest } from "@/types";
 import type { Role } from "@/types/auth";
-import type { CvBuilderView } from "../types/cvBuilder";
 import type { CvBuilderFormValues } from "../types/cvBuilderSchema";
-import { generateCvPdfBlob } from "../utils/downloadCvPdf";
+import { generateCvPdfBlobFromText } from "../utils/downloadCvPdf";
 
 // Not logged in => visitor; RECRUITER role => recruiter; everyone else => candidate
 const resolveResumeRoleLabel = (userId?: string, role?: Role): string => {
@@ -118,15 +116,11 @@ export const buildCvBuilderPrefillData = (
 };
 
 type UseCvBuilderDoneArgs = {
-  activeView: CvBuilderView;
-  goNext: () => void;
   userId?: string;
   candidateProfile?: CandidateProfile;
   getFormValues: () => CvBuilderFormValues;
   selectedLanguageEntries: string[];
   buildMyCvExists: boolean;
-  previewDocumentRef?: RefObject<HTMLDivElement | null>;
-  isFormDirty?: boolean;
   userRole?: Role;
 };
 
@@ -199,14 +193,10 @@ const buildBuildMyCvRequest = ({
 };
 
 export const useCvBuilderDone = ({
-  activeView,
-  goNext,
   userId,
   getFormValues,
   selectedLanguageEntries,
   buildMyCvExists,
-  previewDocumentRef,
-  isFormDirty = false,
   userRole,
 }: UseCvBuilderDoneArgs) => {
   const navigate = useNavigate();
@@ -221,11 +211,6 @@ export const useCvBuilderDone = ({
   const isSavingCandidateProfile = isCreating || isUpdating;
 
   const handleDone = useCallback(async () => {
-    if (activeView !== "view-cv") {
-      goNext();
-      return;
-    }
-
     const payload = buildBuildMyCvRequest({
       formValues: getFormValues(),
       selectedLanguageEntries,
@@ -253,30 +238,27 @@ export const useCvBuilderDone = ({
         }),
       );
 
-      const documentNode = previewDocumentRef?.current;
-      if (documentNode && isFormDirty) {
-        try {
-          const pdfBlob = await generateCvPdfBlob(documentNode);
-          const roleLabel = resolveResumeRoleLabel(userId, userRole);
-          const fileName = buildResumeFileName(
-            payload.personalDetails?.firstName ?? "",
-            payload.personalDetails?.lastName ?? "",
-            roleLabel,
-          );
-          await triggerResumeUpload({
-            candidateId,
-            file: pdfBlob,
-            fileName,
-          }).unwrap();
-        } catch {
-          dispatch(
-            pushNotification({
-              title: "Resume upload failed",
-              message: "Your CV was saved, but we could not upload the PDF copy.",
-              level: "warning",
-            }),
-          );
-        }
+      try {
+        const pdfBlob = generateCvPdfBlobFromText(JSON.stringify(payload, null, 2));
+        const roleLabel = resolveResumeRoleLabel(userId, userRole);
+        const fileName = buildResumeFileName(
+          payload.personalDetails?.firstName ?? "",
+          payload.personalDetails?.lastName ?? "",
+          roleLabel,
+        );
+        await triggerResumeUpload({
+          candidateId,
+          file: pdfBlob,
+          fileName,
+        }).unwrap();
+      } catch {
+        dispatch(
+          pushNotification({
+            title: "Resume upload failed",
+            message: "Your CV was saved, but we could not upload the PDF copy.",
+            level: "warning",
+          }),
+        );
       }
 
       navigate(ROUTE_PATHS.candidateDashboard);
@@ -297,8 +279,6 @@ export const useCvBuilderDone = ({
       );
     }
   }, [
-    activeView,
-    goNext,
     buildMyCvExists,
     candidateId,
     dispatch,
@@ -307,8 +287,6 @@ export const useCvBuilderDone = ({
     triggerCreate,
     triggerUpdate,
     triggerResumeUpload,
-    previewDocumentRef,
-    isFormDirty,
     userId,
     userRole,
     navigate,

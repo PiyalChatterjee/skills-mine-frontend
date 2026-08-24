@@ -167,6 +167,30 @@ export const generateCvPdfBlob = async (
   }
 };
 
+export const generateCvPdfBlobFromText = (text: string): Blob => {
+  const pdf = new jsPDF({
+    orientation: "p",
+    unit: "mm",
+    format: "a4",
+    compress: true,
+  });
+  const lines = pdf.splitTextToSize(text, 180);
+  let yPosition = 20;
+
+  pdf.setFont("helvetica", "normal");
+  pdf.setFontSize(10);
+  for (const line of lines) {
+    if (yPosition > 280) {
+      pdf.addPage();
+      yPosition = 20;
+    }
+    pdf.text(line, 15, yPosition);
+    yPosition += 5;
+  }
+
+  return pdf.output("blob");
+};
+
 export const downloadCvPdf = async (
   documentNode: HTMLElement,
   options: DownloadCvPdfOptions = {},
