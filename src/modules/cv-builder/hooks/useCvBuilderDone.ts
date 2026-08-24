@@ -1,10 +1,12 @@
 import { useCallback } from "react";
+import type { RefObject } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { useCandidateResourceId } from "@/modules/candidate/hooks/useCandidateQueries";
 import {
   useSaveBuildMyCvMutation,
   useUpdateBuildMyCvMutation,
+  useUploadCvResumeDocumentMutation,
 } from "@/store/api/apiSlice";
 import type { CandidateProfile } from "@/modules/candidate/types";
 import { ROUTE_PATHS } from "@/routes/routePaths";
@@ -15,8 +17,33 @@ import {
   setBuildMyCvLastModified,
 } from "@/store/slices/candidateSlice";
 import type { SaveBuildMyCvRequest } from "@/types";
+import type { Role } from "@/types/auth";
 import type { CvBuilderView } from "../types/cvBuilder";
 import type { CvBuilderFormValues } from "../types/cvBuilderSchema";
+import { generateCvPdfBlob } from "../utils/downloadCvPdf";
+
+// Not logged in => visitor; RECRUITER role => recruiter; everyone else => candidate
+const resolveResumeRoleLabel = (userId?: string, role?: Role): string => {
+  if (!userId) return "visitor";
+  if (role === "RECRUITER") return "recruiter";
+  return "candidate";
+};
+
+const sanitizeFileNamePart = (value: string): string =>
+  value.trim().replace(/[^a-zA-Z0-9]+/g, "").toLowerCase() || "candidate";
+
+const formatFileNameTimestamp = (date: Date): string => {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  // UTC keeps the timestamp unique regardless of the uploader's local timezone
+  return `${pad(date.getUTCMonth() + 1)}${pad(date.getUTCDate())}${date.getUTCFullYear()}${pad(date.getUTCHours())}${pad(date.getUTCMinutes())}${pad(date.getUTCSeconds())}`;
+};
+
+const buildResumeFileName = (
+  firstName: string,
+  lastName: string,
+  roleLabel: string,
+): string =>
+  `${sanitizeFileNamePart(firstName)}_${sanitizeFileNamePart(lastName)}_${roleLabel}_${formatFileNameTimestamp(new Date())}.pdf`;
 
 const monthNames = [
   "January",
@@ -98,6 +125,9 @@ type UseCvBuilderDoneArgs = {
   getFormValues: () => CvBuilderFormValues;
   selectedLanguageEntries: string[];
   buildMyCvExists: boolean;
+  previewDocumentRef?: RefObject<HTMLDivElement | null>;
+  isFormDirty?: boolean;
+  userRole?: Role;
 };
 
 const buildBuildMyCvRequest = ({
@@ -171,9 +201,13 @@ const buildBuildMyCvRequest = ({
 export const useCvBuilderDone = ({
   activeView,
   goNext,
+  userId,
   getFormValues,
   selectedLanguageEntries,
   buildMyCvExists,
+  previewDocumentRef,
+  isFormDirty = false,
+  userRole,
 }: UseCvBuilderDoneArgs) => {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
@@ -182,6 +216,7 @@ export const useCvBuilderDone = ({
   const [triggerCreate, { isLoading: isCreating }] = useSaveBuildMyCvMutation();
   const [triggerUpdate, { isLoading: isUpdating }] =
     useUpdateBuildMyCvMutation();
+  const [triggerResumeUpload] = useUploadCvResumeDocumentMutation();
 
   const isSavingCandidateProfile = isCreating || isUpdating;
 
@@ -217,6 +252,33 @@ export const useCvBuilderDone = ({
           level: "success",
         }),
       );
+
+      const documentNode = previewDocumentRef?.current;
+      if (documentNode && isFormDirty) {
+        try {
+          const pdfBlob = await generateCvPdfBlob(documentNode);
+          const roleLabel = resolveResumeRoleLabel(userId, userRole);
+          const fileName = buildResumeFileName(
+            payload.personalDetails?.firstName ?? "",
+            payload.personalDetails?.lastName ?? "",
+            roleLabel,
+          );
+          await triggerResumeUpload({
+            candidateId,
+            file: pdfBlob,
+            fileName,
+          }).unwrap();
+        } catch {
+          dispatch(
+            pushNotification({
+              title: "Resume upload failed",
+              message: "Your CV was saved, but we could not upload the PDF copy.",
+              level: "warning",
+            }),
+          );
+        }
+      }
+
       navigate(ROUTE_PATHS.candidateDashboard);
     } catch (error) {
       const fallbackMessage =
@@ -244,6 +306,11 @@ export const useCvBuilderDone = ({
     selectedLanguageEntries,
     triggerCreate,
     triggerUpdate,
+    triggerResumeUpload,
+    previewDocumentRef,
+    isFormDirty,
+    userId,
+    userRole,
     navigate,
   ]);
 

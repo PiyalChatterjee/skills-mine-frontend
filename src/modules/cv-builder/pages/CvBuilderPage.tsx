@@ -1,5 +1,5 @@
 import { Box } from "@mui/material";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { FormProvider } from "react-hook-form";
 import { useAuth } from "@/app/auth/AuthContext";
 import settingsIcon from "@/assets/cv-builder/settings-4-line.svg";
@@ -46,6 +46,7 @@ const CvBuilderPage = () => {
   const { user } = useAuth();
   const userId = user?.userId;
   const candidateId = useCandidateResourceId();
+  const previewDocumentRef = useRef<HTMLDivElement | null>(null);
 
   // Load the saved CV record from the CV builder endpoint (the resume store),
   // not the profile endpoint, and hydrate Redux from it.
@@ -160,6 +161,9 @@ const CvBuilderPage = () => {
     getFormValues: form.getValues,
     selectedLanguageEntries,
     buildMyCvExists,
+    previewDocumentRef,
+    isFormDirty: form.formState.isDirty,
+    userRole: user?.role,
   });
 
   const actionCards: CvActionCard[] = useMemo(
@@ -221,7 +225,7 @@ const CvBuilderPage = () => {
           ) : activeView === "review" ? (
             <CvBuilderReviewScreen onPreview={openPreview} />
           ) : activeView === "view-cv" ? (
-            <CvBuilderViewCvPage />
+            <CvBuilderViewCvPage previewDocumentRef={previewDocumentRef} />
           ) : (
             <Box className={styles.contentLayout}>
               <CvBuilderProgressRail

@@ -1,14 +1,16 @@
 import { Box, Button } from "@mui/material";
-import { useRef } from "react";
+import type { RefObject } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import type { CvBuilderFormValues } from "../types/cvBuilderSchema";
 import CvBuilderPreviewDocument from "./CvBuilderPreviewDocument";
 import styles from "../pages/CvBuilderPage.module.css";
 import { downloadCvPdf } from "../utils/downloadCvPdf";
 
-type CvBuilderViewCvPageProps = Record<string, never>;
+type CvBuilderViewCvPageProps = {
+  previewDocumentRef: RefObject<HTMLDivElement | null>;
+};
 
-const CvBuilderViewCvPage = (_: CvBuilderViewCvPageProps) => {
+const CvBuilderViewCvPage = ({ previewDocumentRef }: CvBuilderViewCvPageProps) => {
   const { control } = useFormContext<CvBuilderFormValues>();
   const formValues = useWatch({ control, name: "personalDetails" });
   const careerHistory = useWatch({ control, name: "careerHistory" }) ?? [];
@@ -23,7 +25,6 @@ const CvBuilderViewCvPage = (_: CvBuilderViewCvPageProps) => {
       ? [otherLanguage.trim()]
       : []),
   ];
-  const previewDocumentRef = useRef<HTMLDivElement | null>(null);
 
   const handleDownloadPdf = async () => {
     const documentNode = previewDocumentRef.current;
