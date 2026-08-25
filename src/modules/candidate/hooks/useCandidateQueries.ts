@@ -4,6 +4,7 @@ import { useAuth } from '@/app/auth/AuthContext'
 import {
   useGetCandidateDashboardQuery,
   useGetCandidateProfileQuery,
+  useGetCandidateStatisticsQuery,
   useGetUserProfileQuery,
   useSaveJobMutation,
   useSearchSkillsQuery,
@@ -48,6 +49,11 @@ export const useCandidateProfileQuery = (
 
 export const useCandidateDashboardQuery = (enabled = true) =>
   useGetCandidateDashboardQuery({}, { skip: !enabled })
+
+// Historical stats for the welcome banner (total/successful/in-progress applications).
+// No client-side calculation — values are mapped directly from the API response.
+export const useCandidateStatisticsQuery = (enabled = true) =>
+  useGetCandidateStatisticsQuery(undefined, { skip: !enabled })
 
 type UpdateCandidateProfileVariables = {
   userId: string

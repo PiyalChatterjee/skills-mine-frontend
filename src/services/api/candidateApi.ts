@@ -9,6 +9,7 @@ import type {
   BuildMyCvState,
   AiActionsData,
   CandidateLandingData,
+  CandidateStatisticsData,
   CandidateApplication,
   CandidateDashboardData,
   CandidateDashboardQuery,
@@ -425,6 +426,30 @@ export const candidateApi = {
           totalPlacements: data.stats?.totalPlacements ?? data.stats?.total_placements ?? 0,
         },
         featuredJobs: data.featuredJobs ?? data.featured_jobs ?? [],
+      };
+    });
+  },
+
+  getStatistics(): Promise<CandidateStatisticsData> {
+    return unwrapResponseData(apiClient.get(apiEndpoints.candidate.statistics)).then((payload) => {
+      const data = responseData(payload as Record<string, unknown>) as Record<string, any>;
+      const stats = data.statistics ?? {};
+      const profileSummary = data.profile_summary ?? data.profileSummary ?? {};
+      return {
+        candidateId: data.candidateId ?? data.candidate_id ?? null,
+        statistics: {
+          totalApplications: stats.totalApplications ?? stats.total_applications ?? 0,
+          successfulApplications: stats.successfulApplications ?? stats.successful_applications ?? 0,
+          inProgressApplications: stats.inProgressApplications ?? stats.in_progress_applications ?? 0,
+          rejectedApplications: stats.rejectedApplications ?? stats.rejected_applications ?? 0,
+        },
+        profileSummary: {
+          firstName: profileSummary.firstName ?? profileSummary.first_name ?? "",
+          lastName: profileSummary.lastName ?? profileSummary.last_name ?? "",
+          email: profileSummary.email ?? "",
+          profileStatus: profileSummary.profileStatus ?? profileSummary.profile_status ?? "INCOMPLETE",
+        },
+        createdAt: data.createdAt ?? data.created_at ?? null,
       };
     });
   },
