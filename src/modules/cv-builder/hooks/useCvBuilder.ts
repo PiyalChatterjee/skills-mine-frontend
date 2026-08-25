@@ -486,13 +486,16 @@ const useCvBuilder = (
       isSelected
         ? current.filter((l) => l !== language)
         : [...current, language],
-      { shouldValidate: form.formState.submitCount > 0 },
+      { shouldDirty: true, shouldValidate: form.formState.submitCount > 0 },
     );
-    if (isSelected && language === "Other") form.setValue("otherLanguage", "");
+    if (isSelected && language === "Other") {
+      form.setValue("otherLanguage", "", { shouldDirty: true });
+    }
   };
 
   const updateOtherLanguage = (value: string) => {
     form.setValue("otherLanguage", value, {
+      shouldDirty: true,
       shouldValidate: form.formState.submitCount > 0,
     });
   };
@@ -504,11 +507,14 @@ const useCvBuilder = (
     const current = form.getValues(`careerHistory.${entryIndex}.${field}`);
     const normalized = normalizeCareerDateValue(current);
     if (normalized !== current)
-      form.setValue(`careerHistory.${entryIndex}.${field}`, normalized);
+      form.setValue(`careerHistory.${entryIndex}.${field}`, normalized, {
+        shouldDirty: true,
+      });
     if (field === "endDate") {
       form.setValue(
         `careerHistory.${entryIndex}.isCurrentRole`,
         currentRolePattern.test(normalized.trim()),
+        { shouldDirty: true },
       );
     }
   };

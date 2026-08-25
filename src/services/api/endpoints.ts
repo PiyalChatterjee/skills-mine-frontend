@@ -11,15 +11,15 @@ export const apiEndpoints = {
     ),
     candidateRegister: withDefault(
       import.meta.env.VITE_AUTH_CANDIDATE_REGISTER_ENDPOINT,
-      "/v1/auth/candidates/register",
+      "/api/v1/auth/candidates/register",
     ),
     staffRegister: withDefault(
       import.meta.env.VITE_AUTH_STAFF_REGISTER_ENDPOINT,
-      "/v1/auth/staff/register",
+      "/api/v1/auth/staff/register",
     ),
     staffInvitationValidate: withDefault(
       import.meta.env.VITE_AUTH_STAFF_INVITATION_VALIDATE_ENDPOINT,
-      "/v1/auth/staff-invitations/validate",
+      "/api/v1/auth/staff-invitations/validate",
     ),
     login: withDefault(import.meta.env.VITE_AUTH_LOGIN_ENDPOINT, "/auth/login"),
     forgotPassword: withDefault(
@@ -28,7 +28,7 @@ export const apiEndpoints = {
     ),
     resetPassword: withDefault(
       import.meta.env.VITE_AUTH_RESET_PASSWORD_ENDPOINT,
-      "/v1/auth/reset-password",
+      "/api/v1/auth/reset-password",
     ),
     changePassword: withDefault(
       import.meta.env.VITE_AUTH_CHANGE_PASSWORD_ENDPOINT,
@@ -44,13 +44,13 @@ export const apiEndpoints = {
     ),
     me: withDefault(
       import.meta.env.VITE_AUTH_ME_ENDPOINT,
-      "/v1/users/me",
+      "/api/v1/users/me",
     ),
   },
   admin: {
     staffInvitations: withDefault(
       import.meta.env.VITE_ADMIN_STAFF_INVITATIONS_ENDPOINT,
-      "/v1/admin/staff-invitations",
+      "/api/v1/admin/staff-invitations",
     ),
   },
   documents: {
