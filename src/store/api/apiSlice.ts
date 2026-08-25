@@ -37,6 +37,12 @@ type CandidateResourceArgs = { candidateId: string };
 type CandidateBuildArgs = { candidateId: string; payload: SaveBuildMyCvRequest };
 type CreateSimpleProfileArgs = { candidateId: string; payload: SimpleCandidateProfileInput };
 type UploadCvResumeArgs = { candidateId: string; file: Blob; fileName: string };
+type UploadDocumentArgs = {
+  candidateId: string;
+  file: Blob;
+  fileName: string;
+  documentType: string;
+};
 
 type UpdateCandidateProfileArgs = {
   userId: string;
@@ -176,6 +182,12 @@ export const apiSlice = createApi({
       queryFn: ({ candidateId, file, fileName }) =>
         withMappedApiError(() => candidateApi.uploadResumeDocument(candidateId, file, fileName)),
     }),
+    uploadDocument: build.mutation<ResumeDocumentUploadResult, UploadDocumentArgs>({
+      queryFn: ({ candidateId, file, fileName, documentType }) =>
+        withMappedApiError(() =>
+          candidateApi.uploadDocument(candidateId, file, fileName, documentType),
+        ),
+    }),
   }),
 });
 
@@ -197,4 +209,5 @@ export const {
   useUpdateBuildMyCvMutation,
   useCreateSimpleProfileMutation,
   useUploadCvResumeDocumentMutation,
+  useUploadDocumentMutation,
 } = apiSlice;

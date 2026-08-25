@@ -10,6 +10,7 @@ import {
   useCandidateResourceId,
 } from "@/modules/candidate/hooks/useCandidateQueries";
 import { useSelector } from "react-redux";
+import { useUploadDocumentMutation } from "@/store/api/apiSlice";
 import {
   selectBuildMyCv,
   selectBuildMyCvExists,
@@ -41,9 +42,27 @@ import CvBuilderUploadModal from "../components/CvBuilderUploadModal";
 
 const CvBuilderPage = () => {
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const [uploadDocument, { isLoading: isUploadingResume }] =
+    useUploadDocumentMutation();
   const { user } = useAuth();
   const userId = user?.userId;
   const candidateId = useCandidateResourceId();
+
+  const handleUploadDone = async () => {
+    if (!candidateId || !selectedUploadFile) return;
+
+    try {
+      await uploadDocument({
+        candidateId,
+        file: selectedUploadFile,
+        fileName: selectedUploadFile.name,
+        documentType: "RESUME",
+      }).unwrap();
+      setUploadModalOpen(false);
+    } catch {
+      // Keep the modal open so the user can retry the upload.
+    }
+  };
 
   // Load the saved CV record from the CV builder endpoint (the resume store),
   // not the profile endpoint, and hydrate Redux from it.
@@ -252,6 +271,8 @@ const CvBuilderPage = () => {
             onSelectFile={selectUploadFile}
             onBrowse={openUploadPicker}
             onClose={() => setUploadModalOpen(false)}
+            onDone={handleUploadDone}
+            isUploading={isUploadingResume}
           />
         )}
       </Box>

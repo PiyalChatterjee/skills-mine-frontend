@@ -54,6 +54,10 @@ export const apiEndpoints = {
     ),
   },
   documents: {
+    upload: withDefault(
+      import.meta.env.VITE_DOCUMENTS_UPLOAD_ENDPOINT,
+      "/documents",
+    ),
     uploadResume: withDefault(
       import.meta.env.VITE_DOCUMENTS_UPLOAD_RESUME_ENDPOINT,
       "/documents/resume",
