@@ -85,7 +85,7 @@ export const apiEndpoints = {
     ),
     statistics: withDefault(
       import.meta.env.VITE_CANDIDATE_STATISTICS_ENDPOINT,
-      "/candidates/statistics",
+      "/candidates/landing",
     ),
     dashboard: withDefault(
       import.meta.env.VITE_CANDIDATE_DASHBOARD_ENDPOINT,
