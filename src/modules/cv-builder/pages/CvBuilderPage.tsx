@@ -166,6 +166,7 @@ const CvBuilderPage = () => {
     cvBuilderPrefillData,
     buildMyCvLoaded && Boolean(buildMyCvData),
   );
+  const hasFormChanges = form.formState.isDirty;
 
   const { handleDone, isSavingCandidateProfile } = useCvBuilderDone({
     userId,
@@ -173,6 +174,7 @@ const CvBuilderPage = () => {
     getFormValues: form.getValues,
     selectedLanguageEntries,
     buildMyCvExists,
+    hasFormChanges,
     userRole: user?.role,
   });
 
