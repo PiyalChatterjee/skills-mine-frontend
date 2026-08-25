@@ -34,8 +34,8 @@ type PublicHeaderProps = {
   ) => void;
   onHelpClick: () => void;
   onNotificationClick?: () => void;
-  onSignUpClick: () => void;
-  onSearchClick: () => void;
+  onSignUpClick?: () => void;
+  onSearchClick?: () => void;
 };
 
 export const PublicHeader = ({
@@ -48,9 +48,9 @@ export const PublicHeader = ({
   navItems,
   onProtectedNavClick,
   onHelpClick,
-  onNotificationClick,
-  onSignUpClick,
-  onSearchClick,
+  onNotificationClick = () => {},
+  onSignUpClick = () => {},
+  onSearchClick = () => {},
 }: PublicHeaderProps) => {
   const navigate = useNavigate();
   const location = useLocation();

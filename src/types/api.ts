@@ -399,6 +399,17 @@ export interface CvUploadData {
   uploadedAt: string;
 }
 
+export interface ResumeDocumentUploadResult {
+  ownerId: string;
+  documentId: string;
+  title: string;
+  fileName: string;
+  mediaType: string;
+  sizeBytes: number;
+  lifecycleStatus: string;
+  uploadedAt: string;
+}
+
 export interface RecommendedJob {
   jobId: string;
   title: string;

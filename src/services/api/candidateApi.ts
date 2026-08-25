@@ -24,6 +24,7 @@ import type {
   SimpleCandidateProfileInput,
   SimpleCandidateProfileResponse,
   UpdateBuildMyCvRequest,
+  ResumeDocumentUploadResult,
   SuccessEnvelope,
   UserProfile,
   UserSkill,
@@ -615,5 +616,33 @@ export const candidateApi = {
         updatedAt: data.updated_at ?? data.updatedAt ?? null,
       };
     });
+  },
+
+  uploadResumeDocument(
+    candidateId: string,
+    file: Blob,
+    fileName: string,
+  ): Promise<ResumeDocumentUploadResult> {
+    const formData = new FormData();
+    formData.append("file", file, fileName);
+    formData.append("owner_type", "CANDIDATE");
+    formData.append("owner_id", candidateId);
+    formData.append("title", fileName);
+
+    return unwrapResponseData(
+      apiClient.post<Record<string, any>>(
+        apiEndpoints.documents.uploadResume,
+        formData,
+      ),
+    ).then((raw) => ({
+      ownerId: raw.owner_id_ref ?? candidateId,
+      documentId: raw.document?.document_id ?? "",
+      title: raw.document?.title ?? fileName,
+      fileName: raw.document?.file_name ?? fileName,
+      mediaType: raw.document?.media_type ?? file.type,
+      sizeBytes: raw.document?.size_bytes ?? file.size,
+      lifecycleStatus: raw.document?.lifecycle_status ?? "ACTIVE",
+      uploadedAt: raw.updated_at ?? new Date().toISOString(),
+    }));
   },
 };
