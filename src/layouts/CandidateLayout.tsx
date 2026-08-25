@@ -29,9 +29,12 @@ export const CandidateLayout = () => {
     // The session carries userId; candidateId is only known once a
     // candidate-scoped response has been read, so fall back to userId here.
     const resourceId = user?.candidateId ?? user?.userId;
-    if (resourceId) {
-      dispatch(fetchCandidateProfileThunk(resourceId, user?.userId));
-    }
+    if (!resourceId) return;
+
+    // Unsubscribe on cleanup so React StrictMode's dev-only double-invoke
+    // of this effect doesn't leave a duplicate in-flight request.
+    const subscription = dispatch(fetchCandidateProfileThunk(resourceId, user?.userId));
+    return () => subscription.unsubscribe();
   }, [user?.candidateId, user?.userId, dispatch]);
 
   const accessToken = tokens?.accessToken;

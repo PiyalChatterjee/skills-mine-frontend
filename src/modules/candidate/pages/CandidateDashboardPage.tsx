@@ -7,7 +7,7 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/app/auth/AuthContext";
-import { useCandidateDashboardQuery } from "@/modules/candidate/hooks/useCandidateQueries";
+import { useCandidateDashboardQuery, useCandidateStatisticsQuery } from "@/modules/candidate/hooks/useCandidateQueries";
 import type { DashboardApplication } from "@/types/api";
 import bardLineIcon from "@/assets/candidate-dashboard/bard-line.svg";
 import expandCirclePlusIcon from "@/assets/candidate-dashboard/expand-circle-plus.svg";
@@ -198,40 +198,41 @@ const CandidateDashboardPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { data: dashboard, isLoading } = useCandidateDashboardQuery(Boolean(user));
+  const { data: statistics } = useCandidateStatisticsQuery(Boolean(user));
 
   const statCards = useMemo(() => {
-    const summary = dashboard?.summary;
+    const stats = statistics?.statistics;
     return [
       {
-        value: summary?.totalApplications ?? 0,
+        value: stats?.totalApplications ?? 0,
         icon: fileList2LineIcon,
         label: "Applications",
         description: "Applications you have submitted through The Skills Mine",
         colorClass: styles.statCardBlue,
       },
       {
-        value: summary?.successful ?? 0,
+        value: stats?.successfulApplications ?? 0,
         icon: verifiedBadgeLineIcon,
         label: "Successful",
         description: "Successful applications through The Skills Mine",
         colorClass: styles.statCardGreen,
       },
       {
-        value: summary?.inProgress ?? 0,
+        value: stats?.inProgressApplications ?? 0,
         icon: progress5LineIcon,
         label: "In Progress",
         description: "Applications in progress through The Skills Mine",
         colorClass: styles.statCardTealMuted,
       },
     ];
-  }, [dashboard]);
+  }, [statistics]);
 
   const firstName = user?.firstName ?? "there";
   const applications = dashboard?.applications ?? [];
   const isNewUser =
     !isLoading &&
     applications.length === 0 &&
-    (dashboard?.summary?.totalApplications ?? 0) === 0;
+    (statistics?.statistics?.totalApplications ?? 0) === 0;
 
   if (isLoading) {
     return (

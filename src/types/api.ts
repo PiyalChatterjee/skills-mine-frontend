@@ -453,6 +453,24 @@ export type CandidateLandingData = {
   }>;
 };
 
+export interface CandidateStatisticsData {
+  candidateId: string | null;
+  statistics: {
+    totalApplications: number;
+    successfulApplications: number;
+    inProgressApplications: number;
+    rejectedApplications: number;
+  };
+  profileSummary: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    profileStatus: string;
+  };
+  createdAt: string | null;
+}
+
+
 export interface SavedJobsData {
   candidateId: string;
   jobs: Array<RecommendedJob & {

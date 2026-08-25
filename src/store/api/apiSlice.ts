@@ -6,11 +6,15 @@ import type {
   CandidateProfile,
 } from "@/modules/candidate/types";
 import type { CandidateProfileUpdatePayload } from "@/modules/candidate/types";
-import { setRecommendedJobs, setSavedJobs } from "@/store/slices/candidateSlice";
+import {
+  setRecommendedJobs,
+  setSavedJobs,
+} from "@/store/slices/candidateSlice";
 import type {
   ApiError,
   AiActionsData,
   CandidateLandingData,
+  CandidateStatisticsData,
   BuildMyCvData,
   BuildMyCvState,
   JobsResponse,
@@ -34,9 +38,21 @@ type JobsListArgs = {
 
 type CandidateProfileArgs = { candidateId: string; userId?: string };
 type CandidateResourceArgs = { candidateId: string };
-type CandidateBuildArgs = { candidateId: string; payload: SaveBuildMyCvRequest };
-type CreateSimpleProfileArgs = { candidateId: string; payload: SimpleCandidateProfileInput };
+type CandidateBuildArgs = {
+  candidateId: string;
+  payload: SaveBuildMyCvRequest;
+};
+type CreateSimpleProfileArgs = {
+  candidateId: string;
+  payload: SimpleCandidateProfileInput;
+};
 type UploadCvResumeArgs = { candidateId: string; file: Blob; fileName: string };
+type UploadDocumentArgs = {
+  candidateId: string;
+  file: Blob;
+  fileName: string;
+  documentType: string;
+};
 
 type UpdateCandidateProfileArgs = {
   userId: string;
@@ -57,6 +73,7 @@ export const apiSlice = createApi({
     "SavedJobs",
     "RecommendedPositions",
     "CandidateLanding",
+    "CandidateStatistics",
     "AiActions",
   ],
   endpoints: (build) => ({
@@ -72,7 +89,10 @@ export const apiSlice = createApi({
         { type: "CandidateProfile", id: args.candidateId },
       ],
     }),
-    getCandidateDashboard: build.query<CandidateDashboardData, CandidateDashboardQuery | void>({
+    getCandidateDashboard: build.query<
+      CandidateDashboardData,
+      CandidateDashboardQuery | void
+    >({
       queryFn: (query) =>
         withMappedApiError(async () => {
           return candidateApi.getDashboard(query ?? {});
@@ -80,16 +100,21 @@ export const apiSlice = createApi({
       providesTags: [{ type: "CandidateDashboard", id: "SELF" }],
     }),
     getCandidateLanding: build.query<CandidateLandingData, void>({
-      queryFn: () =>
-        withMappedApiError(() => candidateApi.getLanding()),
+      queryFn: () => withMappedApiError(() => candidateApi.getLanding()),
       providesTags: [{ type: "CandidateLanding", id: "PUBLIC" }],
+    }),
+    getCandidateStatistics: build.query<CandidateStatisticsData, void>({
+      queryFn: () => withMappedApiError(() => candidateApi.getStatistics()),
+      providesTags: [{ type: "CandidateStatistics", id: "SELF" }],
     }),
     updateCandidateProfile: build.mutation<
       CandidateProfile,
       UpdateCandidateProfileArgs
     >({
       queryFn: ({ userId, candidateId, payload }) =>
-        withMappedApiError(() => candidateApi.updateById(candidateId ?? userId, payload)),
+        withMappedApiError(() =>
+          candidateApi.updateById(candidateId ?? userId, payload),
+        ),
       invalidatesTags: (_result, _error, args) => [
         { type: "CandidateProfile", id: args.userId },
         { type: "CandidateDashboard", id: "SELF" },
@@ -121,25 +146,43 @@ export const apiSlice = createApi({
         }),
       invalidatesTags: [{ type: "SavedJobs" }],
     }),
-    removeSavedJob: build.mutation<unknown, CandidateResourceArgs & { jobProfileId: string }>({
+    removeSavedJob: build.mutation<
+      unknown,
+      CandidateResourceArgs & { jobProfileId: string }
+    >({
       queryFn: ({ candidateId, jobProfileId }) =>
-        withMappedApiError(() => candidateApi.removeSavedJob(candidateId, jobProfileId)),
-      invalidatesTags: (_result, _error, args) => [{ type: "SavedJobs", id: args.candidateId }],
+        withMappedApiError(() =>
+          candidateApi.removeSavedJob(candidateId, jobProfileId),
+        ),
+      invalidatesTags: (_result, _error, args) => [
+        { type: "SavedJobs", id: args.candidateId },
+      ],
     }),
     getSavedJobs: build.query<SavedJobsData, CandidateResourceArgs>({
       queryFn: ({ candidateId }) =>
         withMappedApiError(() => candidateApi.getSavedJobs(candidateId)),
-      providesTags: (_result, _error, args) => [{ type: "SavedJobs", id: args.candidateId }],
+      providesTags: (_result, _error, args) => [
+        { type: "SavedJobs", id: args.candidateId },
+      ],
     }),
-    getRecommendedPositions: build.query<RecommendedJobsData, CandidateResourceArgs>({
+    getRecommendedPositions: build.query<
+      RecommendedJobsData,
+      CandidateResourceArgs
+    >({
       queryFn: ({ candidateId }) =>
-        withMappedApiError(() => candidateApi.getRecommendedPositions(candidateId)),
-      providesTags: (_result, _error, args) => [{ type: "RecommendedPositions", id: args.candidateId }],
+        withMappedApiError(() =>
+          candidateApi.getRecommendedPositions(candidateId),
+        ),
+      providesTags: (_result, _error, args) => [
+        { type: "RecommendedPositions", id: args.candidateId },
+      ],
     }),
     getCandidateAiActions: build.query<AiActionsData, CandidateResourceArgs>({
       queryFn: ({ candidateId }) =>
         withMappedApiError(() => candidateApi.getAiActions(candidateId)),
-      providesTags: (_result, _error, args) => [{ type: "AiActions", id: args.candidateId }],
+      providesTags: (_result, _error, args) => [
+        { type: "AiActions", id: args.candidateId },
+      ],
     }),
     searchSkills: build.query<
       UserSkill[],
@@ -152,29 +195,64 @@ export const apiSlice = createApi({
       ],
     }),
     getBuildMyCv: build.query<BuildMyCvState, CandidateResourceArgs>({
-      queryFn: ({ candidateId }) => withMappedApiError(() => candidateApi.getBuildMyCv(candidateId)),
-      providesTags: (_result, _error, args) => [{ type: "BuildMyCv", id: args.candidateId }],
+      queryFn: ({ candidateId }) =>
+        withMappedApiError(() => candidateApi.getBuildMyCv(candidateId)),
+      providesTags: (_result, _error, args) => [
+        { type: "BuildMyCv", id: args.candidateId },
+      ],
     }),
     saveBuildMyCv: build.mutation<BuildMyCvData, CandidateBuildArgs>({
       queryFn: ({ candidateId, payload }) =>
-        withMappedApiError(() => candidateApi.saveBuildMyCv(candidateId, payload)),
-      invalidatesTags: (_result, _error, args) => [{ type: "BuildMyCv", id: args.candidateId }],
+        withMappedApiError(() =>
+          candidateApi.saveBuildMyCv(candidateId, payload),
+        ),
+      invalidatesTags: (_result, _error, args) => [
+        { type: "BuildMyCv", id: args.candidateId },
+      ],
     }),
     updateBuildMyCv: build.mutation<BuildMyCvData, CandidateBuildArgs>({
       queryFn: ({ candidateId, payload }) =>
-        withMappedApiError(() => candidateApi.updateBuildMyCv(candidateId, payload)),
-      invalidatesTags: (_result, _error, args) => [{ type: "BuildMyCv", id: args.candidateId }],
+        withMappedApiError(() =>
+          candidateApi.updateBuildMyCv(candidateId, payload),
+        ),
+      invalidatesTags: (_result, _error, args) => [
+        { type: "BuildMyCv", id: args.candidateId },
+      ],
     }),
-    createSimpleProfile: build.mutation<SimpleCandidateProfileResponse, CreateSimpleProfileArgs>({
+    createSimpleProfile: build.mutation<
+      SimpleCandidateProfileResponse,
+      CreateSimpleProfileArgs
+    >({
       queryFn: ({ candidateId, payload }) =>
-        withMappedApiError(() => candidateApi.createSimpleProfile(candidateId, payload)),
+        withMappedApiError(() =>
+          candidateApi.createSimpleProfile(candidateId, payload),
+        ),
       invalidatesTags: (_result, _error, args) => [
         { type: "CandidateProfile", id: args.candidateId },
       ],
     }),
-    uploadCvResumeDocument: build.mutation<ResumeDocumentUploadResult, UploadCvResumeArgs>({
+    uploadCvResumeDocument: build.mutation<
+      ResumeDocumentUploadResult,
+      UploadCvResumeArgs
+    >({
       queryFn: ({ candidateId, file, fileName }) =>
-        withMappedApiError(() => candidateApi.uploadResumeDocument(candidateId, file, fileName)),
+        withMappedApiError(() =>
+          candidateApi.uploadResumeDocument(candidateId, file, fileName),
+        ),
+    }),
+    uploadDocument: build.mutation<
+      ResumeDocumentUploadResult,
+      UploadDocumentArgs
+    >({
+      queryFn: ({ candidateId, file, fileName, documentType }) =>
+        withMappedApiError(() =>
+          candidateApi.uploadDocument(
+            candidateId,
+            file,
+            fileName,
+            documentType,
+          ),
+        ),
     }),
   }),
 });
@@ -183,6 +261,7 @@ export const {
   useGetCandidateProfileQuery,
   useGetCandidateDashboardQuery,
   useGetCandidateLandingQuery,
+  useGetCandidateStatisticsQuery,
   useUpdateCandidateProfileMutation,
   useLazyListJobsPageQuery,
   useGetUserProfileQuery,
@@ -197,4 +276,5 @@ export const {
   useUpdateBuildMyCvMutation,
   useCreateSimpleProfileMutation,
   useUploadCvResumeDocumentMutation,
+  useUploadDocumentMutation,
 } = apiSlice;

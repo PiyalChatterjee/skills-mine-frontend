@@ -10,7 +10,7 @@ import {
 	Typography,
 } from "@mui/material";
 import { useDispatch } from "react-redux";
-import { Controller, useFieldArray } from "react-hook-form";
+import { Controller } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/app/auth/AuthContext";
 import { PasswordVisibilityAdornment } from "@/components/PasswordVisibilityAdornment";
@@ -35,8 +35,6 @@ import eyeOffIconSrc from "@/assets/icons/eye-off.svg";
 import pencilLineIconSrc from "@/assets/icons/pencil-line.svg";
 import iconPersonalSrc from "@/assets/profile/icon-personal.svg";
 import iconDesiredSrc from "@/assets/profile/icon-desired.svg";
-import iconEducationSrc from "@/assets/profile/icon-education.svg";
-import iconExperienceSrc from "@/assets/profile/icon-experience.svg";
 import iconPasswordSrc from "@/assets/profile/icon-password.svg";
 import styles from "./ProfilePage.module.css";
 
@@ -114,17 +112,11 @@ const ProfilePage = () => {
 	} = useZodForm(profileFormSchema, {
 		defaultValues: getProfileFormValues(null),
 	});
-	const { fields: certificationFields, append: appendCertificationField } =
-		useFieldArray({
-			control,
-			name: "certifications",
-		});
 	const [isPasswordDisabled, setIsPasswordDisabled] = useState(true);
 	const [isPasswordVisible, setPasswordVisible] = useState(false);
 	const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
 	const [isPersonalEditing, setIsPersonalEditing] = useState(false);
 	const [isDesiredEditing, setIsDesiredEditing] = useState(false);
-	const [isEducationEditing, setIsEducationEditing] = useState(false);
 	const [profilePhotoPreviewUrl, setProfilePhotoPreviewUrl] = useState<
 		string | null
 	>(null);
@@ -144,14 +136,6 @@ const ProfilePage = () => {
 
 	const handleEditDesired = () => {
 		setIsDesiredEditing(true);
-	};
-
-	const handleEditEducation = () => {
-		setIsEducationEditing(true);
-	};
-
-	const handleAddCertification = () => {
-		appendCertificationField({ value: "" });
 	};
 
 	const handleChangePassword = () => {
@@ -208,7 +192,6 @@ const ProfilePage = () => {
 				reset(getProfileFormValues(updatedProfile));
 				setIsPersonalEditing(false);
 				setIsDesiredEditing(false);
-				setIsEducationEditing(false);
 				setIsPasswordDisabled(true);
 				setPasswordVisible(false);
 				navigate(ROUTE_PATHS.candidateDashboard);
@@ -346,98 +329,6 @@ const ProfilePage = () => {
 								options={[...PROFILE_SELECT_OPTIONS.availability]}
 								disabled={!isDesiredEditing}
 							/>
-						</Box>
-					</SectionCard>
-
-					<SectionCard
-						iconSrc={iconEducationSrc}
-						title="Education"
-						onEdit={handleEditEducation}
-					>
-						<Box className={styles.educationBody}>
-							<Box className={styles.certGrid}>
-								<Typography className={styles.certLabel}>
-									Relevant certifications
-								</Typography>
-								{certificationFields.map((field, index) => (
-									<Controller
-										key={field.id}
-										control={control}
-										name={`certifications.${index}.value`}
-										render={({ field: certificateField }) => (
-											<TextField
-												variant="outlined"
-												fullWidth
-												value={certificateField.value ?? ""}
-												onChange={certificateField.onChange}
-												onBlur={certificateField.onBlur}
-												inputRef={certificateField.ref}
-												placeholder={`Certificate ${index + 1}`}
-												disabled={!isEducationEditing}
-												className={`${styles.readonlyInput} ${!isEducationEditing ? styles.readonlyInputDisabled : ""}`}
-											/>
-										)}
-									/>
-								))}
-								<Button
-									variant="outlined"
-									className={styles.addCertButton}
-									onClick={handleAddCertification}
-									disabled={!isEducationEditing}
-								>
-									Add certification
-								</Button>
-							</Box>
-
-							<ProfileTextField
-								control={control}
-								name="highestDegreeEarned"
-								label="Highest degree earned"
-								fullWidth
-								disabled={!isEducationEditing}
-							/>
-						</Box>
-					</SectionCard>
-
-					<SectionCard
-						iconSrc={iconExperienceSrc}
-						title="Experience"
-						showEdit={false}
-					>
-						<Box className={styles.fieldsGrid}>
-							<ProfileTextField
-								control={control}
-								name="currentJobTitle"
-								label="Current job title"
-								placeholder="Current job title"
-							/>
-							<ProfileTextField
-								control={control}
-								name="currentEmployer"
-								label="Current employer"
-								placeholder="Current employer"
-							/>
-							<Box className={styles.fieldBlock}>
-								<Typography className={styles.fieldLabel}>
-									Total years of work experience
-								</Typography>
-								<Controller
-									control={control}
-									name="totalYearsOfExperience"
-									render={({ field }) => (
-										<TextField
-											variant="outlined"
-											fullWidth
-											value={field.value ?? ""}
-											onChange={field.onChange}
-											onBlur={field.onBlur}
-											inputRef={field.ref}
-											placeholder="Total years of work experience"
-											className={styles.readonlyInputFilled}
-										/>
-									)}
-								/>
-							</Box>
 						</Box>
 					</SectionCard>
 

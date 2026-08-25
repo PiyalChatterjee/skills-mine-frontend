@@ -31,7 +31,7 @@ const DynamicListSection = ({ entryIndex, sectionKey, label, itemLabel, addButto
   const addItem = () => {
     const path = `careerHistory.${entryIndex}.${sectionKey}` as const
     const current = (getValues(path as 'careerHistory') as unknown as string[]) ?? []
-    setValue(path as 'careerHistory', [...current, ''] as never)
+    setValue(path as 'careerHistory', [...current, ''] as never, { shouldDirty: true })
   }
 
   return (

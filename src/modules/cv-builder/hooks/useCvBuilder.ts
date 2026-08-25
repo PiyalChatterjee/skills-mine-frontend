@@ -199,6 +199,39 @@ const useCvBuilder = (
       otherLanguage,
     } = prefillData;
 
+    if (forceApply) {
+      const nextPersonalDetails = { ...DEFAULT_FORM_VALUES.personalDetails };
+      if (pd) {
+        PERSONAL_FIELD_KEYS.forEach((field) => {
+          const value = pd[field];
+          if (!value) return;
+
+          const nextValue = normalizePersonalDetailsFieldValue(field, value);
+          if (nextValue || !PERSONAL_SELECT_OPTIONS[field]) {
+            nextPersonalDetails[field] = nextValue;
+          }
+        });
+      }
+
+      form.reset({
+        ...DEFAULT_FORM_VALUES,
+        personalDetails: nextPersonalDetails,
+        careerHistory: careerHistory?.length
+          ? careerHistory
+          : DEFAULT_FORM_VALUES.careerHistory,
+        skills: skills?.length ? skills : DEFAULT_FORM_VALUES.skills,
+        tertiaryEducation: tertiaryEducation?.length
+          ? tertiaryEducation
+          : DEFAULT_FORM_VALUES.tertiaryEducation,
+        secondaryEducation: secondaryEducation?.length
+          ? secondaryEducation
+          : DEFAULT_FORM_VALUES.secondaryEducation,
+        languages: languages ?? DEFAULT_FORM_VALUES.languages,
+        otherLanguage: otherLanguage ?? DEFAULT_FORM_VALUES.otherLanguage,
+      });
+      return;
+    }
+
     if (pd) {
       const current = form.getValues("personalDetails");
       PERSONAL_FIELD_KEYS.forEach((field) => {
@@ -453,13 +486,16 @@ const useCvBuilder = (
       isSelected
         ? current.filter((l) => l !== language)
         : [...current, language],
-      { shouldValidate: form.formState.submitCount > 0 },
+      { shouldDirty: true, shouldValidate: form.formState.submitCount > 0 },
     );
-    if (isSelected && language === "Other") form.setValue("otherLanguage", "");
+    if (isSelected && language === "Other") {
+      form.setValue("otherLanguage", "", { shouldDirty: true });
+    }
   };
 
   const updateOtherLanguage = (value: string) => {
     form.setValue("otherLanguage", value, {
+      shouldDirty: true,
       shouldValidate: form.formState.submitCount > 0,
     });
   };
@@ -471,11 +507,14 @@ const useCvBuilder = (
     const current = form.getValues(`careerHistory.${entryIndex}.${field}`);
     const normalized = normalizeCareerDateValue(current);
     if (normalized !== current)
-      form.setValue(`careerHistory.${entryIndex}.${field}`, normalized);
+      form.setValue(`careerHistory.${entryIndex}.${field}`, normalized, {
+        shouldDirty: true,
+      });
     if (field === "endDate") {
       form.setValue(
         `careerHistory.${entryIndex}.isCurrentRole`,
         currentRolePattern.test(normalized.trim()),
+        { shouldDirty: true },
       );
     }
   };
