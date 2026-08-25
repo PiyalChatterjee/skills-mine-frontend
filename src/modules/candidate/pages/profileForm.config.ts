@@ -19,20 +19,6 @@ export const profileFormSchema = z.object({
   preferredLocations: requiredField('Preferred location'),
   employmentType: z.string(),
   availability: z.string(),
-  certifications: z.array(
-    z.object({
-      value: z.string().trim(),
-    }),
-  ),
-  highestDegreeEarned: requiredField('Highest degree earned'),
-  currentJobTitle: z.string(),
-  currentEmployer: z.string(),
-  totalYearsOfExperience: z
-    .string()
-    .trim()
-    .refine((value) => value === '' || /^\d+(\.\d+)?$/.test(value), {
-      message: 'Use a valid number of years',
-    }),
   password: z.string(),
 })
 
@@ -58,7 +44,6 @@ export const PROFILE_SELECT_OPTIONS = {
 export const getProfileFormValues = (
   profile: CandidateProfile | null,
 ): ProfileFormValues => {
-  const firstQualification = profile?.education?.highestEarned ?? ''
   const fullName = [
     profile?.personalDetails?.firstName ?? '',
     profile?.personalDetails?.lastName ?? '',
@@ -76,13 +61,6 @@ export const getProfileFormValues = (
     preferredLocations: profile?.desiredJob?.workType ?? '',
     employmentType: profile?.desiredJob?.employmentType ?? '',
     availability: profile?.desiredJob?.availableFrom ?? '',
-    certifications: (profile?.education?.certifications ?? []).length > 0
-      ? (profile?.education?.certifications ?? []).map((v) => ({ value: v }))
-      : [{ value: '' }],
-    highestDegreeEarned: firstQualification,
-    currentJobTitle: profile?.desiredJob?.jobTitle ?? '',
-    currentEmployer: '',
-    totalYearsOfExperience: '',
     password: profile?.authentication?.password ?? '',
   }
 }
@@ -116,10 +94,6 @@ export const getCandidateProfileUpdatePayload = (
       employmentType: values.employmentType.trim(),
       salaryExpectation: currentProfile?.desiredJob?.salaryExpectation ?? 0,
       availableFrom: values.availability.trim(),
-    },
-    education: {
-      certifications: values.certifications.map((c) => c.value.trim()).filter(Boolean),
-      highestEarned: values.highestDegreeEarned.trim(),
     },
     experience: currentProfile?.experience ?? [],
     skills: currentProfile?.skills ?? [],

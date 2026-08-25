@@ -27,6 +27,18 @@ const resolveResumeRoleLabel = (userId?: string, role?: Role): string => {
   return "candidate";
 };
 
+const resolveSuccessRoute = (roleLabel: string, candidateId: string): string => {
+  if (roleLabel === "visitor") return ROUTE_PATHS.landing;
+  if (roleLabel === "recruiter") {
+    // TODO: Navigate to ROUTE_PATHS.recruiterCandidate when the mandate cardId is available here.
+    return ROUTE_PATHS.recruiterCandidateDetail.replace(
+      ":candidateId",
+      candidateId,
+    );
+  }
+  return ROUTE_PATHS.candidateDashboard;
+};
+
 const sanitizeFileNamePart = (value: string): string =>
   value.trim().replace(/[^a-zA-Z0-9]+/g, "").toLowerCase() || "candidate";
 
@@ -121,6 +133,7 @@ type UseCvBuilderDoneArgs = {
   getFormValues: () => CvBuilderFormValues;
   selectedLanguageEntries: string[];
   buildMyCvExists: boolean;
+  hasFormChanges?: boolean;
   userRole?: Role;
 };
 
@@ -197,6 +210,7 @@ export const useCvBuilderDone = ({
   getFormValues,
   selectedLanguageEntries,
   buildMyCvExists,
+  hasFormChanges = true,
   userRole,
 }: UseCvBuilderDoneArgs) => {
   const navigate = useNavigate();
@@ -211,10 +225,63 @@ export const useCvBuilderDone = ({
   const isSavingCandidateProfile = isCreating || isUpdating;
 
   const handleDone = useCallback(async () => {
+    const roleLabel = resolveResumeRoleLabel(userId, userRole);
+    const successRoute = resolveSuccessRoute(roleLabel, candidateId);
+
+    if (buildMyCvExists && !hasFormChanges) {
+      dispatch(
+        pushNotification({
+          title: "No changes to save",
+          message: "Your CV is already up to date.",
+          level: "info",
+        }),
+      );
+      navigate(successRoute);
+      return;
+    }
+
     const payload = buildBuildMyCvRequest({
       formValues: getFormValues(),
       selectedLanguageEntries,
     });
+
+    let pdfBlob: Blob;
+    let fileName: string;
+
+    try {
+      pdfBlob = generateCvPdfBlobFromText(JSON.stringify(payload, null, 2));
+      fileName = buildResumeFileName(
+        payload.personalDetails?.firstName ?? "",
+        payload.personalDetails?.lastName ?? "",
+        roleLabel,
+      );
+    } catch {
+      dispatch(
+        pushNotification({
+          title: "PDF generation failed",
+          message: "We could not generate your CV PDF. Please try again.",
+          level: "error",
+        }),
+      );
+      return;
+    }
+
+    try {
+      await triggerResumeUpload({
+        candidateId,
+        file: pdfBlob,
+        fileName,
+      }).unwrap();
+    } catch {
+      dispatch(
+        pushNotification({
+          title: "Resume upload failed",
+          message: "We could not upload your CV PDF. Please try again.",
+          level: "error",
+        }),
+      );
+      return;
+    }
 
     try {
       const result = buildMyCvExists
@@ -238,30 +305,7 @@ export const useCvBuilderDone = ({
         }),
       );
 
-      try {
-        const pdfBlob = generateCvPdfBlobFromText(JSON.stringify(payload, null, 2));
-        const roleLabel = resolveResumeRoleLabel(userId, userRole);
-        const fileName = buildResumeFileName(
-          payload.personalDetails?.firstName ?? "",
-          payload.personalDetails?.lastName ?? "",
-          roleLabel,
-        );
-        await triggerResumeUpload({
-          candidateId,
-          file: pdfBlob,
-          fileName,
-        }).unwrap();
-      } catch {
-        dispatch(
-          pushNotification({
-            title: "Resume upload failed",
-            message: "Your CV was saved, but we could not upload the PDF copy.",
-            level: "warning",
-          }),
-        );
-      }
-
-      navigate(ROUTE_PATHS.candidateDashboard);
+      navigate(successRoute);
     } catch (error) {
       const fallbackMessage =
         "We could not save your CV right now. Please try again.";
@@ -283,6 +327,7 @@ export const useCvBuilderDone = ({
     candidateId,
     dispatch,
     getFormValues,
+    hasFormChanges,
     selectedLanguageEntries,
     triggerCreate,
     triggerUpdate,

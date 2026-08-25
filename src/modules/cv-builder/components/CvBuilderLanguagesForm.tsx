@@ -33,9 +33,11 @@ const CvBuilderLanguagesForm = () => {
       isSelected
         ? current.filter((l) => l !== language)
         : [...current, language],
-      { shouldValidate: true },
+      { shouldDirty: true, shouldValidate: true },
     );
-    if (isSelected && language === "Other") setValue("otherLanguage", "");
+    if (isSelected && language === "Other") {
+      setValue("otherLanguage", "", { shouldDirty: true });
+    }
   };
 
   return (

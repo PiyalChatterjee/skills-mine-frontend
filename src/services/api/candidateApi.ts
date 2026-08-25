@@ -9,6 +9,7 @@ import type {
   BuildMyCvState,
   AiActionsData,
   CandidateLandingData,
+  CandidateStatisticsData,
   CandidateApplication,
   CandidateDashboardData,
   CandidateDashboardQuery,
@@ -429,6 +430,30 @@ export const candidateApi = {
     });
   },
 
+  getStatistics(): Promise<CandidateStatisticsData> {
+    return unwrapResponseData(apiClient.get(apiEndpoints.candidate.statistics)).then((payload) => {
+      const data = responseData(payload as Record<string, unknown>) as Record<string, any>;
+      const stats = data.statistics ?? {};
+      const profileSummary = data.profile_summary ?? data.profileSummary ?? {};
+      return {
+        candidateId: data.candidateId ?? data.candidate_id ?? null,
+        statistics: {
+          totalApplications: stats.totalApplications ?? stats.total_applications ?? 0,
+          successfulApplications: stats.successfulApplications ?? stats.successful_applications ?? 0,
+          inProgressApplications: stats.inProgressApplications ?? stats.in_progress_applications ?? 0,
+          rejectedApplications: stats.rejectedApplications ?? stats.rejected_applications ?? 0,
+        },
+        profileSummary: {
+          firstName: profileSummary.firstName ?? profileSummary.first_name ?? "",
+          lastName: profileSummary.lastName ?? profileSummary.last_name ?? "",
+          email: profileSummary.email ?? "",
+          profileStatus: profileSummary.profileStatus ?? profileSummary.profile_status ?? "INCOMPLETE",
+        },
+        createdAt: data.createdAt ?? data.created_at ?? null,
+      };
+    });
+  },
+
   getSavedJobs(candidateId: string): Promise<SavedJobsData> {
     return unwrapResponseData(
       apiClient.get(resolveEndpoint(apiEndpoints.candidate.savedJobs, { candidateId })),
@@ -544,43 +569,47 @@ export const candidateApi = {
     return this.getUserProfile(userId);
   },
 
-  searchSkills(keyword: string, userId?: string): Promise<UserSkill[]> {
-    return unwrapResponseData(
+  async searchSkills(keyword: string, userId?: string): Promise<UserSkill[]> {
+    const payload = await unwrapResponseData(
       apiClient.get<SuccessEnvelope<unknown> | unknown>(apiEndpoints.skills.search, {
         params: {
           [apiEndpoints.skills.keywordParam]: keyword,
           ...(userId ? { userId } : {}),
         }
       }),
-    ).then((payload) => normalizeSkillsResponse(payload));
+    );
+    return normalizeSkillsResponse(payload);
   },
 
-  getBuildMyCv(candidateId: string): Promise<BuildMyCvState> {
-    return unwrapResponseData(
+  async getBuildMyCv(candidateId: string): Promise<BuildMyCvState> {
+    const payload = await unwrapResponseData(
       apiClient.get(resolveEndpoint(apiEndpoints.candidate.buildMyCv, { candidateId })),
-    ).then((payload) => mapBuildResponse(payload) as BuildMyCvState);
+    );
+    return mapBuildResponse(payload) as BuildMyCvState;
   },
 
-  saveBuildMyCv(candidateId: string, payload: SaveBuildMyCvRequest): Promise<BuildMyCvData> {
-    return unwrapResponseData(
+  async saveBuildMyCv(candidateId: string, payload: SaveBuildMyCvRequest): Promise<BuildMyCvData> {
+    const response = await unwrapResponseData(
       apiClient.post<SuccessEnvelope<BuildMyCvData>>(
         resolveEndpoint(apiEndpoints.candidate.buildMyCv, { candidateId }),
         toCvPayload(payload),
       ),
-    ).then((payload) => mapBuildResponse(payload) as BuildMyCvData);
+    );
+    return mapBuildResponse(response) as BuildMyCvData;
   },
 
-  updateBuildMyCv(candidateId: string, payload: UpdateBuildMyCvRequest): Promise<BuildMyCvData> {
-    return unwrapResponseData(
+  async updateBuildMyCv(candidateId: string, payload: UpdateBuildMyCvRequest): Promise<BuildMyCvData> {
+    const response = await unwrapResponseData(
       apiClient.put<SuccessEnvelope<BuildMyCvData>>(
         resolveEndpoint(apiEndpoints.candidate.buildMyCv, { candidateId }),
         toCvPayload(payload),
       ),
-    ).then((payload) => mapBuildResponse(payload) as BuildMyCvData);
+    );
+    return mapBuildResponse(response) as BuildMyCvData;
   },
 
-  createSimpleProfile(candidateId: string, payload: SimpleCandidateProfileInput): Promise<SimpleCandidateProfileResponse> {
-    return unwrapResponseData(
+  async createSimpleProfile(candidateId: string, payload: SimpleCandidateProfileInput): Promise<SimpleCandidateProfileResponse> {
+    const raw = await unwrapResponseData(
       apiClient.post(
         resolveEndpoint(apiEndpoints.candidate.profile, { candidateId }),
         {
@@ -606,19 +635,18 @@ export const candidateApi = {
             : undefined,
         },
       ),
-    ).then((raw) => {
-      const data = responseData(raw as Record<string, unknown>) as Record<string, any>;
-      return {
-        candidateId: data.candidate_id ?? data.candidateId ?? candidateId,
-        profileStatus: data.profile_status ?? data.profileStatus ?? "ACTIVE",
-        message: data.message ?? "",
-        createdAt: data.created_at ?? data.createdAt ?? null,
-        updatedAt: data.updated_at ?? data.updatedAt ?? null,
-      };
-    });
+    );
+    const data = responseData(raw as Record<string, unknown>) as Record<string, any>;
+    return {
+      candidateId: data.candidate_id ?? data.candidateId ?? candidateId,
+      profileStatus: data.profile_status ?? data.profileStatus ?? "ACTIVE",
+      message: data.message ?? "",
+      createdAt: data.created_at ?? data.createdAt ?? null,
+      updatedAt: data.updated_at ?? data.updatedAt ?? null,
+    };
   },
 
-  uploadResumeDocument(
+  async uploadResumeDocument(
     candidateId: string,
     file: Blob,
     fileName: string,
@@ -627,14 +655,16 @@ export const candidateApi = {
     formData.append("file", file, fileName);
     formData.append("owner_type", "CANDIDATE");
     formData.append("owner_id", candidateId);
+    formData.append("document_type", "RESUME");
     formData.append("title", fileName);
 
-    return unwrapResponseData(
+    const raw = await unwrapResponseData(
       apiClient.post<Record<string, any>>(
         apiEndpoints.documents.uploadResume,
         formData,
       ),
-    ).then((raw) => ({
+    );
+    return {
       ownerId: raw.owner_id_ref ?? candidateId,
       documentId: raw.document?.document_id ?? "",
       title: raw.document?.title ?? fileName,
@@ -643,6 +673,37 @@ export const candidateApi = {
       sizeBytes: raw.document?.size_bytes ?? file.size,
       lifecycleStatus: raw.document?.lifecycle_status ?? "ACTIVE",
       uploadedAt: raw.updated_at ?? new Date().toISOString(),
-    }));
+    };
+  },
+
+  async uploadDocument(
+    candidateId: string,
+    file: Blob,
+    fileName: string,
+    documentType = "RESUME",
+  ): Promise<ResumeDocumentUploadResult> {
+    const formData = new FormData();
+    formData.append("file", file, fileName);
+    formData.append("owner_type", "CANDIDATE");
+    formData.append("owner_id", candidateId);
+    formData.append("document_type", documentType);
+    formData.append("title", fileName);
+
+    const raw = await unwrapResponseData(
+      apiClient.post<Record<string, any>>(
+        apiEndpoints.documents.upload,
+        formData,
+      ),
+    );
+    return {
+      ownerId: raw.owner_id_ref ?? candidateId,
+      documentId: raw.document_id ?? "",
+      title: raw.title ?? fileName,
+      fileName: raw.file_name ?? fileName,
+      mediaType: raw.media_type ?? file.type,
+      sizeBytes: raw.size_bytes ?? file.size,
+      lifecycleStatus: raw.lifecycle_status ?? "ACTIVE",
+      uploadedAt: raw.updated_at ?? new Date().toISOString(),
+    };
   },
 };

@@ -321,6 +321,26 @@ describe('useCvBuilderDone', () => {
     expect(mockNavigate).toHaveBeenCalled()
   })
 
+  it('skips PDF upload and update when an existing CV has no form changes', async () => {
+    const store = makeTestStore()
+    const { result } = renderHook(
+      () =>
+        useCvBuilderDone({
+          getFormValues: () => defaultFormValues,
+          selectedLanguageEntries: ['English'],
+          buildMyCvExists: true,
+          hasFormChanges: false,
+        }),
+      { wrapper: makeWrapper(store) },
+    )
+    await act(async () => {
+      await result.current.handleDone()
+    })
+    expect(mockUploadResumeDocument).not.toHaveBeenCalled()
+    expect(mockUpdateBuildMyCv).not.toHaveBeenCalled()
+    expect(mockNavigate).toHaveBeenCalled()
+  })
+
   it('dispatches error notification when save fails', async () => {
     mockSaveBuildMyCv.mockReturnValue({
       unwrap: () => Promise.reject({ message: 'Save failed' }),

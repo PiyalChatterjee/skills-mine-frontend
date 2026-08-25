@@ -10,6 +10,8 @@ type CvBuilderUploadModalProps = {
   onSelectFile: (file: File | null) => void;
   onBrowse: () => void;
   onClose: () => void;
+  onDone: () => void | Promise<void>;
+  isUploading?: boolean;
 };
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
@@ -20,6 +22,8 @@ const CvBuilderUploadModal = ({
   onSelectFile,
   onBrowse,
   onClose,
+  onDone,
+  isUploading = false,
 }: CvBuilderUploadModalProps) => {
   const [dragOver, setDragOver] = useState(false);
   const [error, setError] = useState("");
@@ -117,11 +121,11 @@ const CvBuilderUploadModal = ({
             </ButtonBase>
             <ButtonBase
               className={`${styles.uploadDoneButton} ${selectedFile ? styles.uploadDoneButtonActive : ""}`}
-              onClick={onClose}
-              disabled={!selectedFile}
+              onClick={onDone}
+              disabled={!selectedFile || isUploading}
               disableRipple
             >
-              Done
+              {isUploading ? "Uploading..." : "Done"}
             </ButtonBase>
           </Box>
         </Box>

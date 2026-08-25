@@ -54,6 +54,10 @@ export const apiEndpoints = {
     ),
   },
   documents: {
+    upload: withDefault(
+      import.meta.env.VITE_DOCUMENTS_UPLOAD_ENDPOINT,
+      "/documents",
+    ),
     uploadResume: withDefault(
       import.meta.env.VITE_DOCUMENTS_UPLOAD_RESUME_ENDPOINT,
       "/documents/resume",
@@ -77,6 +81,10 @@ export const apiEndpoints = {
   candidate: {
     landing: withDefault(
       import.meta.env.VITE_CANDIDATE_LANDING_ENDPOINT,
+      "/candidates/landing",
+    ),
+    statistics: withDefault(
+      import.meta.env.VITE_CANDIDATE_STATISTICS_ENDPOINT,
       "/candidates/landing",
     ),
     dashboard: withDefault(
