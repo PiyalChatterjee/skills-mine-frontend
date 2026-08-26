@@ -15,6 +15,25 @@ import { useSearchParams } from "react-router-dom";
 import { resetPasswordThunk } from "@/store/slices/authThunks";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import { tokenStorage } from "@/app/auth/tokenStorage";
+import { authApi } from "@/services/api/authApi";
+import { z } from "zod";
+import { strongPasswordSchema } from "@/app/passwordPolicy";
+
+const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, "Current password is required"),
+    password: strongPasswordSchema,
+    confirmPassword: z.string().min(1, "Please confirm your password"),
+  })
+  .superRefine((values, context) => {
+    if (values.password !== values.confirmPassword) {
+      context.addIssue({
+        code: "custom",
+        path: ["confirmPassword"],
+        message: "Passwords do not match",
+      });
+    }
+  });
 
 const ResetPasswordPage = () => {
   const navigate = useNavigate();
@@ -34,6 +53,28 @@ const ResetPasswordPage = () => {
   const confirmPasswordValue = watch("confirmPassword");
   const dispatch = useDispatch<AppDispatch>();
   const [searchParams] = useSearchParams();
+  const isChangeMode = searchParams.get("mode") === "change";
+  const {
+    register: registerCurrentPassword,
+    handleSubmit: handleCurrentPasswordSubmit,
+    watch: watchCurrentPassword,
+    formState: {
+      errors: currentPasswordErrors,
+      isSubmitting: isCurrentPasswordSubmitting,
+    },
+  } = useZodForm(
+    changePasswordSchema,
+    {
+      defaultValues: {
+        currentPassword: "",
+        password: "",
+        confirmPassword: "",
+      },
+    },
+  );
+  const currentPasswordValue = watchCurrentPassword("currentPassword");
+  const changeModePasswordValue = watchCurrentPassword("password");
+  const changeModeConfirmPasswordValue = watchCurrentPassword("confirmPassword");
 
   const onSubmit = async (_values: ResetPasswordFormValues) => {
     const token = searchParams.get("token")?.trim() ?? "";
@@ -83,6 +124,38 @@ const ResetPasswordPage = () => {
     }
   };
 
+  const onSubmitChangePassword = async (_values: {
+    currentPassword: string;
+    password: string;
+    confirmPassword: string;
+  }) => {
+    try {
+      await authApi.changePassword({
+        currentPassword: _values.currentPassword,
+        newPassword: _values.password,
+        confirmNewPassword: _values.confirmPassword,
+      });
+
+      dispatch(
+        pushNotification({
+          level: "success",
+          title: "Password changed",
+          message: "Your password has been updated successfully.",
+        }),
+      );
+
+      navigate(ROUTE_PATHS.profile, { replace: true });
+    } catch {
+      dispatch(
+        pushNotification({
+          level: "error",
+          title: "Change failed",
+          message: "Unable to change password. Please try again.",
+        }),
+      );
+    }
+  };
+
   return (
     <Box className={styles.pageRoot}>
       <AuthHero
@@ -92,22 +165,51 @@ const ResetPasswordPage = () => {
 
       <Box className={styles.formSection}>
         <Typography className={styles.formTitle}>
-          Reset your password
+          {isChangeMode ? "Change your password" : "Reset your password"}
         </Typography>
 
         <Box
           component="form"
           className={styles.formFields}
-          onSubmit={handleSubmit(onSubmit)}
+          onSubmit={
+            isChangeMode
+              ? handleCurrentPasswordSubmit(onSubmitChangePassword)
+              : handleSubmit(onSubmit)
+          }
         >
+          {isChangeMode ? (
+            <AuthPasswordField
+              label="Current password"
+              placeholder="Password"
+              value={currentPasswordValue}
+              autoComplete="current-password"
+              error={Boolean(currentPasswordErrors.currentPassword)}
+              helperText={currentPasswordErrors.currentPassword?.message}
+              registration={registerCurrentPassword("currentPassword")}
+              fieldGroupClassName={styles.fieldGroup}
+              fieldLabelClassName={styles.fieldLabel}
+              inputFieldClassName={styles.inputField}
+              toggleButtonClassName={styles.passwordToggleButton}
+              toggleIconClassName={styles.passwordToggleIcon}
+            />
+          ) : null}
+
           <AuthPasswordField
             label="New password"
             placeholder="Password"
-            value={passwordValue}
+            value={isChangeMode ? changeModePasswordValue : passwordValue}
             autoComplete="new-password"
-            error={Boolean(errors.password)}
-            helperText={errors.password?.message}
-            registration={register("password")}
+            error={Boolean(isChangeMode ? currentPasswordErrors.password : errors.password)}
+            helperText={
+              isChangeMode
+                ? currentPasswordErrors.password?.message
+                : errors.password?.message
+            }
+            registration={
+              isChangeMode
+                ? registerCurrentPassword("password")
+                : register("password")
+            }
             fieldGroupClassName={styles.fieldGroup}
             fieldLabelClassName={styles.fieldLabel}
             inputFieldClassName={styles.inputField}
@@ -118,11 +220,29 @@ const ResetPasswordPage = () => {
           <AuthPasswordField
             label="Retype new password"
             placeholder="Password"
-            value={confirmPasswordValue}
+            value={
+              isChangeMode
+                ? changeModeConfirmPasswordValue
+                : confirmPasswordValue
+            }
             autoComplete="new-password"
-            error={Boolean(errors.confirmPassword)}
-            helperText={errors.confirmPassword?.message}
-            registration={register("confirmPassword")}
+            error={
+              Boolean(
+                isChangeMode
+                  ? currentPasswordErrors.confirmPassword
+                  : errors.confirmPassword,
+              )
+            }
+            helperText={
+              isChangeMode
+                ? currentPasswordErrors.confirmPassword?.message
+                : errors.confirmPassword?.message
+            }
+            registration={
+              isChangeMode
+                ? registerCurrentPassword("confirmPassword")
+                : register("confirmPassword")
+            }
             fieldGroupClassName={styles.fieldGroup}
             fieldLabelClassName={styles.fieldLabel}
             inputFieldClassName={styles.inputField}
@@ -134,10 +254,16 @@ const ResetPasswordPage = () => {
             type="submit"
             variant="contained"
             size="large"
-            disabled={isSubmitting}
+            disabled={isChangeMode ? isCurrentPasswordSubmitting : isSubmitting}
             className={styles.submitButton}
           >
-            {isSubmitting ? "Resetting..." : "Reset password"}
+            {isChangeMode
+              ? isCurrentPasswordSubmitting
+                ? "Changing..."
+                : "Change password"
+              : isSubmitting
+                ? "Resetting..."
+                : "Reset password"}
           </Button>
         </Box>
       </Box>

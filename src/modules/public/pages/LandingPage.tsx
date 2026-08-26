@@ -1,8 +1,8 @@
 import {
   Box,
   Button,
-  CircularProgress,
   Card,
+  Skeleton,
   Typography,
 } from "@mui/material";
 import { useEffect, useState } from "react";
@@ -81,7 +81,7 @@ const metrics: Metric[] = [
 const LandingPage = () => {
   const { openSignUpDrawer } = useOutletContext<PublicLayoutOutletContext>();
   const dispatch = useDispatch();
-  const { data: landingData } = useGetCandidateLandingQuery();
+  const { data: landingData, isLoading: isLandingLoading } = useGetCandidateLandingQuery();
   const [activeHeroMode] = useState<HeroMode>("findJob");
   const {
     inputValue: searchInputValue,
@@ -148,6 +148,7 @@ const LandingPage = () => {
   };
 
   const currentHeroContent = heroContent[activeHeroMode];
+
   return (
     <Box className={styles.pageRoot}>
       <Box component="section" className={styles.heroSection}>
@@ -282,7 +283,7 @@ const LandingPage = () => {
 
           <Box className={styles.metricsGrid}>
             {metrics.map((metric, index) => {
-              const contractValues = landingData?.stats
+              const statValues = landingData?.stats
                 ? [
                     landingData.stats.totalJobs,
                     landingData.stats.totalCandidates,
@@ -296,13 +297,22 @@ const LandingPage = () => {
                 className={metric.cardClassName}
                 elevation={0}
               >
-                <Typography
-                  component="p"
-                  className={styles.metricValue}
-                  sx={{ m: 0 }}
-                >
-                  {contractValues[index] ?? metric.value}
-                </Typography>
+                {isLandingLoading ? (
+                  <Skeleton
+                    variant="text"
+                    width={72}
+                    height={40}
+                    className={styles.metricValueSkeleton}
+                  />
+                ) : (
+                  <Typography
+                    component="p"
+                    className={styles.metricValue}
+                    sx={{ m: 0 }}
+                  >
+                    {statValues[index] ?? "—"}
+                  </Typography>
+                )}
                 <Typography
                   component="p"
                   className={styles.metricLabel}
@@ -376,8 +386,20 @@ const LandingPage = () => {
               {jobsError?.message || "Failed to load jobs."}
             </Typography>
           ) : isJobsLoading ? (
-            <Box className={styles.jobsLoadingState} aria-live="polite" aria-busy="true">
-              <CircularProgress size={28} />
+            <Box className={styles.cardGrid} aria-live="polite" aria-busy="true">
+              {Array.from({ length: 4 }).map((_, index) => (
+                <Card key={index} className={styles.jobCardSkeleton} elevation={0}>
+                  <Skeleton variant="text" width="70%" height={32} />
+                  <Skeleton variant="text" width="40%" height={24} />
+                  <Skeleton variant="text" height={20} />
+                  <Skeleton variant="text" width="85%" height={20} />
+                  <Box className={styles.jobCardSkeletonTags}>
+                    <Skeleton variant="rounded" width={70} height={28} />
+                    <Skeleton variant="rounded" width={70} height={28} />
+                    <Skeleton variant="rounded" width={70} height={28} />
+                  </Box>
+                </Card>
+              ))}
             </Box>
           ) : allJobs ? (
             visibleJobs.length > 0 ? (

@@ -83,6 +83,11 @@ export const PublicHeader = ({
     navigate(ROUTE_PATHS.profile);
   };
 
+  const handleChangePasswordClick = () => {
+    handleProfileMenuClose();
+    navigate(`${ROUTE_PATHS.resetPassword}?mode=change`);
+  };
+
   const handleSignOutClick = async () => {
     handleProfileMenuClose();
 
@@ -305,6 +310,12 @@ export const PublicHeader = ({
                     className={styles.profileMenuItem}
                   >
                     Profile settings
+                  </MenuItem>
+                  <MenuItem
+                    onClick={handleChangePasswordClick}
+                    className={styles.profileMenuItem}
+                  >
+                    Change password
                   </MenuItem>
                   <MenuItem
                     onClick={handleSignOutClick}

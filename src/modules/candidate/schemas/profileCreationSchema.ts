@@ -1,24 +1,14 @@
 import { z } from 'zod'
+import { localPhoneNumberSchema } from '@/app/phoneNumber'
 import { emailSchema } from '@/app/validation.schema'
 
 const requiredField = (label: string) =>
   z.string().trim().min(1, `${label} is required`)
 
-const isValidPhoneNumber = (value: string) => {
-  const trimmedValue = value.trim()
-  const digits = trimmedValue.replace(/\D/g, '')
-
-  return digits.length >= 10 && digits.length <= 15 && /^[+]?[-()\s\d]+$/.test(trimmedValue)
-}
-
 export const profileCreationSchema = z.object({
   fullName: requiredField('Full name'),
   email: emailSchema,
-  phoneNumber: z
-    .string()
-    .trim()
-    .min(1, 'Phone number is required')
-    .refine(isValidPhoneNumber, 'Enter a valid phone number'),
+  phoneNumber: localPhoneNumberSchema,
   residentialLocation: requiredField('Residential location'),
   preferredJobTitle: requiredField('Preferred job title'),
   targetedIndustries: requiredField('Targeted industries'),
