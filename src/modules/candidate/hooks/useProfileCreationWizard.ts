@@ -9,13 +9,13 @@ import {
 } from '@/modules/candidate/hooks/useCandidateQueries'
 import {
   profileCreationBasicDetailsSchema,
-  profileCreationEducationExperienceSchema,
   profileCreationSchema,
 } from '@/modules/candidate/schemas/profileCreationSchema'
 import {
   EMPTY_PROFILE_CREATION_VALUES,
   getProfileCreationDefaultValues,
   getProfileCreationPayload,
+  PENDING_CANDIDATE_PROFILE_STORAGE_KEY,
   PROFILE_CREATION_IMPLEMENTED_STEPS,
   PROFILE_CREATION_TOTAL_STEPS,
   type ProfileCreationStepId,
@@ -38,59 +38,19 @@ const PROFILE_CREATION_STEP_FIELDS: Record<
     'employmentType',
     'availability',
   ],
-  'education-experience': [
-    'certifications',
-    'highestDegreeEarned',
-    'currentJobTitle',
-    'currentEmployer',
-    'totalYearsOfExperience',
-  ],
-  review: [
-    'fullName',
-    'email',
-    'phoneNumber',
-    'residentialLocation',
-    'preferredJobTitle',
-    'targetedIndustries',
-    'preferredLocations',
-    'employmentType',
-    'availability',
-    'certifications',
-    'highestDegreeEarned',
-    'currentJobTitle',
-    'currentEmployer',
-    'totalYearsOfExperience',
-  ],
 }
 
-const isCurrentStepValid = (
-  stepId: ProfileCreationStepId,
-  values: ProfileCreationFormValues,
-) => {
-  if (stepId === 'basic-details') {
-    return profileCreationBasicDetailsSchema.safeParse({
-      fullName: values.fullName,
-      email: values.email,
-      phoneNumber: values.phoneNumber,
-      residentialLocation: values.residentialLocation,
-      preferredJobTitle: values.preferredJobTitle,
-      targetedIndustries: values.targetedIndustries,
-      preferredLocations: values.preferredLocations,
-      employmentType: values.employmentType,
-      availability: values.availability,
-    }).success
-  }
-
-  if (stepId === 'review') {
-    return profileCreationSchema.safeParse(values).success
-  }
-
-  return profileCreationEducationExperienceSchema.safeParse({
-    certifications: values.certifications,
-    highestDegreeEarned: values.highestDegreeEarned,
-    currentJobTitle: values.currentJobTitle,
-    currentEmployer: values.currentEmployer,
-    totalYearsOfExperience: values.totalYearsOfExperience,
+const isCurrentStepValid = (values: ProfileCreationFormValues) => {
+  return profileCreationBasicDetailsSchema.safeParse({
+    fullName: values.fullName,
+    email: values.email,
+    phoneNumber: values.phoneNumber,
+    residentialLocation: values.residentialLocation,
+    preferredJobTitle: values.preferredJobTitle,
+    targetedIndustries: values.targetedIndustries,
+    preferredLocations: values.preferredLocations,
+    employmentType: values.employmentType,
+    availability: values.availability,
   }).success
 }
 
@@ -129,14 +89,29 @@ export const useProfileCreationWizard = () => {
   const activeStepId = PROFILE_CREATION_IMPLEMENTED_STEPS[currentStepIndex]
 
   useEffect(() => {
-    form.reset(getProfileCreationDefaultValues(candidateProfile ?? null), {
+    const profileDefaults = getProfileCreationDefaultValues(candidateProfile ?? null)
+    let pendingSignupDefaults: Partial<ProfileCreationFormValues> = {}
+
+    try {
+      const storedDefaults = sessionStorage.getItem(PENDING_CANDIDATE_PROFILE_STORAGE_KEY)
+      pendingSignupDefaults = storedDefaults ? JSON.parse(storedDefaults) : {}
+    } catch {
+      pendingSignupDefaults = {}
+    }
+
+    form.reset({
+      ...profileDefaults,
+      fullName: profileDefaults.fullName || pendingSignupDefaults.fullName || '',
+      email: profileDefaults.email || pendingSignupDefaults.email || '',
+      phoneNumber: profileDefaults.phoneNumber || pendingSignupDefaults.phoneNumber || '',
+    }, {
       keepDirtyValues: true,
     })
   }, [candidateProfile, form])
 
   const canGoNext = useMemo(
-    () => isCurrentStepValid(activeStepId, watchedValues as ProfileCreationFormValues),
-    [activeStepId, watchedValues],
+    () => isCurrentStepValid(watchedValues as ProfileCreationFormValues),
+    [watchedValues],
   )
 
   const persistValues = async (values: ProfileCreationFormValues) => {
@@ -175,6 +150,7 @@ export const useProfileCreationWizard = () => {
 
     try {
       await persistValues(form.getValues())
+      sessionStorage.removeItem(PENDING_CANDIDATE_PROFILE_STORAGE_KEY)
       navigate(ROUTE_PATHS.cvBuilder, { replace: true })
     } catch (saveError) {
       setSubmitError(

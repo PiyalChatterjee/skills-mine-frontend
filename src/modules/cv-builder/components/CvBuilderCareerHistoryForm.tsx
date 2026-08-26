@@ -1,20 +1,13 @@
 import { Box, Button, TextField, Typography } from '@mui/material'
 import { Controller, useFieldArray, useFormContext, useWatch } from 'react-hook-form'
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
+import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import buildingIcon from '@/assets/cv-builder/building-line.svg'
 import styles from '../pages/CvBuilderPage.module.css'
 import { CvBuilderFormPanel, CvBuilderLabeledField, CvBuilderSectionHeader } from './CvBuilderFormPrimitives'
 import type { CvBuilderFormValues } from '../types/cvBuilderSchema'
-
-const isoPattern = /^(19|20)\d{2}-(0[1-9]|1[0-2])$/
-const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December']
-
-function normalizeMonthYear(value: string): string {
-  const v = value.trim()
-  if (!isoPattern.test(v)) return value
-  const yr = v.slice(0, 4)
-  const mo = monthNames[Number(v.slice(5, 7)) - 1]
-  return mo ? `${mo},${yr}` : value
-}
+import { parseMonthYear, formatMonthYear } from '../utils/monthYearDate'
 
 type DynamicListSectionProps = {
   entryIndex: number
@@ -60,6 +53,108 @@ const DynamicListSection = ({ entryIndex, sectionKey, label, itemLabel, addButto
   )
 }
 
+const CvBuilderPositionCard = ({ entryIndex }: { entryIndex: number }) => {
+  const { control } = useFormContext<CvBuilderFormValues>()
+  const startDateValue = useWatch({ control, name: `careerHistory.${entryIndex}.startDate` })
+  const endDateValue = useWatch({ control, name: `careerHistory.${entryIndex}.endDate` })
+  const startDateAsDate = parseMonthYear(startDateValue)
+  const endDateAsDate = parseMonthYear(endDateValue)
+
+  return (
+    <Box className={styles.positionCard}>
+      <Typography component="h3" className={styles.positionLabel}>Position {entryIndex + 1}</Typography>
+
+      <CvBuilderLabeledField label="Company name">
+        <Controller
+          name={`careerHistory.${entryIndex}.companyName`}
+          control={control}
+          render={({ field, fieldState }) => (
+            <TextField {...field} error={Boolean(fieldState.error)} helperText={fieldState.error?.message} placeholder="Company name" className={styles.fieldControl} variant="outlined" fullWidth />
+          )}
+        />
+      </CvBuilderLabeledField>
+
+      <Box className={styles.positionRowGrid}>
+        <CvBuilderLabeledField label="Position held">
+          <Controller
+            name={`careerHistory.${entryIndex}.positionHeld`}
+            control={control}
+            render={({ field, fieldState }) => (
+              <TextField {...field} error={Boolean(fieldState.error)} helperText={fieldState.error?.message} placeholder="Position held" className={styles.fieldControl} variant="outlined" fullWidth />
+            )}
+          />
+        </CvBuilderLabeledField>
+
+        <CvBuilderLabeledField label="Employment start date">
+          <Controller
+            name={`careerHistory.${entryIndex}.startDate`}
+            control={control}
+            render={({ field, fieldState }) => (
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <DatePicker
+                  value={parseMonthYear(field.value)}
+                  onChange={(value) => field.onChange(formatMonthYear(value))}
+                  onClose={field.onBlur}
+                  views={['year', 'month']}
+                  openTo="month"
+                  format="MMM,YYYY"
+                  disableFuture
+                  maxDate={endDateAsDate ?? undefined}
+                  slotProps={{
+                    textField: {
+                      onBlur: field.onBlur,
+                      error: Boolean(fieldState.error),
+                      helperText: fieldState.error?.message,
+                      placeholder: 'Month, Year',
+                      className: `${styles.fieldControl} ${styles.monthYearField}`,
+                      variant: 'outlined',
+                    },
+                  }}
+                />
+              </LocalizationProvider>
+            )}
+          />
+        </CvBuilderLabeledField>
+
+        <CvBuilderLabeledField label="End date">
+          <Controller
+            name={`careerHistory.${entryIndex}.endDate`}
+            control={control}
+            render={({ field, fieldState }) => (
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <DatePicker
+                  value={parseMonthYear(field.value)}
+                  onChange={(value) => field.onChange(formatMonthYear(value))}
+                  onClose={field.onBlur}
+                  views={['year', 'month']}
+                  openTo="month"
+                  format="MMM,YYYY"
+                  disableFuture={entryIndex > 0}
+                  minDate={startDateAsDate ?? undefined}
+                  slotProps={{
+                    textField: {
+                      onBlur: field.onBlur,
+                      error: Boolean(fieldState.error),
+                      helperText: fieldState.error?.message,
+                      placeholder: 'Month, Year or Present',
+                      className: `${styles.fieldControl} ${styles.monthYearField}`,
+                      variant: 'outlined',
+                    },
+                    field: { clearable: true },
+                  }}
+                />
+              </LocalizationProvider>
+            )}
+          />
+        </CvBuilderLabeledField>
+      </Box>
+
+      <DynamicListSection entryIndex={entryIndex} sectionKey="tasks" label="List the tasks that you were responsible for" itemLabel="Task" addButtonLabel="+ Add a task" />
+      <DynamicListSection entryIndex={entryIndex} sectionKey="projects" label="List some of the projects you were involved in" itemLabel="Project" addButtonLabel="+ Add a project" />
+    </Box>
+  )
+}
+
 const CvBuilderCareerHistoryForm = () => {
   const { control, formState: { errors }, clearErrors } = useFormContext<CvBuilderFormValues>()
   const { fields, append } = useFieldArray({ control, name: 'careerHistory' })
@@ -79,72 +174,7 @@ const CvBuilderCareerHistoryForm = () => {
       )}
 
       {fields.map((fieldItem, entryIndex) => (
-        <Box key={fieldItem.id} className={styles.positionCard}>
-          <Typography component="h3" className={styles.positionLabel}>Position {entryIndex + 1}</Typography>
-
-          <CvBuilderLabeledField label="Company name">
-            <Controller
-              name={`careerHistory.${entryIndex}.companyName`}
-              control={control}
-              render={({ field, fieldState }) => (
-                <TextField {...field} error={Boolean(fieldState.error)} helperText={fieldState.error?.message} placeholder="Company name" className={styles.fieldControl} variant="outlined" fullWidth />
-              )}
-            />
-          </CvBuilderLabeledField>
-
-          <Box className={styles.positionRowGrid}>
-            <CvBuilderLabeledField label="Position held">
-              <Controller
-                name={`careerHistory.${entryIndex}.positionHeld`}
-                control={control}
-                render={({ field, fieldState }) => (
-                  <TextField {...field} error={Boolean(fieldState.error)} helperText={fieldState.error?.message} placeholder="Position held" className={styles.fieldControl} variant="outlined" fullWidth />
-                )}
-              />
-            </CvBuilderLabeledField>
-
-            <CvBuilderLabeledField label="Employment start date">
-              <Controller
-                name={`careerHistory.${entryIndex}.startDate`}
-                control={control}
-                render={({ field, fieldState }) => (
-                  <TextField
-                    {...field}
-                    onBlur={(e) => { field.onBlur(); const n = normalizeMonthYear(e.target.value); if (n !== e.target.value) field.onChange(n) }}
-                    error={Boolean(fieldState.error)}
-                    helperText={fieldState.error?.message}
-                    placeholder="Month, Year"
-                    className={styles.fieldControl}
-                    variant="outlined"
-                    fullWidth
-                  />
-                )}
-              />
-            </CvBuilderLabeledField>
-
-            <CvBuilderLabeledField label="End date">
-              <Controller
-                name={`careerHistory.${entryIndex}.endDate`}
-                control={control}
-                render={({ field, fieldState }) => (
-                  <TextField
-                    {...field}
-                    onBlur={(e) => { field.onBlur(); const n = normalizeMonthYear(e.target.value); if (n !== e.target.value) field.onChange(n) }}
-                    error={Boolean(fieldState.error)}
-                    helperText={fieldState.error?.message}
-                    placeholder="Month, Year or Present"
-                    className={styles.fieldControl}
-                    variant="outlined"
-                    fullWidth
-                  />
-                )}
-              />
-            </CvBuilderLabeledField>
-          </Box>
-
-          <DynamicListSection entryIndex={entryIndex} sectionKey="tasks" label="List the tasks that you were responsible for" itemLabel="Task" addButtonLabel="+ Add a task" />
-          <DynamicListSection entryIndex={entryIndex} sectionKey="projects" label="List some of the projects you were involved in" itemLabel="Project" addButtonLabel="+ Add a project" />
-        </Box>
+        <CvBuilderPositionCard key={fieldItem.id} entryIndex={entryIndex} />
       ))}
 
       <Button type="button" onClick={handleAddPosition} className={styles.addPositionButton} disableRipple fullWidth>

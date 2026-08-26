@@ -2,6 +2,7 @@ import { useZodForm } from "@/hooks/useZodForm";
 import { initialSignUpFormValues, type SignUpFormValues } from "@/modules/public/components/SignUpDrawer.types";
 import { candidateSignUpSchema } from "@/app/validation.schema";
 import { authApi } from "@/services/api/authApi";
+import { PENDING_CANDIDATE_PROFILE_STORAGE_KEY } from "@/modules/candidate/types/profileCreation";
 import { useCallback } from "react";
 
 const isSuccessfulRegistration = (response: unknown) => {
@@ -45,6 +46,16 @@ export const useCandidateSignUpForm = () => {
         acceptPrivacyPolicy: formValues.acceptTerms,
       });
       submitted = isSuccessfulRegistration(response);
+      if (submitted) {
+        sessionStorage.setItem(
+          PENDING_CANDIDATE_PROFILE_STORAGE_KEY,
+          JSON.stringify({
+            fullName: `${formValues.firstName} ${formValues.lastName}`.trim(),
+            email: formValues.email,
+            phoneNumber: formValues.mobileNumber,
+          }),
+        );
+      }
     })();
 
     return submitted;

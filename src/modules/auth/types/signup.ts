@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { localPhoneNumberSchema } from "@/app/phoneNumber";
+import { strongPasswordSchema } from "@/app/passwordPolicy";
 
 export const inviteSignupSchema = z
   .object({
@@ -6,12 +8,8 @@ export const inviteSignupSchema = z
     lastName: z.string().trim().min(1, "Last name is required"),
     email: z.string().trim().min(1, "Email is required").email("Enter a valid email"),
     staffNumber: z.string().trim().min(1, "Staff number is required"),
-    mobileNumber: z
-      .string()
-      .trim()
-      .min(1, "Phone number is required")
-      .regex(/^\+\d{10,15}$/, "Use international format like +27821234567"),
-    password: z.string().min(8, "Password must be at least 8 characters long"),
+    mobileNumber: localPhoneNumberSchema,
+    password: strongPasswordSchema,
     confirmPassword: z.string().min(1, "Please confirm your password"),
     acceptTerms: z.boolean().refine((value) => value === true, {
       message: "You must accept the terms and privacy policy",

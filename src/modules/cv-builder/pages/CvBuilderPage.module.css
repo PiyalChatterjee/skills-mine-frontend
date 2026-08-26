@@ -608,6 +608,19 @@
   width: 100%;
 }
 
+.monthYearField {
+  width: 100%;
+  min-width: 0;
+}
+
+.monthYearField :global(.MuiPickersInputBase-sectionsContainer) {
+  flex: 1;
+}
+
+.monthYearField :global(.MuiInputAdornment-root) {
+  gap: 2px;
+}
+
 .fieldControl :global(.MuiInputBase-root) {
   min-height: 48px;
   border-radius: 8px;
@@ -710,7 +723,7 @@
 
 .positionRowGrid {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
 }
 

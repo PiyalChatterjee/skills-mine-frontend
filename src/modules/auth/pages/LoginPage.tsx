@@ -17,8 +17,6 @@ import { roleToDefaultRoute } from "@/routes/roleDefaultRoutes";
 import { loginSchema, type LoginFormValues } from "@/modules/auth/types";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import { authApi, mapLoginResponseToSession } from "@/services/api/authApi";
-import { candidateApi } from "@/services/api/candidateApi";
-import { isCandidateProfileCompleteForOnboarding } from "@/modules/candidate/utils/profileCompleteness";
 import googleLogoUrl from "@/assets/public-layout/google-logo.png";
 import styles from "./LoginPage.module.css";
 
@@ -45,6 +43,7 @@ const LoginPage = () => {
   const passwordValue = watch("password");
   const usernameValue = watch("username");
   const isForgotPasswordModalOpen = searchParams.get("forgot-password") === "1";
+  const isPostSignupCandidate = searchParams.get("postSignup") === "candidate";
 
   const handleForgotPasswordClose = () => {
     const nextSearchParams = new URLSearchParams(searchParams);
@@ -65,27 +64,16 @@ const LoginPage = () => {
         return;
       }
 
-      try {
-        const profile = await candidateApi.getById(user.candidateId ?? user.userId, user.userId);
-        if (!isActive) {
-          return;
-        }
-
-        const isProfileComplete = isCandidateProfileCompleteForOnboarding(profile);
-        navigate(
-          isProfileComplete
-            ? roleToDefaultRoute[user.role]
-            : ROUTE_PATHS.profileCreation,
-          { replace: true },
-        );
-      } catch {
-        if (!isActive) {
-          return;
-        }
-
-        // Fallback to the default route if profile fetch fails.
-        navigate(roleToDefaultRoute[user.role], { replace: true });
+      if (!isActive) {
+        return;
       }
+
+      navigate(
+        isPostSignupCandidate
+          ? ROUTE_PATHS.profileCreation
+          : roleToDefaultRoute[user.role],
+        { replace: true },
+      );
     };
 
     void routeAuthenticatedUser();
@@ -93,7 +81,7 @@ const LoginPage = () => {
     return () => {
       isActive = false;
     };
-  }, [isAuthenticated, navigate, user]);
+  }, [isAuthenticated, isPostSignupCandidate, navigate, user]);
 
   const handleGoogleAuthSuccess = async (tokenResponse: TokenResponse) => {
     try {

@@ -36,7 +36,26 @@
   border-radius: 100px;
   display: flex;
   align-items: center;
+  gap: 8px;
   padding-left: 20px;
+}
+
+.filterChip:global(.MuiChip-root) {
+  height: 32px;
+  flex-shrink: 0;
+  background: #eaf2fb;
+  color: #03478c;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.filterChip :global(.MuiChip-deleteIcon) {
+  color: #03478c;
+}
+
+.filterChip :global(.MuiChip-deleteIcon):hover {
+  color: #032e5c;
 }
 
 .searchInput:global(.MuiInputBase-root) {
