@@ -1,19 +1,28 @@
 import { Box, Button, TextField, Typography } from '@mui/material'
 import { Controller, useFieldArray, useFormContext, useWatch } from 'react-hook-form'
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
+import { DatePicker } from '@mui/x-date-pickers/DatePicker'
+import dayjs, { type Dayjs } from 'dayjs'
 import buildingIcon from '@/assets/cv-builder/building-line.svg'
 import styles from '../pages/CvBuilderPage.module.css'
 import { CvBuilderFormPanel, CvBuilderLabeledField, CvBuilderSectionHeader } from './CvBuilderFormPrimitives'
 import type { CvBuilderFormValues } from '../types/cvBuilderSchema'
 
-const isoPattern = /^(19|20)\d{2}-(0[1-9]|1[0-2])$/
 const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December']
 
-function normalizeMonthYear(value: string): string {
-  const v = value.trim()
-  if (!isoPattern.test(v)) return value
-  const yr = v.slice(0, 4)
-  const mo = monthNames[Number(v.slice(5, 7)) - 1]
-  return mo ? `${mo},${yr}` : value
+// Form values store dates as "MonthName,YYYY" strings; these convert to/from Dayjs for the picker.
+function parseMonthYear(value: string): Dayjs | null {
+  const match = value.trim().match(/^([A-Za-z]+),\s?(\d{4})$/)
+  if (!match) return null
+  const monthIndex = monthNames.findIndex((name) => name.toLowerCase() === match[1].toLowerCase())
+  if (monthIndex < 0) return null
+  const parsed = dayjs(`${match[2]}-${String(monthIndex + 1).padStart(2, '0')}-01`)
+  return parsed.isValid() ? parsed : null
+}
+
+function formatMonthYear(value: Dayjs | null): string {
+  return value ? value.format('MMMM,YYYY') : ''
 }
 
 type DynamicListSectionProps = {
@@ -108,16 +117,26 @@ const CvBuilderCareerHistoryForm = () => {
                 name={`careerHistory.${entryIndex}.startDate`}
                 control={control}
                 render={({ field, fieldState }) => (
-                  <TextField
-                    {...field}
-                    onBlur={(e) => { field.onBlur(); const n = normalizeMonthYear(e.target.value); if (n !== e.target.value) field.onChange(n) }}
-                    error={Boolean(fieldState.error)}
-                    helperText={fieldState.error?.message}
-                    placeholder="Month, Year"
-                    className={styles.fieldControl}
-                    variant="outlined"
-                    fullWidth
-                  />
+                  <LocalizationProvider dateAdapter={AdapterDayjs}>
+                    <DatePicker
+                      value={parseMonthYear(field.value)}
+                      onChange={(value) => field.onChange(formatMonthYear(value))}
+                      onClose={field.onBlur}
+                      views={['year', 'month']}
+                      openTo="month"
+                      format="MMM,YYYY"
+                      slotProps={{
+                        textField: {
+                          onBlur: field.onBlur,
+                          error: Boolean(fieldState.error),
+                          helperText: fieldState.error?.message,
+                          placeholder: 'Month, Year',
+                          className: `${styles.fieldControl} ${styles.monthYearField}`,
+                          variant: 'outlined',
+                        },
+                      }}
+                    />
+                  </LocalizationProvider>
                 )}
               />
             </CvBuilderLabeledField>
@@ -127,16 +146,27 @@ const CvBuilderCareerHistoryForm = () => {
                 name={`careerHistory.${entryIndex}.endDate`}
                 control={control}
                 render={({ field, fieldState }) => (
-                  <TextField
-                    {...field}
-                    onBlur={(e) => { field.onBlur(); const n = normalizeMonthYear(e.target.value); if (n !== e.target.value) field.onChange(n) }}
-                    error={Boolean(fieldState.error)}
-                    helperText={fieldState.error?.message}
-                    placeholder="Month, Year or Present"
-                    className={styles.fieldControl}
-                    variant="outlined"
-                    fullWidth
-                  />
+                  <LocalizationProvider dateAdapter={AdapterDayjs}>
+                    <DatePicker
+                      value={parseMonthYear(field.value)}
+                      onChange={(value) => field.onChange(formatMonthYear(value))}
+                      onClose={field.onBlur}
+                      views={['year', 'month']}
+                      openTo="month"
+                      format="MMM,YYYY"
+                      slotProps={{
+                        textField: {
+                          onBlur: field.onBlur,
+                          error: Boolean(fieldState.error),
+                          helperText: fieldState.error?.message,
+                          placeholder: 'Month, Year or Present',
+                          className: `${styles.fieldControl} ${styles.monthYearField}`,
+                          variant: 'outlined',
+                        },
+                        field: { clearable: true },
+                      }}
+                    />
+                  </LocalizationProvider>
                 )}
               />
             </CvBuilderLabeledField>
