@@ -15,7 +15,6 @@ const mockLogin = vi.hoisted(() => vi.fn())
 const mockStartGoogleLogin = vi.hoisted(() => vi.fn())
 const mockApiLogin = vi.hoisted(() => vi.fn())
 const mockExchangeGoogleToken = vi.hoisted(() => vi.fn())
-const mockGetCandidateProfile = vi.hoisted(() => vi.fn())
 const mockIsProfileComplete = vi.hoisted(() => vi.fn())
 const mockForgotPassword = vi.hoisted(() => vi.fn())
 const mockDispatch = vi.hoisted(() => vi.fn())
@@ -66,12 +65,6 @@ vi.mock('@/services/api', () => ({
   },
 }))
 
-vi.mock('@/services/api/candidateApi', () => ({
-  candidateApi: {
-    getById: mockGetCandidateProfile,
-  },
-}))
-
 vi.mock('@/modules/candidate/utils/profileCompleteness', () => ({
   isCandidateProfileCompleteForOnboarding: mockIsProfileComplete,
 }))
@@ -95,7 +88,7 @@ describe('LoginPage', () => {
   })
 
   it('renders the email and password fields', () => {
-    renderPage()
+    renderPage('/login?postSignup=candidate')
     expect(screen.getByPlaceholderText('Email')).toBeInTheDocument()
     expect(screen.getByPlaceholderText('Password')).toBeInTheDocument()
   })
@@ -214,27 +207,48 @@ describe('LoginPage', () => {
   it('routes authenticated job seeker with incomplete profile to profile creation', async () => {
     mockAuthState.isAuthenticated = true
     mockAuthState.user = { userId: 'candidate-1', role: 'JOB_SEEKER' }
-    mockGetCandidateProfile.mockResolvedValue({ userId: 'candidate-1' })
     mockIsProfileComplete.mockReturnValue(false)
 
-    renderPage()
+    renderPage('/login?postSignup=candidate')
 
     await waitFor(() => {
-      expect(mockGetCandidateProfile).toHaveBeenCalledWith('candidate-1')
       expect(mockNavigate).toHaveBeenCalledWith('/profile/create', { replace: true })
+    })
+  })
+
+  it('does not send an existing incomplete profile through onboarding on normal login', async () => {
+    mockAuthState.isAuthenticated = true
+    mockAuthState.user = { userId: 'candidate-1', role: 'JOB_SEEKER' }
+    mockIsProfileComplete.mockReturnValue(false)
+
+    renderPage('/login')
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/candidate/dashboard', { replace: true })
     })
   })
 
   it('routes authenticated job seeker with complete profile to dashboard', async () => {
     mockAuthState.isAuthenticated = true
     mockAuthState.user = { userId: 'candidate-1', role: 'JOB_SEEKER' }
-    mockGetCandidateProfile.mockResolvedValue({ userId: 'candidate-1' })
     mockIsProfileComplete.mockReturnValue(true)
 
     renderPage()
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith('/candidate/dashboard', { replace: true })
+    })
+  })
+
+  it('routes a new signup to profile creation even when the initial profile is complete', async () => {
+    mockAuthState.isAuthenticated = true
+    mockAuthState.user = { userId: 'candidate-1', role: 'JOB_SEEKER' }
+    mockIsProfileComplete.mockReturnValue(true)
+
+    renderPage('/login?postSignup=candidate')
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/profile/create', { replace: true })
     })
   })
 })

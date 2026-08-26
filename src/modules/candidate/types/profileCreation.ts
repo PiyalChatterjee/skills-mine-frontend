@@ -7,14 +7,12 @@ import type {
 
 export type ProfileCreationFormValues = z.infer<typeof profileCreationSchema>
 
-export type ProfileCreationStepId = 'basic-details' | 'education-experience' | 'review'
+export type ProfileCreationStepId = 'basic-details'
 
-export const PROFILE_CREATION_TOTAL_STEPS = 3
+export const PROFILE_CREATION_TOTAL_STEPS = 1
 
 export const PROFILE_CREATION_IMPLEMENTED_STEPS: readonly ProfileCreationStepId[] = [
   'basic-details',
-  'education-experience',
-  'review',
 ]
 
 const EMPTY_CERTIFICATION_COUNT = 1
@@ -47,6 +45,13 @@ export const EMPTY_PROFILE_CREATION_VALUES: ProfileCreationFormValues = {
   currentEmployer: '',
   totalYearsOfExperience: '',
 }
+
+export const PENDING_CANDIDATE_PROFILE_STORAGE_KEY = 'pending_candidate_profile'
+
+export type PendingCandidateProfile = Pick<
+  ProfileCreationFormValues,
+  'fullName' | 'email' | 'phoneNumber'
+>
 
 const splitFullName = (fullName: string) => {
   const [firstName, ...rest] = fullName.trim().split(/\s+/)

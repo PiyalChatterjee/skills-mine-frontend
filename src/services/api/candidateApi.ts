@@ -385,7 +385,25 @@ export const candidateApi = {
         languages: payload.languages,
       }),
     );
-    return this.getById(candidateId);
+
+    try {
+      return await this.getById(candidateId);
+    } catch (error) {
+      const status = (error as { response?: { status?: number } }).response?.status;
+      if (status !== 404) {
+        throw error;
+      }
+
+      return mapProfileResponse({
+        userId: candidateId,
+        personalDetails: payload.personalDetails,
+        desiredJob: payload.desiredJob,
+        education: payload.education,
+        experience: payload.experience,
+        skills: payload.skills,
+        languages: payload.languages,
+      });
+    }
   },
 
   uploadProfilePhoto(

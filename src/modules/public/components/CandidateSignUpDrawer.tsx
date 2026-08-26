@@ -120,7 +120,7 @@ export const CandidateSignUpDrawer = ({
             heading="Your account has been created."
             subtext="Please log in to continue with your profile setup."
             ctaLabel="Done"
-            navigateTo={ROUTE_PATHS.login}
+            navigateTo={`${ROUTE_PATHS.login}?postSignup=candidate`}
           />
         </>
       ) : (
