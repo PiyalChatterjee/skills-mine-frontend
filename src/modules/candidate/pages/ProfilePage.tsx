@@ -254,6 +254,7 @@ const ProfilePage = () => {
 								name="phoneNumber"
 								label="Phone number"
 								disabled={!isPersonalEditing}
+								maxLength={10}
 							/>
 							<ProfileSelectField
 								control={control}

@@ -1,4 +1,8 @@
 import type { z } from 'zod'
+import {
+  fromSouthAfricaApiPhoneNumber,
+  toSouthAfricaApiPhoneNumber,
+} from '@/app/phoneNumber'
 import { profileCreationSchema } from '@/modules/candidate/schemas/profileCreationSchema'
 import type {
   CandidateProfile,
@@ -81,7 +85,9 @@ export const getProfileCreationDefaultValues = (
   return {
     fullName,
     email: profile.personalDetails?.email ?? '',
-    phoneNumber: profile.personalDetails?.mobileNumber ?? '',
+    phoneNumber: fromSouthAfricaApiPhoneNumber(
+      profile.personalDetails?.mobileNumber ?? '',
+    ),
     residentialLocation: profile.personalDetails?.location ?? '',
     preferredJobTitle: profile.desiredJob?.jobTitle ?? '',
     targetedIndustries: profile.desiredJob?.industry ?? '',
@@ -126,7 +132,7 @@ export const getProfileCreationPayload = (
       firstName: firstName || currentProfile?.personalDetails?.firstName || '',
       lastName: lastName || currentProfile?.personalDetails?.lastName || '',
       email: values.email.trim(),
-      mobileNumber: values.phoneNumber.trim(),
+      mobileNumber: toSouthAfricaApiPhoneNumber(values.phoneNumber),
       location: values.residentialLocation.trim(),
       nationality: currentProfile?.personalDetails?.nationality ?? '',
       idNumber: currentProfile?.personalDetails?.idNumber ?? '',

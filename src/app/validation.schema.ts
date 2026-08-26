@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { localPhoneNumberSchema } from '@/app/phoneNumber'
 import { strongPasswordSchema } from '@/app/passwordPolicy'
 
 export const idSchema = z.string().min(1)
@@ -10,11 +11,7 @@ export const candidateSignUpSchema = z
 		firstName: z.string().trim().min(1, 'First name is required'),
 		lastName: z.string().trim().min(1, 'Last name is required'),
 		email: emailSchema,
-		mobileNumber: z
-			.string()
-			.trim()
-			.min(1, 'Phone number is required')
-			.regex(/^\+\d{10,15}$/, 'Use international format like +27821234567'),
+		mobileNumber: localPhoneNumberSchema,
 		password: strongPasswordSchema,
 		confirmPassword: z.string().min(1, 'Please confirm your password'),
 		acceptTerms: z
@@ -35,11 +32,7 @@ export const recruiterSignUpSchema = z
 		firstName: z.string().trim().min(1, 'First name is required'),
 		lastName: z.string().trim().min(1, 'Last name is required'),
 		email: emailSchema,
-		mobileNumber: z
-			.string()
-			.trim()
-			.min(1, 'Phone number is required')
-			.regex(/^\+\d{10,15}$/, 'Use international format like +27821234567'),
+		mobileNumber: localPhoneNumberSchema,
 		password: strongPasswordSchema,
 		confirmPassword: z.string().min(1, 'Please confirm your password'),
 		acceptTerms: z

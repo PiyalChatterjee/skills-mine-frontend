@@ -31,6 +31,7 @@ import type {
   UserSkill,
 } from "@/types/api";
 import type { CandidateProfileUpdatePayload } from "@/modules/candidate/types";
+import { toSouthAfricaApiPhoneNumber } from "@/app/phoneNumber";
 
 const isUserSkill = (value: unknown): value is UserSkill => {
   if (!value || typeof value !== "object") {
@@ -214,8 +215,21 @@ const mapRecommendedResponse = (payload: unknown): RecommendedJobsData => {
 // The CV builder accepts a partial update: only the sections present in the body
 // are overwritten, so undefined sections are stripped before sending.
 const toCvPayload = (payload: SaveBuildMyCvRequest) => {
+  const personalDetails = payload.personalDetails
+    ? {
+        ...payload.personalDetails,
+        ...(payload.personalDetails.mobileNumber
+          ? {
+              mobileNumber: toSouthAfricaApiPhoneNumber(
+                payload.personalDetails.mobileNumber,
+              ),
+            }
+          : {}),
+      }
+    : undefined;
+
   const body: Record<string, unknown> = {
-    personalDetails: payload.personalDetails,
+    personalDetails,
     careerHistory: payload.careerHistory?.map((item) => ({
       company: item.company,
       jobTitle: item.jobTitle,
@@ -634,7 +648,9 @@ export const candidateApi = {
           personal_details: {
             full_name: payload.personalDetails.fullName,
             email: payload.personalDetails.email,
-            phone_number: payload.personalDetails.phoneNumber,
+            phone_number: toSouthAfricaApiPhoneNumber(
+              payload.personalDetails.phoneNumber,
+            ),
             residential_location: payload.personalDetails.residentialLocation,
           },
           job_details: {

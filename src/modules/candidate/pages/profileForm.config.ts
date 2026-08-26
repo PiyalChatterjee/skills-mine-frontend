@@ -1,4 +1,9 @@
 import { z } from 'zod'
+import {
+  fromSouthAfricaApiPhoneNumber,
+  localPhoneNumberSchema,
+  toSouthAfricaApiPhoneNumber,
+} from '@/app/phoneNumber'
 import { emailSchema } from '@/app/validation.schema'
 import type { CandidateProfile, CandidateProfileUpdatePayload } from '@/modules/candidate/types'
 
@@ -8,11 +13,7 @@ const requiredField = (label: string) =>
 export const profileFormSchema = z.object({
   fullName: requiredField('Full name'),
   email: emailSchema,
-  phoneNumber: z
-    .string()
-    .trim()
-    .min(1, 'Phone number is required')
-    .regex(/^\+\d{10,15}$/, 'Use international format like +27821234567'),
+  phoneNumber: localPhoneNumberSchema,
   residentialLocation: requiredField('Residential location'),
   preferredJobTitle: z.string(),
   targetedIndustries: z.string(),
@@ -54,7 +55,9 @@ export const getProfileFormValues = (
   return {
     fullName,
     email: profile?.personalDetails?.email ?? '',
-    phoneNumber: profile?.personalDetails?.mobileNumber ?? '',
+    phoneNumber: fromSouthAfricaApiPhoneNumber(
+      profile?.personalDetails?.mobileNumber ?? '',
+    ),
     residentialLocation: profile?.personalDetails?.location ?? '',
     preferredJobTitle: profile?.desiredJob?.jobTitle ?? '',
     targetedIndustries: profile?.desiredJob?.industry ?? '',
@@ -77,7 +80,7 @@ export const getCandidateProfileUpdatePayload = (
       firstName: firstName || currentProfile?.personalDetails?.firstName || '',
       lastName: lastName || currentProfile?.personalDetails?.lastName || '',
       email: values.email.trim(),
-      mobileNumber: values.phoneNumber.trim(),
+      mobileNumber: toSouthAfricaApiPhoneNumber(values.phoneNumber),
       location: values.residentialLocation.trim(),
       nationality: currentProfile?.personalDetails?.nationality ?? '',
       idNumber: currentProfile?.personalDetails?.idNumber ?? '',
