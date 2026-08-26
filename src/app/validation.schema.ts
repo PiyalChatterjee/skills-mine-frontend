@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { strongPasswordSchema } from '@/app/passwordPolicy'
 
 export const idSchema = z.string().min(1)
 
@@ -14,9 +15,7 @@ export const candidateSignUpSchema = z
 			.trim()
 			.min(1, 'Phone number is required')
 			.regex(/^\+\d{10,15}$/, 'Use international format like +27821234567'),
-		password: z
-			.string()
-			.min(8, 'Password must be at least 8 characters long'),
+		password: strongPasswordSchema,
 		confirmPassword: z.string().min(1, 'Please confirm your password'),
 		acceptTerms: z
 			.boolean()
@@ -41,9 +40,7 @@ export const recruiterSignUpSchema = z
 			.trim()
 			.min(1, 'Phone number is required')
 			.regex(/^\+\d{10,15}$/, 'Use international format like +27821234567'),
-		password: z
-			.string()
-			.min(8, 'Password must be at least 8 characters long'),
+		password: strongPasswordSchema,
 		confirmPassword: z.string().min(1, 'Please confirm your password'),
 		acceptTerms: z
 			.boolean()

@@ -66,8 +66,8 @@ describe('SignupPage', () => {
     await userEvent.type(screen.getByPlaceholderText('Email'), 'jane@test.com')
     await userEvent.type(screen.getByPlaceholderText('Phone number'), '+27821234567')
     await userEvent.type(screen.getByPlaceholderText('Staff Number'), 'SM-REC-001')
-    await userEvent.type(screen.getByPlaceholderText('At least 8 characters'), 'Password1')
-    await userEvent.type(screen.getByPlaceholderText('Re-enter your password'), 'Different1')
+    await userEvent.type(screen.getByPlaceholderText('At least 8 characters'), 'Password1!')
+    await userEvent.type(screen.getByPlaceholderText('Re-enter your password'), 'Different1!')
     fireEvent.click(screen.getByRole('button', { name: /submit/i }))
     await waitFor(() => {
       expect(screen.getByText(/passwords do not match/i)).toBeInTheDocument()

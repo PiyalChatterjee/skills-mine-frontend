@@ -140,7 +140,7 @@ export const PublicLayout = () => {
         onSearchClick={handleSearchClick}
         onNotificationClick={handleNotificationClick}
         showHelpButton={shouldUseLoginHeaderVariant}
-        showNotificationButton={shouldUseAuthHeaderVariant}
+        showNotificationButton={false}
         showProfileBadge={
           shouldUseAuthHeaderVariant ||
           (!isLoginPage &&

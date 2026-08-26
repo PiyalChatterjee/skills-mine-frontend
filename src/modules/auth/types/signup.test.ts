@@ -7,8 +7,8 @@ const validPayload = {
   email: 'jane@example.com',
   staffNumber: 'SM-REC-001',
   mobileNumber: '+27821234567',
-  password: 'Password1',
-  confirmPassword: 'Password1',
+  password: 'Password1!',
+  confirmPassword: 'Password1!',
   acceptTerms: true,
 }
 

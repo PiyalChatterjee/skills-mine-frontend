@@ -6,14 +6,11 @@ import {
 	CircularProgress,
 	Divider,
 	Stack,
-	TextField,
 	Typography,
 } from "@mui/material";
 import { useDispatch } from "react-redux";
-import { Controller } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/app/auth/AuthContext";
-import { PasswordVisibilityAdornment } from "@/components/PasswordVisibilityAdornment";
 import { useZodForm } from "@/hooks/useZodForm";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import type { AppDispatch } from "@/store";
@@ -29,13 +26,10 @@ import {
 	profileFormSchema,
 } from "@/modules/candidate/pages/profileForm.config";
 import { useCandidateProfileQuery, useCandidateResourceId, useUserProfile } from "@/modules/candidate/hooks/useCandidateQueries";
-import ChangePasswordModal from "@/modules/candidate/components/ChangePasswordModal";
 import cameraPlaceholderIconSrc from "@/assets/icons/camera-placeholder.svg";
-import eyeOffIconSrc from "@/assets/icons/eye-off.svg";
 import pencilLineIconSrc from "@/assets/icons/pencil-line.svg";
 import iconPersonalSrc from "@/assets/profile/icon-personal.svg";
 import iconDesiredSrc from "@/assets/profile/icon-desired.svg";
-import iconPasswordSrc from "@/assets/profile/icon-password.svg";
 import styles from "./ProfilePage.module.css";
 
 type SectionCardProps = {
@@ -108,13 +102,9 @@ const ProfilePage = () => {
 		getValues,
 		reset,
 		trigger,
-		watch,
 	} = useZodForm(profileFormSchema, {
 		defaultValues: getProfileFormValues(null),
 	});
-	const [isPasswordDisabled, setIsPasswordDisabled] = useState(true);
-	const [isPasswordVisible, setPasswordVisible] = useState(false);
-	const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
 	const [isPersonalEditing, setIsPersonalEditing] = useState(false);
 	const [isDesiredEditing, setIsDesiredEditing] = useState(false);
 	const [profilePhotoPreviewUrl, setProfilePhotoPreviewUrl] = useState<
@@ -136,10 +126,6 @@ const ProfilePage = () => {
 
 	const handleEditDesired = () => {
 		setIsDesiredEditing(true);
-	};
-
-	const handleChangePassword = () => {
-		setIsChangePasswordModalOpen(true);
 	};
 
 	const handleUploadPhotoClick = () => {
@@ -192,8 +178,6 @@ const ProfilePage = () => {
 				reset(getProfileFormValues(updatedProfile));
 				setIsPersonalEditing(false);
 				setIsDesiredEditing(false);
-				setIsPasswordDisabled(true);
-				setPasswordVisible(false);
 				navigate(ROUTE_PATHS.candidateDashboard);
 			} catch {
 				return;
@@ -206,8 +190,6 @@ const ProfilePage = () => {
 
 	const activeProfilePhotoUrl =
 		profilePhotoPreviewUrl ?? resolvedCandidateProfile?.personalDetails?.profileImageUrl ?? null;
-	const passwordValue = watch("password");
-	const hasPasswordValue = Boolean(passwordValue?.length);
 
 	if (!userId) {
 		return (
@@ -242,12 +224,6 @@ const ProfilePage = () => {
 
 	return (
 		<Box className={styles.pageRoot}>
-			<ChangePasswordModal
-				open={isChangePasswordModalOpen}
-				prefillEmail={user?.email ?? ""}
-				onClose={() => setIsChangePasswordModalOpen(false)}
-				mode="change"
-			/>
 			<Typography component="h1" className={styles.pageTitle}>
 				Profile settings
 			</Typography>
@@ -330,72 +306,6 @@ const ProfilePage = () => {
 								disabled={!isDesiredEditing}
 							/>
 						</Box>
-					</SectionCard>
-
-					<SectionCard
-						iconSrc={iconPasswordSrc}
-						title="Password"
-						showEdit={false}
-					>
-						<Box className={styles.fieldsGridSingle}>
-							<Box className={styles.fieldBlock}>
-								<Typography className={styles.fieldLabel}>Password</Typography>
-								<Controller
-									control={control}
-									name="password"
-									render={({ field }) => (
-										<TextField
-											variant="outlined"
-											fullWidth
-											type={
-												hasPasswordValue && isPasswordVisible
-													? "text"
-													: "password"
-											}
-											value={field.value ?? ""}
-											onChange={field.onChange}
-											onBlur={field.onBlur}
-											inputRef={field.ref}
-											placeholder="Password"
-											disabled={isPasswordDisabled}
-											className={`${styles.readonlyInput} ${isPasswordDisabled ? styles.readonlyInputDisabled : ""}`}
-											slotProps={{
-												input: {
-													endAdornment: hasPasswordValue ? (
-														isPasswordDisabled ? (
-															<Box className={styles.eyeIcon}>
-																<img
-																	src={eyeOffIconSrc}
-																	alt=""
-																	aria-hidden="true"
-																	className={styles.passwordToggleIcon}
-																/>
-															</Box>
-														) : (
-															<PasswordVisibilityAdornment
-																visible={isPasswordVisible}
-																onToggle={() => {
-																	setPasswordVisible((previous) => !previous);
-																}}
-																buttonClassName={styles.passwordToggleButton}
-																iconClassName={styles.passwordToggleIcon}
-															/>
-														)
-													) : null,
-												},
-											}}
-										/>
-									)}
-								/>
-							</Box>
-						</Box>
-						<Button
-							variant="outlined"
-							className={styles.changePasswordButton}
-							onClick={handleChangePassword}
-						>
-							Change password
-						</Button>
 					</SectionCard>
 
 					<Box className={styles.footerAction}>
