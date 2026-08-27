@@ -200,7 +200,7 @@ export const JobsFeedPage = ({ mode }: JobsFeedPageProps) => {
                       state: { job, from: feedRoute },
                     })
                   }}
-                  matchScore={job.matchScore}
+                  matchScore={isRecommendedOnlyMode ? job.matchScore : undefined}
                   applicationStatus={getApplicationStatusLabel(applicationStages.get(job.jobId))}
                   applicationStatusKey={applicationStages.get(job.jobId)?.trim().toLowerCase()}
                   showSaveButton

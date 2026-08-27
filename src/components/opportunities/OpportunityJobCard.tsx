@@ -78,7 +78,9 @@ export const OpportunityJobCard = ({
       elevation={0}
     >
       <div className={styles.top}>
-        <div className={styles.header}>
+        <div
+          className={`${styles.header} ${typeof clampedMatchScore === "number" ? "" : styles.headerWithoutMatch}`}
+        >
           {typeof clampedMatchScore === "number" ? (
             <div
               className={styles.matchBadge}
@@ -95,8 +97,8 @@ export const OpportunityJobCard = ({
             {title}
           </Typography>
 
-          {applicationStatus ? (
-            <div className={styles.applicationStatusContainer}>
+          <div className={styles.applicationStatusContainer}>
+            {applicationStatus ? (
               <Typography
                 component="span"
                 className={styles.applicationStatus}
@@ -104,8 +106,8 @@ export const OpportunityJobCard = ({
               >
                 {applicationStatus}
               </Typography>
-            </div>
-          ) : null}
+            ) : null}
+          </div>
 
           {showSaveButton && onToggleSave ? (
             <div className={styles.saveButtonContainer}>
