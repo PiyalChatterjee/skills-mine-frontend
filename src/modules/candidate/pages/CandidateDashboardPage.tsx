@@ -170,7 +170,7 @@ const transformApplicationToDisplay = (
   return {
     id: app.id,
     jobId: app.job.id,
-    title: `${app.job.title} at ${app.job.company}`,
+    title: app.job.title,
     status,
     stage: app.stage,
     pipeline: app.pipeline,
@@ -185,6 +185,10 @@ const CandidateDashboardPage = () => {
   const { user } = useAuth();
   const { data: dashboard, isLoading } = useCandidateDashboardQuery(Boolean(user));
   const { data: statistics } = useCandidateStatisticsQuery(Boolean(user));
+
+  const handleSkillsBuildClick = () => {
+    window.open("https://skillsbuild.org/", "_blank");
+  };
 
   const statCards = useMemo(() => {
     const stats = statistics?.statistics;
@@ -238,21 +242,41 @@ const CandidateDashboardPage = () => {
           <Typography component="h1" className={styles.emptyHeroMessage}>
             You haven&apos;t applied for any jobs yet.
           </Typography>
-          <ButtonBase
-            type="button"
-            className={styles.emptyHeroCta}
-            onClick={() => navigate(ROUTE_PATHS.jobs)}
-            disableRipple
-          >
-            See matched jobs
-          </ButtonBase>
         </Box>
 
         <Box component="section" className={styles.emptyQuickActionsRow}>
           <ButtonBase
             type="button"
+            className={`${styles.quickCard} ${styles.quickCardPurple}`}
+            onClick={() => navigate(ROUTE_PATHS.recommendedJobs)}
+            disableRipple
+          >
+            <Box className={styles.quickCardHeader}>
+              <Box
+                className={styles.quickCardIconFrameNeutral}
+                aria-hidden="true"
+              >
+                <Box
+                  component="img"
+                  src={bardLineIcon}
+                  alt=""
+                  className={styles.quickCardIcon}
+                />
+              </Box>
+              <Typography component="p" className={styles.quickCardTitle}>
+                <span className={styles.quickCardTitleLine}>Recommended</span>
+                <span className={styles.quickCardTitleLine}>Jobs</span>
+              </Typography>
+            </Box>
+            <Typography component="p" className={styles.quickCardSubtitle}>
+              View recommended jobs for you.
+            </Typography>
+          </ButtonBase>
+
+          <ButtonBase
+            type="button"
             className={`${styles.quickCard} ${styles.quickCardBlue}`}
-            onClick={() => navigate(ROUTE_PATHS.jobs)}
+            onClick={handleSkillsBuildClick}
             disableRipple
           >
             <Box className={styles.quickCardHeader}>
@@ -296,34 +320,6 @@ const CandidateDashboardPage = () => {
             </Box>
             <Typography component="p" className={styles.quickCardSubtitle}>
               View all the latest job posts.
-            </Typography>
-          </ButtonBase>
-
-          <ButtonBase
-            type="button"
-            className={`${styles.quickCard} ${styles.quickCardPurple}`}
-            onClick={() => navigate(ROUTE_PATHS.recommendedJobs)}
-            disableRipple
-          >
-            <Box className={styles.quickCardHeader}>
-              <Box
-                className={styles.quickCardIconFrameNeutral}
-                aria-hidden="true"
-              >
-                <Box
-                  component="img"
-                  src={bardLineIcon}
-                  alt=""
-                  className={styles.quickCardIcon}
-                />
-              </Box>
-              <Typography component="p" className={styles.quickCardTitle}>
-                <span className={styles.quickCardTitleLine}>Recommended</span>
-                <span className={styles.quickCardTitleLine}>Jobs</span>
-              </Typography>
-            </Box>
-            <Typography component="p" className={styles.quickCardSubtitle}>
-              View recommended jobs for you.
             </Typography>
           </ButtonBase>
         </Box>

@@ -6,6 +6,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import buildingIcon from '@/assets/cv-builder/building-line.svg'
 import styles from '../pages/CvBuilderPage.module.css'
 import { CvBuilderFormPanel, CvBuilderLabeledField, CvBuilderSectionHeader } from './CvBuilderFormPrimitives'
+import CvBuilderRemoveItemButton from './CvBuilderRemoveItemButton'
 import type { CvBuilderFormValues } from '../types/cvBuilderSchema'
 import { parseMonthYear, formatMonthYear } from '../utils/monthYearDate'
 
@@ -27,24 +28,37 @@ const DynamicListSection = ({ entryIndex, sectionKey, label, itemLabel, addButto
     setValue(path as 'careerHistory', [...current, ''] as never, { shouldDirty: true })
   }
 
+  const removeItem = (index: number) => {
+    const path = `careerHistory.${entryIndex}.${sectionKey}` as const
+    const current = (getValues(path as 'careerHistory') as unknown as string[]) ?? []
+    const remaining = current.filter((_, itemIndex) => itemIndex !== index)
+    setValue(path as 'careerHistory', (remaining.length ? remaining : ['']) as never, { shouldDirty: true })
+  }
+
   return (
     <Box className={styles.dynamicListSection}>
       <Typography component="p" className={styles.dynamicListLabel}>{label}</Typography>
       {items.map((_, idx) => (
-        <Controller
-          key={idx}
-          name={`careerHistory.${entryIndex}.${sectionKey}.${idx}` as never}
-          control={control}
-          render={({ field }) => (
-            <TextField
-              {...field}
-              placeholder={`${itemLabel} ${idx + 1}`}
-              className={`${styles.fieldControl} ${styles.dynamicListField}`}
-              variant="outlined"
-              fullWidth
-            />
-          )}
-        />
+        <Box key={idx} className={styles.skillRow}>
+          <Controller
+            name={`careerHistory.${entryIndex}.${sectionKey}.${idx}` as never}
+            control={control}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                placeholder={`${itemLabel} ${idx + 1}`}
+                className={`${styles.fieldControl} ${styles.dynamicListField}`}
+                variant="outlined"
+                fullWidth
+              />
+            )}
+          />
+          <CvBuilderRemoveItemButton
+            canRemove
+            ariaLabel={`Remove ${itemLabel.toLowerCase()} ${idx + 1}`}
+            onClick={() => removeItem(idx)}
+          />
+        </Box>
       ))}
       <Button type="button" onClick={addItem} className={styles.addDashedButton} disableRipple fullWidth>
         {addButtonLabel}
