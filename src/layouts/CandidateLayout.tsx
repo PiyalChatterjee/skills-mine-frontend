@@ -33,7 +33,9 @@ export const CandidateLayout = () => {
 
     // Unsubscribe on cleanup so React StrictMode's dev-only double-invoke
     // of this effect doesn't leave a duplicate in-flight request.
-    const subscription = dispatch(fetchCandidateProfileThunk(resourceId, user?.userId));
+    const subscription = dispatch(
+      fetchCandidateProfileThunk(resourceId, user?.userId),
+    );
     return () => subscription.unsubscribe();
   }, [user?.candidateId, user?.userId, dispatch]);
 
@@ -62,7 +64,6 @@ export const CandidateLayout = () => {
   };
 
   const handleSkillsBuildClick = () => {
-    // TODO: Implement skills build navigation
     window.open("https://skillsbuild.org/", "_blank");
   };
 
