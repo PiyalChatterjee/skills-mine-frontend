@@ -1,4 +1,5 @@
-import { Box, Button, Typography } from "@mui/material";
+import { useState } from "react";
+import { Box, Button, TextField, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useZodForm } from "@/hooks/useZodForm";
 import AuthHero from "@/modules/auth/components/AuthHero";
@@ -18,6 +19,12 @@ import { tokenStorage } from "@/app/auth/tokenStorage";
 import { authApi } from "@/services/api/authApi";
 import { z } from "zod";
 import { strongPasswordSchema } from "@/app/passwordPolicy";
+
+// Mock stand-in for a real reset token until the backend exposes OTP verification.
+const buildMockResetToken = (email: string, otpCode: string) => {
+  const payload = `${email}:${otpCode}:${Date.now()}`;
+  return `mock-${btoa(payload)}`;
+};
 
 const changePasswordSchema = z
   .object({
@@ -54,6 +61,9 @@ const ResetPasswordPage = () => {
   const dispatch = useDispatch<AppDispatch>();
   const [searchParams] = useSearchParams();
   const isChangeMode = searchParams.get("mode") === "change";
+  const email = (searchParams.get("email") ?? "").trim();
+  const [otpCode, setOtpCode] = useState("");
+  const [isResendingCode, setIsResendingCode] = useState(false);
   const {
     register: registerCurrentPassword,
     handleSubmit: handleCurrentPasswordSubmit,
@@ -76,24 +86,64 @@ const ResetPasswordPage = () => {
   const changeModePasswordValue = watchCurrentPassword("password");
   const changeModeConfirmPasswordValue = watchCurrentPassword("confirmPassword");
 
-  const onSubmit = async (_values: ResetPasswordFormValues) => {
-    const token = searchParams.get("token")?.trim() ?? "";
+  const handleResendCode = async () => {
+    if (!email || isResendingCode) {
+      return;
+    }
 
-    if (!token) {
+    setIsResendingCode(true);
+    try {
+      await authApi.forgotPassword({ email });
+      dispatch(
+        pushNotification({
+          level: "success",
+          title: "Code resent",
+          message: "A new confirmation code has been sent to your email.",
+        }),
+      );
+      setOtpCode("");
+    } catch {
+      dispatch(
+        pushNotification({
+          level: "error",
+          title: "Failed to resend",
+          message: "Please try again later.",
+        }),
+      );
+    } finally {
+      setIsResendingCode(false);
+    }
+  };
+
+  const onSubmit = async (_values: ResetPasswordFormValues) => {
+    if (!email) {
       dispatch(
         pushNotification({
           level: "error",
           title: "Reset link invalid",
-          message: "Missing reset token. Please request a new reset link.",
+          message: "Missing email address. Please request a new confirmation code.",
         }),
       );
       return;
     }
 
+    if (!otpCode.trim()) {
+      dispatch(
+        pushNotification({
+          level: "error",
+          title: "Confirmation code required",
+          message: "Please enter the confirmation code sent to your email.",
+        }),
+      );
+      return;
+    }
+
+    const resetToken = buildMockResetToken(email.toLowerCase(), otpCode.trim());
+
     try {
       const resetResponse = await dispatch(
         resetPasswordThunk({
-          resetToken: token,
+          resetToken,
           newPassword: _values.password,
           confirmNewPassword: _values.confirmPassword,
         }),
@@ -123,6 +173,7 @@ const ResetPasswordPage = () => {
       );
     }
   };
+
 
   const onSubmitChangePassword = async (_values: {
     currentPassword: string;
@@ -192,7 +243,34 @@ const ResetPasswordPage = () => {
               toggleButtonClassName={styles.passwordToggleButton}
               toggleIconClassName={styles.passwordToggleIcon}
             />
-          ) : null}
+          ) : (
+            <Box className={styles.fieldGroup}>
+              <Typography className={styles.fieldLabel}>Confirmation code</Typography>
+              <Typography className={styles.otpDescription}>
+                Enter the confirmation code sent to {email || "your email"} to reset your password.
+              </Typography>
+              <TextField
+                variant="outlined"
+                fullWidth
+                placeholder="Confirmation code"
+                value={otpCode}
+                onChange={(event) => setOtpCode(event.target.value)}
+                className={styles.inputField}
+              />
+              <Typography className={styles.resendText}>
+                Haven&apos;t received the code?{" "}
+                <button
+                  type="button"
+                  className={styles.resendButton}
+                  onClick={handleResendCode}
+                  disabled={isResendingCode}
+                >
+                  Resend
+                </button>
+                .
+              </Typography>
+            </Box>
+          )}
 
           <AuthPasswordField
             label="New password"

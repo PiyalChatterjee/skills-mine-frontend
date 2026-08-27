@@ -816,11 +816,9 @@
   gap: 10px;
   padding: 12px 30px;
   border-radius: 100px;
-  border: 2px solid transparent;
-  background:
-    linear-gradient(#fff, #fff) padding-box,
-    linear-gradient(225deg, #32abbf 0%, #2b96d9 100%) border-box;
-  color: #32abbf;
+  border: 2px solid #80c0e8;
+  background: #fff;
+  color: #80c0e8;
   text-transform: none;
   box-shadow: none;
   font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
@@ -832,9 +830,9 @@
 }
 
 .generateButton:global(.MuiButton-root):hover {
-  background:
-    linear-gradient(#f0fafd, #f0fafd) padding-box,
-    linear-gradient(225deg, #32abbf 0%, #2b96d9 100%) border-box;
+  background: #d9effa;
+  border-color: #80c0e8;
+  color: #2b96d9;
 }
 
 .generateButtonIcon {
@@ -863,7 +861,7 @@
 .skillRow {
   display: flex;
   align-items: center;
-  gap: 8px;
+  position: relative;
 }
 
 .addMutedPillButton,
@@ -899,6 +897,10 @@
   flex: 1;
 }
 
+.skillRow .fieldControl :global(.MuiOutlinedInput-input) {
+  padding-right: 56px;
+}
+
 .inlineRemoveButton,
 .inlineRemoveButton:global(.MuiIconButton-root),
 .removeSkillButton,
@@ -913,6 +915,12 @@
   transition:
     color 160ms ease,
     background-color 160ms ease;
+}
+
+.skillRow .inlineRemoveButton {
+  position: absolute;
+  top: 4px;
+  right: 4px;
 }
 
 .inlineRemoveButton:global(.MuiIconButton-root):hover,

@@ -33,7 +33,11 @@ const CvBuilderSkillsForm = () => {
           iconSrc={skillsSparkleIcon}
           title="Your skills"
         />
-        <Button type="button" className={styles.generateButton} disableRipple>
+        <Button
+          type="button"
+          className={`${styles.generateButton} no-global-hover`}
+          disableRipple
+        >
           Generate
           <Box
             component="img"

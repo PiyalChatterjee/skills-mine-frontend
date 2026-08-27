@@ -321,7 +321,7 @@ export const PublicHeader = ({
                     onClick={handleSignOutClick}
                     className={styles.profileMenuItem}
                   >
-                    Sign out
+                    Log out
                   </MenuItem>
                 </Menu>
               </>

@@ -19,6 +19,7 @@ import {
   useRecommendedPositionsQuery,
   useSavedJobsQuery,
 } from '../hooks/useCandidateQueries'
+import { getApplicationStatusLabel } from '../utils/applicationStatus'
 import styles from './LatestJobsPage.module.css'
 
 const toCityFromLocation = (location: string) => {
@@ -42,7 +43,7 @@ export const JobsFeedPage = ({ mode }: JobsFeedPageProps) => {
   const navigate = useNavigate()
   const dispatch = useDispatch<AppDispatch>()
   const { savedJobIds, isJobSaved, isJobSaving, toggleJobSaved } = useOptimisticSaveJob()
-  const { appliedJobIds } = useAppliedJobIds()
+  const { applicationStages } = useAppliedJobIds()
   const isSavedOnlyMode = mode === 'saved'
   const isRecommendedOnlyMode = mode === 'recommended'
   const isLatestMode = !isSavedOnlyMode && !isRecommendedOnlyMode
@@ -122,21 +123,15 @@ export const JobsFeedPage = ({ mode }: JobsFeedPageProps) => {
     }))
   }, [isRecommendedOnlyMode, isSavedOnlyMode, recommendedPositionsQuery.data, savedJobsQuery.data, visibleJobs])
 
-  // Jobs already applied to are never offered again in any feed
   const feedJobs = useMemo(() => {
-    const notYetApplied = jobsWithMatch.filter(
-      (job) => isSavedOnlyMode || !appliedJobIds.has(job.jobId),
-    )
-
     // Saved/recommended jobs are fetched in full, so search filters them client-side by title
     if ((isSavedOnlyMode || isRecommendedOnlyMode) && shouldFilterOpportunities) {
       const term = normalizedSearchTerm.toLowerCase()
-      return notYetApplied.filter((job) => job.title.toLowerCase().includes(term))
+      return jobsWithMatch.filter((job) => job.title.toLowerCase().includes(term))
     }
 
-    return notYetApplied
+    return jobsWithMatch
   }, [
-    appliedJobIds,
     isRecommendedOnlyMode,
     isSavedOnlyMode,
     jobsWithMatch,
@@ -205,7 +200,9 @@ export const JobsFeedPage = ({ mode }: JobsFeedPageProps) => {
                       state: { job, from: feedRoute },
                     })
                   }}
-                  matchScore={job.matchScore}
+                  matchScore={isRecommendedOnlyMode ? job.matchScore : undefined}
+                  applicationStatus={getApplicationStatusLabel(applicationStages.get(job.jobId))}
+                  applicationStatusKey={applicationStages.get(job.jobId)?.trim().toLowerCase()}
                   showSaveButton
                   isSaved={isSaved}
                   isSaving={isSaving}

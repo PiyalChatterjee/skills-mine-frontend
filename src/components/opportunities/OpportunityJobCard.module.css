@@ -26,9 +26,13 @@
 .header {
   min-height: 70px;
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
   align-items: start;
   gap: 16px;
+}
+
+.headerWithoutMatch {
+  grid-template-columns: minmax(0, 1fr) auto auto;
 }
 
 .title {
@@ -40,6 +44,10 @@
   font-weight: 500;
   letter-spacing: 0.1px;
   align-self: center;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .title:global(.MuiTypography-root) {
@@ -47,9 +55,64 @@
   color: #03478c;
   font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
   font-size: 24px;
-  line-height: 1.5;
+  line-height: 2;
   font-weight: 500;
   letter-spacing: 0.1px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  height: 100%;
+}
+
+.applicationStatusContainer {
+  line-height: 3;
+}
+
+.applicationStatus,
+.applicationStatus:global(.MuiTypography-root) {
+  align-self: center;
+  justify-self: end;
+  padding: 4px 8px;
+  border-radius: 100px;
+  background: #84cdd9;
+  color: #ffffff;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
+  white-space: nowrap;
+}
+
+.applicationStatus[data-status='screening'] {
+  background: #32abbf;
+}
+
+.applicationStatus[data-status='assessment'] {
+  background: #80c0e8;
+}
+
+.applicationStatus[data-status='interview'] {
+  background: #957dd2;
+}
+
+.applicationStatus[data-status='shortlisted'] {
+  background: #e085c2;
+}
+
+.applicationStatus[data-status='offer'],
+.applicationStatus[data-status='offer_extended'] {
+  background: #5bbf8a;
+}
+
+.applicationStatus[data-status='offer_accepted'] {
+  background: #4baf73;
+}
+
+.applicationStatus[data-status='offer_declined'],
+.applicationStatus[data-status='rejected'] {
+  background: #e07070;
 }
 
 .rule {
@@ -167,6 +230,11 @@
 .cta:global(.MuiButton-root):global(.MuiButton-contained):hover {
   background: #2b96d9;
   box-shadow: none;
+}
+
+.saveButtonContainer {
+  height: 100%;
+  line-height: 3;
 }
 
 .saveButton {

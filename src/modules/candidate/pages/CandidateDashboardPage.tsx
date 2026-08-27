@@ -17,6 +17,7 @@ import settings4LineIcon from "@/assets/candidate-dashboard/settings-4-line.svg"
 import fileList2LineIcon from "@/assets/candidate-dashboard/file-list-2-line.svg";
 import progress5LineIcon from "@/assets/candidate-dashboard/progress-5-line.svg";
 import verifiedBadgeLineIcon from "@/assets/candidate-dashboard/verified-badge-line.svg";
+import { getApplicationStatusLabel } from "@/modules/candidate/utils/applicationStatus";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import styles from "./CandidateDashboardPage.module.css";
 
@@ -91,21 +92,6 @@ const STAGE_STATUS_MAP: Record<string, ApplicationStatusKey> = {
   offer_accepted: "offer_accepted",
   offer_declined: "offer_declined",
 };
-
-// Pipeline stage label lookup – API keys are uppercase e.g. INTERVIEW
-const PIPELINE_STAGE_LABEL: Record<string, string> = {
-  applied: "Applied",
-  screening: "Screening",
-  assessment: "Assessment",
-  interview: "Interview",
-  shortlisted: "Shortlisted",
-  offer: "Offer",
-  placed: "Placed",
-  closed: "Closed",
-};
-
-const getPipelineStageLabelFromKey = (key: string): string =>
-  PIPELINE_STAGE_LABEL[key.toLowerCase()] ?? key;
 
 // Returns 0-based index of current stage within the app's pipeline array
 const getPipelineProgress = (
@@ -184,7 +170,7 @@ const transformApplicationToDisplay = (
   return {
     id: app.id,
     jobId: app.job.id,
-    title: `${app.job.title} at ${app.job.company}`,
+    title: app.job.title,
     status,
     stage: app.stage,
     pipeline: app.pipeline,
@@ -199,6 +185,10 @@ const CandidateDashboardPage = () => {
   const { user } = useAuth();
   const { data: dashboard, isLoading } = useCandidateDashboardQuery(Boolean(user));
   const { data: statistics } = useCandidateStatisticsQuery(Boolean(user));
+
+  const handleSkillsBuildClick = () => {
+    window.open("https://skillsbuild.org/", "_blank");
+  };
 
   const statCards = useMemo(() => {
     const stats = statistics?.statistics;
@@ -252,21 +242,41 @@ const CandidateDashboardPage = () => {
           <Typography component="h1" className={styles.emptyHeroMessage}>
             You haven&apos;t applied for any jobs yet.
           </Typography>
-          <ButtonBase
-            type="button"
-            className={styles.emptyHeroCta}
-            onClick={() => navigate(ROUTE_PATHS.jobs)}
-            disableRipple
-          >
-            See matched jobs
-          </ButtonBase>
         </Box>
 
         <Box component="section" className={styles.emptyQuickActionsRow}>
           <ButtonBase
             type="button"
+            className={`${styles.quickCard} ${styles.quickCardPurple}`}
+            onClick={() => navigate(ROUTE_PATHS.recommendedJobs)}
+            disableRipple
+          >
+            <Box className={styles.quickCardHeader}>
+              <Box
+                className={styles.quickCardIconFrameNeutral}
+                aria-hidden="true"
+              >
+                <Box
+                  component="img"
+                  src={bardLineIcon}
+                  alt=""
+                  className={styles.quickCardIcon}
+                />
+              </Box>
+              <Typography component="p" className={styles.quickCardTitle}>
+                <span className={styles.quickCardTitleLine}>Recommended</span>
+                <span className={styles.quickCardTitleLine}>Jobs</span>
+              </Typography>
+            </Box>
+            <Typography component="p" className={styles.quickCardSubtitle}>
+              View recommended jobs for you.
+            </Typography>
+          </ButtonBase>
+
+          <ButtonBase
+            type="button"
             className={`${styles.quickCard} ${styles.quickCardBlue}`}
-            onClick={() => navigate(ROUTE_PATHS.jobs)}
+            onClick={handleSkillsBuildClick}
             disableRipple
           >
             <Box className={styles.quickCardHeader}>
@@ -310,34 +320,6 @@ const CandidateDashboardPage = () => {
             </Box>
             <Typography component="p" className={styles.quickCardSubtitle}>
               View all the latest job posts.
-            </Typography>
-          </ButtonBase>
-
-          <ButtonBase
-            type="button"
-            className={`${styles.quickCard} ${styles.quickCardPurple}`}
-            onClick={() => navigate(ROUTE_PATHS.recommendedJobs)}
-            disableRipple
-          >
-            <Box className={styles.quickCardHeader}>
-              <Box
-                className={styles.quickCardIconFrameNeutral}
-                aria-hidden="true"
-              >
-                <Box
-                  component="img"
-                  src={bardLineIcon}
-                  alt=""
-                  className={styles.quickCardIcon}
-                />
-              </Box>
-              <Typography component="p" className={styles.quickCardTitle}>
-                <span className={styles.quickCardTitleLine}>Recommended</span>
-                <span className={styles.quickCardTitleLine}>Jobs</span>
-              </Typography>
-            </Box>
-            <Typography component="p" className={styles.quickCardSubtitle}>
-              View recommended jobs for you.
             </Typography>
           </ButtonBase>
         </Box>
@@ -560,7 +542,7 @@ const CandidateDashboardPage = () => {
                                 app.stage.toLowerCase() || undefined
                             }
                           >
-                            {getPipelineStageLabelFromKey(stageKey)}
+                            {getApplicationStatusLabel(stageKey)}
                           </span>
                         ))}
                       </Box>
