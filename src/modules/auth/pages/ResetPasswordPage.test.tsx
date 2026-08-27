@@ -45,6 +45,7 @@ const renderPage = (route: string) =>
   )
 
 const submitValidForm = async () => {
+  await userEvent.type(screen.getByPlaceholderText('Confirmation code'), '123456')
   const passwordInputs = screen.getAllByPlaceholderText('Password')
   await userEvent.type(passwordInputs[0], 'Password1!')
   await userEvent.type(passwordInputs[1], 'Password1!')
@@ -86,7 +87,7 @@ describe('ResetPasswordPage', () => {
           payload: expect.objectContaining({
             level: 'error',
             title: 'Reset link invalid',
-            message: 'Missing reset token. Please request a new reset link.',
+            message: 'Missing email address. Please request a new confirmation code.',
           }),
         }),
       )
@@ -94,7 +95,7 @@ describe('ResetPasswordPage', () => {
   })
 
   it('validates that new password and confirm password match', async () => {
-    renderPage('/reset-password?token=reset-token-123')
+    renderPage('/reset-password?email=test@example.com')
 
     const passwordInputs = screen.getAllByPlaceholderText('Password')
     await userEvent.type(passwordInputs[0], 'Password1!')
@@ -108,12 +109,12 @@ describe('ResetPasswordPage', () => {
   })
 
   it('uses backend success message after a successful reset', async () => {
-    renderPage('/reset-password?token=reset-token-123')
+    renderPage('/reset-password?email=test@example.com')
     await submitValidForm()
 
     await waitFor(() => {
       expect(mockResetPasswordThunk).toHaveBeenCalledWith({
-        resetToken: 'reset-token-123',
+        resetToken: expect.stringMatching(/^mock-/),
         newPassword: 'Password1!',
         confirmNewPassword: 'Password1!',
       })
@@ -148,7 +149,7 @@ describe('ResetPasswordPage', () => {
       return action
     })
 
-    renderPage('/reset-password?token=reset-token-123')
+    renderPage('/reset-password?email=test@example.com')
     await submitValidForm()
 
     await waitFor(() => {

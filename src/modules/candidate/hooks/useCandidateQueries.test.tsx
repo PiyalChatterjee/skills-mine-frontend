@@ -99,12 +99,14 @@ const mockProfile = {
 }
 
 describe('useCandidateProfileQuery', () => {
-  it('skips when userId is not provided', () => {
+  it('uses the authenticated user when candidateId is not provided', async () => {
+    mockGetById.mockResolvedValue(mockProfile)
     const store = makeTestStore()
     const { result } = renderHook(() => useCandidateProfileQuery(undefined), {
       wrapper: makeWrapper(store),
     })
-    expect(result.current.isUninitialized).toBe(true)
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    expect(mockGetById).toHaveBeenCalledWith('u-1', undefined)
   })
 
   it('fetches profile when userId is provided', async () => {
@@ -127,9 +129,9 @@ describe('useCandidateProfileQuery', () => {
 })
 
 describe('useCandidateDashboardQuery', () => {
-  it('skips when userId is not provided', () => {
+  it('skips when the query is disabled', () => {
     const store = makeTestStore()
-    const { result } = renderHook(() => useCandidateDashboardQuery(undefined), {
+    const { result } = renderHook(() => useCandidateDashboardQuery(false), {
       wrapper: makeWrapper(store),
     })
     expect(result.current.isUninitialized).toBe(true)
@@ -232,12 +234,14 @@ describe('useBuildMyCvQuery', () => {
     expect(result.current.isUninitialized).toBe(true)
   })
 
-  it('skips when candidateId is empty', () => {
+  it('uses the authenticated user when candidateId is empty', async () => {
+    mockGetBuildMyCv.mockResolvedValue({ personalDetails: {}, careerHistory: [] })
     const store = makeTestStore()
     const { result } = renderHook(() => useBuildMyCvQuery(true, ''), {
       wrapper: makeWrapper(store),
     })
-    expect(result.current.isUninitialized).toBe(true)
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    expect(mockGetBuildMyCv).toHaveBeenCalledWith('u-1')
   })
 
   it('sets buildMyCvExists based on careerHistory length', async () => {
