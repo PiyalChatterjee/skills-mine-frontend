@@ -275,6 +275,8 @@ export interface UserSkill {
 export interface BuildMyCvPersonalDetails {
   firstName?: string;
   lastName?: string;
+  email?: string;
+  mobileNumber?: string;
   race?: string;
   gender?: string;
   disabilityStatus?: string;
