@@ -17,6 +17,7 @@ import settings4LineIcon from "@/assets/candidate-dashboard/settings-4-line.svg"
 import fileList2LineIcon from "@/assets/candidate-dashboard/file-list-2-line.svg";
 import progress5LineIcon from "@/assets/candidate-dashboard/progress-5-line.svg";
 import verifiedBadgeLineIcon from "@/assets/candidate-dashboard/verified-badge-line.svg";
+import { getApplicationStatusLabel } from "@/modules/candidate/utils/applicationStatus";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import styles from "./CandidateDashboardPage.module.css";
 
@@ -91,21 +92,6 @@ const STAGE_STATUS_MAP: Record<string, ApplicationStatusKey> = {
   offer_accepted: "offer_accepted",
   offer_declined: "offer_declined",
 };
-
-// Pipeline stage label lookup – API keys are uppercase e.g. INTERVIEW
-const PIPELINE_STAGE_LABEL: Record<string, string> = {
-  applied: "Applied",
-  screening: "Screening",
-  assessment: "Assessment",
-  interview: "Interview",
-  shortlisted: "Shortlisted",
-  offer: "Offer",
-  placed: "Placed",
-  closed: "Closed",
-};
-
-const getPipelineStageLabelFromKey = (key: string): string =>
-  PIPELINE_STAGE_LABEL[key.toLowerCase()] ?? key;
 
 // Returns 0-based index of current stage within the app's pipeline array
 const getPipelineProgress = (
@@ -560,7 +546,7 @@ const CandidateDashboardPage = () => {
                                 app.stage.toLowerCase() || undefined
                             }
                           >
-                            {getPipelineStageLabelFromKey(stageKey)}
+                            {getApplicationStatusLabel(stageKey)}
                           </span>
                         ))}
                       </Box>

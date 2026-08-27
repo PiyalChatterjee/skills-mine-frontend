@@ -15,8 +15,17 @@ export const useAppliedJobIds = () => {
     return new Set(ids)
   }, [data])
 
+  const applicationStages = useMemo(() => {
+    return new Map(
+      (data?.applications ?? [])
+        .filter((application) => Boolean(application.job?.id))
+        .map((application) => [application.job.id, application.stage]),
+    )
+  }, [data])
+
   return {
     appliedJobIds,
+    applicationStages,
     isAppliedJobIdsLoading: isLoading,
     isJobApplied: (jobId: string) => appliedJobIds.has(jobId),
   }
