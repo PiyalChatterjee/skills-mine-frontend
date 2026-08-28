@@ -140,8 +140,8 @@ export const JobsFeedPage = ({ mode }: JobsFeedPageProps) => {
   ])
 
   return (
-    <Box className={styles.pageRoot}>
-      <Box className={styles.headerRow}>
+    <Box className={[styles.pageRoot, isSavedOnlyMode ? styles.savedPageRoot : ''].filter(Boolean).join(' ')}>
+      <Box className={[styles.headerRow, isSavedOnlyMode ? styles.savedHeaderRow : ''].filter(Boolean).join(' ')}>
         <Box className={styles.headingWrap}>
           <ButtonBase
             type="button"
@@ -154,18 +154,23 @@ export const JobsFeedPage = ({ mode }: JobsFeedPageProps) => {
             </span>
             <span className={styles.backButtonText}>Back</span>
           </ButtonBase>
-          <Typography component="h1" className={styles.pageTitle}>
+          <Typography
+            component="h1"
+            className={[styles.pageTitle, isSavedOnlyMode ? styles.savedPageTitle : ''].filter(Boolean).join(' ')}
+          >
             {isSavedOnlyMode ? 'Saved Jobs' : isRecommendedOnlyMode ? 'Recommended Jobs' : 'Latest Opportunities'}
           </Typography>
         </Box>
 
-        <Box className={styles.searchArea}>
-          <OpportunitiesSearchInput
-            value={searchInputValue}
-            onChange={handleSearchChange}
-            onClear={handleClearSearch}
-          />
-        </Box>
+        {!isSavedOnlyMode ? (
+          <Box className={styles.searchArea}>
+            <OpportunitiesSearchInput
+              value={searchInputValue}
+              onChange={handleSearchChange}
+              onClear={handleClearSearch}
+            />
+          </Box>
+        ) : null}
       </Box>
 
       {(isJobsError || savedJobsQuery.isError || recommendedPositionsQuery.isError) ? (
@@ -178,7 +183,7 @@ export const JobsFeedPage = ({ mode }: JobsFeedPageProps) => {
         </Box>
       ) : feedJobs.length > 0 ? (
         <>
-          <Box className={styles.cardGrid}>
+          <Box className={[styles.cardGrid, isSavedOnlyMode ? styles.savedCardGrid : ''].filter(Boolean).join(' ')}>
             {feedJobs.map((job) => {
               const isSaved = isJobSaved(job.jobId)
               const isSaving = isJobSaving(job.jobId)
