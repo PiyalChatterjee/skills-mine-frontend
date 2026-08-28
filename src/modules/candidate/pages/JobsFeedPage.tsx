@@ -27,12 +27,6 @@ const toCityFromLocation = (location: string) => {
   return city?.trim() || 'Unknown'
 }
 
-const fallbackMatchScores = [95, 90, 60, 60, 92, 88, 84, 78]
-
-const getMatchScore = (index: number) => {
-  return fallbackMatchScores[index % fallbackMatchScores.length]
-}
-
 export type JobsFeedMode = 'latest' | 'saved' | 'recommended'
 
 type JobsFeedPageProps = {
@@ -115,12 +109,12 @@ export const JobsFeedPage = ({ mode }: JobsFeedPageProps) => {
             requirements: job.requirements ?? [],
             responsibilities: job.responsibilities ?? [],
           }))
-        : visibleJobs
+        : visibleJobs.map((job) => ({
+            ...job,
+            matchScore: undefined,
+          }))
 
-    return contractJobs.map((job, index) => ({
-      ...job,
-      matchScore: getMatchScore(index),
-    }))
+    return contractJobs
   }, [isRecommendedOnlyMode, isSavedOnlyMode, recommendedPositionsQuery.data, savedJobsQuery.data, visibleJobs])
 
   const feedJobs = useMemo(() => {
