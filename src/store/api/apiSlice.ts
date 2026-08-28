@@ -17,6 +17,8 @@ import type {
   CandidateStatisticsData,
   BuildMyCvData,
   BuildMyCvState,
+  GenerateSkillsRequest,
+  Job,
   JobsResponse,
   RecommendedJobsData,
   SavedJobsData,
@@ -131,6 +133,18 @@ export const apiSlice = createApi({
         },
       ],
     }),
+    getJobProfile: build.query<Job, string>({
+      queryFn: (jobProfileId) =>
+        withMappedApiError(() => jobsApi.getJobProfile(jobProfileId)),
+      providesTags: (_result, _error, jobProfileId) => [
+        { type: "Jobs", id: jobProfileId },
+      ],
+    }),
+    getJobById: build.query<Job, string>({
+      queryFn: (jobId) =>
+        withMappedApiError(async () => (await jobsApi.getById(jobId)).data),
+      providesTags: (_result, _error, jobId) => [{ type: "Jobs", id: jobId }],
+    }),
     getUserProfile: build.query<UserProfile, string>({
       queryFn: (userId) =>
         withMappedApiError(() => candidateApi.getUserProfile(userId)),
@@ -193,6 +207,10 @@ export const apiSlice = createApi({
       providesTags: (_result, _error, args) => [
         { type: "Skills", id: args.keyword },
       ],
+    }),
+    generateSkills: build.mutation<UserSkill[], GenerateSkillsRequest>({
+      queryFn: (payload) =>
+        withMappedApiError(() => candidateApi.generateSkills(payload)),
     }),
     getBuildMyCv: build.query<BuildMyCvState, CandidateResourceArgs>({
       queryFn: ({ candidateId }) =>
@@ -264,6 +282,8 @@ export const {
   useGetCandidateStatisticsQuery,
   useUpdateCandidateProfileMutation,
   useLazyListJobsPageQuery,
+  useGetJobProfileQuery,
+  useGetJobByIdQuery,
   useGetUserProfileQuery,
   useSaveJobMutation,
   useRemoveSavedJobMutation,
@@ -271,6 +291,7 @@ export const {
   useGetRecommendedPositionsQuery,
   useGetCandidateAiActionsQuery,
   useSearchSkillsQuery,
+  useGenerateSkillsMutation,
   useGetBuildMyCvQuery,
   useSaveBuildMyCvMutation,
   useUpdateBuildMyCvMutation,

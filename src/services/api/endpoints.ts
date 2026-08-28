@@ -47,12 +47,13 @@ export const apiEndpoints = {
       "/api/v1/users/me",
     ),
   },
-  admin: {
-    staffInvitations: withDefault(
-      import.meta.env.VITE_ADMIN_STAFF_INVITATIONS_ENDPOINT,
-      "/api/v1/admin/staff-invitations",
-    ),
-  },
+  // admin.staffInvitations is not yet called anywhere in the app.
+  // admin: {
+  //   staffInvitations: withDefault(
+  //     import.meta.env.VITE_ADMIN_STAFF_INVITATIONS_ENDPOINT,
+  //     "/api/v1/admin/staff-invitations",
+  //   ),
+  // },
   documents: {
     upload: withDefault(
       import.meta.env.VITE_DOCUMENTS_UPLOAD_ENDPOINT,
@@ -144,6 +145,10 @@ export const apiEndpoints = {
       import.meta.env.VITE_JOB_DETAILS_ENDPOINT,
       "/jobs/:jobId",
     ),
+    profileDetails: withDefault(
+      import.meta.env.VITE_JOB_PROFILE_DETAILS_ENDPOINT,
+      "/api/v1/job-service/jobs/:jobProfileId",
+    ),
     save: withDefault(
       import.meta.env.VITE_JOB_SAVE_ENDPOINT,
       "/jobs/:jobId/save",
@@ -166,6 +171,10 @@ export const apiEndpoints = {
     search: withDefault(
       import.meta.env.VITE_SKILLS_SEARCH_ENDPOINT,
       "/skills/search",
+    ),
+    generate: withDefault(
+      import.meta.env.VITE_SKILLS_GENERATE_ENDPOINT,
+      "/skills/generate",
     ),
     keywordParam: withDefault(
       import.meta.env.VITE_SKILLS_SEARCH_KEYWORD_PARAM,

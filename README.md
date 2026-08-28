@@ -37,6 +37,18 @@ VITE_DOCUMENTS_UPLOAD_RESUME_ENDPOINT=/documents/resume
 
 `VITE_API_BASE_URL` defaults to `/api`. `VITE_GOOGLE_CLIENT_ID` is optional; when it is absent, the app still runs and Google sign-in reports that OAuth configuration is unavailable. All endpoint-specific `VITE_*` keys have hardcoded fallbacks matching the mock-server contract and are optional. See [ARCHITECTURE.md](ARCHITECTURE.md) for the full environment variable catalog.
 
+### Local Mock API
+
+The sibling `skills-mine-mock` project supplies the local Express API contract. Start it in a separate terminal:
+
+```bash
+cd ../skills-mine-mock
+npm install
+npm run mock
+```
+
+Either `VITE_API_BASE_URL=http://localhost:4000` or `VITE_API_BASE_URL=http://localhost:4000/api` works with the mock server. The latter uses its unversioned `/api` compatibility alias; explicit `/api/v1/*` routes keep their versioned prefix. See the mock project's [API_ARCHITECTURE.md](../skills-mine-mock/API_ARCHITECTURE.md) and OpenAPI contracts for endpoint details.
+
 Useful scripts:
 
 ```bash

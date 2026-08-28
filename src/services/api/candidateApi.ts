@@ -18,6 +18,7 @@ import type {
   CvDownloadData,
   CvPreviewData,
   CvUploadData,
+  GenerateSkillsRequest,
   RecommendedJobsData,
   SavedJobsData,
   SaveJobRequest,
@@ -611,6 +612,31 @@ export const candidateApi = {
       }),
     );
     return normalizeSkillsResponse(payload);
+  },
+
+  // AI-generated skill suggestions from the candidate's career history — the
+  // caller is expected to overwrite the current skills list with the result.
+  async generateSkills(payload: GenerateSkillsRequest): Promise<UserSkill[]> {
+    const raw = await unwrapResponseData(
+      apiClient.post(apiEndpoints.skills.generate, {
+        subject_type: "CANDIDATE",
+        subject_id: payload.candidateId,
+        input_source: "PROFILE",
+        career_history: payload.careerHistory.map((entry) => ({
+          company_name: entry.companyName,
+          position_held: entry.positionHeld,
+          responsibilities: entry.responsibilities,
+          projects: entry.projects,
+        })),
+      }),
+    );
+    const data = responseData(raw as Record<string, unknown>) as Record<string, any>;
+    const suggested = Array.isArray(data.suggested_skills) ? data.suggested_skills : [];
+    return suggested.map((skill: Record<string, any>) => ({
+      skillId: skill.skill_id ?? skill.skillId ?? "",
+      skillName: skill.skill_name ?? skill.skillName ?? "",
+      selected: true,
+    }));
   },
 
   async getBuildMyCv(candidateId: string): Promise<BuildMyCvState> {

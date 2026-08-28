@@ -214,6 +214,7 @@ export interface JobsListData {
 
 export interface Job {
   jobId: string;
+  jobProfileId?: string;
   title: string;
   company: string;
   location?: string;
@@ -270,6 +271,18 @@ export interface UserSkill {
   skillName: string;
   selected: boolean;
   userId?: string;
+}
+
+export interface GenerateSkillsCareerHistoryEntry {
+  companyName: string;
+  positionHeld: string;
+  responsibilities: string[];
+  projects?: string[];
+}
+
+export interface GenerateSkillsRequest {
+  candidateId: string;
+  careerHistory: GenerateSkillsCareerHistoryEntry[];
 }
 
 export interface BuildMyCvPersonalDetails {

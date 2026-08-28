@@ -1,10 +1,8 @@
-import { Box, Button, Typography } from "@mui/material";
-import { type ReactNode, useState } from "react";
+import { Box, Typography } from "@mui/material";
+import type { ReactNode } from "react";
 import buildingIcon from "@/assets/cv-builder/building-line.svg";
 import educationIcon from "@/assets/cv-builder/education-line.svg";
 import languagesIcon from "@/assets/cv-builder/languages-line.svg";
-import minusIcon from "@/assets/cv-builder/minus-line.svg";
-import plusIcon from "@/assets/cv-builder/plus-line.svg";
 import skillsIcon from "@/assets/cv-builder/skills-sparkle.svg";
 import userIcon from "@/assets/public-layout/user-icon.svg";
 import CvBuilderCareerHistoryForm from "./CvBuilderCareerHistoryForm";
@@ -61,20 +59,7 @@ const REVIEW_SECTIONS: ReviewSectionConfig[] = [
   },
 ];
 
-const CvBuilderReviewScreen = () => {
-  const [expandedSections, setExpandedSections] = useState<
-    Set<ReviewSectionId>
-  >(new Set(["personal"]));
-
-  const toggleSection = (sectionId: ReviewSectionId) => {
-    setExpandedSections((current) => {
-      const next = new Set(current);
-      next.has(sectionId) ? next.delete(sectionId) : next.add(sectionId);
-      return next;
-    });
-  };
-
-  return (
+const CvBuilderReviewScreen = () => (
     <Box className={styles.reviewLayout}>
       <Box className={styles.reviewMainColumn}>
         <Typography className={styles.reviewTitle}>Review your CV.</Typography>
@@ -84,16 +69,9 @@ const CvBuilderReviewScreen = () => {
         </Typography>
 
         <Box className={styles.reviewSectionsList}>
-          {REVIEW_SECTIONS.map((section) => {
-            const isExpanded = expandedSections.has(section.id);
-            return (
-              <Box key={section.id} className={styles.reviewSectionItem}>
-                <Button
-                  type="button"
-                  className={`${styles.reviewSectionToggle} no-global-hover`}
-                  disableRipple
-                  onClick={() => toggleSection(section.id)}
-                >
+          {REVIEW_SECTIONS.map((section) => (
+            <Box key={section.id} className={styles.reviewSectionItem}>
+              <Box className={styles.reviewSectionToggle}>
                   <Box
                     className={styles.reviewSectionIconBadge}
                     aria-hidden="true"
@@ -108,30 +86,18 @@ const CvBuilderReviewScreen = () => {
                   <Typography className={styles.reviewSectionLabel}>
                     {section.label}
                   </Typography>
-                  <Box
-                    component="img"
-                    src={isExpanded ? minusIcon : plusIcon}
-                    alt=""
-                    className={styles.reviewSectionExpandIcon}
-                    aria-hidden="true"
-                  />
-                </Button>
-
-                {isExpanded && (
-                  <Box className={styles.reviewSectionContent}>
-                    <Box className={styles.reviewEmbeddedSectionContent}>
-                      {section.renderContent()}
-                    </Box>
-                  </Box>
-                )}
               </Box>
-            );
-          })}
+              <Box className={styles.reviewSectionContent}>
+                <Box className={styles.reviewEmbeddedSectionContent}>
+                  {section.renderContent()}
+                </Box>
+              </Box>
+            </Box>
+          ))}
         </Box>
       </Box>
 
     </Box>
   );
-};
 
 export default CvBuilderReviewScreen;
