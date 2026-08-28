@@ -18,6 +18,7 @@ import type {
   BuildMyCvData,
   BuildMyCvState,
   GenerateSkillsRequest,
+  Job,
   JobsResponse,
   RecommendedJobsData,
   SavedJobsData,
@@ -131,6 +132,18 @@ export const apiSlice = createApi({
           id: `${args.searchQuery ?? ""}:${args.page}:${args.pageSize}`,
         },
       ],
+    }),
+    getJobProfile: build.query<Job, string>({
+      queryFn: (jobProfileId) =>
+        withMappedApiError(() => jobsApi.getJobProfile(jobProfileId)),
+      providesTags: (_result, _error, jobProfileId) => [
+        { type: "Jobs", id: jobProfileId },
+      ],
+    }),
+    getJobById: build.query<Job, string>({
+      queryFn: (jobId) =>
+        withMappedApiError(async () => (await jobsApi.getById(jobId)).data),
+      providesTags: (_result, _error, jobId) => [{ type: "Jobs", id: jobId }],
     }),
     getUserProfile: build.query<UserProfile, string>({
       queryFn: (userId) =>
@@ -269,6 +282,8 @@ export const {
   useGetCandidateStatisticsQuery,
   useUpdateCandidateProfileMutation,
   useLazyListJobsPageQuery,
+  useGetJobProfileQuery,
+  useGetJobByIdQuery,
   useGetUserProfileQuery,
   useSaveJobMutation,
   useRemoveSavedJobMutation,

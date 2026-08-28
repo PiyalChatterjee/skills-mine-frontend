@@ -144,6 +144,10 @@ export const apiEndpoints = {
       import.meta.env.VITE_JOB_DETAILS_ENDPOINT,
       "/jobs/:jobId",
     ),
+    profileDetails: withDefault(
+      import.meta.env.VITE_JOB_PROFILE_DETAILS_ENDPOINT,
+      "/api/v1/job-service/jobs/:jobProfileId",
+    ),
     save: withDefault(
       import.meta.env.VITE_JOB_SAVE_ENDPOINT,
       "/jobs/:jobId/save",

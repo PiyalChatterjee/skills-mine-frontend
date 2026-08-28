@@ -214,6 +214,7 @@ export interface JobsListData {
 
 export interface Job {
   jobId: string;
+  jobProfileId?: string;
   title: string;
   company: string;
   location?: string;
