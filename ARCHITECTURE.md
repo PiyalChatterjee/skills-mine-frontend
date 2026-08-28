@@ -411,6 +411,18 @@ src/
 
 ## Endpoint Configuration
 
+### Local Mock Server Compatibility
+
+The companion mock API runs at `http://localhost:4000`. It accepts both unversioned routes and a bare `/api` compatibility prefix, so the default frontend base URL `/api` works when development-server proxying is configured and `http://localhost:4000/api` works when targeting the server directly. Explicit versioned routes, including `/api/v1/auth/*`, `/api/v1/crm/*`, and `/api/manco/*`, are not rewritten and must retain their full configured path.
+
+For local direct integration, set:
+
+```dotenv
+VITE_API_BASE_URL=http://localhost:4000
+```
+
+The mock server is started separately from the frontend with `npm run mock` in the sibling `skills-mine-mock` project. Its [API architecture](../skills-mine-mock/API_ARCHITECTURE.md) and OpenAPI files define the mock contract; the frontend endpoint fallbacks remain the client-side compatibility layer.
+
 All declared frontend environment keys are in [src/vite-env.d.ts](src/vite-env.d.ts). The most important runtime settings are:
 
 | Variable | Default | Purpose |
