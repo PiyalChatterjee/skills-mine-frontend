@@ -47,12 +47,13 @@ export const apiEndpoints = {
       "/api/v1/users/me",
     ),
   },
-  admin: {
-    staffInvitations: withDefault(
-      import.meta.env.VITE_ADMIN_STAFF_INVITATIONS_ENDPOINT,
-      "/api/v1/admin/staff-invitations",
-    ),
-  },
+  // admin.staffInvitations is not yet called anywhere in the app.
+  // admin: {
+  //   staffInvitations: withDefault(
+  //     import.meta.env.VITE_ADMIN_STAFF_INVITATIONS_ENDPOINT,
+  //     "/api/v1/admin/staff-invitations",
+  //   ),
+  // },
   documents: {
     upload: withDefault(
       import.meta.env.VITE_DOCUMENTS_UPLOAD_ENDPOINT,
