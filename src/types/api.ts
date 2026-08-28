@@ -272,6 +272,18 @@ export interface UserSkill {
   userId?: string;
 }
 
+export interface GenerateSkillsCareerHistoryEntry {
+  companyName: string;
+  positionHeld: string;
+  responsibilities: string[];
+  projects?: string[];
+}
+
+export interface GenerateSkillsRequest {
+  candidateId: string;
+  careerHistory: GenerateSkillsCareerHistoryEntry[];
+}
+
 export interface BuildMyCvPersonalDetails {
   firstName?: string;
   lastName?: string;

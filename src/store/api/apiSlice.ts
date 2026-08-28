@@ -17,6 +17,7 @@ import type {
   CandidateStatisticsData,
   BuildMyCvData,
   BuildMyCvState,
+  GenerateSkillsRequest,
   JobsResponse,
   RecommendedJobsData,
   SavedJobsData,
@@ -194,6 +195,10 @@ export const apiSlice = createApi({
         { type: "Skills", id: args.keyword },
       ],
     }),
+    generateSkills: build.mutation<UserSkill[], GenerateSkillsRequest>({
+      queryFn: (payload) =>
+        withMappedApiError(() => candidateApi.generateSkills(payload)),
+    }),
     getBuildMyCv: build.query<BuildMyCvState, CandidateResourceArgs>({
       queryFn: ({ candidateId }) =>
         withMappedApiError(() => candidateApi.getBuildMyCv(candidateId)),
@@ -271,6 +276,7 @@ export const {
   useGetRecommendedPositionsQuery,
   useGetCandidateAiActionsQuery,
   useSearchSkillsQuery,
+  useGenerateSkillsMutation,
   useGetBuildMyCvQuery,
   useSaveBuildMyCvMutation,
   useUpdateBuildMyCvMutation,

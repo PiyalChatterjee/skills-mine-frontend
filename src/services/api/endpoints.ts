@@ -167,6 +167,10 @@ export const apiEndpoints = {
       import.meta.env.VITE_SKILLS_SEARCH_ENDPOINT,
       "/skills/search",
     ),
+    generate: withDefault(
+      import.meta.env.VITE_SKILLS_GENERATE_ENDPOINT,
+      "/skills/generate",
+    ),
     keywordParam: withDefault(
       import.meta.env.VITE_SKILLS_SEARCH_KEYWORD_PARAM,
       "keyword",
