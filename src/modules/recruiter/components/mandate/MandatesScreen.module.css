@@ -267,7 +267,7 @@
 .gridHeader,
 .gridBody {
   display: grid;
-  grid-template-columns: minmax(150px, 1.3fr) minmax(150px, 1.25fr) minmax(140px, 1.05fr) minmax(170px, 1.35fr) minmax(90px, 0.8fr) 32px;
+  grid-template-columns: minmax(150px, 1.3fr) minmax(100px, 0.75fr) minmax(150px, 1.25fr) minmax(140px, 1.05fr) minmax(170px, 1.35fr) minmax(90px, 0.8fr) 32px;
   align-items: center;
   column-gap: 28px;
   padding: 0 22px;

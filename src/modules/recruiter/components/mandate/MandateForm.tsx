@@ -18,23 +18,27 @@ import styles from '@/modules/recruiter/pages/NewMandatePage.module.css'
 
 export const mandateSchema = z
   .object({
-    companyName:      z.string().min(1, 'Company name is required'),
-    positionTitle:    z.string().min(1, 'Position title is required'),
-    location:         z.string(),
-    fillByDate:       z.string().min(1, 'Fill by date is required'),
-    workType:         z.string().min(1, 'Work type is required'),
-    employmentType:   z.string().min(1, 'Employment type is required'),
-    experienceLevel:  z.string().min(1, 'Experience level is required'),
-    priority:         z.string().min(1, 'Priority is required'),
-    salaryMin:        z.union([z.number().min(0, 'Must be ≥ 0'), z.literal('')]).refine(v => v !== '', { message: 'Minimum salary is required' }),
-    salaryMax:        z.union([z.number().min(0, 'Must be ≥ 0'), z.literal('')]).refine(v => v !== '', { message: 'Maximum salary is required' }),
-    jobDescription:   z.string().min(1, 'Job description is required'),
-    requirements:     z.string().min(1, 'Requirements are required'),
-    responsibilities: z.string().min(1, 'Responsibilities are required'),
-    benefits:         z.string().min(1, 'Benefits are required'),
-    skills:           z.array(z.string()).min(1, 'At least one skill is required'),
-    industries:       z.array(z.string()).min(1, 'At least one industry is required'),
-    jobBoards:        z.array(z.string()).min(1, 'Select at least one job board'),
+    companyName:          z.string().min(1, 'Company name is required'),
+    clientRate:           z.string(),
+    contactPerson:        z.string(),
+    contactPersonEmail:   z.string(),
+    contactPersonPhone:   z.string(),
+    positionTitle:        z.string().min(1, 'Position title is required'),
+    location:             z.string(),
+    fillByDate:           z.string().min(1, 'Fill by date is required'),
+    workType:             z.string().min(1, 'Work type is required'),
+    employmentType:       z.string().min(1, 'Employment type is required'),
+    experienceLevel:      z.string().min(1, 'Experience level is required'),
+    priority:             z.string().min(1, 'Priority is required'),
+    salaryMin:            z.union([z.number().min(0, 'Must be ≥ 0'), z.literal('')]).refine(v => v !== '', { message: 'Minimum salary is required' }),
+    salaryMax:            z.union([z.number().min(0, 'Must be ≥ 0'), z.literal('')]).refine(v => v !== '', { message: 'Maximum salary is required' }),
+    jobDescription:       z.string().min(1, 'Job description is required'),
+    requirements:         z.string().min(1, 'Requirements are required'),
+    responsibilities:     z.string().min(1, 'Responsibilities are required'),
+    benefits:             z.string().min(1, 'Benefits are required'),
+    skills:               z.array(z.string()).min(1, 'At least one skill is required'),
+    industries:           z.array(z.string()).min(1, 'At least one industry is required'),
+    jobBoards:            z.array(z.string()).min(1, 'Select at least one job board'),
   })
   .refine(
     data => {
@@ -48,6 +52,10 @@ export const mandateSchema = z
 
 export const emptyMandateValues: MandateFormValues = {
   companyName: '',
+  clientRate: '',
+  contactPerson: '',
+  contactPersonEmail: '',
+  contactPersonPhone: '',
   positionTitle: '',
   location: '',
   fillByDate: '',
@@ -96,6 +104,7 @@ export const MandateForm = ({
   const {
     control,
     handleSubmit,
+    setValue,
     formState: { errors, isDirty },
   } = useForm<MandateFormValues>({
     resolver: zodResolver(mandateSchema),
@@ -141,7 +150,7 @@ export const MandateForm = ({
       {/* ── Form ── */}
       <form onSubmit={handleSubmit(handleFormSubmit)} noValidate>
         <Box className={styles.card}>
-          <BasicInformationSection control={control} errors={errors} />
+          <BasicInformationSection control={control} errors={errors} setValue={setValue} />
           <SalarySection control={control} errors={errors} />
           <JobDescriptionSection control={control} errors={errors} />
           <BulletTextareaSection

@@ -379,28 +379,65 @@
 .pipelineCardActions {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   margin-top: auto;
 }
 
-.pipelineCardActionBtn:global(.MuiButtonBase-root) {
-  padding: 0;
-  color: #0057a5;
-  min-width: 0;
+.pipelineCardViewBtn:global(.MuiButtonBase-root) {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px 2px 2px;
+  border: 1.5px solid #8a7a6a;
+  border-radius: 999px;
+  color: #5a4a3a;
+  background: transparent;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
   line-height: 1;
-  transition: color 0.12s ease;
+  min-width: 0;
+  transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
 }
 
-.pipelineCardActionBtn svg { width: 20px; height: 20px; }
-.pipelineCardActionBtn [aria-label="Expand"] svg,
-.pipelineCardActionBtn svg[viewBox="0 0 24 24"] { fill: none; stroke: currentColor; stroke-width: 2; }
+.pipelineCardViewBtn:global(.MuiButtonBase-root):hover {
+  background: rgba(138, 122, 106, 0.12);
+}
+
+.pipelineCardViewBtnIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #8a7a6a;
+  flex-shrink: 0;
+}
+
 .cardSuccess .pipelineCardTitle, .cardDanger .pipelineCardTitle,
 .cardSuccess .pipelineCardCompanyName, .cardDanger .pipelineCardCompanyName,
-.cardSuccess .pipelineCardCompanyIcon, .cardDanger .pipelineCardCompanyIcon,
-.cardSuccess .pipelineCardActionBtn, .cardDanger .pipelineCardActionBtn { color: #ffffff; }
+.cardSuccess .pipelineCardCompanyIcon, .cardDanger .pipelineCardCompanyIcon { color: #ffffff; }
 
-.pipelineCardActionBtn:global(.MuiButtonBase-root):hover {
-  color: #1a2b4a;
+.cardSuccess .pipelineCardViewBtn:global(.MuiButtonBase-root),
+.cardDanger .pipelineCardViewBtn:global(.MuiButtonBase-root) {
+  border-color: rgba(255,255,255,0.7);
+  color: #ffffff;
+}
+
+.cardSuccess .pipelineCardViewBtnIcon,
+.cardDanger .pipelineCardViewBtnIcon {
+  background: rgba(255,255,255,0.85);
+}
+
+.cardSuccess .pipelineCardViewBtnIcon svg path,
+.cardDanger .pipelineCardViewBtnIcon svg path {
+  stroke: #1a2b4a;
+}
+
+.cardSuccess .pipelineCardViewBtn:global(.MuiButtonBase-root):hover,
+.cardDanger .pipelineCardViewBtn:global(.MuiButtonBase-root):hover {
+  background: rgba(255,255,255,0.15);
 }
 
 /* ── View More Button ────────────────────────────────────────────────── */

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import {
   Alert,
   Box,
@@ -18,10 +19,16 @@ import {
 } from "@/modules/auth/types";
 import { normalizePhoneNumberInput } from "@/app/phoneNumber";
 import { authApi } from "@/services/api/authApi";
+import { ROUTE_PATHS } from "@/routes/routePaths";
 import styles from "./SignupPage.module.css";
 
 const SignupPage = () => {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const invitationToken = searchParams.get("token") ?? undefined;
+
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const {
     register,
@@ -51,14 +58,41 @@ const SignupPage = () => {
   });
 
   const onSubmit = async (values: InviteSignupFormValues) => {
-    await authApi.register({
-      ...values,
-      acceptPrivacyPolicy: values.acceptTerms,
-    });
+    setSubmitError(null);
+    try {
+      if (invitationToken) {
+        // Recruiter (or any staff) invited via email link — use the staff registration flow
+        await authApi.staffRegister({
+          firstName: values.firstName,
+          lastName: values.lastName,
+          email: values.email,
+          mobileNumber: values.mobileNumber,
+          password: values.password,
+          confirmPassword: values.confirmPassword,
+          invitationToken,
+          acceptTerms: values.acceptTerms,
+          acceptPrivacyPolicy: values.acceptTerms,
+        });
+      } else {
+        // Self-service candidate registration
+        await authApi.register({
+          ...values,
+          acceptPrivacyPolicy: values.acceptTerms,
+        });
+      }
 
-    setSubmitSuccess(
-      "Your details were captured. You can now continue with Sign in.",
-    );
+      setSubmitSuccess(
+        "Your details were captured. You can now continue with Sign in.",
+      );
+
+      // Redirect to login after a short moment so the user sees the success message
+      setTimeout(() => navigate(ROUTE_PATHS.login), 1500);
+    } catch (err: unknown) {
+      const message =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
+        "Something went wrong. Please try again.";
+      setSubmitError(message);
+    }
   };
 
   return (
@@ -76,6 +110,7 @@ const SignupPage = () => {
           onSubmit={handleSubmit(onSubmit)}
         >
           {submitSuccess ? <Alert severity="success">{submitSuccess}</Alert> : null}
+          {submitError ? <Alert severity="error">{submitError}</Alert> : null}
 
           <Box className={styles.nameRow}>
             <Box className={styles.fieldGroup}>

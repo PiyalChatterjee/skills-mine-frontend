@@ -9,13 +9,14 @@ type MandatesScreenProps = {
   onEditJobPost: (mandateId: string) => void
 }
 
-const STATUS_OPTIONS = ['Draft', 'Posted', 'Closed'] as const
+const STATUS_OPTIONS = ['Posted', 'Closed'] as const
 type StatusOption = (typeof STATUS_OPTIONS)[number]
 
 const LOCATION_OPTIONS = ['Johannesburg', 'Cape Town', 'Remote', 'Hybrid'] as const
 type LocationOption = (typeof LOCATION_OPTIONS)[number]
 
 /** Format ISO date string to "D Mon YYYY" e.g. "15 Oct 2024" */
+
 function formatDate(iso: string): string {
   if (!iso) return ''
   const d = new Date(iso)
@@ -384,6 +385,7 @@ export const MandatesScreen = ({ onNewJobPost, onEditJobPost }: MandatesScreenPr
 
                   <Box className={styles.gridHeader}>
                     <Typography component="span" className={styles.gridLabel}>JOB TITLE</Typography>
+                    <Typography component="span" className={styles.gridLabel}>CLIENT RATE</Typography>
                     <Typography component="span" className={styles.gridLabel}>INDUSTRY</Typography>
                     <Typography component="span" className={styles.gridLabel}>LOCATION</Typography>
                     <Box className={styles.timelineHeader}>
@@ -395,6 +397,7 @@ export const MandatesScreen = ({ onNewJobPost, onEditJobPost }: MandatesScreenPr
 
                   <Box className={styles.gridBody}>
                     <Typography component="span" className={styles.gridValue}>{post.title}</Typography>
+                    <Typography component="span" className={styles.gridValue}>{post.clientRate ?? '—'}</Typography>
                     <Typography component="span" className={styles.gridValue}>{post.industry}</Typography>
                     <Typography component="span" className={styles.gridValue}>{post.location}</Typography>
                     <Typography component="span" className={styles.gridValue}>{timeline}</Typography>

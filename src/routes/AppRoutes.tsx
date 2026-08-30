@@ -7,6 +7,7 @@ import { MancoLayout } from "@/layouts/MancoLayout";
 import { PublicLayout } from "@/layouts/PublicLayout";
 import { RecruiterLayout } from "@/layouts/RecruiterLayout";
 import LoginPage from "@/modules/auth/pages/LoginPage";
+import RecruiterSignupPage from "@/modules/auth/pages/RecruiterSignupPage";
 import SignupPage from "@/modules/auth/pages/SignupPage";
 import ResetPasswordPage from "@/modules/auth/pages/ResetPasswordPage.tsx";
 import LandingPage from "@/modules/public/pages/LandingPage";
@@ -90,6 +91,7 @@ export const AppRoutes = () => {
           <Route path={ROUTE_PATHS.landing} element={<LandingPage />} />
           <Route path={ROUTE_PATHS.login} element={<LoginPage />} />
           <Route path={ROUTE_PATHS.signup} element={<SignupPage />} />
+          <Route path={ROUTE_PATHS.recruiterSignup} element={<RecruiterSignupPage />} />
           <Route
             path={ROUTE_PATHS.resetPassword}
             element={<ResetPasswordPage />}
