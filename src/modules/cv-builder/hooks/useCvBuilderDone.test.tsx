@@ -184,6 +184,7 @@ describe('buildCvBuilderPrefillData', () => {
 
 const mockSaveBuildMyCv = vi.hoisted(() => vi.fn())
 const mockUpdateBuildMyCv = vi.hoisted(() => vi.fn())
+const mockUploadResumeDocument = vi.hoisted(() => vi.fn())
 const mockNavigate = vi.hoisted(() => vi.fn())
 
 vi.mock('@/store/api/apiSlice', async () => {
@@ -200,12 +201,23 @@ vi.mock('@/store/api/apiSlice', async () => {
       mockUpdateBuildMyCv,
       { isLoading: false },
     ],
+    useUploadCvResumeDocumentMutation: () => [mockUploadResumeDocument, { isLoading: false }],
   }
 })
 
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom')
   return { ...actual, useNavigate: () => mockNavigate }
+})
+
+vi.mock('@/app/auth/AuthContext', async () => {
+  const actual = await vi.importActual<typeof import('@/app/auth/AuthContext')>(
+    '@/app/auth/AuthContext',
+  )
+  return {
+    ...actual,
+    useAuth: () => ({ user: { userId: 'u-1', candidateId: 'c-1' } }),
+  }
 })
 
 const makeTestStore = () =>
@@ -260,38 +272,16 @@ const defaultFormValues = {
 describe('useCvBuilderDone', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockUploadResumeDocument.mockReturnValue({ unwrap: () => Promise.resolve({}) })
   })
 
-  it('calls goNext when activeView is not view-cv', async () => {
-    const goNext = vi.fn()
-    const store = makeTestStore()
-    const { result } = renderHook(
-      () =>
-        useCvBuilderDone({
-            activeView: 'form',
-          goNext,
-          getFormValues: () => defaultFormValues,
-          selectedLanguageEntries: ['English'],
-          buildMyCvExists: false,
-        }),
-      { wrapper: makeWrapper(store) },
-    )
-    await act(async () => {
-      await result.current.handleDone()
-    })
-    expect(goNext).toHaveBeenCalled()
-    expect(mockSaveBuildMyCv).not.toHaveBeenCalled()
-  })
-
-  it('calls save mutation when activeView is view-cv and buildMyCvExists is false', async () => {
+  it('calls save mutation when buildMyCvExists is false', async () => {
     const successResult = { lastModified: '2024-01-01' }
     mockSaveBuildMyCv.mockReturnValue({ unwrap: () => Promise.resolve(successResult) })
     const store = makeTestStore()
     const { result } = renderHook(
       () =>
         useCvBuilderDone({
-          activeView: 'view-cv',
-          goNext: vi.fn(),
           getFormValues: () => defaultFormValues,
           selectedLanguageEntries: ['English'],
           buildMyCvExists: false,
@@ -302,18 +292,22 @@ describe('useCvBuilderDone', () => {
       await result.current.handleDone()
     })
     expect(mockSaveBuildMyCv).toHaveBeenCalled()
+    expect(mockUploadResumeDocument).toHaveBeenCalledWith(
+      expect.objectContaining({
+        candidateId: 'c-1',
+        fileName: expect.stringMatching(/\.pdf$/),
+      }),
+    )
     expect(mockNavigate).toHaveBeenCalled()
   })
 
-  it('calls update mutation when activeView is view-cv and buildMyCvExists is true', async () => {
+  it('calls update mutation when buildMyCvExists is true', async () => {
     const successResult = { lastModified: '2024-06-01' }
     mockUpdateBuildMyCv.mockReturnValue({ unwrap: () => Promise.resolve(successResult) })
     const store = makeTestStore()
     const { result } = renderHook(
       () =>
         useCvBuilderDone({
-          activeView: 'view-cv',
-          goNext: vi.fn(),
           getFormValues: () => defaultFormValues,
           selectedLanguageEntries: ['English'],
           buildMyCvExists: true,
@@ -327,6 +321,26 @@ describe('useCvBuilderDone', () => {
     expect(mockNavigate).toHaveBeenCalled()
   })
 
+  it('skips PDF upload and update when an existing CV has no form changes', async () => {
+    const store = makeTestStore()
+    const { result } = renderHook(
+      () =>
+        useCvBuilderDone({
+          getFormValues: () => defaultFormValues,
+          selectedLanguageEntries: ['English'],
+          buildMyCvExists: true,
+          hasFormChanges: false,
+        }),
+      { wrapper: makeWrapper(store) },
+    )
+    await act(async () => {
+      await result.current.handleDone()
+    })
+    expect(mockUploadResumeDocument).not.toHaveBeenCalled()
+    expect(mockUpdateBuildMyCv).not.toHaveBeenCalled()
+    expect(mockNavigate).toHaveBeenCalled()
+  })
+
   it('dispatches error notification when save fails', async () => {
     mockSaveBuildMyCv.mockReturnValue({
       unwrap: () => Promise.reject({ message: 'Save failed' }),
@@ -335,8 +349,6 @@ describe('useCvBuilderDone', () => {
     const { result } = renderHook(
       () =>
         useCvBuilderDone({
-          activeView: 'view-cv',
-          goNext: vi.fn(),
           getFormValues: () => defaultFormValues,
           selectedLanguageEntries: [],
           buildMyCvExists: false,
@@ -357,8 +369,6 @@ describe('useCvBuilderDone', () => {
     const { result } = renderHook(
       () =>
         useCvBuilderDone({
-          activeView: 'launcher',
-          goNext: vi.fn(),
           getFormValues: () => defaultFormValues,
           selectedLanguageEntries: [],
           buildMyCvExists: false,

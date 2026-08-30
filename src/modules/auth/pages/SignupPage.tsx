@@ -17,6 +17,7 @@ import {
   inviteSignupSchema,
   type InviteSignupFormValues,
 } from "@/modules/auth/types";
+import { normalizePhoneNumberInput } from "@/app/phoneNumber";
 import { authApi } from "@/services/api/authApi";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import styles from "./SignupPage.module.css";
@@ -40,6 +41,7 @@ const SignupPage = () => {
       firstName: "",
       lastName: "",
       email: "",
+      staffNumber: "",
       mobileNumber: "",
       password: "",
       confirmPassword: "",
@@ -51,8 +53,7 @@ const SignupPage = () => {
   const confirmPasswordValue = watch("confirmPassword");
   const phoneNumberRegistration = register("mobileNumber", {
     onChange: (event) => {
-      const digitsOnly = event.target.value.replace(/\D/g, "").slice(0, 15);
-      event.target.value = digitsOnly ? `+${digitsOnly}` : "";
+      event.target.value = normalizePhoneNumberInput(event.target.value);
     },
   });
 
@@ -155,10 +156,21 @@ const SignupPage = () => {
               slotProps={{
                 htmlInput: {
                   inputMode: "tel",
-                  maxLength: 16,
+                  maxLength: 10,
                 },
               }}
               {...phoneNumberRegistration}
+              className={styles.inputField}
+            />
+          </Box>
+
+          <Box className={styles.fieldGroup}>
+            <Typography className={styles.fieldLabel}>Staff Number</Typography>
+            <TextField
+              placeholder="Staff Number"
+              error={Boolean(errors.staffNumber)}
+              helperText={errors.staffNumber?.message}
+              {...register("staffNumber")}
               className={styles.inputField}
             />
           </Box>

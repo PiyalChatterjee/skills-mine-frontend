@@ -52,6 +52,47 @@
   min-width: 0;
 }
 
+.desktopNavItems {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.mobileMenuButton,
+.mobileMenuButton:global(.MuiIconButton-root) {
+  display: none;
+}
+
+.mobileMenuIcon {
+  width: 20px;
+  height: 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.mobileMenuIcon > span {
+  display: block;
+  width: 100%;
+  height: 2px;
+  border-radius: 999px;
+  background: #03478c;
+}
+
+.mobileNavPanel {
+  display: none;
+}
+
+.mobileNavPanelOpen {
+  display: none;
+}
+
+.mobileNavItem {
+  width: 100%;
+  text-align: left;
+  border-radius: 8px;
+}
+
 .navItemMuted,
 .navItemActive,
 .navItemStrong,
@@ -423,10 +464,61 @@
   }
 
   .navGroup {
-    width: 100%;
-    flex-wrap: wrap;
+    width: auto;
+    flex: 0;
+    flex-wrap: nowrap;
     justify-content: flex-end;
-    gap: 16px;
+    gap: 8px;
+  }
+
+  .desktopNavItems {
+    display: none;
+  }
+
+  .mobileMenuButton,
+  .mobileMenuButton:global(.MuiIconButton-root) {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: inline-grid;
+    place-items: center;
+    padding: 0;
+  }
+
+  .mobileMenuButton:global(.MuiIconButton-root):hover {
+    background: #eef4fc;
+  }
+
+  .mobileNavPanel {
+    display: none;
+    width: 100%;
+    margin-top: 10px;
+    padding: 12px;
+    border-radius: 12px;
+    background: #ffffff;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .mobileNavPanelOpen {
+    display: flex;
+  }
+
+  .mobileNavItem,
+  .mobileNavItem.navButton {
+    font-size: 15px;
+    line-height: 1.4;
+    padding: 8px 10px;
+  }
+
+  .mobileNavItem:hover {
+    background: #f4f9ff;
+  }
+
+  .mobileNavItem:focus-visible {
+    outline: 2px solid #32abbf;
+    outline-offset: 1px;
+    background: #eef7ff;
   }
 
   .signUpButton,
@@ -438,6 +530,19 @@
 
   .footerInner {
     padding: 20px;
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .footerBrandBlock,
+  .footerLinks {
+    width: auto;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 640px) {
+  .footerInner {
     flex-direction: column;
     align-items: flex-start;
   }

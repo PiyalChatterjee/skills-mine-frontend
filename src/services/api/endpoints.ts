@@ -51,10 +51,21 @@ export const apiEndpoints = {
       "/api/v1/users/me",
     ),
   },
-  admin: {
-    staffInvitations: withDefault(
-      import.meta.env.VITE_ADMIN_STAFF_INVITATIONS_ENDPOINT,
-      "/api/v1/admin/staff-invitations",
+  // admin.staffInvitations is not yet called anywhere in the app.
+  // admin: {
+  //   staffInvitations: withDefault(
+  //     import.meta.env.VITE_ADMIN_STAFF_INVITATIONS_ENDPOINT,
+  //     "/api/v1/admin/staff-invitations",
+  //   ),
+  // },
+  documents: {
+    upload: withDefault(
+      import.meta.env.VITE_DOCUMENTS_UPLOAD_ENDPOINT,
+      "/documents",
+    ),
+    uploadResume: withDefault(
+      import.meta.env.VITE_DOCUMENTS_UPLOAD_RESUME_ENDPOINT,
+      "/documents/resume",
     ),
   },
   users: {
@@ -67,14 +78,31 @@ export const apiEndpoints = {
       "/users/:userId/profile-photo",
     ),
   },
+  // Candidate resources are resolved from the bearer token by the backend, so the
+  // default templates carry no :candidateId segment. Deployments that expose the
+  // candidate-scoped variant can opt in through the matching VITE_* override
+  // (e.g. VITE_CANDIDATE_PROFILE_ENDPOINT=/candidates/profile/:candidateId) —
+  // resolveEndpoint only substitutes placeholders that the template declares.
   candidate: {
+    landing: withDefault(
+      import.meta.env.VITE_CANDIDATE_LANDING_ENDPOINT,
+      "/candidates/landing",
+    ),
+    statistics: withDefault(
+      import.meta.env.VITE_CANDIDATE_STATISTICS_ENDPOINT,
+      "/candidates/landing",
+    ),
     dashboard: withDefault(
       import.meta.env.VITE_CANDIDATE_DASHBOARD_ENDPOINT,
-      "/candidate/:userId/dashboard",
+      "/candidates/dashboard",
     ),
     buildMyCv: withDefault(
       import.meta.env.VITE_CANDIDATE_BUILDMYCV_ENDPOINT,
-      "/candidate/buildmycv",
+      "/candidates/cv-build/",
+    ),
+    profile: withDefault(
+      import.meta.env.VITE_CANDIDATE_PROFILE_ENDPOINT,
+      "/candidates/profile/",
     ),
     resumePreview: withDefault(
       import.meta.env.VITE_CANDIDATE_RESUME_PREVIEW_ENDPOINT,
@@ -86,7 +114,19 @@ export const apiEndpoints = {
     ),
     recommendedJobs: withDefault(
       import.meta.env.VITE_CANDIDATE_RECOMMENDED_JOBS_ENDPOINT,
-      "/candidate/:candidateId/recommended-jobs",
+      "/candidates/recommended-positions",
+    ),
+    savedJobs: withDefault(
+      import.meta.env.VITE_CANDIDATE_SAVED_JOBS_ENDPOINT,
+      "/candidates/saved-jobs",
+    ),
+    savedJob: withDefault(
+      import.meta.env.VITE_CANDIDATE_SAVED_JOB_ENDPOINT,
+      "/candidates/saved-jobs/:jobProfileId",
+    ),
+    aiActions: withDefault(
+      import.meta.env.VITE_CANDIDATE_AI_ACTIONS_ENDPOINT,
+      "/candidates/ai-actions/",
     ),
   },
   applications: {
@@ -108,6 +148,10 @@ export const apiEndpoints = {
     details: withDefault(
       import.meta.env.VITE_JOB_DETAILS_ENDPOINT,
       "/jobs/:jobId",
+    ),
+    profileDetails: withDefault(
+      import.meta.env.VITE_JOB_PROFILE_DETAILS_ENDPOINT,
+      "/api/v1/job-service/jobs/:jobProfileId",
     ),
     save: withDefault(
       import.meta.env.VITE_JOB_SAVE_ENDPOINT,
@@ -131,6 +175,10 @@ export const apiEndpoints = {
     search: withDefault(
       import.meta.env.VITE_SKILLS_SEARCH_ENDPOINT,
       "/skills/search",
+    ),
+    generate: withDefault(
+      import.meta.env.VITE_SKILLS_GENERATE_ENDPOINT,
+      "/skills/generate",
     ),
     keywordParam: withDefault(
       import.meta.env.VITE_SKILLS_SEARCH_KEYWORD_PARAM,

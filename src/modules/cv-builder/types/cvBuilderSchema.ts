@@ -3,6 +3,16 @@ import { z } from 'zod'
 const monthYearPattern =
   /^(January|February|March|April|May|June|July|August|September|October|November|December),\s?(19|20)\d{2}$/i
 const currentRolePattern = /^(present|current)$/i
+const monthNames = ['january','february','march','april','may','june','july','august','september','october','november','december']
+
+// Converts a "MonthName,YYYY" string into a comparable (year * 12 + monthIndex) number.
+function monthYearToComparable(value: string): number | null {
+  const match = value.trim().match(/^([A-Za-z]+),\s?(\d{4})$/)
+  if (!match) return null
+  const monthIndex = monthNames.indexOf(match[1].toLowerCase())
+  if (monthIndex < 0) return null
+  return Number(match[2]) * 12 + monthIndex
+}
 
 export const personalDetailsSchema = z
   .object({
@@ -42,21 +52,33 @@ export const personalDetailsSchema = z
     }
   })
 
-export const careerHistoryEntrySchema = z.object({
-  companyName: z.string().min(1, 'Company name is required'),
-  positionHeld: z.string().min(1, 'Position held is required'),
-  startDate: z
-    .string()
-    .min(1, 'Employment start date is required')
-    .regex(monthYearPattern, 'Use format like April,2020'),
-  endDate: z.string().refine(
-    (val) => !val.trim() || monthYearPattern.test(val.trim()) || currentRolePattern.test(val.trim()),
-    { message: 'Use format like April,2020 or Present' },
-  ),
-  isCurrentRole: z.boolean(),
-  tasks: z.array(z.string()),
-  projects: z.array(z.string()),
-})
+export const careerHistoryEntrySchema = z
+  .object({
+    companyName: z.string().min(1, 'Company name is required'),
+    positionHeld: z.string().min(1, 'Position held is required'),
+    startDate: z
+      .string()
+      .min(1, 'Employment start date is required')
+      .regex(monthYearPattern, 'Use format like April,2020'),
+    endDate: z.string().refine(
+      (val) => !val.trim() || monthYearPattern.test(val.trim()) || currentRolePattern.test(val.trim()),
+      { message: 'Use format like April,2020 or Present' },
+    ),
+    isCurrentRole: z.boolean(),
+    tasks: z.array(z.string()),
+    projects: z.array(z.string()),
+  })
+  .superRefine((data, ctx) => {
+    const start = monthYearToComparable(data.startDate)
+    const end = monthYearToComparable(data.endDate)
+    if (start !== null && end !== null && start > end) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Employment start date must be before end date',
+        path: ['startDate'],
+      })
+    }
+  })
 
 export const skillEntrySchema = z.object({ name: z.string() })
 

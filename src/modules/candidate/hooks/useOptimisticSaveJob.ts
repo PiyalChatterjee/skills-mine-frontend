@@ -4,24 +4,18 @@ import { useAuth } from '@/app/auth/AuthContext'
 import { selectSavedJobIds } from '@/store/selectors'
 import { addSavedJob, removeSavedJob } from '@/store/slices/candidateSlice'
 import type { AppDispatch } from '@/store'
-import { useSaveJob, useUserProfile } from './useCandidateQueries'
-
-const toNextSavedJobs = (savedJobIds: Set<string>, jobId: string, isCurrentlySaved: boolean) => {
-  if (isCurrentlySaved) {
-    return Array.from(savedJobIds).filter((savedId) => savedId !== jobId)
-  }
-
-  return Array.from(new Set([...savedJobIds, jobId]))
-}
+import { useCandidateResourceId } from './useCandidateQueries'
+import { useSaveJobMutation, useRemoveSavedJobMutation } from '@/store/api/apiSlice'
 
 export const useOptimisticSaveJob = () => {
   const { user } = useAuth()
   const dispatch = useDispatch<AppDispatch>()
   const savedJobIds = useSelector(selectSavedJobIds)
   const [savingIds, setSavingIds] = useState<Set<string>>(new Set())
+  const candidateId = useCandidateResourceId()
 
-  useUserProfile(user?.userId)
-  const [saveJobTrigger] = useSaveJob()
+  const [saveJob] = useSaveJobMutation()
+  const [removeSavedJobMutation] = useRemoveSavedJobMutation()
 
   const isJobSaved = useCallback((jobId: string) => savedJobIds.has(jobId), [savedJobIds])
   const isJobSaving = useCallback((jobId: string) => savingIds.has(jobId), [savingIds])
@@ -31,8 +25,6 @@ export const useOptimisticSaveJob = () => {
     if (!user?.userId) return
 
     const isCurrentlySaved = savedJobIds.has(jobId)
-    const nextSavedJobs = toNextSavedJobs(savedJobIds, jobId, isCurrentlySaved)
-
     if (isCurrentlySaved) {
       dispatch(removeSavedJob(jobId))
     } else {
@@ -42,10 +34,15 @@ export const useOptimisticSaveJob = () => {
     setSavingIds((prev) => new Set(prev).add(jobId))
 
     try {
-      await saveJobTrigger({
-        userId: user.userId,
-        savedJobs: nextSavedJobs,
-      }).unwrap()
+      if (!candidateId) {
+        throw new Error('Candidate identity is unavailable')
+      }
+
+      if (!isCurrentlySaved) {
+        await saveJob({ candidateId, jobProfileId: jobId }).unwrap()
+      } else {
+        await removeSavedJobMutation({ candidateId, jobProfileId: jobId }).unwrap()
+      }
     } catch {
       if (isCurrentlySaved) {
         dispatch(addSavedJob(jobId))
@@ -59,7 +56,7 @@ export const useOptimisticSaveJob = () => {
         return next
       })
     }
-  }, [dispatch, saveJobTrigger, savedJobIds, savingIds, user?.userId])
+  }, [candidateId, dispatch, savedJobIds, savingIds, user])
 
   return {
     savedJobIds,

@@ -49,7 +49,7 @@ export const selectSelectedSkills = createSelector(
 export const selectCandidateProfile =
   (userId: string | null | undefined) => (state: RootState) => {
     if (!userId) return undefined;
-    return apiSlice.endpoints.getCandidateProfile.select(userId)(state).data;
+    return apiSlice.endpoints.getCandidateProfile.select({ candidateId: userId })(state).data;
   };
 
 // ── Build My CV ────────────────────────────────────────────────────────────

@@ -1,5 +1,5 @@
 import { Box } from "@mui/material";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { FormProvider } from "react-hook-form";
 import { useAuth } from "@/app/auth/AuthContext";
 import settingsIcon from "@/assets/cv-builder/settings-4-line.svg";
@@ -7,12 +7,13 @@ import uploadIcon from "@/assets/cv-builder/upload-2-line.svg";
 import {
   useBuildMyCvQuery,
   useCandidateProfileQuery,
+  useCandidateResourceId,
 } from "@/modules/candidate/hooks/useCandidateQueries";
 import { useSelector } from "react-redux";
+import { useUploadDocumentMutation } from "@/store/api/apiSlice";
 import {
   selectBuildMyCv,
   selectBuildMyCvExists,
-  selectBuildMyCvLastModified,
   selectBuildMyCvLoaded,
 } from "@/store/selectors";
 import CvBuilderCareerHistoryForm from "../components/CvBuilderCareerHistoryForm";
@@ -22,7 +23,6 @@ import CvBuilderHeroSection from "../components/CvBuilderHeroSection";
 import CvBuilderLauncher from "../components/CvBuilderLauncher";
 import CvBuilderPersonalDetailsForm from "../components/CvBuilderPersonalDetailsForm";
 import CvBuilderProgressRail from "../components/CvBuilderProgressRail";
-import CvBuilderPreviewPage from "../components/CvBuilderPreviewPage";
 import CvBuilderReviewScreen from "../components/CvBuilderReviewScreen";
 import CvBuilderLanguagesForm from "../components/CvBuilderLanguagesForm";
 import CvBuilderSkillsForm from "../components/CvBuilderSkillsForm";
@@ -38,20 +38,40 @@ import {
   type CvActionCard,
 } from "../types/cvBuilder";
 import styles from "./CvBuilderPage.module.css";
-import CvBuilderViewCvPage from "../components/CvBuilderViewCvPage";
+import CvBuilderUploadModal from "../components/CvBuilderUploadModal";
 
 const CvBuilderPage = () => {
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const [uploadDocument, { isLoading: isUploadingResume }] =
+    useUploadDocumentMutation();
   const { user } = useAuth();
   const userId = user?.userId;
+  const candidateId = useCandidateResourceId();
 
-  // Load existing CV Builder state from GET endpoint and hydrate Redux
-  const { isLoading: isBuildMyCvLoading } = useBuildMyCvQuery(Boolean(userId));
+  const handleUploadDone = async () => {
+    if (!candidateId || !selectedUploadFile) return;
+
+    try {
+      await uploadDocument({
+        candidateId,
+        file: selectedUploadFile,
+        fileName: selectedUploadFile.name,
+        documentType: "RESUME",
+      }).unwrap();
+      setUploadModalOpen(false);
+    } catch {
+      // Keep the modal open so the user can retry the upload.
+    }
+  };
+
+  // Load the saved CV record from the CV builder endpoint (the resume store),
+  // not the profile endpoint, and hydrate Redux from it.
+  const { isLoading: isBuildMyCvLoading } = useBuildMyCvQuery(Boolean(candidateId), candidateId);
   const buildMyCvData = useSelector(selectBuildMyCv);
   const buildMyCvLoaded = useSelector(selectBuildMyCvLoaded);
   const buildMyCvExists = useSelector(selectBuildMyCvExists);
-  const buildMyCvLastModified = useSelector(selectBuildMyCvLastModified);
 
-  const { data: candidateProfile } = useCandidateProfileQuery(userId);
+  const { data: candidateProfile } = useCandidateProfileQuery(candidateId, userId, Boolean(candidateId));
 
   // Prefer buildMyCv API data; fall back to candidate profile for prefill
   const cvBuilderPrefillData = useMemo(() => {
@@ -137,25 +157,25 @@ const CvBuilderPage = () => {
     canGoNext,
     selectedLanguageEntries,
     handleUploadFileSelect,
+    selectUploadFile,
     openUploadPicker,
     openBuildFlow,
-    openPreview,
-    closePreview,
     goBack,
     goNext,
   } = useCvBuilder(
     cvBuilderPrefillData,
     buildMyCvLoaded && Boolean(buildMyCvData),
   );
+  const hasFormChanges = form.formState.isDirty;
 
   const { handleDone, isSavingCandidateProfile } = useCvBuilderDone({
-    activeView,
-    goNext,
     userId,
     candidateProfile,
     getFormValues: form.getValues,
     selectedLanguageEntries,
     buildMyCvExists,
+    hasFormChanges,
+    userRole: user?.role,
   });
 
   const actionCards: CvActionCard[] = useMemo(
@@ -168,7 +188,7 @@ const CvBuilderPage = () => {
           : "Upload your CV directly from your computer.",
         icon: uploadIcon,
         tone: "coral",
-        onClick: openUploadPicker,
+        onClick: () => setUploadModalOpen(true),
       },
       {
         id: "build",
@@ -181,13 +201,13 @@ const CvBuilderPage = () => {
         onClick: openBuildFlow,
       },
     ],
-    [selectedUploadFile, openUploadPicker, openBuildFlow, isBuildMyCvLoading],
+    [selectedUploadFile, openBuildFlow, isBuildMyCvLoading],
   );
 
   return (
     <FormProvider {...form}>
       <Box
-        className={`${styles.pageRoot} ${activeView === "view-cv" ? styles.pageRootViewCv : ""}`}
+        className={styles.pageRoot}
       >
         <input
           ref={uploadInputRef}
@@ -199,25 +219,19 @@ const CvBuilderPage = () => {
           aria-hidden="true"
         />
 
-        {activeView !== "view-cv" && (
-          <CvBuilderHeroSection
-            totalSteps={CV_BUILDER_STEPS.length}
-            activeStepId={activeView === "launcher" ? 1 : currentStepId}
-          />
-        )}
+        <CvBuilderHeroSection
+          totalSteps={CV_BUILDER_STEPS.length}
+          activeStepId={activeView === "launcher" ? 1 : currentStepId}
+        />
 
         <Box
           component="section"
-          className={`${styles.contentSection} ${activeView === "view-cv" ? styles.contentSectionViewCv : ""}`}
+          className={styles.contentSection}
         >
           {activeView === "launcher" ? (
             <CvBuilderLauncher cards={actionCards} />
-          ) : activeView === "preview" ? (
-            <CvBuilderPreviewPage onClose={closePreview} />
           ) : activeView === "review" ? (
-            <CvBuilderReviewScreen onPreview={openPreview} />
-          ) : activeView === "view-cv" ? (
-            <CvBuilderViewCvPage />
+            <CvBuilderReviewScreen />
           ) : (
             <Box className={styles.contentLayout}>
               <CvBuilderProgressRail
@@ -246,25 +260,21 @@ const CvBuilderPage = () => {
         {activeView === "review" && (
           <CvBuilderFooterActions
             onBack={goBack}
-            onNext={goNext}
-            isNextDisabled={!canViewCv}
-            nextLabel="View CV"
+            onNext={handleDone}
+            isNextDisabled={!canViewCv || isSavingCandidateProfile}
+            nextLabel={isSavingCandidateProfile ? "Saving…" : "Done"}
             showNextIcon={false}
           />
         )}
 
-        {activeView === "view-cv" && (
-          <CvBuilderFooterActions
-            onBack={goBack}
-            onNext={handleDone}
-            isNextDisabled={isSavingCandidateProfile}
-            nextLabel={isSavingCandidateProfile ? "Saving…" : "Done"}
-            showNextIcon={false}
-            subLabel={
-              buildMyCvLastModified
-                ? `Last saved ${new Date(buildMyCvLastModified).toLocaleString()}`
-                : undefined
-            }
+        {uploadModalOpen && (
+          <CvBuilderUploadModal
+            selectedFile={selectedUploadFile}
+            onSelectFile={selectUploadFile}
+            onBrowse={openUploadPicker}
+            onClose={() => setUploadModalOpen(false)}
+            onDone={handleUploadDone}
+            isUploading={isUploadingResume}
           />
         )}
       </Box>

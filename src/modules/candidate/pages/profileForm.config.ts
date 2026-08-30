@@ -1,4 +1,9 @@
 import { z } from 'zod'
+import {
+  fromSouthAfricaApiPhoneNumber,
+  localPhoneNumberSchema,
+  toSouthAfricaApiPhoneNumber,
+} from '@/app/phoneNumber'
 import { emailSchema } from '@/app/validation.schema'
 import type { CandidateProfile, CandidateProfileUpdatePayload } from '@/modules/candidate/types'
 
@@ -8,31 +13,13 @@ const requiredField = (label: string) =>
 export const profileFormSchema = z.object({
   fullName: requiredField('Full name'),
   email: emailSchema,
-  phoneNumber: z
-    .string()
-    .trim()
-    .min(1, 'Phone number is required')
-    .regex(/^\+\d{10,15}$/, 'Use international format like +27821234567'),
+  phoneNumber: localPhoneNumberSchema,
   residentialLocation: requiredField('Residential location'),
   preferredJobTitle: z.string(),
   targetedIndustries: z.string(),
   preferredLocations: requiredField('Preferred location'),
   employmentType: z.string(),
   availability: z.string(),
-  certifications: z.array(
-    z.object({
-      value: z.string().trim(),
-    }),
-  ),
-  highestDegreeEarned: requiredField('Highest degree earned'),
-  currentJobTitle: z.string(),
-  currentEmployer: z.string(),
-  totalYearsOfExperience: z
-    .string()
-    .trim()
-    .refine((value) => value === '' || /^\d+(\.\d+)?$/.test(value), {
-      message: 'Use a valid number of years',
-    }),
   password: z.string(),
 })
 
@@ -58,7 +45,6 @@ export const PROFILE_SELECT_OPTIONS = {
 export const getProfileFormValues = (
   profile: CandidateProfile | null,
 ): ProfileFormValues => {
-  const firstQualification = profile?.education?.highestEarned ?? ''
   const fullName = [
     profile?.personalDetails?.firstName ?? '',
     profile?.personalDetails?.lastName ?? '',
@@ -69,20 +55,15 @@ export const getProfileFormValues = (
   return {
     fullName,
     email: profile?.personalDetails?.email ?? '',
-    phoneNumber: profile?.personalDetails?.mobileNumber ?? '',
+    phoneNumber: fromSouthAfricaApiPhoneNumber(
+      profile?.personalDetails?.mobileNumber ?? '',
+    ),
     residentialLocation: profile?.personalDetails?.location ?? '',
     preferredJobTitle: profile?.desiredJob?.jobTitle ?? '',
     targetedIndustries: profile?.desiredJob?.industry ?? '',
     preferredLocations: profile?.desiredJob?.workType ?? '',
     employmentType: profile?.desiredJob?.employmentType ?? '',
     availability: profile?.desiredJob?.availableFrom ?? '',
-    certifications: (profile?.education?.certifications ?? []).length > 0
-      ? (profile?.education?.certifications ?? []).map((v) => ({ value: v }))
-      : [{ value: '' }],
-    highestDegreeEarned: firstQualification,
-    currentJobTitle: profile?.desiredJob?.jobTitle ?? '',
-    currentEmployer: '',
-    totalYearsOfExperience: '',
     password: profile?.authentication?.password ?? '',
   }
 }
@@ -99,7 +80,7 @@ export const getCandidateProfileUpdatePayload = (
       firstName: firstName || currentProfile?.personalDetails?.firstName || '',
       lastName: lastName || currentProfile?.personalDetails?.lastName || '',
       email: values.email.trim(),
-      mobileNumber: values.phoneNumber.trim(),
+      mobileNumber: toSouthAfricaApiPhoneNumber(values.phoneNumber),
       location: values.residentialLocation.trim(),
       nationality: currentProfile?.personalDetails?.nationality ?? '',
       idNumber: currentProfile?.personalDetails?.idNumber ?? '',
@@ -116,10 +97,6 @@ export const getCandidateProfileUpdatePayload = (
       employmentType: values.employmentType.trim(),
       salaryExpectation: currentProfile?.desiredJob?.salaryExpectation ?? 0,
       availableFrom: values.availability.trim(),
-    },
-    education: {
-      certifications: values.certifications.map((c) => c.value.trim()).filter(Boolean),
-      highestEarned: values.highestDegreeEarned.trim(),
     },
     experience: currentProfile?.experience ?? [],
     skills: currentProfile?.skills ?? [],

@@ -199,6 +199,39 @@ const useCvBuilder = (
       otherLanguage,
     } = prefillData;
 
+    if (forceApply) {
+      const nextPersonalDetails = { ...DEFAULT_FORM_VALUES.personalDetails };
+      if (pd) {
+        PERSONAL_FIELD_KEYS.forEach((field) => {
+          const value = pd[field];
+          if (!value) return;
+
+          const nextValue = normalizePersonalDetailsFieldValue(field, value);
+          if (nextValue || !PERSONAL_SELECT_OPTIONS[field]) {
+            nextPersonalDetails[field] = nextValue;
+          }
+        });
+      }
+
+      form.reset({
+        ...DEFAULT_FORM_VALUES,
+        personalDetails: nextPersonalDetails,
+        careerHistory: careerHistory?.length
+          ? careerHistory
+          : DEFAULT_FORM_VALUES.careerHistory,
+        skills: skills?.length ? skills : DEFAULT_FORM_VALUES.skills,
+        tertiaryEducation: tertiaryEducation?.length
+          ? tertiaryEducation
+          : DEFAULT_FORM_VALUES.tertiaryEducation,
+        secondaryEducation: secondaryEducation?.length
+          ? secondaryEducation
+          : DEFAULT_FORM_VALUES.secondaryEducation,
+        languages: languages ?? DEFAULT_FORM_VALUES.languages,
+        otherLanguage: otherLanguage ?? DEFAULT_FORM_VALUES.otherLanguage,
+      });
+      return;
+    }
+
     if (pd) {
       const current = form.getValues("personalDetails");
       PERSONAL_FIELD_KEYS.forEach((field) => {
@@ -417,19 +450,13 @@ const useCvBuilder = (
     setSelectedUploadFile(nextFile);
     event.target.value = "";
   };
+  const selectUploadFile = (file: File | null) => setSelectedUploadFile(file);
   const openUploadPicker = () => uploadInputRef.current?.click();
   const openBuildFlow = () => {
     setActiveView("form");
     setCurrentStepId(FIRST_STEP);
   };
-  const openPreview = () => setActiveView("preview");
-  const closePreview = () => setActiveView("review");
-
   const goBack = () => {
-    if (activeView === "preview" || activeView === "view-cv") {
-      setActiveView("review");
-      return;
-    }
     if (activeView === "review") {
       setActiveView("form");
       setCurrentStepId(LAST_STEP);
@@ -443,22 +470,6 @@ const useCvBuilder = (
   };
 
   const goNext = async () => {
-    if (activeView === "preview") return;
-    if (activeView === "view-cv") {
-      setActiveView("launcher");
-      setCurrentStepId(FIRST_STEP);
-      return;
-    }
-
-    if (activeView === "review") {
-      let allValid = true;
-      for (let step = 1; step <= LAST_STEP; step++) {
-        if (!(await validateStep(step))) allValid = false;
-      }
-      if (allValid) setActiveView("view-cv");
-      return;
-    }
-
     if (!(await validateStep(currentStepId))) return;
     if (currentStepId < LAST_STEP) {
       setCurrentStepId((prev) => prev + 1);
@@ -475,13 +486,16 @@ const useCvBuilder = (
       isSelected
         ? current.filter((l) => l !== language)
         : [...current, language],
-      { shouldValidate: form.formState.submitCount > 0 },
+      { shouldDirty: true, shouldValidate: form.formState.submitCount > 0 },
     );
-    if (isSelected && language === "Other") form.setValue("otherLanguage", "");
+    if (isSelected && language === "Other") {
+      form.setValue("otherLanguage", "", { shouldDirty: true });
+    }
   };
 
   const updateOtherLanguage = (value: string) => {
     form.setValue("otherLanguage", value, {
+      shouldDirty: true,
       shouldValidate: form.formState.submitCount > 0,
     });
   };
@@ -493,11 +507,14 @@ const useCvBuilder = (
     const current = form.getValues(`careerHistory.${entryIndex}.${field}`);
     const normalized = normalizeCareerDateValue(current);
     if (normalized !== current)
-      form.setValue(`careerHistory.${entryIndex}.${field}`, normalized);
+      form.setValue(`careerHistory.${entryIndex}.${field}`, normalized, {
+        shouldDirty: true,
+      });
     if (field === "endDate") {
       form.setValue(
         `careerHistory.${entryIndex}.isCurrentRole`,
         currentRolePattern.test(normalized.trim()),
+        { shouldDirty: true },
       );
     }
   };
@@ -525,10 +542,9 @@ const useCvBuilder = (
     canViewCv,
     canGoNext,
     handleUploadFileSelect,
+    selectUploadFile,
     openUploadPicker,
     openBuildFlow,
-    openPreview,
-    closePreview,
     goBack,
     goNext,
     selectedLanguages,

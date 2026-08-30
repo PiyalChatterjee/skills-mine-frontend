@@ -5,8 +5,6 @@ import { GradientPatternHero } from '@/components/hero'
 import { useProfileCreationWizard } from '@/modules/candidate/hooks/useProfileCreationWizard'
 import styles from '@/modules/candidate/pages/ProfileCreationPage.module.css'
 import ProfileCreationBasicStep from './ProfileCreationBasicStep'
-import ProfileCreationEducationExperienceStep from './ProfileCreationEducationExperienceStep'
-import ProfileCreationReviewStep from './ProfileCreationReviewStep'
 
 const ProfileCreationWizard = () => {
   const {
@@ -28,14 +26,10 @@ const ProfileCreationWizard = () => {
 
   let stepContent = null
   const isBasicDetailsStep = activeStepId === 'basic-details'
-  const isReviewStep = activeStepId === 'review'
+  const isFinalStep = currentStepIndex === totalSteps - 1
 
   if (isBasicDetailsStep) {
     stepContent = <ProfileCreationBasicStep />
-  } else if (activeStepId === 'education-experience') {
-    stepContent = <ProfileCreationEducationExperienceStep />
-  } else if (isReviewStep) {
-    stepContent = <ProfileCreationReviewStep />
   }
 
   if (isMissingUser) {
@@ -85,15 +79,7 @@ const ProfileCreationWizard = () => {
                 Don’t worry this will only take a minute.
               </Typography>
             </>
-          ) : isReviewStep ? (
-            <Typography component="h2" className={styles.introText}>
-              Review your profile details.
-            </Typography>
-          ) : (
-            <Typography component="h2" className={styles.introText}>
-              Now, let’s learn about your education and job experience.
-            </Typography>
-          )}
+          ) : null}
 
           {isError ? (
             <Alert severity="warning" className={styles.alertBanner}>
@@ -138,12 +124,12 @@ const ProfileCreationWizard = () => {
               <Button
                 type="button"
                 onClick={handleNext}
-                className={`${styles.nextButton} ${isReviewStep ? styles.doneButton : ''}`}
+                className={`${styles.nextButton} ${isFinalStep ? styles.doneButton : ''}`}
                 disabled={!canGoNext || isSubmitting}
                 disableRipple
               >
-                {isSubmitting ? 'Saving…' : isReviewStep ? 'Done' : 'Next'}
-                {isReviewStep ? null : (
+                {isSubmitting ? 'Saving…' : isFinalStep ? 'Done' : 'Next'}
+                {isFinalStep ? null : (
                   <img
                     src={arrowRightIconSrc}
                     alt=""

@@ -27,6 +27,7 @@ const mockSaveBuildMyCv = vi.fn()
 const mockUpdateBuildMyCv = vi.fn()
 const mockUpdateById = vi.fn()
 const mockUpdateUserProfile = vi.fn()
+const mockSaveJob = vi.fn()
 
 vi.mock('@/services/api', () => ({
   candidateApi: {
@@ -39,12 +40,25 @@ vi.mock('@/services/api', () => ({
     updateBuildMyCv: (...args: unknown[]) => mockUpdateBuildMyCv(...args),
     updateById: (...args: unknown[]) => mockUpdateById(...args),
     updateUserProfile: (...args: unknown[]) => mockUpdateUserProfile(...args),
+    saveJob: (...args: unknown[]) => mockSaveJob(...args),
+    getSavedJobs: vi.fn().mockResolvedValue({ data: { candidateId: 'c-1', jobs: [], total: 0 } }),
   },
   jobsApi: {
     list: vi.fn().mockResolvedValue({ data: [] }),
     save: vi.fn().mockResolvedValue({ success: true }),
   },
 }))
+
+// Candidate hooks resolve their resource id from the auth session.
+vi.mock('@/app/auth/AuthContext', async () => {
+  const actual = await vi.importActual<typeof import('@/app/auth/AuthContext')>(
+    '@/app/auth/AuthContext',
+  )
+  return {
+    ...actual,
+    useAuth: () => ({ user: { userId: 'u-1' } }),
+  }
+})
 
 const makeTestStore = () =>
   configureStore({
@@ -85,12 +99,14 @@ const mockProfile = {
 }
 
 describe('useCandidateProfileQuery', () => {
-  it('skips when userId is not provided', () => {
+  it('uses the authenticated user when candidateId is not provided', async () => {
+    mockGetById.mockResolvedValue(mockProfile)
     const store = makeTestStore()
     const { result } = renderHook(() => useCandidateProfileQuery(undefined), {
       wrapper: makeWrapper(store),
     })
-    expect(result.current.isUninitialized).toBe(true)
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    expect(mockGetById).toHaveBeenCalledWith('u-1', undefined)
   })
 
   it('fetches profile when userId is provided', async () => {
@@ -105,7 +121,7 @@ describe('useCandidateProfileQuery', () => {
 
   it('skips when enabled=false', () => {
     const store = makeTestStore()
-    const { result } = renderHook(() => useCandidateProfileQuery('u-1', false), {
+    const { result } = renderHook(() => useCandidateProfileQuery('c-1', 'u-1', false), {
       wrapper: makeWrapper(store),
     })
     expect(result.current.isUninitialized).toBe(true)
@@ -113,9 +129,9 @@ describe('useCandidateProfileQuery', () => {
 })
 
 describe('useCandidateDashboardQuery', () => {
-  it('skips when userId is not provided', () => {
+  it('skips when the query is disabled', () => {
     const store = makeTestStore()
-    const { result } = renderHook(() => useCandidateDashboardQuery(undefined), {
+    const { result } = renderHook(() => useCandidateDashboardQuery(false), {
       wrapper: makeWrapper(store),
     })
     expect(result.current.isUninitialized).toBe(true)
@@ -125,7 +141,7 @@ describe('useCandidateDashboardQuery', () => {
     const dashData = { summary: {}, applications: [], activity: {} }
     mockGetDashboard.mockResolvedValue({ data: dashData })
     const store = makeTestStore()
-    const { result } = renderHook(() => useCandidateDashboardQuery('u-1'), {
+    const { result } = renderHook(() => useCandidateDashboardQuery(true), {
       wrapper: makeWrapper(store),
     })
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
@@ -205,17 +221,27 @@ describe('useBuildMyCvQuery', () => {
     }
     mockGetBuildMyCv.mockResolvedValue(cvData)
     const store = makeTestStore()
-    renderHook(() => useBuildMyCvQuery(), { wrapper: makeWrapper(store) })
+    renderHook(() => useBuildMyCvQuery(true, 'c-1'), { wrapper: makeWrapper(store) })
     await waitFor(() => expect(store.getState().candidate.buildMyCvLoaded).toBe(true))
     expect(store.getState().candidate.buildMyCvExists).toBe(true)
   })
 
   it('skips when enabled=false', () => {
     const store = makeTestStore()
-    const { result } = renderHook(() => useBuildMyCvQuery(false), {
+    const { result } = renderHook(() => useBuildMyCvQuery(false, 'c-1'), {
       wrapper: makeWrapper(store),
     })
     expect(result.current.isUninitialized).toBe(true)
+  })
+
+  it('uses the authenticated user when candidateId is empty', async () => {
+    mockGetBuildMyCv.mockResolvedValue({ personalDetails: {}, careerHistory: [] })
+    const store = makeTestStore()
+    const { result } = renderHook(() => useBuildMyCvQuery(true, ''), {
+      wrapper: makeWrapper(store),
+    })
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    expect(mockGetBuildMyCv).toHaveBeenCalledWith('u-1')
   })
 
   it('sets buildMyCvExists based on careerHistory length', async () => {
@@ -229,7 +255,7 @@ describe('useBuildMyCvQuery', () => {
     }
     mockGetBuildMyCv.mockResolvedValue(cvData)
     const store = makeTestStore()
-    renderHook(() => useBuildMyCvQuery(), { wrapper: makeWrapper(store) })
+    renderHook(() => useBuildMyCvQuery(true, 'c-1'), { wrapper: makeWrapper(store) })
     await waitFor(() => expect(store.getState().candidate.buildMyCvLoaded).toBe(true))
     expect(store.getState().candidate.buildMyCvExists).toBe(true)
   })
@@ -251,7 +277,7 @@ describe('useSaveBuildMyCv', () => {
       languages: [],
     }
     await act(async () => {
-      const data = await result.current.save(payload)
+      const data = await result.current.save('c-1', payload)
       expect(data).toEqual(savedResult)
     })
   })
@@ -263,7 +289,7 @@ describe('useSaveBuildMyCv', () => {
       wrapper: makeWrapper(store),
     })
     await act(async () => {
-      await expect(result.current.save({} as never)).rejects.toMatchObject({
+      await expect(result.current.save('c-1', {} as never)).rejects.toMatchObject({
         message: expect.any(String),
       })
     })
@@ -286,7 +312,7 @@ describe('useUpdateBuildMyCv', () => {
       languages: [],
     }
     await act(async () => {
-      const data = await result.current.update(payload)
+      const data = await result.current.update('c-1', payload)
       expect(data).toEqual(updatedResult)
     })
   })
@@ -311,14 +337,13 @@ describe('useUpdateCandidateProfileMutation', () => {
 })
 
 describe('useSaveJob', () => {
-  it('triggers saveJob mutation and returns updated user profile', async () => {
-    mockUpdateUserProfile.mockResolvedValue({ userId: 'u-1', savedJobs: ['job-1'] })
+  it('triggers saveJob mutation with the canonical request body', async () => {
+    mockSaveJob.mockResolvedValue({ data: {} })
     const store = makeTestStore()
     const { result } = renderHook(() => useSaveJob(), { wrapper: makeWrapper(store) })
     await act(async () => {
       const [trigger] = result.current
-      const response = await trigger({ userId: 'u-1', savedJobs: ['job-1'] }).unwrap()
-      expect(response).toEqual({ userId: 'u-1', savedJobs: ['job-1'] })
+      await trigger({ candidateId: 'candidate-1', jobProfileId: 'job-1' }).unwrap()
     })
   })
 })

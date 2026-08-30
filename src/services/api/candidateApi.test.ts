@@ -18,11 +18,15 @@ vi.mock('@/services/api/endpoints', () => ({
   apiEndpoints: {
     users: { profile: '/users/:userId', profilePhoto: '/users/:userId/profile-photo' },
     candidate: {
-      dashboard: '/candidate/:userId/dashboard',
-      buildMyCv: '/candidate/buildmycv',
+      profile: '/candidates/profile/',
+      landing: '/candidates/landing',
+      dashboard: '/candidates/dashboard',
+      buildMyCv: '/candidates/cv-build/',
       resumePreview: '/candidate/:resumeId/preview',
       resumeDownload: '/candidate/:resumeId/download',
-      recommendedJobs: '/candidate/:candidateId/recommended-jobs',
+      recommendedJobs: '/candidates/recommended-positions',
+      savedJobs: '/candidates/saved-jobs',
+      aiActions: '/candidates/ai-actions/',
     },
     applications: {
       cvUpload: '/applications/:applicationId/cv/upload',
@@ -91,7 +95,7 @@ describe('candidateApi', () => {
       expect(profile.skills).toEqual(['React'])
       expect(profile.languages).toEqual([{ language: 'English', proficiency: 'Fluent' }])
       expect(profile.authentication?.provider).toBe('LOCAL')
-      expect(mockGet).toHaveBeenCalledWith('/users/u-1')
+      expect(mockGet).toHaveBeenCalledWith('/candidates/profile/')
     })
 
     it('maps desiredJob when API returns jobType/industries/locations fields', async () => {
@@ -147,16 +151,23 @@ describe('candidateApi', () => {
         data: { data: { summary: {}, applications: [], activity: {} } },
       }
       mockGet.mockResolvedValue(dashboardResponse)
-      await candidateApi.getDashboard('u-1')
-      expect(mockGet).toHaveBeenCalledWith('/candidate/u-1/dashboard')
+      await candidateApi.getDashboard()
+      expect(mockGet).toHaveBeenCalledWith('/candidates/dashboard', { params: {} })
     })
   })
 
   describe('getBuildMyCv', () => {
-    it('calls GET /candidate/buildmycv and unwraps envelope', async () => {
+    it('calls GET /candidates/cv-build/ and unwraps envelope', async () => {
       const cvData = {
         data: {
+          success: true,
+          statusCode: 200,
+          message: 'CV builder data retrieved.',
           data: {
+            userId: 'u-1',
+            source: 'BuildCV',
+            extractionStatus: 'NOT_STARTED',
+            lastModified: '2024-11-01T14:30:00Z',
             personalDetails: { firstName: 'Jane' },
             careerHistory: [],
             skills: [],
@@ -167,16 +178,17 @@ describe('candidateApi', () => {
         },
       }
       mockGet.mockResolvedValue(cvData)
-      const result = await candidateApi.getBuildMyCv()
-      expect(mockGet).toHaveBeenCalledWith('/candidate/buildmycv')
+      const result = await candidateApi.getBuildMyCv('candidate-1')
+      expect(mockGet).toHaveBeenCalledWith('/candidates/cv-build/')
       expect((result as { personalDetails: { firstName: string } }).personalDetails.firstName).toBe('Jane')
+      expect((result as { lastModified?: string }).lastModified).toBe('2024-11-01T14:30:00Z')
     })
   })
 
   describe('saveBuildMyCv', () => {
-    it('calls POST /candidate/buildmycv', async () => {
+    it('calls POST /candidates/cv-build/', async () => {
       mockPost.mockResolvedValue({ data: { data: { lastModified: '2024-01-01' } } })
-      await candidateApi.saveBuildMyCv({
+      await candidateApi.saveBuildMyCv('candidate-1', {
         personalDetails: {
           firstName: 'Jane',
           lastName: 'Doe',
@@ -194,14 +206,14 @@ describe('candidateApi', () => {
         education: { tertiaryEducation: [], secondaryEducation: [] },
         languages: [],
       })
-      expect(mockPost).toHaveBeenCalledWith('/candidate/buildmycv', expect.any(Object))
+      expect(mockPost).toHaveBeenCalledWith('/candidates/cv-build/', expect.any(Object))
     })
   })
 
   describe('updateBuildMyCv', () => {
-    it('calls PUT /candidate/buildmycv', async () => {
+    it('calls PUT /candidates/cv-build/', async () => {
       mockPut.mockResolvedValue({ data: { data: { lastModified: '2024-06-01' } } })
-      await candidateApi.updateBuildMyCv({
+      await candidateApi.updateBuildMyCv('candidate-1', {
         personalDetails: {
           firstName: 'Jane',
           lastName: 'Doe',
@@ -219,7 +231,7 @@ describe('candidateApi', () => {
         education: { tertiaryEducation: [], secondaryEducation: [] },
         languages: [],
       })
-      expect(mockPut).toHaveBeenCalledWith('/candidate/buildmycv', expect.any(Object))
+      expect(mockPut).toHaveBeenCalledWith('/candidates/cv-build/', expect.any(Object))
     })
   })
 
@@ -303,11 +315,13 @@ describe('candidateApi', () => {
   })
 
   describe('updateById', () => {
-    it('calls PUT then re-fetches profile', async () => {
+    it('PUTs the CV builder record then re-fetches the profile', async () => {
       mockPut.mockResolvedValue({ data: { data: { userId: 'u-1', updatedAt: '2024-01-01' } } })
       mockGet.mockResolvedValue(mockProfileResponse)
       const result = await candidateApi.updateById('u-1', { personalDetails: { firstName: 'Updated' } } as never)
-      expect(mockPut).toHaveBeenCalledWith('/users/u-1', expect.any(Object))
+      expect(mockPut).toHaveBeenCalledWith('/candidates/cv-build/', {
+        personalDetails: { firstName: 'Updated' },
+      })
       expect(result.personalDetails.firstName).toBe('Jane')
     })
   })
@@ -329,10 +343,10 @@ describe('candidateApi', () => {
   })
 
   describe('buildMyCv (legacy POST)', () => {
-    it('calls POST /candidate/buildmycv', async () => {
+    it('calls POST /candidates/cv-build/', async () => {
       mockPost.mockResolvedValue({ data: { lastModified: '2024-01-01' } })
       await candidateApi.buildMyCv()
-      expect(mockPost).toHaveBeenCalledWith('/candidate/buildmycv')
+      expect(mockPost).toHaveBeenCalledWith('/candidates/cv-build/')
     })
   })
 
@@ -348,8 +362,8 @@ describe('candidateApi', () => {
     it('calls GET recommended-jobs endpoint', async () => {
       const data = { jobs: [] }
       mockGet.mockResolvedValue({ data: { data } })
-      await candidateApi.getRecommendedJobs('c-1')
-      expect(mockGet).toHaveBeenCalledWith('/candidate/c-1/recommended-jobs')
+      await candidateApi.getRecommendedJobs()
+      expect(mockGet).toHaveBeenCalledWith('/candidates/recommended-positions')
     })
   })
 

@@ -26,7 +26,7 @@ const CandidateDashboardPage = lazy(
 const CvBuilderPage = lazy(
   () => import("@/modules/cv-builder/pages/CvBuilderPage"),
 );
-const JobsPage = lazy(() => import("@/modules/candidate/pages/JobsPage"));
+
 const JobDetailsPage = lazy(
   () => import("@/modules/candidate/pages/JobDetailsPage"),
 );
@@ -99,8 +99,6 @@ export const AppRoutes = () => {
         </Route>
 
         <Route element={<ProtectedRoute />}>
-          <Route element={<PublicLayout />}></Route>
-
           <Route element={<CandidateLayout />}>
             <Route
               element={
@@ -120,7 +118,6 @@ export const AppRoutes = () => {
                 element={<ProfileCreationPage />}
               />
             </Route>
-            <Route path={ROUTE_PATHS.jobs} element={<JobsPage />} />
             <Route path={ROUTE_PATHS.jobDetails} element={<JobDetailsPage />} />
             <Route path={ROUTE_PATHS.savedJobs} element={<SavedJobsPage />} />
             <Route path={ROUTE_PATHS.latestJobs} element={<LatestJobsPage />} />
@@ -132,7 +129,10 @@ export const AppRoutes = () => {
           </Route>
 
           <Route element={<RecruiterLayout />}>
-            <Route path={ROUTE_PATHS.recruiter} element={<RecruiterPage />} />
+            <Route
+              path={ROUTE_PATHS.recruiterDashboard}
+              element={<RecruiterPage />}
+            />
             <Route
               path={ROUTE_PATHS.recruiterJobPosts}
               element={<RecruiterMandatesPage />}

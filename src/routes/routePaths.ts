@@ -14,7 +14,7 @@ export const ROUTE_PATHS = {
   recommendedJobs: '/jobs/recommended',
   profile: '/profile',
   profileCreation: '/profile/create',
-  recruiter: '/recruiter',
+  recruiterDashboard: '/recruiter/dashboard',
   recruiterJobPosts: '/recruiter/job-posts',
   recruiterMandate: '/recruiter/mandate/:cardId',
   recruiterCandidate: '/recruiter/mandate/:cardId/candidate/:candidateId',

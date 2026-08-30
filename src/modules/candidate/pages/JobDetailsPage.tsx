@@ -14,14 +14,24 @@ import patternHeroRight from "@/assets/job-details/pattern-hero-right.svg";
 import { BookmarkIcon } from "@/components/icons/BookmarkIcon";
 import { GradientPatternHero } from "@/components/hero";
 import { useJobs } from "@/modules/public/hooks/useJobs";
+import { useGetJobByIdQuery, useGetJobProfileQuery } from "@/store/api/apiSlice";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import { useOptimisticSaveJob } from "@/modules/candidate/hooks/useOptimisticSaveJob";
+import { useAppliedJobIds } from "@/modules/candidate/hooks/useAppliedJobIds";
 import type { Job } from "@/types";
 import styles from "./JobDetailsPage.module.css";
 
 type LocationState = {
   job?: Job;
+  from?: string;
 };
+
+const allowedBackRoutes = new Set<string>([
+  ROUTE_PATHS.latestJobs,
+  ROUTE_PATHS.savedJobs,
+  ROUTE_PATHS.recommendedJobs,
+  ROUTE_PATHS.candidateDashboard,
+]);
 const fallbackSkillPalette = [
   "#cabee9",
   "#efb5b5",
@@ -39,6 +49,23 @@ const toCityFromLocation = (location?: string) => {
 const toDisplayTitle = (value: string | undefined, fallback: string) => {
   if (!value || value.trim().length === 0) return fallback;
   return value;
+};
+
+// Enum labels from the job profile API (e.g. HYBRID, FULL_TIME) rendered as plain text.
+const ENUM_LABEL_OVERRIDES: Record<string, string> = {
+  ONSITE: "On-site",
+};
+
+const formatEnumLabel = (value?: string) => {
+  if (!value) return "";
+  if (!/^[A-Z0-9_]+$/.test(value)) return value;
+  if (ENUM_LABEL_OVERRIDES[value]) return ENUM_LABEL_OVERRIDES[value];
+
+  return value
+    .split("_")
+    .filter(Boolean)
+    .map((word) => word.charAt(0) + word.slice(1).toLowerCase())
+    .join(" ");
 };
 
 const formatPostedDate = (dateValue?: string) => {
@@ -59,10 +86,16 @@ const JobDetailsPage = () => {
   const { jobId } = useParams<{ jobId: string }>();
   const location = useLocation();
   const { isJobSaved, isJobSaving, toggleJobSaved } = useOptimisticSaveJob();
+  const { isJobApplied } = useAppliedJobIds();
 
-  const { data, isLoading, isError } = useJobs(undefined, true, 50);
+  const { data, isLoading } = useJobs(undefined, true, 50);
 
-  const stateJob = (location.state as LocationState | null)?.job;
+  const locationState = location.state as LocationState | null;
+  const stateJob = locationState?.job;
+  const backRoute =
+    locationState?.from && allowedBackRoutes.has(locationState.from)
+      ? locationState.from
+      : ROUTE_PATHS.latestJobs;
 
   const allJobs = useMemo(() => {
     return (data?.pages ?? []).flatMap((page) => page.jobs);
@@ -80,10 +113,31 @@ const JobDetailsPage = () => {
     return allJobs.find((job) => job.jobId === jobId) ?? stateJob;
   }, [allJobs, jobId, stateJob]);
 
-  const isSaved = resolvedJob ? isJobSaved(resolvedJob.jobId) : false;
-  const isSaving = resolvedJob ? isJobSaving(resolvedJob.jobId) : false;
+  // Fetch the job directly by id — the list-derived resolvedJob may not be
+  // ready yet (e.g. on a hard page reload), so this is the reliable source
+  // of the jobProfileId needed to call the job profile API below.
+  const { data: jobById } = useGetJobByIdQuery(jobId ?? "", { skip: !jobId });
+  const jobProfileId = jobById?.jobProfileId ?? resolvedJob?.jobProfileId;
 
-  if (isLoading && !resolvedJob) {
+  // Fetch the full job profile as soon as the job is opened, rather than
+  // relying solely on the (possibly partial) list-cached data.
+  const { data: jobProfile, isFetching: isJobProfileLoading } =
+    useGetJobProfileQuery(jobProfileId ?? "", {
+      skip: !jobProfileId,
+    });
+
+  const displayJob = useMemo(() => {
+    const base = resolvedJob ?? jobById;
+    if (!base) return undefined;
+    return { ...base, ...jobById, ...jobProfile, jobId: base.jobId };
+  }, [resolvedJob, jobById, jobProfile]);
+
+  const effectiveJob = resolvedJob ?? jobById;
+  const isSaved = effectiveJob ? isJobSaved(effectiveJob.jobId) : false;
+  const isSaving = effectiveJob ? isJobSaving(effectiveJob.jobId) : false;
+  const isApplied = effectiveJob ? isJobApplied(effectiveJob.jobId) : false;
+
+  if ((isLoading || isJobProfileLoading) && !effectiveJob) {
     return (
       <Box
         className={styles.pageRoot}
@@ -94,7 +148,7 @@ const JobDetailsPage = () => {
     );
   }
 
-  if (!resolvedJob || isError) {
+  if (!effectiveJob) {
     return (
       <Box className={styles.pageRoot} sx={{ p: 4 }}>
         <Typography component="p" className={styles.stateText}>
@@ -112,24 +166,25 @@ const JobDetailsPage = () => {
     );
   }
 
-  const title = toDisplayTitle(resolvedJob.title, "UX/UI Designer");
-  const industry = toDisplayTitle(resolvedJob.industry, "Digital Marketing");
-  const locationName = toCityFromLocation(resolvedJob.location);
-  const workType = toDisplayTitle(resolvedJob.workType, "Hybrid");
-  const employmentType = toDisplayTitle(
-    resolvedJob.employmentType,
-    "Full time",
+  const title = toDisplayTitle(displayJob?.title, "");
+  const companyName = toDisplayTitle(displayJob?.company, "");
+  const industry = toDisplayTitle(displayJob?.industry, "");
+  const locationName = toCityFromLocation(displayJob?.location);
+  const workType = formatEnumLabel(toDisplayTitle(displayJob?.workType, ""));
+  const employmentType = formatEnumLabel(
+    toDisplayTitle(displayJob?.employmentType, ""),
   );
   const requirements =
-    resolvedJob.requirements && resolvedJob.requirements.length > 0
-      ? resolvedJob.requirements
+    displayJob?.requirements && displayJob.requirements.length > 0
+      ? displayJob.requirements
       : [];
-  const responsibilities = resolvedJob.responsibilities && resolvedJob.responsibilities.length > 0
-    ? resolvedJob.responsibilities
-    : [];
+  const responsibilities =
+    displayJob?.responsibilities && displayJob.responsibilities.length > 0
+      ? displayJob.responsibilities
+      : [];
   const skills =
-    resolvedJob.skills && resolvedJob.skills.length > 0
-      ? resolvedJob.skills.slice(0, 5)
+    displayJob?.skills && displayJob.skills.length > 0
+      ? displayJob.skills.slice(0, 5)
       : [
           "User Experience Strategy",
           "Design Thinking",
@@ -150,26 +205,24 @@ const JobDetailsPage = () => {
       >
         <Box className={styles.heroInner}>
           <Box className={styles.headerRow}>
-            <Box className={styles.titleWrap}>
-              <ButtonBase
-                type="button"
-                className={styles.backButton}
-                disableRipple
-                onClick={() => navigate(ROUTE_PATHS.latestJobs)}
-              >
-                <img
-                  src={arrowLeftFill}
-                  alt=""
-                  className={styles.backButtonArrow}
-                  aria-hidden="true"
-                />
-                Back
-              </ButtonBase>
+            <ButtonBase
+              type="button"
+              className={styles.backButton}
+              disableRipple
+              onClick={() => navigate(backRoute)}
+            >
+              <img
+                src={arrowLeftFill}
+                alt=""
+                className={styles.backButtonArrow}
+                aria-hidden="true"
+              />
+              Back
+            </ButtonBase>
 
-              <Typography component="h1" className={styles.jobTitle}>
-                {title}
-              </Typography>
-            </Box>
+            <Typography component="h1" className={styles.jobTitle}>
+              {title}
+            </Typography>
 
             <Box className={styles.heroActions}>
               <IconButton
@@ -177,15 +230,22 @@ const JobDetailsPage = () => {
                 className={styles.heroSaveButton}
                 aria-label={isSaved ? `Unsave ${title}` : `Save ${title}`}
                 onClick={() => {
-                  void toggleJobSaved(resolvedJob.jobId);
+                  void toggleJobSaved(effectiveJob.jobId);
                 }}
                 disabled={isSaving}
               >
-                <BookmarkIcon filled={isSaved} className={styles.heroSaveIcon} />
+                <BookmarkIcon
+                  filled={isSaved}
+                  className={styles.heroSaveIcon}
+                />
               </IconButton>
 
-              <Button variant="contained" className={styles.applyButton}>
-                Apply now
+              <Button
+                variant="contained"
+                className={styles.applyButton}
+                disabled={isApplied}
+              >
+                {isApplied ? "Applied" : "Apply now"}
               </Button>
             </Box>
           </Box>
@@ -209,6 +269,14 @@ const JobDetailsPage = () => {
           <Box className={styles.metaCard}>
             <Box className={styles.metaItem}>
               <Typography component="p" className={styles.metaLabel}>
+                Company Name
+              </Typography>
+              <Typography component="p" className={styles.metaValue}>
+                {companyName}
+              </Typography>
+            </Box>
+            <Box className={styles.metaItem}>
+              <Typography component="p" className={styles.metaLabel}>
                 Employment type
               </Typography>
               <Typography component="p" className={styles.metaValue}>
@@ -228,7 +296,7 @@ const JobDetailsPage = () => {
                 Salary
               </Typography>
               <Typography component="p" className={styles.metaValue}>
-                {resolvedJob.salaryRange || "Negotiable"}
+                {displayJob?.salaryRange || "Negotiable"}
               </Typography>
             </Box>
             <Box className={styles.metaItem}>
@@ -236,7 +304,7 @@ const JobDetailsPage = () => {
                 Job published
               </Typography>
               <Typography component="p" className={styles.metaValue}>
-                {formatPostedDate(resolvedJob.postedDate)}
+                {formatPostedDate(displayJob?.postedDate)}
               </Typography>
             </Box>
             <Box className={styles.metaItem}>
@@ -244,7 +312,7 @@ const JobDetailsPage = () => {
                 Job Reference No.
               </Typography>
               <Typography component="p" className={styles.metaValue}>
-                {resolvedJob.jobId}
+                {effectiveJob.jobId}
               </Typography>
             </Box>
           </Box>
@@ -304,14 +372,18 @@ const JobDetailsPage = () => {
         </Box>
 
         <Box className={styles.footerActions}>
-          <Button variant="contained" className={styles.footerApply}>
-            Apply now
+          <Button
+            variant="contained"
+            className={styles.footerApply}
+            disabled={isApplied}
+          >
+            {isApplied ? "Applied" : "Apply now"}
           </Button>
           <Button
             variant="outlined"
             className={styles.footerSave}
             onClick={() => {
-              void toggleJobSaved(resolvedJob.jobId);
+              void toggleJobSaved(effectiveJob.jobId);
             }}
           >
             {isSaved ? "Saved" : "Save"}

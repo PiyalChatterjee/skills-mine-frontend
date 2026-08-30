@@ -1,8 +1,9 @@
 import { z } from "zod";
+import { strongPasswordSchema } from "@/app/passwordPolicy";
 
 export const resetPasswordSchema = z
   .object({
-    password: z.string().min(8, "Password must be at least 8 characters long"),
+    password: strongPasswordSchema,
     confirmPassword: z.string().min(1, "Please confirm your password"),
   })
   .superRefine((values, context) => {

@@ -2,6 +2,7 @@ import { Box, Button, Checkbox, Link, Stack, TextField, Typography } from "@mui/
 import { Controller, useWatch, type Control, type FieldErrors, type UseFormRegister } from "react-hook-form";
 import { useState } from "react";
 import { PasswordVisibilityAdornment } from "@/components/PasswordVisibilityAdornment";
+import { normalizePhoneNumberInput } from "@/app/phoneNumber";
 import type { SignUpFormValues } from "@/modules/public/components/SignUpDrawer.types";
 import styles from "./CandidateSignUpDrawer.module.css";
 
@@ -32,8 +33,7 @@ export const SignUpForm = ({
   const hasConfirmPasswordValue = Boolean(confirmPasswordValue?.length);
   const phoneNumberRegistration = register("mobileNumber", {
     onChange: (event) => {
-      const digitsOnly = event.target.value.replace(/\D/g, "").slice(0, 15);
-      event.target.value = digitsOnly ? `+${digitsOnly}` : "";
+      event.target.value = normalizePhoneNumberInput(event.target.value);
     },
   });
 
@@ -112,7 +112,7 @@ export const SignUpForm = ({
           slotProps={{
             htmlInput: {
               inputMode: "tel",
-              maxLength: 16,
+              maxLength: 10,
             },
           }}
           {...phoneNumberRegistration}

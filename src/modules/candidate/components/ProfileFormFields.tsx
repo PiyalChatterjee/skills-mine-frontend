@@ -25,6 +25,7 @@ type BaseFieldProps<TFieldValues extends FieldValues> = {
   inputClassName?: string;
   disabledClassName?: string;
   type?: TextFieldProps["type"];
+  maxLength?: number;
   slotProps?: TextFieldProps["slotProps"];
 };
 
@@ -88,6 +89,7 @@ export const ProfileTextField = <TFieldValues extends FieldValues>({
   inputClassName = styles.readonlyInput,
   disabledClassName = styles.readonlyInputDisabled,
   type,
+  maxLength,
   slotProps,
 }: BaseFieldProps<TFieldValues>) => {
   const inputId = useId();
@@ -116,7 +118,13 @@ export const ProfileTextField = <TFieldValues extends FieldValues>({
               disabledClassName,
               disabled,
             )}
-            slotProps={slotProps}
+            slotProps={{
+              ...slotProps,
+              htmlInput: {
+                ...slotProps?.htmlInput,
+                ...(maxLength !== undefined ? { maxLength } : {}),
+              },
+            }}
           />
         )}
       />

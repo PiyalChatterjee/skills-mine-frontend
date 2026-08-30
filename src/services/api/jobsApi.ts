@@ -37,7 +37,7 @@ export const jobsApi = {
     q?: string,
     page = 1,
     limit = 10,
-    status: "Open" | "Closed" | "Draft" = "Open",
+    status: string = "POSTED",
   ): Promise<JobsResponse> {
     const response = await apiClient.get<
       SuccessEnvelope<JobsListData> | JobsListData | Job[]
@@ -59,9 +59,48 @@ export const jobsApi = {
       .then((response) => response.data);
   },
 
+  // Full job profile detail (Mandate_Service_v2 job-service) — called when a
+  // candidate opens a job to view, instead of relying on the list-cached data.
+  async getJobProfile(jobProfileId: string): Promise<Job> {
+    const response = await apiClient.get(
+      resolveEndpoint(apiEndpoints.jobs.profileDetails, { jobProfileId }),
+    );
+    const data = response.data as Record<string, any>;
+    return {
+      jobId: data.jobReferenceNumber ?? jobProfileId,
+      jobProfileId: data.jobProfileId ?? jobProfileId,
+      title: data.positionTitle ?? "",
+      company: data.client?.clientName ?? "",
+      location: data.locationText ?? "",
+      industry: data.industry?.industryName ?? "",
+      employmentType: data.employmentType ?? "",
+      workType: data.workType ?? "",
+      salaryMin: data.salaryMin ?? undefined,
+      salaryMax: data.salaryMax ?? undefined,
+      salaryRange:
+        data.salaryMin && data.salaryMax
+          ? `R${Number(data.salaryMin).toLocaleString()} – R${Number(data.salaryMax).toLocaleString()}`
+          : "",
+      description: data.jobDescription ?? "",
+      requirements: data.requirements ?? [],
+      responsibilities: data.responsibilities ?? [],
+      skills: (data.skills ?? []).map((s: Record<string, any>) => s.originalText).filter(Boolean),
+      status: data.status ?? "",
+      applicationCount: data.applicantCount ?? 0,
+      postedDate: data.publishedAt ?? "",
+      recruiterId: undefined,
+    };
+  },
+
   save(jobId: string): Promise<SaveJobResponse> {
     return apiClient
       .post(resolveEndpoint(apiEndpoints.jobs.save, { jobId }))
+      .then((response) => response.data);
+  },
+
+  remove(jobId: string): Promise<SaveJobResponse> {
+    return apiClient
+      .delete(resolveEndpoint(apiEndpoints.jobs.save, { jobId }))
       .then((response) => response.data);
   },
 

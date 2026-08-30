@@ -50,12 +50,12 @@ export const saveProfileThunk = createAsyncThunk<
   }
 });
 
-export const fetchCandidateProfileThunk = (userId: string) =>
-  apiSlice.endpoints.getCandidateProfile.initiate(userId, {
+export const fetchCandidateProfileThunk = (candidateId: string, userId?: string) =>
+  apiSlice.endpoints.getCandidateProfile.initiate({ candidateId, userId }, {
     forceRefetch: false,
   });
 
-export const fetchCandidateDashboardThunk = (userId: string) =>
-  apiSlice.endpoints.getCandidateDashboard.initiate(userId, {
+export const fetchCandidateDashboardThunk = () =>
+  apiSlice.endpoints.getCandidateDashboard.initiate({}, {
     forceRefetch: false,
   });

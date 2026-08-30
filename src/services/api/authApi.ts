@@ -27,6 +27,20 @@ import {
   type StaffRegistrationResponse,
 } from "@/types/auth";
 import type { SuccessEnvelope } from "@/types/api";
+import { toSouthAfricaApiPhoneNumber } from "@/app/phoneNumber";
+
+const withNormalizedMobileNumber = <
+  T extends { mobileNumber?: string },
+>(payload: T): T => {
+  if (!payload.mobileNumber) {
+    return payload;
+  }
+
+  return {
+    ...payload,
+    mobileNumber: toSouthAfricaApiPhoneNumber(payload.mobileNumber),
+  };
+};
 
 const unwrapCurrentUserResponse = (
   response: CurrentUserResponse | SuccessEnvelope<CurrentUserResponse>,
@@ -106,6 +120,7 @@ const buildAuthUserFromCurrentUser = (
   return {
     id: currentUser.userId,
     userId: currentUser.userId,
+    candidateId: currentUser.candidateId ?? payload?.candidateId ?? payload?.candidate_id,
     email: currentUser.email,
     firstName,
     lastName,
@@ -133,6 +148,7 @@ const buildAuthUserFromJwt = (accessToken: string): AuthUser => {
   return {
     id: payload?.userId ?? payload?.sub ?? "",
     userId: payload?.userId ?? payload?.sub ?? "",
+    candidateId: payload?.candidateId ?? payload?.candidate_id,
     email: payload?.email ?? "",
     firstName,
     lastName,
@@ -194,7 +210,10 @@ export const authApi = {
   /** @deprecated Use candidateRegister or staffRegister */
   async register(payload: RegisterRequest): Promise<SignUpResponse> {
     return unwrapResponseData(
-      apiClient.post<SignUpResponse>(apiEndpoints.auth.register, payload),
+      apiClient.post<SignUpResponse>(
+        apiEndpoints.auth.register,
+        withNormalizedMobileNumber(payload),
+      ),
     );
   },
 
@@ -204,7 +223,7 @@ export const authApi = {
     return unwrapResponseData(
       apiClient.post<CandidateRegistrationResponse>(
         apiEndpoints.auth.candidateRegister,
-        payload,
+        withNormalizedMobileNumber(payload),
       ),
     );
   },
@@ -226,7 +245,7 @@ export const authApi = {
     return unwrapResponseData(
       apiClient.post<StaffRegistrationResponse>(
         apiEndpoints.auth.staffRegister,
-        payload,
+        withNormalizedMobileNumber(payload),
       ),
     );
   },

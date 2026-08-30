@@ -1,9 +1,11 @@
 import { useCallback } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { useCandidateResourceId } from "@/modules/candidate/hooks/useCandidateQueries";
 import {
   useSaveBuildMyCvMutation,
   useUpdateBuildMyCvMutation,
+  useUploadCvResumeDocumentMutation,
 } from "@/store/api/apiSlice";
 import type { CandidateProfile } from "@/modules/candidate/types";
 import { ROUTE_PATHS } from "@/routes/routePaths";
@@ -14,8 +16,44 @@ import {
   setBuildMyCvLastModified,
 } from "@/store/slices/candidateSlice";
 import type { SaveBuildMyCvRequest } from "@/types";
-import type { CvBuilderView } from "../types/cvBuilder";
+import type { Role } from "@/types/auth";
 import type { CvBuilderFormValues } from "../types/cvBuilderSchema";
+import { generateCvPdfBlobFromText } from "../utils/downloadCvPdf";
+
+// Not logged in => visitor; RECRUITER role => recruiter; everyone else => candidate
+const resolveResumeRoleLabel = (userId?: string, role?: Role): string => {
+  if (!userId) return "visitor";
+  if (role === "RECRUITER") return "recruiter";
+  return "candidate";
+};
+
+const resolveSuccessRoute = (roleLabel: string, candidateId: string): string => {
+  if (roleLabel === "visitor") return ROUTE_PATHS.landing;
+  if (roleLabel === "recruiter") {
+    // TODO: Navigate to ROUTE_PATHS.recruiterCandidate when the mandate cardId is available here.
+    return ROUTE_PATHS.recruiterCandidateDetail.replace(
+      ":candidateId",
+      candidateId,
+    );
+  }
+  return ROUTE_PATHS.candidateDashboard;
+};
+
+const sanitizeFileNamePart = (value: string): string =>
+  value.trim().replace(/[^a-zA-Z0-9]+/g, "").toLowerCase() || "candidate";
+
+const formatFileNameTimestamp = (date: Date): string => {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  // UTC keeps the timestamp unique regardless of the uploader's local timezone
+  return `${pad(date.getUTCMonth() + 1)}${pad(date.getUTCDate())}${date.getUTCFullYear()}${pad(date.getUTCHours())}${pad(date.getUTCMinutes())}${pad(date.getUTCSeconds())}`;
+};
+
+const buildResumeFileName = (
+  firstName: string,
+  lastName: string,
+  roleLabel: string,
+): string =>
+  `${sanitizeFileNamePart(firstName)}_${sanitizeFileNamePart(lastName)}_${roleLabel}_${formatFileNameTimestamp(new Date())}.pdf`;
 
 const monthNames = [
   "January",
@@ -90,13 +128,13 @@ export const buildCvBuilderPrefillData = (
 };
 
 type UseCvBuilderDoneArgs = {
-  activeView: CvBuilderView;
-  goNext: () => void;
   userId?: string;
   candidateProfile?: CandidateProfile;
   getFormValues: () => CvBuilderFormValues;
   selectedLanguageEntries: string[];
   buildMyCvExists: boolean;
+  hasFormChanges?: boolean;
+  userRole?: Role;
 };
 
 const buildBuildMyCvRequest = ({
@@ -168,23 +206,37 @@ const buildBuildMyCvRequest = ({
 };
 
 export const useCvBuilderDone = ({
-  activeView,
-  goNext,
+  userId,
   getFormValues,
   selectedLanguageEntries,
   buildMyCvExists,
+  hasFormChanges = true,
+  userRole,
 }: UseCvBuilderDoneArgs) => {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
+  // Must match the id used by the getBuildMyCv query so its cache tag is invalidated.
+  const candidateId = useCandidateResourceId();
   const [triggerCreate, { isLoading: isCreating }] = useSaveBuildMyCvMutation();
   const [triggerUpdate, { isLoading: isUpdating }] =
     useUpdateBuildMyCvMutation();
+  const [triggerResumeUpload] = useUploadCvResumeDocumentMutation();
 
   const isSavingCandidateProfile = isCreating || isUpdating;
 
   const handleDone = useCallback(async () => {
-    if (activeView !== "view-cv") {
-      goNext();
+    const roleLabel = resolveResumeRoleLabel(userId, userRole);
+    const successRoute = resolveSuccessRoute(roleLabel, candidateId);
+
+    if (buildMyCvExists && !hasFormChanges) {
+      dispatch(
+        pushNotification({
+          title: "No changes to save",
+          message: "Your CV is already up to date.",
+          level: "info",
+        }),
+      );
+      navigate(successRoute);
       return;
     }
 
@@ -193,10 +245,48 @@ export const useCvBuilderDone = ({
       selectedLanguageEntries,
     });
 
+    let pdfBlob: Blob;
+    let fileName: string;
+
+    try {
+      pdfBlob = generateCvPdfBlobFromText(JSON.stringify(payload, null, 2));
+      fileName = buildResumeFileName(
+        payload.personalDetails?.firstName ?? "",
+        payload.personalDetails?.lastName ?? "",
+        roleLabel,
+      );
+    } catch {
+      dispatch(
+        pushNotification({
+          title: "PDF generation failed",
+          message: "We could not generate your CV PDF. Please try again.",
+          level: "error",
+        }),
+      );
+      return;
+    }
+
+    try {
+      await triggerResumeUpload({
+        candidateId,
+        file: pdfBlob,
+        fileName,
+      }).unwrap();
+    } catch {
+      dispatch(
+        pushNotification({
+          title: "Resume upload failed",
+          message: "We could not upload your CV PDF. Please try again.",
+          level: "error",
+        }),
+      );
+      return;
+    }
+
     try {
       const result = buildMyCvExists
-        ? await triggerUpdate(payload).unwrap()
-        : await triggerCreate(payload).unwrap();
+        ? await triggerUpdate({ candidateId, payload }).unwrap()
+        : await triggerCreate({ candidateId, payload }).unwrap();
 
       dispatch(setBuildMyCvExists(true));
       dispatch(
@@ -214,7 +304,8 @@ export const useCvBuilderDone = ({
           level: "success",
         }),
       );
-      navigate(ROUTE_PATHS.candidateDashboard);
+
+      navigate(successRoute);
     } catch (error) {
       const fallbackMessage =
         "We could not save your CV right now. Please try again.";
@@ -232,14 +323,17 @@ export const useCvBuilderDone = ({
       );
     }
   }, [
-    activeView,
-    goNext,
     buildMyCvExists,
+    candidateId,
     dispatch,
     getFormValues,
+    hasFormChanges,
     selectedLanguageEntries,
     triggerCreate,
     triggerUpdate,
+    triggerResumeUpload,
+    userId,
+    userRole,
     navigate,
   ]);
 
