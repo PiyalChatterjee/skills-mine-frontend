@@ -13,6 +13,10 @@ export const apiEndpoints = {
       import.meta.env.VITE_AUTH_CANDIDATE_REGISTER_ENDPOINT,
       "/api/v1/auth/candidates/register",
     ),
+    recruiterRegister: withDefault(
+      import.meta.env.VITE_AUTH_RECRUITER_REGISTER_ENDPOINT,
+      "/api/v1/auth/recruiters/register",
+    ),
     staffRegister: withDefault(
       import.meta.env.VITE_AUTH_STAFF_REGISTER_ENDPOINT,
       "/api/v1/auth/staff/register",
@@ -163,6 +167,10 @@ export const apiEndpoints = {
     candidateProfile: withDefault(
       import.meta.env.VITE_RECRUITER_CANDIDATE_PROFILE_ENDPOINT,
       "/v1/candidates/:candidateId/profile",
+    ),
+    tourStatus: withDefault(
+      import.meta.env.VITE_RECRUITER_TOUR_STATUS_ENDPOINT,
+      "/api/v1/recruiters/me/tour-status",
     ),
   },
   pipeline: {

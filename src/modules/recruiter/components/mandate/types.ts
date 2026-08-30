@@ -1,5 +1,9 @@
 export interface MandateFormValues {
   companyName: string
+  clientRate: string
+  contactPerson: string
+  contactPersonEmail: string
+  contactPersonPhone: string
   positionTitle: string
   location: string
   fillByDate: string

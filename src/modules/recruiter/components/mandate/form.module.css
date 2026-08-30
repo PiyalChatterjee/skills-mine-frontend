@@ -260,6 +260,11 @@
   color: #2B96D9;
 }
 
+/* ── Company name autocomplete dropdown ───────────────────────────────── */
+.companyDropdown {
+  width: 100%;
+}
+
 /* ── Job board cards ──────────────────────────────────────────────────── */
 .jobBoardGrid {
   display: flex;

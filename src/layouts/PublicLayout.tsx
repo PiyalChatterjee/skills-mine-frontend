@@ -28,7 +28,9 @@ export const PublicLayout = () => {
   const navigate = useNavigate();
   const { isAuthenticated, tokens, user } = useAuth();
   const isLoginPage = location.pathname === ROUTE_PATHS.login;
-  const isSignupPage = location.pathname === ROUTE_PATHS.signup;
+  const isSignupPage =
+    location.pathname === ROUTE_PATHS.signup ||
+    location.pathname === ROUTE_PATHS.recruiterSignup;
   const isResetPasswordPage = location.pathname === ROUTE_PATHS.resetPassword;
   const landingMode = useSelector((state: RootState) => state.ui.landingMode);
   const isLandingPage = location.pathname === ROUTE_PATHS.landing;
@@ -165,6 +167,7 @@ export const PublicLayout = () => {
           !shouldUseLoginHeaderVariant &&
           !isLoginPage &&
           !isSignupPage &&
+          !isHiringLandingMode &&
           !shouldUseAuthHeaderVariant
         }
       />

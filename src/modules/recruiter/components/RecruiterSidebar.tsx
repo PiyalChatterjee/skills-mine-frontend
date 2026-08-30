@@ -66,7 +66,7 @@ export const RecruiterSidebar = () => {
   )
 
   const mainNavItems: NavItem[] = [
-    { id: 'dashboard',  label: 'Dashboard',   to: ROUTE_PATHS.recruiter, icon: <img src={dashboardIcon} width={20} height={20} alt="" aria-hidden="true" /> },
+    { id: 'pipeline',  label: 'Pipeline',   to: ROUTE_PATHS.recruiter, icon: <img src={dashboardIcon} width={20} height={20} alt="" aria-hidden="true" /> },
     { id: 'jobPosts',   label: 'Job Posts',   to: ROUTE_PATHS.recruiterJobPosts, icon: <img src={mandatesIcon}  width={20} height={20} alt="" aria-hidden="true" /> },
     { id: 'newJobPost', label: 'New Job Post', icon: <PlusIcon />,       onClick: handleNewJobPostClick },
     { id: 'candidates', label: 'Candidates',  to: ROUTE_PATHS.recruiterCandidates, icon: <CandidatesIcon /> },

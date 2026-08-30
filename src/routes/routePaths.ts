@@ -3,6 +3,7 @@ export const ROUTE_PATHS = {
   login: '/login',
   resetPassword: '/reset-password',
   signup: '/signup',
+  recruiterSignup: '/recruiter/signup',
   dashboard: '/dashboard',
   candidateDashboard: '/candidate/dashboard',
   cvBuilder: '/candidate/cv-builder',

@@ -97,6 +97,25 @@ export interface CandidateRegistrationResponse {
   }
 }
 
+export interface RecruiterRegistrationRequest {
+  firstName: string
+  lastName: string
+  email: string
+  mobileNumber?: string
+  password: string
+  confirmPassword: string
+  acceptTerms?: boolean
+  acceptPrivacyPolicy?: boolean
+}
+
+export interface RecruiterRegistrationResponse {
+  userId: string
+  email: string
+  role: 'RECRUITER'
+  registrationType: 'SELF_SERVICE'
+  accountStatus: 'ACTIVE' | 'PENDING_VERIFICATION' | 'SUSPENDED'
+}
+
 export interface StaffRegistrationRequest {
   firstName: string
   lastName: string
