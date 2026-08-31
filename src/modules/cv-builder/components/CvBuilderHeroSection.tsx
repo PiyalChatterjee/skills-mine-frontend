@@ -5,9 +5,10 @@ import styles from "../pages/CvBuilderPage.module.css";
 
 type CvBuilderHeroSectionProps = {
   onBack?: () => void;
+  heading?: string;
 };
 
-const CvBuilderHeroSection = ({ onBack }: CvBuilderHeroSectionProps) => (
+const CvBuilderHeroSection = ({ onBack, heading = "CV Builder" }: CvBuilderHeroSectionProps) => (
   <GradientPatternHero height={200}>
     {onBack && (
       <ButtonBase
@@ -23,7 +24,7 @@ const CvBuilderHeroSection = ({ onBack }: CvBuilderHeroSectionProps) => (
       </ButtonBase>
     )}
     <Typography component="h1" className={styles.heroHeading}>
-      CV Builder
+      {heading}
     </Typography>
   </GradientPatternHero>
 );

@@ -170,6 +170,7 @@ const useCvBuilder = (
 ) => {
   const uploadInputRef = useRef<HTMLInputElement | null>(null);
   const [activeView, setActiveView] = useState<CvBuilderView>("launcher");
+  const [reviewSource, setReviewSource] = useState<"build" | "upload">("build");
   const [selectedUploadFile, setSelectedUploadFile] = useState<File | null>(
     null,
   );
@@ -360,8 +361,18 @@ const useCvBuilder = (
   };
   const selectUploadFile = (file: File | null) => setSelectedUploadFile(file);
   const openUploadPicker = () => uploadInputRef.current?.click();
-  const openBuildFlow = () => setActiveView("review");
+  const openBuildFlow = () => {
+    setReviewSource("build");
+    setActiveView("review");
+  };
   const goBack = () => setActiveView("launcher");
+  // Resume extraction isn't wired up to the mock API yet, so the uploaded-CV
+  // flow shows a blank form instead of stale/unrelated profile data.
+  const openReviewFlowBlank = () => {
+    form.reset(DEFAULT_FORM_VALUES);
+    setReviewSource("upload");
+    setActiveView("review");
+  };
 
   const toggleLanguage = (language: Language) => {
     const current = form.getValues("languages");
@@ -422,12 +433,14 @@ const useCvBuilder = (
     form,
     uploadInputRef,
     activeView,
+    reviewSource,
     selectedUploadFile,
     canViewCv,
     handleUploadFileSelect,
     selectUploadFile,
     openUploadPicker,
     openBuildFlow,
+    openReviewFlowBlank,
     goBack,
     selectedLanguages,
     selectedLanguageEntries,

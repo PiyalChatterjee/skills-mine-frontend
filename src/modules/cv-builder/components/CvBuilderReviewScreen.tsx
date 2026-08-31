@@ -30,7 +30,15 @@ type ReviewSectionConfig = {
   renderContent: () => ReactNode;
 };
 
-const CvBuilderReviewScreen = () => {
+type CvBuilderReviewScreenProps = {
+  title?: string;
+  description?: string;
+};
+
+const CvBuilderReviewScreen = ({
+  title = "Build Your CV.",
+  description = "Use the fields below to build your CV.",
+}: CvBuilderReviewScreenProps) => {
   const { control } = useFormContext<CvBuilderFormValues>();
   // Single shared instance so the header's "Generate" action and the list stay in sync.
   const skillsFieldArray = useFieldArray({ control, name: "skills" });
@@ -78,9 +86,9 @@ const CvBuilderReviewScreen = () => {
   return (
     <Box className={styles.reviewLayout}>
       <Box className={styles.reviewMainColumn}>
-        <Typography className={styles.reviewTitle}>Build Your CV.</Typography>
+        <Typography className={styles.reviewTitle}>{title}</Typography>
         <Typography className={styles.reviewDescription}>
-          Use the fields below to build your CV.
+          {description}
         </Typography>
 
         <Box className={styles.reviewSectionsList}>

@@ -52,6 +52,8 @@ const CvBuilderPage = () => {
         documentType: "RESUME",
       }).unwrap();
       setUploadModalOpen(false);
+      // Resume extraction isn't wired up to the mock API yet, so show a blank form for now.
+      openReviewFlowBlank();
     } catch {
       // Keep the modal open so the user can retry the upload.
     }
@@ -144,6 +146,7 @@ const CvBuilderPage = () => {
     form,
     uploadInputRef,
     activeView,
+    reviewSource,
     selectedUploadFile,
     canViewCv,
     selectedLanguageEntries,
@@ -151,6 +154,7 @@ const CvBuilderPage = () => {
     selectUploadFile,
     openUploadPicker,
     openBuildFlow,
+    openReviewFlowBlank,
     goBack,
   } = useCvBuilder(
     cvBuilderPrefillData,
@@ -209,7 +213,10 @@ const CvBuilderPage = () => {
           aria-hidden="true"
         />
 
-        <CvBuilderHeroSection onBack={activeView === "review" ? goBack : undefined} />
+        <CvBuilderHeroSection
+          onBack={activeView === "review" ? goBack : undefined}
+          heading={activeView === "review" && reviewSource === "upload" ? "Your CV" : "CV Builder"}
+        />
 
         <Box
           component="section"
@@ -217,6 +224,11 @@ const CvBuilderPage = () => {
         >
           {activeView === "launcher" ? (
             <CvBuilderLauncher cards={actionCards} />
+          ) : reviewSource === "upload" ? (
+            <CvBuilderReviewScreen
+              title="Review your CV."
+              description="Your CV has been uploaded, we have highlighted potential gaps in your CV."
+            />
           ) : (
             <CvBuilderReviewScreen />
           )}
