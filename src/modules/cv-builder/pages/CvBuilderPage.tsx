@@ -209,7 +209,7 @@ const CvBuilderPage = () => {
           aria-hidden="true"
         />
 
-        <CvBuilderHeroSection />
+        <CvBuilderHeroSection onBack={activeView === "review" ? goBack : undefined} />
 
         <Box
           component="section"
@@ -224,10 +224,9 @@ const CvBuilderPage = () => {
 
         {activeView === "review" && (
           <CvBuilderFooterActions
-            onBack={goBack}
             onNext={handleDone}
             isNextDisabled={!canViewCv || isSavingCandidateProfile}
-            nextLabel={isSavingCandidateProfile ? "Saving…" : "Done"}
+            nextLabel={isSavingCandidateProfile ? "Saving…" : "Save & Submit"}
             showNextIcon={false}
           />
         )}

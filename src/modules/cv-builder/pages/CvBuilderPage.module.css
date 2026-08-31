@@ -284,6 +284,50 @@
   transform: translateX(-50%);
 }
 
+.heroBackButton,
+.heroBackButton:global(.MuiButtonBase-root) {
+  position: absolute;
+  top: 78px;
+  left: 80px;
+  transform: translateY(-50%);
+  min-width: 52px;
+  min-height: 30px;
+  border-radius: 8px;
+  border: 1px solid #80c0e8;
+  color: #b0b4b8;
+  background: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
+  text-transform: none;
+  padding: 6px 8px;
+}
+
+.heroBackButton:global(.MuiButtonBase-root):hover {
+  border-color: #80c0e8;
+  background: #ffffff;
+}
+
+.heroBackButtonIconWrap {
+  width: 14px;
+  height: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.heroBackButtonArrow {
+  width: 14px;
+  height: 14px;
+  display: block;
+  transform: rotate(180deg);
+  filter: brightness(0) saturate(100%) invert(75%) sepia(9%) saturate(204%) hue-rotate(172deg) brightness(91%) contrast(88%);
+}
+
 .contentSection {
   flex: 1;
   width: 100%;
@@ -1090,7 +1134,7 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   align-items: start;
-  max-width: 1060px;
+  max-width: 723px;
   margin: 0 auto;
 }
 
@@ -1111,12 +1155,13 @@
 
 .reviewDescription,
 .reviewDescription:global(.MuiTypography-root) {
-  margin: 8px 0 24px;
+  margin: 24px 0px;
   color: #2a3132;
   font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 400;
   line-height: 1.5;
+  letter-spacing: 0.1px;
 }
 
 .reviewSectionsList {
@@ -1131,7 +1176,7 @@
 .reviewSectionToggle:global(.MuiButton-root) {
   width: 100%;
   min-width: 0;
-  padding: 32px 0;
+  padding: 24px 0;
   border: none;
   border-radius: 0;
   background: transparent;
@@ -1183,7 +1228,7 @@
 }
 
 .reviewSectionContent {
-  padding: 0 0 32px;
+  padding: 0 0 24px;
 }
 
 .reviewEmbeddedSectionContent .formPanel {

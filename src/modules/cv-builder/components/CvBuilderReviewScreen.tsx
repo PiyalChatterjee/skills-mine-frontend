@@ -78,10 +78,9 @@ const CvBuilderReviewScreen = () => {
   return (
     <Box className={styles.reviewLayout}>
       <Box className={styles.reviewMainColumn}>
-        <Typography className={styles.reviewTitle}>Review your CV.</Typography>
+        <Typography className={styles.reviewTitle}>Build Your CV.</Typography>
         <Typography className={styles.reviewDescription}>
-          Excellent job! Your CV has been successfully created. Please take a
-          moment to review your details to ensure their accuracy.
+          Use the fields below to build your CV.
         </Typography>
 
         <Box className={styles.reviewSectionsList}>
