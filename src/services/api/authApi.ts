@@ -16,6 +16,8 @@ import {
   type LoginRequest,
   type LoginResponse,
   type Permission,
+  type RecruiterRegistrationRequest,
+  type RecruiterRegistrationResponse,
   type RegisterRequest,
   type ResetPasswordRequest,
   type ResetPasswordResponse,
@@ -222,6 +224,17 @@ export const authApi = {
       apiClient.post<CandidateRegistrationResponse>(
         apiEndpoints.auth.candidateRegister,
         withNormalizedMobileNumber(payload),
+      ),
+    );
+  },
+
+  async recruiterRegister(
+    payload: RecruiterRegistrationRequest,
+  ): Promise<RecruiterRegistrationResponse> {
+    return unwrapResponseData(
+      apiClient.post<RecruiterRegistrationResponse>(
+        apiEndpoints.auth.recruiterRegister,
+        payload,
       ),
     );
   },

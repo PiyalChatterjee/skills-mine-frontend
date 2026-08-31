@@ -25,25 +25,29 @@ function toBulletLines(value: string | string[] | undefined): string {
 
 function toFormValues(post: JobPost): MandateFormValues {
   return {
-    companyName:      post.client ?? '',
-    positionTitle:    post.title ?? '',
-    location:         post.location ?? '',
-    fillByDate:       post.targetCloseDate ? post.targetCloseDate.split('T')[0] : '',
-    workType:         post.workType ?? '',
-    employmentType:   post.employmentType ?? '',
-    experienceLevel:  post.experienceLevel ?? '',
-    priority:         post.priority
+    companyName:          post.client ?? '',
+    clientRate:           (post as unknown as Record<string, string>).clientRate ?? '',
+    contactPerson:        (post as unknown as Record<string, string>).contactPerson ?? '',
+    contactPersonEmail:   (post as unknown as Record<string, string>).contactPersonEmail ?? '',
+    contactPersonPhone:   (post as unknown as Record<string, string>).contactPersonPhone ?? '',
+    positionTitle:        post.title ?? '',
+    location:             post.location ?? '',
+    fillByDate:           post.targetCloseDate ? post.targetCloseDate.split('T')[0] : '',
+    workType:             post.workType ?? '',
+    employmentType:       post.employmentType ?? '',
+    experienceLevel:      post.experienceLevel ?? '',
+    priority:             post.priority
       ? post.priority.charAt(0).toUpperCase() + post.priority.slice(1).toLowerCase()
       : '',
-    salaryMin:        typeof post.salaryMin === 'number' ? post.salaryMin : '',
-    salaryMax:        typeof post.salaryMax === 'number' ? post.salaryMax : '',
-    jobDescription:   post.jobDescription ?? '',
-    requirements:     toBulletLines(post.requirements),
-    responsibilities: toBulletLines(post.responsibilities),
-    benefits:         toBulletLines(post.benefits),
-    skills:           post.skills ?? [],
-    industries:       post.industries ?? [],
-    jobBoards:        post.jobBoards ?? [],
+    salaryMin:            typeof post.salaryMin === 'number' ? post.salaryMin : '',
+    salaryMax:            typeof post.salaryMax === 'number' ? post.salaryMax : '',
+    jobDescription:       post.jobDescription ?? '',
+    requirements:         toBulletLines(post.requirements),
+    responsibilities:     toBulletLines(post.responsibilities),
+    benefits:             toBulletLines(post.benefits),
+    skills:               post.skills ?? [],
+    industries:           post.industries ?? [],
+    jobBoards:            post.jobBoards ?? [],
   }
 }
 

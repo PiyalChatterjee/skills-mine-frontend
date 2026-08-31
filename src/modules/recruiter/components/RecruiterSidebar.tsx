@@ -21,6 +21,34 @@ type NavItem = {
   onClick?: () => void
 }
 
+// ── Icons (declared outside component to avoid re-creation on render) ──
+
+/** Plain plus sign — New Job Post (no dedicated asset) */
+const PlusIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+  </svg>
+)
+
+/** Two overlapping person silhouettes — Candidates (no dedicated asset) */
+const CandidatesIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <circle cx="9" cy="7" r="3" stroke="currentColor" strokeWidth="1.8" />
+    <path d="M2 19c0-3.314 3.134-6 7-6s7 2.686 7 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    <circle cx="17" cy="7" r="2.5" stroke="currentColor" strokeWidth="1.6" />
+    <path d="M20 17c0-2.21-1.343-4-3-4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+  </svg>
+)
+
+/** Bar chart icon — MANCO Dashboard */
+const MancoIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <rect x="3" y="12" width="4" height="9" rx="1" stroke="currentColor" strokeWidth="1.8" />
+    <rect x="10" y="7" width="4" height="14" rx="1" stroke="currentColor" strokeWidth="1.8" />
+    <rect x="17" y="3" width="4" height="18" rx="1" stroke="currentColor" strokeWidth="1.8" />
+  </svg>
+)
+
 // ── Component ──────────────────────────────────────────────────────────
 
 export const RecruiterSidebar = () => {
@@ -39,34 +67,8 @@ export const RecruiterSidebar = () => {
     // TODO: Open help panel
   }
 
-  /** Plain plus sign — New Job Post (no dedicated asset) */
-  const PlusIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  )
-
-  /** Two overlapping person silhouettes — Candidates (no dedicated asset) */
-  const CandidatesIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <circle cx="9" cy="7" r="3" stroke="currentColor" strokeWidth="1.8" />
-      <path d="M2 19c0-3.314 3.134-6 7-6s7 2.686 7 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-      <circle cx="17" cy="7" r="2.5" stroke="currentColor" strokeWidth="1.6" />
-      <path d="M20 17c0-2.21-1.343-4-3-4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-    </svg>
-  )
-
-  /** Bar chart icon — MANCO Dashboard */
-  const MancoIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <rect x="3" y="12" width="4" height="9" rx="1" stroke="currentColor" strokeWidth="1.8" />
-      <rect x="10" y="7" width="4" height="14" rx="1" stroke="currentColor" strokeWidth="1.8" />
-      <rect x="17" y="3" width="4" height="18" rx="1" stroke="currentColor" strokeWidth="1.8" />
-    </svg>
-  )
-
   const mainNavItems: NavItem[] = [
-    { id: 'dashboard',  label: 'Dashboard',   to: ROUTE_PATHS.recruiterDashboard, icon: <img src={dashboardIcon} width={20} height={20} alt="" aria-hidden="true" /> },
+    { id: 'pipeline',  label: 'Pipeline',   to: ROUTE_PATHS.recruiterDashboard, icon: <img src={dashboardIcon} width={20} height={20} alt="" aria-hidden="true" /> },
     { id: 'jobPosts',   label: 'Job Posts',   to: ROUTE_PATHS.recruiterJobPosts, icon: <img src={mandatesIcon}  width={20} height={20} alt="" aria-hidden="true" /> },
     { id: 'newJobPost', label: 'New Job Post', icon: <PlusIcon />,       onClick: handleNewJobPostClick },
     { id: 'candidates', label: 'Candidates',  to: ROUTE_PATHS.recruiterCandidates, icon: <CandidatesIcon /> },

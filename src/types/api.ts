@@ -823,6 +823,10 @@ export interface JobPost {
   title: string
   client: string
   clientId: string
+  clientRate?: string
+  contactPersonName?: string
+  contactPersonEmail?: string
+  contactPersonNumber?: string
   recruiterId: string
   recruiterName: string
   industry: string
