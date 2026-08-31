@@ -167,9 +167,10 @@ export type CvBuilderPrefillData = Partial<CvBuilderFormValues>;
 const useCvBuilder = (
   prefillData?: CvBuilderPrefillData,
   forceApply = false,
+  initialView: CvBuilderView = "launcher",
 ) => {
   const uploadInputRef = useRef<HTMLInputElement | null>(null);
-  const [activeView, setActiveView] = useState<CvBuilderView>("launcher");
+  const [activeView, setActiveView] = useState<CvBuilderView>(initialView);
   const [reviewSource, setReviewSource] = useState<"build" | "upload">("build");
   const [selectedUploadFile, setSelectedUploadFile] = useState<File | null>(
     null,

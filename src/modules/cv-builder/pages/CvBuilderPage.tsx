@@ -1,6 +1,7 @@
 import { Box } from "@mui/material";
 import { useMemo, useState } from "react";
 import { FormProvider } from "react-hook-form";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/app/auth/AuthContext";
 import settingsIcon from "@/assets/cv-builder/settings-4-line.svg";
 import uploadIcon from "@/assets/cv-builder/upload-2-line.svg";
@@ -32,17 +33,61 @@ import {
 } from "../types/cvBuilder";
 import styles from "./CvBuilderPage.module.css";
 import CvBuilderUploadModal from "../components/CvBuilderUploadModal";
+import { getGuestApplicationDrafts } from "@/modules/candidate/utils/guestApplicationDraft";
+import { ROUTE_PATHS } from "@/routes/routePaths";
+
+const formatJobTag = (value?: string) =>
+  value
+    ?.replace(/_/g, " ")
+    .toLowerCase()
+    .replace(/\b\w/g, (character) => character.toUpperCase()) ?? "";
 
 const CvBuilderPage = () => {
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [uploadDocument, { isLoading: isUploadingResume }] =
     useUploadDocumentMutation();
   const { user } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
   const userId = user?.userId;
   const candidateId = useCandidateResourceId();
+  const guestApplicationJobIdFromState = (
+    location.state as { guestApplicationJobId?: string } | null
+  )?.guestApplicationJobId;
+  const guestApplicationJobId =
+    new URLSearchParams(location.search).get("job") ??
+    guestApplicationJobIdFromState;
+  const guestApplicationDraft = useMemo(() => {
+    if (userId) return undefined;
+    const drafts = getGuestApplicationDrafts();
+    return (
+      drafts.find((draft) => draft.jobId === guestApplicationJobId) ??
+      drafts.find((draft) => draft.applicationStatus === "pending-authentication")
+    );
+  }, [guestApplicationJobId, userId]);
+  const isGuestApplication = Boolean(guestApplicationDraft);
+  const guestJobTags = useMemo(() => {
+    const job = guestApplicationDraft?.job;
+    if (!job) return [];
+
+    return [
+      job.industry,
+      job.location?.split(",")[0]?.trim(),
+      formatJobTag(job.workType),
+      formatJobTag(job.employmentType),
+    ].filter((tag): tag is string => Boolean(tag));
+  }, [guestApplicationDraft]);
 
   const handleUploadDone = async () => {
-    if (!candidateId || !selectedUploadFile) return;
+    if (!selectedUploadFile) return;
+
+    if (isGuestApplication) {
+      setUploadModalOpen(false);
+      openReviewFlowBlank();
+      return;
+    }
+
+    if (!candidateId) return;
 
     try {
       await uploadDocument({
@@ -170,6 +215,7 @@ const CvBuilderPage = () => {
     buildMyCvExists,
     hasFormChanges,
     userRole: user?.role,
+    guestApplicationDraft,
   });
 
   const actionCards: CvActionCard[] = useMemo(
@@ -214,8 +260,28 @@ const CvBuilderPage = () => {
         />
 
         <CvBuilderHeroSection
-          onBack={activeView === "review" ? goBack : undefined}
-          heading={activeView === "review" && reviewSource === "upload" ? "Your CV" : "CV Builder"}
+          onBack={
+            isGuestApplication
+              ? () =>
+                  navigate(
+                    ROUTE_PATHS.jobDetails.replace(
+                      ":jobId",
+                      guestApplicationDraft!.jobId,
+                    ),
+                  )
+              : activeView === "review"
+                ? goBack
+                : undefined
+          }
+          heading={
+            isGuestApplication
+              ? guestApplicationDraft?.jobTitle
+              : activeView === "review" && reviewSource === "upload"
+                ? "Your CV"
+                : "CV Builder"
+          }
+          tags={isGuestApplication ? guestJobTags : undefined}
+          isJobContext={isGuestApplication}
         />
 
         <Box
@@ -223,7 +289,10 @@ const CvBuilderPage = () => {
           className={styles.contentSection}
         >
           {activeView === "launcher" ? (
-            <CvBuilderLauncher cards={actionCards} />
+            <CvBuilderLauncher
+              cards={actionCards}
+              heading={isGuestApplication ? "Upload your CV" : undefined}
+            />
           ) : reviewSource === "upload" ? (
             <CvBuilderReviewScreen
               title="Review your CV."

@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   Box,
   Button,
@@ -18,6 +18,9 @@ import { useGetJobByIdQuery, useGetJobProfileQuery } from "@/store/api/apiSlice"
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import { useOptimisticSaveJob } from "@/modules/candidate/hooks/useOptimisticSaveJob";
 import { useAppliedJobIds } from "@/modules/candidate/hooks/useAppliedJobIds";
+import { useAuth } from "@/app/auth/AuthContext";
+import { createGuestApplicationDraft } from "@/modules/candidate/utils/guestApplicationDraft";
+import { jobsApi } from "@/services/api/jobsApi";
 import type { Job } from "@/types";
 import styles from "./JobDetailsPage.module.css";
 
@@ -85,8 +88,10 @@ const JobDetailsPage = () => {
   const navigate = useNavigate();
   const { jobId } = useParams<{ jobId: string }>();
   const location = useLocation();
+  const { isAuthenticated } = useAuth();
   const { isJobSaved, isJobSaving, toggleJobSaved } = useOptimisticSaveJob();
   const { isJobApplied } = useAppliedJobIds();
+  const [hasJustApplied, setHasJustApplied] = useState(false);
 
   const { data, isLoading } = useJobs(undefined, true, 50);
 
@@ -135,7 +140,28 @@ const JobDetailsPage = () => {
   const effectiveJob = resolvedJob ?? jobById;
   const isSaved = effectiveJob ? isJobSaved(effectiveJob.jobId) : false;
   const isSaving = effectiveJob ? isJobSaving(effectiveJob.jobId) : false;
-  const isApplied = effectiveJob ? isJobApplied(effectiveJob.jobId) : false;
+  const isApplied = effectiveJob
+    ? hasJustApplied || isJobApplied(effectiveJob.jobId)
+    : false;
+
+  const handleApply = async () => {
+    if (!effectiveJob) return;
+
+    if (!isAuthenticated) {
+      createGuestApplicationDraft(effectiveJob);
+      navigate(`${ROUTE_PATHS.cvBuilder}?job=${encodeURIComponent(effectiveJob.jobId)}`, {
+        state: { guestApplicationJobId: effectiveJob.jobId },
+      });
+      return;
+    }
+
+    try {
+      await jobsApi.apply(effectiveJob.jobId, { sourceChannel: "direct" });
+      setHasJustApplied(true);
+    } catch {
+      // The existing job details page has no inline error surface for apply failures.
+    }
+  };
 
   if ((isLoading || isJobProfileLoading) && !effectiveJob) {
     return (
@@ -204,50 +230,59 @@ const JobDetailsPage = () => {
         leftPatternSrc={patternHeroLeft}
       >
         <Box className={styles.heroInner}>
-          <Box className={styles.headerRow}>
-            <ButtonBase
-              type="button"
-              className={styles.backButton}
-              disableRipple
-              onClick={() => navigate(backRoute)}
-            >
-              <img
-                src={arrowLeftFill}
-                alt=""
-                className={styles.backButtonArrow}
-                aria-hidden="true"
-              />
-              Back
-            </ButtonBase>
+          <Box
+            className={
+              isAuthenticated ? styles.headerRow : styles.guestHeaderRow
+            }
+          >
+            {isAuthenticated && (
+              <ButtonBase
+                type="button"
+                className={styles.backButton}
+                disableRipple
+                onClick={() => navigate(backRoute)}
+              >
+                <img
+                  src={arrowLeftFill}
+                  alt=""
+                  className={styles.backButtonArrow}
+                  aria-hidden="true"
+                />
+                Back
+              </ButtonBase>
+            )}
 
             <Typography component="h1" className={styles.jobTitle}>
               {title}
             </Typography>
 
-            <Box className={styles.heroActions}>
-              <IconButton
-                type="button"
-                className={styles.heroSaveButton}
-                aria-label={isSaved ? `Unsave ${title}` : `Save ${title}`}
-                onClick={() => {
-                  void toggleJobSaved(effectiveJob.jobId);
-                }}
-                disabled={isSaving}
-              >
-                <BookmarkIcon
-                  filled={isSaved}
-                  className={styles.heroSaveIcon}
-                />
-              </IconButton>
+            {isAuthenticated && (
+              <Box className={styles.heroActions}>
+                <IconButton
+                  type="button"
+                  className={styles.heroSaveButton}
+                  aria-label={isSaved ? `Unsave ${title}` : `Save ${title}`}
+                  onClick={() => {
+                    void toggleJobSaved(effectiveJob.jobId);
+                  }}
+                  disabled={isSaving}
+                >
+                  <BookmarkIcon
+                    filled={isSaved}
+                    className={styles.heroSaveIcon}
+                  />
+                </IconButton>
 
-              <Button
-                variant="contained"
-                className={styles.applyButton}
-                disabled={isApplied}
-              >
-                {isApplied ? "Applied" : "Apply now"}
-              </Button>
-            </Box>
+                <Button
+                  variant="contained"
+                  className={styles.applyButton}
+                  disabled={isApplied}
+                  onClick={() => void handleApply()}
+                >
+                  {isApplied ? "Applied" : "Apply now"}
+                </Button>
+              </Box>
+            )}
           </Box>
 
           <Box className={styles.tagsRow}>
@@ -376,18 +411,21 @@ const JobDetailsPage = () => {
             variant="contained"
             className={styles.footerApply}
             disabled={isApplied}
+            onClick={() => void handleApply()}
           >
             {isApplied ? "Applied" : "Apply now"}
           </Button>
-          <Button
-            variant="outlined"
-            className={styles.footerSave}
-            onClick={() => {
-              void toggleJobSaved(effectiveJob.jobId);
-            }}
-          >
-            {isSaved ? "Saved" : "Save"}
-          </Button>
+          {isAuthenticated && (
+            <Button
+              variant="outlined"
+              className={styles.footerSave}
+              onClick={() => {
+                void toggleJobSaved(effectiveJob.jobId);
+              }}
+            >
+              {isSaved ? "Saved" : "Save"}
+            </Button>
+          )}
         </Box>
       </Box>
     </Box>

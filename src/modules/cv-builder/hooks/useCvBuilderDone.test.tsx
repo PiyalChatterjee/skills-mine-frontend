@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { isoToMonthName, buildCvBuilderPrefillData, useCvBuilderDone } from './useCvBuilderDone'
+import {
+  createGuestApplicationDraft,
+  getGuestApplicationDrafts,
+} from '@/modules/candidate/utils/guestApplicationDraft'
 import { renderHook, act, waitFor } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { configureStore } from '@reduxjs/toolkit'
@@ -272,6 +276,7 @@ const defaultFormValues = {
 describe('useCvBuilderDone', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    sessionStorage.clear()
     mockUploadResumeDocument.mockReturnValue({ unwrap: () => Promise.resolve({}) })
   })
 
@@ -299,6 +304,44 @@ describe('useCvBuilderDone', () => {
       }),
     )
     expect(mockNavigate).toHaveBeenCalled()
+  })
+
+  it('stores a guest CV locally and does not call authenticated APIs', async () => {
+    const guestApplicationDraft = createGuestApplicationDraft({
+      jobId: 'j001',
+      title: 'Senior Engineer',
+      company: 'SkillsMine',
+      employmentType: 'Permanent',
+      workType: 'Hybrid',
+      salaryRange: 'Negotiable',
+      responsibilities: [],
+      status: 'Open',
+      applicationCount: 0,
+      postedDate: '2026-01-01',
+    })
+    const store = makeTestStore()
+    const { result } = renderHook(
+      () =>
+        useCvBuilderDone({
+          getFormValues: () => defaultFormValues,
+          selectedLanguageEntries: ['English'],
+          buildMyCvExists: false,
+          guestApplicationDraft,
+        }),
+      { wrapper: makeWrapper(store) },
+    )
+
+    await act(async () => {
+      await result.current.handleDone()
+    })
+
+    expect(mockSaveBuildMyCv).not.toHaveBeenCalled()
+    expect(mockUploadResumeDocument).not.toHaveBeenCalled()
+    expect(getGuestApplicationDrafts()[0]).toMatchObject({
+      applicationStatus: 'cv-completed',
+      cvData: expect.objectContaining({ skills: ['React'] }),
+    })
+    expect(mockNavigate).toHaveBeenCalledWith('/')
   })
 
   it('calls update mutation when buildMyCvExists is true', async () => {

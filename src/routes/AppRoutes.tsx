@@ -5,6 +5,7 @@ import { CandidateLayout } from "@/layouts/CandidateLayout";
 import { ExcoLayout } from "@/layouts/ExcoLayout";
 import { MancoLayout } from "@/layouts/MancoLayout";
 import { PublicLayout } from "@/layouts/PublicLayout";
+import { OptionalCandidateLayout } from "@/layouts/OptionalCandidateLayout";
 import { RecruiterLayout } from "@/layouts/RecruiterLayout";
 import LoginPage from "@/modules/auth/pages/LoginPage";
 import RecruiterSignupPage from "@/modules/auth/pages/RecruiterSignupPage";
@@ -112,13 +113,11 @@ export const AppRoutes = () => {
                 path={ROUTE_PATHS.candidateDashboard}
                 element={<CandidateDashboardPage />}
               />
-              <Route path={ROUTE_PATHS.cvBuilder} element={<CvBuilderPage />} />
               <Route
                 path={ROUTE_PATHS.profileCreation}
                 element={<ProfileCreationPage />}
               />
             </Route>
-            <Route path={ROUTE_PATHS.jobDetails} element={<JobDetailsPage />} />
             <Route path={ROUTE_PATHS.savedJobs} element={<SavedJobsPage />} />
             <Route path={ROUTE_PATHS.latestJobs} element={<LatestJobsPage />} />
             <Route
@@ -196,6 +195,11 @@ export const AppRoutes = () => {
               />
             </Route>
           </Route>
+        </Route>
+
+        <Route element={<OptionalCandidateLayout />}>
+          <Route path={ROUTE_PATHS.jobDetails} element={<JobDetailsPage />} />
+          <Route path={ROUTE_PATHS.cvBuilder} element={<CvBuilderPage />} />
         </Route>
 
         <Route

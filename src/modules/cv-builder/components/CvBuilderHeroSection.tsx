@@ -6,14 +6,23 @@ import styles from "../pages/CvBuilderPage.module.css";
 type CvBuilderHeroSectionProps = {
   onBack?: () => void;
   heading?: string;
+  tags?: string[];
+  isJobContext?: boolean;
 };
 
-const CvBuilderHeroSection = ({ onBack, heading = "CV Builder" }: CvBuilderHeroSectionProps) => (
+const CvBuilderHeroSection = ({
+  onBack,
+  heading = "CV Builder",
+  tags,
+  isJobContext = false,
+}: CvBuilderHeroSectionProps) => (
   <GradientPatternHero height={200}>
     {onBack && (
       <ButtonBase
         type="button"
-        className={styles.heroBackButton}
+        className={
+          isJobContext ? styles.heroJobBackButton : styles.heroBackButton
+        }
         onClick={onBack}
         disableRipple
       >
@@ -23,9 +32,21 @@ const CvBuilderHeroSection = ({ onBack, heading = "CV Builder" }: CvBuilderHeroS
         <span>Back</span>
       </ButtonBase>
     )}
-    <Typography component="h1" className={styles.heroHeading}>
+    <Typography
+      component="h1"
+      className={tags?.length ? styles.heroJobHeading : styles.heroHeading}
+    >
       {heading}
     </Typography>
+    {tags?.length ? (
+      <Box className={styles.heroTagsRow}>
+        {tags.map((tag) => (
+          <span key={tag} className={styles.heroTag}>
+            {tag}
+          </span>
+        ))}
+      </Box>
+    ) : null}
   </GradientPatternHero>
 );
 
