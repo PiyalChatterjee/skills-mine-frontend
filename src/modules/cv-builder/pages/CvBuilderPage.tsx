@@ -16,16 +16,10 @@ import {
   selectBuildMyCvExists,
   selectBuildMyCvLoaded,
 } from "@/store/selectors";
-import CvBuilderCareerHistoryForm from "../components/CvBuilderCareerHistoryForm";
-import CvBuilderEducationForm from "../components/CvBuilderEducationForm";
 import CvBuilderFooterActions from "../components/CvBuilderFooterActions";
 import CvBuilderHeroSection from "../components/CvBuilderHeroSection";
 import CvBuilderLauncher from "../components/CvBuilderLauncher";
-import CvBuilderPersonalDetailsForm from "../components/CvBuilderPersonalDetailsForm";
-import CvBuilderProgressRail from "../components/CvBuilderProgressRail";
 import CvBuilderReviewScreen from "../components/CvBuilderReviewScreen";
-import CvBuilderLanguagesForm from "../components/CvBuilderLanguagesForm";
-import CvBuilderSkillsForm from "../components/CvBuilderSkillsForm";
 import useCvBuilder from "../hooks/useCvBuilder";
 import {
   buildCvBuilderPrefillData,
@@ -33,7 +27,6 @@ import {
   useCvBuilderDone,
 } from "../hooks/useCvBuilderDone";
 import {
-  CV_BUILDER_STEPS,
   LANGUAGES_LIST,
   type CvActionCard,
 } from "../types/cvBuilder";
@@ -152,16 +145,13 @@ const CvBuilderPage = () => {
     uploadInputRef,
     activeView,
     selectedUploadFile,
-    currentStepId,
     canViewCv,
-    canGoNext,
     selectedLanguageEntries,
     handleUploadFileSelect,
     selectUploadFile,
     openUploadPicker,
     openBuildFlow,
     goBack,
-    goNext,
   } = useCvBuilder(
     cvBuilderPrefillData,
     buildMyCvLoaded && Boolean(buildMyCvData),
@@ -219,10 +209,7 @@ const CvBuilderPage = () => {
           aria-hidden="true"
         />
 
-        <CvBuilderHeroSection
-          totalSteps={CV_BUILDER_STEPS.length}
-          activeStepId={activeView === "launcher" ? 1 : currentStepId}
-        />
+        <CvBuilderHeroSection />
 
         <Box
           component="section"
@@ -230,32 +217,10 @@ const CvBuilderPage = () => {
         >
           {activeView === "launcher" ? (
             <CvBuilderLauncher cards={actionCards} />
-          ) : activeView === "review" ? (
-            <CvBuilderReviewScreen />
           ) : (
-            <Box className={styles.contentLayout}>
-              <CvBuilderProgressRail
-                steps={CV_BUILDER_STEPS}
-                activeStepId={currentStepId}
-              />
-              <Box key={currentStepId}>
-                {currentStepId === 1 && <CvBuilderPersonalDetailsForm />}
-                {currentStepId === 2 && <CvBuilderCareerHistoryForm />}
-                {currentStepId === 3 && <CvBuilderSkillsForm />}
-                {currentStepId === 4 && <CvBuilderEducationForm />}
-                {currentStepId === 5 && <CvBuilderLanguagesForm />}
-              </Box>
-            </Box>
+            <CvBuilderReviewScreen />
           )}
         </Box>
-
-        {activeView === "form" && (
-          <CvBuilderFooterActions
-            onBack={goBack}
-            onNext={goNext}
-            isNextDisabled={!canGoNext}
-          />
-        )}
 
         {activeView === "review" && (
           <CvBuilderFooterActions

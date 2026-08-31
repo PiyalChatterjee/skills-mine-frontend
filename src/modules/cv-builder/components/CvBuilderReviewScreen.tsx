@@ -1,5 +1,6 @@
 import { Box, Typography } from "@mui/material";
 import type { ReactNode } from "react";
+import { useFieldArray, useFormContext } from "react-hook-form";
 import buildingIcon from "@/assets/cv-builder/building-line.svg";
 import educationIcon from "@/assets/cv-builder/education-line.svg";
 import languagesIcon from "@/assets/cv-builder/languages-line.svg";
@@ -10,7 +11,9 @@ import CvBuilderEducationForm from "./CvBuilderEducationForm";
 import CvBuilderLanguagesForm from "./CvBuilderLanguagesForm";
 import CvBuilderPersonalDetailsForm from "./CvBuilderPersonalDetailsForm";
 import CvBuilderSkillsForm from "./CvBuilderSkillsForm";
+import CvBuilderSkillsGenerateAction from "./CvBuilderSkillsGenerateAction";
 import styles from "../pages/CvBuilderPage.module.css";
+import type { CvBuilderFormValues } from "../types/cvBuilderSchema";
 
 type ReviewSectionId =
   | "personal"
@@ -23,43 +26,56 @@ type ReviewSectionConfig = {
   id: ReviewSectionId;
   label: string;
   icon: string;
+  renderHeaderAction?: () => ReactNode;
   renderContent: () => ReactNode;
 };
 
-const REVIEW_SECTIONS: ReviewSectionConfig[] = [
-  {
-    id: "personal",
-    label: "Personal details",
-    icon: userIcon,
-    renderContent: () => <CvBuilderPersonalDetailsForm />,
-  },
-  {
-    id: "career",
-    label: "Career history",
-    icon: buildingIcon,
-    renderContent: () => <CvBuilderCareerHistoryForm />,
-  },
-  {
-    id: "skills",
-    label: "Skills",
-    icon: skillsIcon,
-    renderContent: () => <CvBuilderSkillsForm />,
-  },
-  {
-    id: "education",
-    label: "Education",
-    icon: educationIcon,
-    renderContent: () => <CvBuilderEducationForm />,
-  },
-  {
-    id: "languages",
-    label: "Languages",
-    icon: languagesIcon,
-    renderContent: () => <CvBuilderLanguagesForm />,
-  },
-];
+const CvBuilderReviewScreen = () => {
+  const { control } = useFormContext<CvBuilderFormValues>();
+  // Single shared instance so the header's "Generate" action and the list stay in sync.
+  const skillsFieldArray = useFieldArray({ control, name: "skills" });
 
-const CvBuilderReviewScreen = () => (
+  const REVIEW_SECTIONS: ReviewSectionConfig[] = [
+    {
+      id: "personal",
+      label: "Personal details",
+      icon: userIcon,
+      renderContent: () => <CvBuilderPersonalDetailsForm />,
+    },
+    {
+      id: "career",
+      label: "Career history",
+      icon: buildingIcon,
+      renderContent: () => <CvBuilderCareerHistoryForm />,
+    },
+    {
+      id: "skills",
+      label: "Skills",
+      icon: skillsIcon,
+      renderHeaderAction: () => (
+        <CvBuilderSkillsGenerateAction
+          replaceSkills={skillsFieldArray.replace}
+        />
+      ),
+      renderContent: () => (
+        <CvBuilderSkillsForm skillsFieldArray={skillsFieldArray} />
+      ),
+    },
+    {
+      id: "education",
+      label: "Education",
+      icon: educationIcon,
+      renderContent: () => <CvBuilderEducationForm />,
+    },
+    {
+      id: "languages",
+      label: "Languages",
+      icon: languagesIcon,
+      renderContent: () => <CvBuilderLanguagesForm />,
+    },
+  ];
+
+  return (
     <Box className={styles.reviewLayout}>
       <Box className={styles.reviewMainColumn}>
         <Typography className={styles.reviewTitle}>Review your CV.</Typography>
@@ -86,6 +102,7 @@ const CvBuilderReviewScreen = () => (
                   <Typography className={styles.reviewSectionLabel}>
                     {section.label}
                   </Typography>
+                  {section.renderHeaderAction?.()}
               </Box>
               <Box className={styles.reviewSectionContent}>
                 <Box className={styles.reviewEmbeddedSectionContent}>
@@ -99,5 +116,6 @@ const CvBuilderReviewScreen = () => (
 
     </Box>
   );
+};
 
 export default CvBuilderReviewScreen;
