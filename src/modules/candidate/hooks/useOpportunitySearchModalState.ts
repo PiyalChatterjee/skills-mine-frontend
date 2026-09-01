@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
 import { useIndustryOptions } from "@/modules/candidate/hooks/useIndustryOptions";
 import { PROFILE_SELECT_OPTIONS } from "@/modules/candidate/pages/profileForm.config";
+import { useCandidateFilters } from "./useCandidateFilters";
 
 type FilterOption = {
   value: string;
@@ -27,11 +27,15 @@ export const jobTypeOptions = [
 const toFilterOptions = (options: readonly string[]): FilterOption[] =>
   options.map((option) => ({ value: option, label: option }));
 
+const filterKeys = ["datePosted", "industries", "locations", "jobTypes"] as const;
+
 export const useOpportunitySearchModalState = (open: boolean) => {
-  const [selectedDatePosted, setSelectedDatePosted] = useState<string[]>([]);
-  const [selectedIndustries, setSelectedIndustries] = useState<string[]>([]);
-  const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
-  const [selectedJobTypes, setSelectedJobTypes] = useState<string[]>([]);
+  const {
+    hasSelectedFilters,
+    removeFilterValue,
+    selectedFilters,
+    setFilterValues,
+  } = useCandidateFilters(filterKeys, open);
   const industryOptions = useIndustryOptions(PROFILE_SELECT_OPTIONS.targetedIndustries);
   const readableIndustryOptions = toFilterOptions(industryOptions);
   const readableLocationOptions = toFilterOptions(PROFILE_SELECT_OPTIONS.preferredLocations);
@@ -43,35 +47,20 @@ export const useOpportunitySearchModalState = (open: boolean) => {
     jobTypeOptions.find((option) => option.value === value)?.label ?? value;
 
   const removeDatePostedFilter = (datePosted: string) => {
-    setSelectedDatePosted((current) => current.filter((item) => item !== datePosted));
+    removeFilterValue("datePosted", datePosted);
   };
 
   const removeIndustryFilter = (industry: string) => {
-    setSelectedIndustries((current) => current.filter((item) => item !== industry));
+    removeFilterValue("industries", industry);
   };
 
   const removeLocationFilter = (location: string) => {
-    setSelectedLocations((current) => current.filter((item) => item !== location));
+    removeFilterValue("locations", location);
   };
 
   const removeJobTypeFilter = (jobType: string) => {
-    setSelectedJobTypes((current) => current.filter((item) => item !== jobType));
+    removeFilterValue("jobTypes", jobType);
   };
-
-  const hasSelectedFilters =
-    selectedDatePosted.length > 0 ||
-    selectedIndustries.length > 0 ||
-    selectedLocations.length > 0 ||
-    selectedJobTypes.length > 0;
-
-  useEffect(() => {
-    if (open) {
-      setSelectedDatePosted([]);
-      setSelectedIndustries([]);
-      setSelectedLocations([]);
-      setSelectedJobTypes([]);
-    }
-  }, [open]);
 
   return {
     getDatePostedLabel,
@@ -83,13 +72,13 @@ export const useOpportunitySearchModalState = (open: boolean) => {
     removeIndustryFilter,
     removeJobTypeFilter,
     removeLocationFilter,
-    selectedDatePosted,
-    selectedIndustries,
-    selectedJobTypes,
-    selectedLocations,
-    setSelectedDatePosted,
-    setSelectedIndustries,
-    setSelectedJobTypes,
-    setSelectedLocations,
+    selectedDatePosted: selectedFilters.datePosted,
+    selectedIndustries: selectedFilters.industries,
+    selectedJobTypes: selectedFilters.jobTypes,
+    selectedLocations: selectedFilters.locations,
+    setSelectedDatePosted: (values: string[]) => setFilterValues("datePosted", values),
+    setSelectedIndustries: (values: string[]) => setFilterValues("industries", values),
+    setSelectedJobTypes: (values: string[]) => setFilterValues("jobTypes", values),
+    setSelectedLocations: (values: string[]) => setFilterValues("locations", values),
   };
 };
