@@ -14,13 +14,13 @@ import patternHeroRight from "@/assets/job-details/pattern-hero-right.svg";
 import { BookmarkIcon } from "@/components/icons/BookmarkIcon";
 import { GradientPatternHero } from "@/components/hero";
 import { useJobs } from "@/modules/public/hooks/useJobs";
-import { useGetJobByIdQuery, useGetJobProfileQuery } from "@/store/api/apiSlice";
+import { useApplyToJobMutation, useGetJobByIdQuery, useGetJobProfileQuery } from "@/store/api/apiSlice";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import { useOptimisticSaveJob } from "@/modules/candidate/hooks/useOptimisticSaveJob";
 import { useAppliedJobIds } from "@/modules/candidate/hooks/useAppliedJobIds";
-import { useAuth } from "@/app/auth/AuthContext";
 import { createGuestApplicationDraft } from "@/modules/candidate/utils/guestApplicationDraft";
-import { jobsApi } from "@/services/api/jobsApi";
+import { useAuth } from "@/app/auth/AuthContext";
+import { formatEnumLabel } from "@/app/formatEnumLabel";
 import type { Job } from "@/types";
 import styles from "./JobDetailsPage.module.css";
 
@@ -54,23 +54,6 @@ const toDisplayTitle = (value: string | undefined, fallback: string) => {
   return value;
 };
 
-// Enum labels from the job profile API (e.g. HYBRID, FULL_TIME) rendered as plain text.
-const ENUM_LABEL_OVERRIDES: Record<string, string> = {
-  ONSITE: "On-site",
-};
-
-const formatEnumLabel = (value?: string) => {
-  if (!value) return "";
-  if (!/^[A-Z0-9_]+$/.test(value)) return value;
-  if (ENUM_LABEL_OVERRIDES[value]) return ENUM_LABEL_OVERRIDES[value];
-
-  return value
-    .split("_")
-    .filter(Boolean)
-    .map((word) => word.charAt(0) + word.slice(1).toLowerCase())
-    .join(" ");
-};
-
 const formatPostedDate = (dateValue?: string) => {
   if (!dateValue) return "12 November 2025";
 
@@ -88,10 +71,12 @@ const JobDetailsPage = () => {
   const navigate = useNavigate();
   const { jobId } = useParams<{ jobId: string }>();
   const location = useLocation();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const { isJobSaved, isJobSaving, toggleJobSaved } = useOptimisticSaveJob();
   const { isJobApplied } = useAppliedJobIds();
+  const [applyToJob, { isLoading: isApplying }] = useApplyToJobMutation();
   const [hasJustApplied, setHasJustApplied] = useState(false);
+  const [applyError, setApplyError] = useState<string | null>(null);
 
   const { data, isLoading } = useJobs(undefined, true, 50);
 
@@ -103,7 +88,7 @@ const JobDetailsPage = () => {
       : ROUTE_PATHS.latestJobs;
 
   const allJobs = useMemo(() => {
-    return (data?.pages ?? []).flatMap((page) => page.jobs);
+    return (data?.pages ?? []).flatMap((page) => page?.jobs ?? []);
   }, [data]);
 
   const resolvedJob = useMemo(() => {
@@ -145,7 +130,8 @@ const JobDetailsPage = () => {
     : false;
 
   const handleApply = async () => {
-    if (!effectiveJob) return;
+    if (!effectiveJob || isApplied || isApplying) return;
+    setApplyError(null);
 
     if (!isAuthenticated) {
       createGuestApplicationDraft(effectiveJob);
@@ -155,11 +141,19 @@ const JobDetailsPage = () => {
       return;
     }
 
+    if (user?.role !== "JOB_SEEKER") {
+      setApplyError("Only candidate accounts can apply for jobs.");
+      return;
+    }
+
     try {
-      await jobsApi.apply(effectiveJob.jobId, { sourceChannel: "direct" });
+      await applyToJob({ jobProfileId: effectiveJob.jobProfileId ?? effectiveJob.jobId }).unwrap();
       setHasJustApplied(true);
-    } catch {
-      // The existing job details page has no inline error surface for apply failures.
+    } catch (error) {
+      const message = typeof error === "object" && error !== null && "message" in error
+        ? String((error as { message?: unknown }).message ?? "Unable to submit your application.")
+        : "Unable to submit your application.";
+      setApplyError(message);
     }
   };
 
@@ -276,10 +270,10 @@ const JobDetailsPage = () => {
                 <Button
                   variant="contained"
                   className={styles.applyButton}
-                  disabled={isApplied}
+                  disabled={isApplying || isApplied}
                   onClick={() => void handleApply()}
                 >
-                  {isApplied ? "Applied" : "Apply now"}
+                  {isApplying ? "Applying..." : isApplied ? "Applied" : "Apply now"}
                 </Button>
               </Box>
             )}
@@ -296,6 +290,11 @@ const JobDetailsPage = () => {
       </GradientPatternHero>
 
       <Box component="section" className={styles.contentSection}>
+        {applyError ? (
+          <Typography component="p" color="error" role="alert" sx={{ mb: 2 }}>
+            {applyError}
+          </Typography>
+        ) : null}
         <Typography component="h2" className={styles.sectionTitle}>
           Job description
         </Typography>
@@ -410,10 +409,10 @@ const JobDetailsPage = () => {
           <Button
             variant="contained"
             className={styles.footerApply}
-            disabled={isApplied}
+            disabled={isApplying || isApplied}
             onClick={() => void handleApply()}
           >
-            {isApplied ? "Applied" : "Apply now"}
+            {isApplying ? "Applying..." : isApplied ? "Applied" : "Apply now"}
           </Button>
           {isAuthenticated && (
             <Button

@@ -35,12 +35,7 @@ import styles from "./CvBuilderPage.module.css";
 import CvBuilderUploadModal from "../components/CvBuilderUploadModal";
 import { getGuestApplicationDrafts } from "@/modules/candidate/utils/guestApplicationDraft";
 import { ROUTE_PATHS } from "@/routes/routePaths";
-
-const formatJobTag = (value?: string) =>
-  value
-    ?.replace(/_/g, " ")
-    .toLowerCase()
-    .replace(/\b\w/g, (character) => character.toUpperCase()) ?? "";
+import { formatEnumLabel } from "@/app/formatEnumLabel";
 
 const CvBuilderPage = () => {
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
@@ -73,8 +68,8 @@ const CvBuilderPage = () => {
     return [
       job.industry,
       job.location?.split(",")[0]?.trim(),
-      formatJobTag(job.workType),
-      formatJobTag(job.employmentType),
+      formatEnumLabel(job.workType),
+      formatEnumLabel(job.employmentType),
     ].filter((tag): tag is string => Boolean(tag));
   }, [guestApplicationDraft]);
 

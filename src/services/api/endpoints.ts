@@ -128,6 +128,10 @@ export const apiEndpoints = {
       import.meta.env.VITE_CANDIDATE_AI_ACTIONS_ENDPOINT,
       "/candidates/ai-actions/",
     ),
+    applications: withDefault(
+      import.meta.env.VITE_CANDIDATE_APPLICATIONS_ENDPOINT,
+      "/candidates/applications",
+    ),
   },
   applications: {
     cvUpload: withDefault(
@@ -147,23 +151,27 @@ export const apiEndpoints = {
     list: withDefault(import.meta.env.VITE_JOBS_ENDPOINT, "/jobs"),
     details: withDefault(
       import.meta.env.VITE_JOB_DETAILS_ENDPOINT,
-      "/jobs/:jobId",
+      "/jobs/:jobProfileId",
     ),
     profileDetails: withDefault(
       import.meta.env.VITE_JOB_PROFILE_DETAILS_ENDPOINT,
-      "/api/v1/job-service/jobs/:jobProfileId",
+      "/jobs/:jobProfileId",
     ),
-    save: withDefault(
-      import.meta.env.VITE_JOB_SAVE_ENDPOINT,
-      "/jobs/:jobId/save",
-    ),
-    apply: withDefault(
-      import.meta.env.VITE_JOB_APPLY_ENDPOINT,
-      "/jobs/:jobId/apply",
-    ),
-    listQueryParam: withDefault(import.meta.env.VITE_JOBS_QUERY_PARAM, "q"),
+    listQueryParam: withDefault(import.meta.env.VITE_JOBS_QUERY_PARAM, "search"),
     listPageParam: withDefault(import.meta.env.VITE_JOBS_PAGE_PARAM, "page"),
-    listLimitParam: withDefault(import.meta.env.VITE_JOBS_LIMIT_PARAM, "limit"),
+    listLimitParam: withDefault(import.meta.env.VITE_JOBS_LIMIT_PARAM, "size"),
+  },
+  dashboard: {
+    summary: withDefault(
+      import.meta.env.VITE_DASHBOARD_SUMMARY_ENDPOINT,
+      "/dashboard/summary",
+    ),
+  },
+  companies: {
+    list: withDefault(
+      import.meta.env.VITE_COMPANIES_LIST_ENDPOINT,
+      "/companies",
+    ),
   },
   industries: {
     list: withDefault(

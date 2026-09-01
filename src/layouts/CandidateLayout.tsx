@@ -26,6 +26,8 @@ export const CandidateLayout = () => {
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 
   useEffect(() => {
+    if (user?.role !== "JOB_SEEKER") return;
+
     // The session carries userId; candidateId is only known once a
     // candidate-scoped response has been read, so fall back to userId here.
     const resourceId = user?.candidateId ?? user?.userId;
@@ -37,7 +39,7 @@ export const CandidateLayout = () => {
       fetchCandidateProfileThunk(resourceId, user?.userId),
     );
     return () => subscription.unsubscribe();
-  }, [user?.candidateId, user?.userId, dispatch]);
+  }, [user?.candidateId, user?.role, user?.userId, dispatch]);
 
   const accessToken = tokens?.accessToken;
   const hasValidAccessToken = accessToken ? !isJwtExpired(accessToken) : false;

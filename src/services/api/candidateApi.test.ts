@@ -26,6 +26,7 @@ vi.mock('@/services/api/endpoints', () => ({
       resumeDownload: '/candidate/:resumeId/download',
       recommendedJobs: '/candidates/recommended-positions',
       savedJobs: '/candidates/saved-jobs',
+      applications: '/candidates/applications',
       aiActions: '/candidates/ai-actions/',
     },
     applications: {
@@ -143,6 +144,26 @@ describe('candidateApi', () => {
       expect(profile.skills).toEqual([])
       expect(profile.languages).toEqual([])
     })
+
+    it('maps canonical saved job profile references to string IDs', async () => {
+      mockGet.mockResolvedValue({
+        data: {
+          status: 'success',
+          data: {
+            ...mockProfileResponse.data.data,
+            savedJobs: [
+              { jobProfileId: '00000003-0000-4000-8000-000000000002', savedAt: '2026-09-01T08:00:00Z' },
+            ],
+          },
+        },
+      })
+
+      const profile = await candidateApi.getById('u-1')
+
+      expect(profile.savedJobs).toEqual([
+        '00000003-0000-4000-8000-000000000002',
+      ])
+    })
   })
 
   describe('getDashboard', () => {
@@ -153,6 +174,31 @@ describe('candidateApi', () => {
       mockGet.mockResolvedValue(dashboardResponse)
       await candidateApi.getDashboard()
       expect(mockGet).toHaveBeenCalledWith('/candidates/dashboard', { params: {} })
+    })
+  })
+
+  describe('applyToJob', () => {
+    it('submits a canonical jobProfileId to the candidate application endpoint', async () => {
+      mockPost.mockResolvedValue({
+        data: {
+          applicationId: '70000000-0000-4000-8000-000000000001',
+          jobProfileId: '00000003-0000-4000-8000-000000000008',
+          matchScore: 82,
+          status: 'submitted',
+          nextStep: 'view_dashboard',
+        },
+      })
+
+      const result = await candidateApi.applyToJob(
+        '00000003-0000-4000-8000-000000000008',
+      )
+
+      expect(mockPost).toHaveBeenCalledWith('/candidates/applications', {
+        jobProfileId: '00000003-0000-4000-8000-000000000008',
+        cvId: undefined,
+        sourceChannel: 'job-details',
+      })
+      expect(result.status).toBe('submitted')
     })
   })
 

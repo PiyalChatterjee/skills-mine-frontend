@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react'
 import type { Control, FieldErrors, UseFormSetValue } from 'react-hook-form'
 import { Controller } from 'react-hook-form'
 import type { MandateFormValues } from './types'
-import type { JobPost } from '@/types/api'
 import { mandateApi } from '@/services/api/mandateApi'
 import styles from './form.module.css'
 
@@ -16,7 +15,7 @@ interface Props {
 type ContactInfo = { name: string; email: string; phone: string; clientRate: string }
 
 const WORK_TYPES = ['Remote', 'Hybrid', 'On-site'] as const
-const EMPLOYMENT_TYPES = ['Full Time', 'Part Time', 'Contract', 'Internship', 'Temporary'] as const
+const EMPLOYMENT_TYPES = ['Full Time', 'Part Time', 'Contract', 'Internship', 'Temporary', 'Freelance'] as const
 const EXPERIENCE_LEVELS = ['Junior', 'Mid', 'Senior', 'Lead', 'Executive'] as const
 const PRIORITIES = ['Low', 'Medium', 'High', 'Urgent'] as const
 
@@ -29,28 +28,22 @@ export const BasicInformationSection = ({ control, errors, setValue }: Props) =>
   const [activeIndex, setActiveIndex] = useState(-1)
   const listRef = useRef<HTMLUListElement>(null)
 
-  // Fetch existing job posts once on mount — build name list + contact map
+  // Fetch employers once on mount — build name list + contact map
   useEffect(() => {
     mandateApi
-      .getJobPosts()
-      .then((envelope) => {
-        const posts: JobPost[] = envelope.data ?? []
-
-        // Deduplicated sorted company names
-        const names = [...new Set(posts.map((p) => p.client).filter(Boolean))].sort()
+      .getCompanies()
+      .then((companies) => {
+        const names = companies.map((company) => company.clientName).sort()
         setCompanyOptions(names)
 
-        // Build contact map: first post found per company wins
         const map = new Map<string, ContactInfo>()
-        for (const post of posts) {
-          if (post.client && !map.has(post.client)) {
-            map.set(post.client, {
-              name:       post.contactPersonName   ?? '',
-              email:      post.contactPersonEmail  ?? '',
-              phone:      post.contactPersonNumber ?? '',
-              clientRate: post.clientRate           ?? '',
-            })
-          }
+        for (const company of companies) {
+          map.set(company.clientName, {
+            name: company.contactName,
+            email: company.contactEmail,
+            phone: company.contactPhoneNumber,
+            clientRate: '',
+          })
         }
         setContactMap(map)
       })

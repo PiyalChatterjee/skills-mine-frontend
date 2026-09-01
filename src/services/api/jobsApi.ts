@@ -1,34 +1,56 @@
 import { apiClient } from "@/services/api/axios";
 import { apiEndpoints, resolveEndpoint } from "@/services/api/endpoints";
+import { formatEnumLabel } from "@/app/formatEnumLabel";
 import type {
-  ApplyJobRequest,
-  ApplyJobResponse,
   Job,
-  JobsListData,
   JobsResponse,
-  SaveJobResponse,
   SuccessEnvelope,
 } from "@/types";
 
-const toJobsResponse = (
-  payload: SuccessEnvelope<JobsListData> | JobsListData | Job[],
-): JobsResponse => {
-  const data = "data" in payload ? payload.data : payload;
+type JobProfileSummary = {
+  jobProfileId: string;
+  jobReferenceNumber: string;
+  client: { clientId: string; clientName: string };
+  positionTitle: string;
+  industry: { industryId: string; industryName: string } | null;
+  locationText: string;
+  employmentType: string | null;
+  jobDescriptionSnippet: string | null;
+  fillByDate: string;
+  status: string;
+  publishedAt: string | null;
+};
 
-  if (Array.isArray(data)) {
-    return {
-      jobs: data,
-      total: data.length,
-      page: 1,
-      pageSize: data.length,
-    };
-  }
+type JobProfilePage = {
+  data: JobProfileSummary[];
+  total: number;
+  page: number;
+  size: number;
+};
 
+const toJob = (job: JobProfileSummary): Job => ({
+  jobId: job.jobProfileId,
+  jobProfileId: job.jobProfileId,
+  title: job.positionTitle,
+  company: job.client?.clientName ?? "",
+  location: job.locationText,
+  industry: job.industry?.industryName ?? "",
+  employmentType: formatEnumLabel(job.employmentType),
+  workType: "",
+  salaryRange: "",
+  description: job.jobDescriptionSnippet ?? "",
+  responsibilities: [],
+  status: job.status,
+  applicationCount: 0,
+  postedDate: job.publishedAt ?? "",
+});
+
+const toJobsResponse = (payload: JobProfilePage): JobsResponse => {
   return {
-    jobs: data.jobs,
-    total: data.pagination.total,
-    page: data.pagination.page,
-    pageSize: data.pagination.pageSize,
+    jobs: payload.data.map(toJob),
+    total: payload.total,
+    page: payload.page,
+    pageSize: payload.size,
   };
 };
 
@@ -39,13 +61,11 @@ export const jobsApi = {
     limit = 10,
     status: string = "POSTED",
   ): Promise<JobsResponse> {
-    const response = await apiClient.get<
-      SuccessEnvelope<JobsListData> | JobsListData | Job[]
-    >(apiEndpoints.jobs.list, {
+    const response = await apiClient.get<JobProfilePage>(apiEndpoints.jobs.list, {
       params: {
         status,
         ...(q ? { [apiEndpoints.jobs.listQueryParam]: q } : {}),
-        [apiEndpoints.jobs.listPageParam]: page,
+        [apiEndpoints.jobs.listPageParam]: Math.max(0, page - 1),
         [apiEndpoints.jobs.listLimitParam]: limit,
       },
     });
@@ -54,9 +74,12 @@ export const jobsApi = {
   },
 
   getById(jobId: string): Promise<SuccessEnvelope<Job>> {
-    return apiClient
-      .get(resolveEndpoint(apiEndpoints.jobs.details, { jobId }))
-      .then((response) => response.data);
+    return this.getJobProfile(jobId).then((data) => ({
+      success: true,
+      statusCode: 200,
+      message: "Job retrieved.",
+      data,
+    }));
   },
 
   // Full job profile detail (Mandate_Service_v2 job-service) — called when a
@@ -73,8 +96,8 @@ export const jobsApi = {
       company: data.client?.clientName ?? "",
       location: data.locationText ?? "",
       industry: data.industry?.industryName ?? "",
-      employmentType: data.employmentType ?? "",
-      workType: data.workType ?? "",
+      employmentType: formatEnumLabel(data.employmentType),
+      workType: formatEnumLabel(data.workType),
       salaryMin: data.salaryMin ?? undefined,
       salaryMax: data.salaryMax ?? undefined,
       salaryRange:
@@ -92,27 +115,4 @@ export const jobsApi = {
     };
   },
 
-  save(jobId: string): Promise<SaveJobResponse> {
-    return apiClient
-      .post(resolveEndpoint(apiEndpoints.jobs.save, { jobId }))
-      .then((response) => response.data);
-  },
-
-  remove(jobId: string): Promise<SaveJobResponse> {
-    return apiClient
-      .delete(resolveEndpoint(apiEndpoints.jobs.save, { jobId }))
-      .then((response) => response.data);
-  },
-
-  apply(jobId: string, payload: ApplyJobRequest): Promise<ApplyJobResponse> {
-    return apiClient
-      .post(resolveEndpoint(apiEndpoints.jobs.apply, { jobId }), payload)
-      .then((response) => response.data);
-  },
-
-  create(payload: Partial<Job>): Promise<SuccessEnvelope<Job>> {
-    return apiClient
-      .post(apiEndpoints.jobs.list, payload)
-      .then((response) => response.data);
-  },
 };

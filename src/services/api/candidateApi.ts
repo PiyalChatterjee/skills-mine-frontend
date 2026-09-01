@@ -8,6 +8,8 @@ import type {
   BuildMyCvData,
   BuildMyCvState,
   AiActionsData,
+  ApplyJobRequest,
+  ApplyJobResponse,
   CandidateLandingData,
   CandidateStatisticsData,
   CandidateApplication,
@@ -33,6 +35,7 @@ import type {
 } from "@/types/api";
 import type { CandidateProfileUpdatePayload } from "@/modules/candidate/types";
 import { toSouthAfricaApiPhoneNumber } from "@/app/phoneNumber";
+import { formatEnumLabel } from "@/app/formatEnumLabel";
 
 const isUserSkill = (value: unknown): value is UserSkill => {
   if (!value || typeof value !== "object") {
@@ -181,8 +184,8 @@ const mapJobRecord = (job: Record<string, any>) => ({
   title: job.title ?? job.job_title ?? "",
   company: job.company ?? job.company_name ?? "",
   location: job.location ?? "",
-  workType: job.workType ?? job.work_type ?? "",
-  employmentType: job.employmentType ?? job.employment_type ?? "",
+  workType: formatEnumLabel(job.workType ?? job.work_type),
+  employmentType: formatEnumLabel(job.employmentType ?? job.employment_type),
   salaryRange: job.salaryRange ?? `${job.salary_min ?? ""}-${job.salary_max ?? ""}`,
   matchScore: job.matchScore ?? job.match_score ?? 0,
   skills: job.skills ?? job.skills_required ?? [],
@@ -370,8 +373,8 @@ const mapProfileResponse = (
     applications: data.applications ?? [],
     savedJobs: Array.isArray(data.savedJobs)
       ? data.savedJobs.map((job: any) =>
-          typeof job === "string" ? job : job.jobId,
-        )
+          typeof job === "string" ? job : job.jobProfileId ?? job.jobId,
+        ).filter(Boolean)
       : [],
     resume: data.resume ?? null,
   };
@@ -491,6 +494,16 @@ export const candidateApi = {
     return unwrapResponseData(
       apiClient.get(resolveEndpoint(apiEndpoints.candidate.savedJobs, { candidateId })),
     ).then(mapSavedJobsResponse);
+  },
+
+  applyToJob(jobProfileId: string, payload: ApplyJobRequest = {}): Promise<ApplyJobResponse> {
+    return unwrapResponseData(
+      apiClient.post<ApplyJobResponse>(apiEndpoints.candidate.applications, {
+        jobProfileId,
+        cvId: payload.cvId,
+        sourceChannel: payload.sourceChannel ?? "job-details",
+      }),
+    );
   },
 
   saveJob(payload: SaveJobRequest): Promise<unknown> {

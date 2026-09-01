@@ -109,6 +109,10 @@ const NewMandatePage = () => {
     try {
       await mandateApi.createJobPost({
         companyName: values.companyName,
+        clientRate: values.clientRate,
+        contactName: values.contactPerson,
+        contactEmail: values.contactPersonEmail,
+        contactPhoneNumber: values.contactPersonPhone,
         positionTitle: values.positionTitle,
         location: values.location,
         fillByDate: values.fillByDate,

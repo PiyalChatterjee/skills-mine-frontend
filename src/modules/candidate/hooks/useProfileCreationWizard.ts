@@ -8,11 +8,6 @@ import {
   useUpdateCandidateProfileMutation,
 } from '@/modules/candidate/hooks/useCandidateQueries'
 import {
-  clearRestoredGuestApplicationDrafts,
-  getGuestApplicationDrafts,
-  updateGuestApplicationDraft,
-} from '@/modules/candidate/utils/guestApplicationDraft'
-import {
   profileCreationBasicDetailsSchema,
   profileCreationSchema,
 } from '@/modules/candidate/schemas/profileCreationSchema'
@@ -27,8 +22,6 @@ import {
   type ProfileCreationFormValues,
 } from '@/modules/candidate/types/profileCreation'
 import { ROUTE_PATHS } from '@/routes/routePaths'
-import { candidateApi } from '@/services/api/candidateApi'
-import { jobsApi } from '@/services/api/jobsApi'
 
 const PROFILE_CREATION_STEP_FIELDS: Record<
   ProfileCreationStepId,
@@ -97,7 +90,7 @@ export const useProfileCreationWizard = () => {
 
   useEffect(() => {
     const profileDefaults = getProfileCreationDefaultValues(candidateProfile ?? null)
-    let pendingSignupDefaults: Partial<ProfileCreationFormValues> = {}
+    let pendingSignupDefaults: Partial<ProfileCreationFormValues>
 
     try {
       const storedDefaults = sessionStorage.getItem(PENDING_CANDIDATE_PROFILE_STORAGE_KEY)
@@ -132,49 +125,6 @@ export const useProfileCreationWizard = () => {
     })
   }
 
-  const restoreGuestApplications = async () => {
-    const pendingDrafts = getGuestApplicationDrafts().filter(
-      (draft) => draft.applicationStatus !== 'restored',
-    )
-    if (pendingDrafts.length === 0) return true
-
-    const draftsWithCv = pendingDrafts.filter((draft) => draft.cvData)
-    if (draftsWithCv.length !== pendingDrafts.length) return false
-
-    let cvId = candidateProfile?.resume?.resumeId
-    try {
-      if (!cvId) {
-        const importedCv = await candidateApi.saveBuildMyCv(
-          user?.candidateId ?? userId ?? '',
-          draftsWithCv[0].cvData!,
-        )
-        cvId = importedCv.resumeId || undefined
-      }
-
-      for (const draft of draftsWithCv) {
-        updateGuestApplicationDraft(draft.jobId, {
-          applicationStatus: 'restoring',
-        })
-        await jobsApi.apply(draft.jobId, {
-          cvId,
-          sourceChannel: draft.sourceChannel,
-        })
-        updateGuestApplicationDraft(draft.jobId, {
-          applicationStatus: 'restored',
-        })
-      }
-      clearRestoredGuestApplicationDrafts()
-      return true
-    } catch {
-      for (const draft of draftsWithCv) {
-        updateGuestApplicationDraft(draft.jobId, {
-          applicationStatus: 'cv-completed',
-        })
-      }
-      return false
-    }
-  }
-
   const handleBack = () => {
     if (currentStepIndex > 0) {
       setCurrentStepIndex((previous) => previous - 1)
@@ -201,13 +151,7 @@ export const useProfileCreationWizard = () => {
     try {
       await persistValues(form.getValues())
       sessionStorage.removeItem(PENDING_CANDIDATE_PROFILE_STORAGE_KEY)
-      const guestApplicationsRestored = await restoreGuestApplications()
-      navigate(
-        guestApplicationsRestored
-          ? ROUTE_PATHS.candidateDashboard
-          : ROUTE_PATHS.cvBuilder,
-        { replace: true },
-      )
+      navigate(ROUTE_PATHS.candidateDashboard, { replace: true })
     } catch (saveError) {
       setSubmitError(
         getErrorMessage(saveError, 'Failed to save your profile.'),

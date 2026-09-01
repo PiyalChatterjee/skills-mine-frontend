@@ -12,6 +12,7 @@ import {
 } from "@/store/slices/candidateSlice";
 import type {
   ApiError,
+  ApplyJobResponse,
   AiActionsData,
   CandidateLandingData,
   CandidateStatisticsData,
@@ -144,6 +145,11 @@ export const apiSlice = createApi({
       queryFn: (jobId) =>
         withMappedApiError(async () => (await jobsApi.getById(jobId)).data),
       providesTags: (_result, _error, jobId) => [{ type: "Jobs", id: jobId }],
+    }),
+    applyToJob: build.mutation<ApplyJobResponse, { jobProfileId: string }>({
+      queryFn: ({ jobProfileId }) =>
+        withMappedApiError(() => candidateApi.applyToJob(jobProfileId)),
+      invalidatesTags: [{ type: "CandidateDashboard", id: "SELF" }],
     }),
     getUserProfile: build.query<UserProfile, string>({
       queryFn: (userId) =>
@@ -284,6 +290,7 @@ export const {
   useLazyListJobsPageQuery,
   useGetJobProfileQuery,
   useGetJobByIdQuery,
+  useApplyToJobMutation,
   useGetUserProfileQuery,
   useSaveJobMutation,
   useRemoveSavedJobMutation,
