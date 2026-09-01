@@ -29,6 +29,24 @@ const toCityFromLocation = (location: string) => {
 
 export type JobsFeedMode = 'latest' | 'saved' | 'recommended'
 
+const JOBS_FEED_MODE_CONFIG = {
+  latest: {
+    title: 'Latest Opportunities',
+    route: ROUTE_PATHS.latestJobs,
+    showSearch: true,
+  },
+  saved: {
+    title: 'Saved Jobs',
+    route: ROUTE_PATHS.savedJobs,
+    showSearch: false,
+  },
+  recommended: {
+    title: 'Recommended Jobs',
+    route: ROUTE_PATHS.recommendedJobs,
+    showSearch: true,
+  },
+} as const satisfies Record<JobsFeedMode, { title: string; route: string; showSearch: boolean }>
+
 type JobsFeedPageProps = {
   mode: JobsFeedMode
 }
@@ -41,12 +59,9 @@ export const JobsFeedPage = ({ mode }: JobsFeedPageProps) => {
   const isSavedOnlyMode = mode === 'saved'
   const isRecommendedOnlyMode = mode === 'recommended'
   const isLatestMode = !isSavedOnlyMode && !isRecommendedOnlyMode
+  const modeConfig = JOBS_FEED_MODE_CONFIG[mode]
   const recommendedJobIds = useSelector(selectRecommendedJobIds)
-  const feedRoute = isSavedOnlyMode
-    ? ROUTE_PATHS.savedJobs
-    : isRecommendedOnlyMode
-      ? ROUTE_PATHS.recommendedJobs
-      : ROUTE_PATHS.latestJobs
+  const feedRoute = modeConfig.route
   const savedJobsQuery = useSavedJobsQuery(isSavedOnlyMode)
   const recommendedPositionsQuery = useRecommendedPositionsQuery(isRecommendedOnlyMode)
 
@@ -152,11 +167,11 @@ export const JobsFeedPage = ({ mode }: JobsFeedPageProps) => {
             component="h1"
             className={[styles.pageTitle, isSavedOnlyMode ? styles.savedPageTitle : ''].filter(Boolean).join(' ')}
           >
-            {isSavedOnlyMode ? 'Saved Jobs' : isRecommendedOnlyMode ? 'Recommended Jobs' : 'Latest Opportunities'}
+            {modeConfig.title}
           </Typography>
         </Box>
 
-        {!isSavedOnlyMode ? (
+        {modeConfig.showSearch ? (
           <Box className={styles.searchArea}>
             <OpportunitiesSearchInput
               value={searchInputValue}
