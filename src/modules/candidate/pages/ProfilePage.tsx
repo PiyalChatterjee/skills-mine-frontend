@@ -15,6 +15,7 @@ import { useZodForm } from "@/hooks/useZodForm";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import type { AppDispatch } from "@/store";
 import { saveProfileThunk } from "@/store/slices/candidateThunks";
+import { useIndustryOptions } from "@/modules/candidate/hooks/useIndustryOptions";
 import {
 	ProfileSelectField,
 	ProfileTextField,
@@ -111,6 +112,7 @@ const ProfilePage = () => {
 		string | null
 	>(null);
 	const profilePhotoInputRef = useRef<HTMLInputElement | null>(null);
+	const industryOptions = useIndustryOptions(PROFILE_SELECT_OPTIONS.targetedIndustries);
 
 	useEffect(() => {
 		const formValues = getProfileFormValues(resolvedCandidateProfile);
@@ -282,7 +284,7 @@ const ProfilePage = () => {
 								control={control}
 								name="targetedIndustries"
 								label="Targeted industries"
-								options={[...PROFILE_SELECT_OPTIONS.targetedIndustries]}
+								options={industryOptions}
 								multiple
 								disabled={!isDesiredEditing}
 							/>

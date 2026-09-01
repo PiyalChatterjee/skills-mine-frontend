@@ -189,6 +189,13 @@ export const ProfileSelectField = <TFieldValues extends FieldValues>({
                   displayEmpty: true,
                   multiple,
                   IconComponent: DropdownIcon,
+                  MenuProps: {
+                    slotProps: {
+                      paper: {
+                        sx: { maxHeight: 360 },
+                      },
+                    },
+                  },
                   renderValue: (selected: unknown) => {
                     const currentValue = Array.isArray(selected)
                       ? selected.join(", ")
