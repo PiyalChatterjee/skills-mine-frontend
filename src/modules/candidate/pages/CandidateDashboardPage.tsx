@@ -1,4 +1,4 @@
-import { Fragment, useMemo } from "react";
+import { Fragment } from "react";
 import {
   Box,
   ButtonBase,
@@ -6,9 +6,10 @@ import {
   Typography,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/app/auth/AuthContext";
-import { useCandidateDashboardQuery, useCandidateStatisticsQuery } from "@/modules/candidate/hooks/useCandidateQueries";
-import type { DashboardApplication } from "@/types/api";
+import {
+  DASHBOARD_APPLICATION_STATUS_CONFIG,
+  useCandidateDashboardViewModel,
+} from "@/modules/candidate/hooks/useCandidateDashboardViewModel";
 import bardLineIcon from "@/assets/candidate-dashboard/bard-line.svg";
 import expandCirclePlusIcon from "@/assets/candidate-dashboard/expand-circle-plus.svg";
 import bookmarkLineIcon from "@/assets/candidate-dashboard/bookmark-line.svg";
@@ -17,212 +18,46 @@ import settings4LineIcon from "@/assets/candidate-dashboard/settings-4-line.svg"
 import fileList2LineIcon from "@/assets/candidate-dashboard/file-list-2-line.svg";
 import progress5LineIcon from "@/assets/candidate-dashboard/progress-5-line.svg";
 import verifiedBadgeLineIcon from "@/assets/candidate-dashboard/verified-badge-line.svg";
-import { getApplicationStatusLabel } from "@/modules/candidate/utils/applicationStatus";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import styles from "./CandidateDashboardPage.module.css";
 
-type ApplicationStatusKey =
-  | "applied"
-  | "screening"
-  | "assessment"
-  | "interview"
-  | "shortlisted"
-  | "offer_extended"
-  | "offer_accepted"
-  | "offer_declined"
-  | "unknown";
-
-const APPLICATION_STATUS_CONFIG: Record<
-  ApplicationStatusKey,
-  { label: string; color: string; caption?: string }
-> = {
-  applied: {
-    label: "Applied",
-    color: "#72c4e0",
-    caption: "Your application has been submitted.",
-  },
-  screening: {
-    label: "Screening",
-    color: "#4db8c8",
-    caption: "Your application is under review.",
-  },
-  assessment: {
-    label: "Assessment",
-    color: "#f0a500",
-    caption: "You have been invited to complete an assessment.",
-  },
-  interview: {
-    label: "Interview",
-    color: "#7c5cd8",
-    caption: "You have been selected for an interview.",
-  },
-  shortlisted: {
-    label: "Shortlisted",
-    color: "#e085c2",
-    caption: "You have been shortlisted for this role.",
-  },
-  offer_extended: {
-    label: "Offer",
-    color: "#5bbf8a",
-    caption: "You have received an offer.",
-  },
-  offer_accepted: {
-    label: "Closed",
-    color: "#4BAF73",
-    caption: "You have accepted the offer.",
-  },
-  offer_declined: {
-    label: "Closed",
-    color: "#D64545",
-    caption: "You have declined the offer.",
-  },
-  unknown: { label: "Unknown stage", color: "#7a8694" },
-};
-
-const STAGE_STATUS_MAP: Record<string, ApplicationStatusKey> = {
-  // lowercase
-  inbound: "applied",
-  applied: "applied",
-  screening: "screening",
-  assessment: "assessment",
-  interview: "interview",
-  shortlisted: "shortlisted",
-  offer: "offer_extended",
-  offer_extended: "offer_extended",
-  offer_accepted: "offer_accepted",
-  offer_declined: "offer_declined",
-};
-
-// Returns 0-based index of current stage within the app's pipeline array
-const getPipelineProgress = (
-  stage: string | undefined | null,
-  pipeline: string[],
-): number => {
-  if (!stage || pipeline.length === 0) return 0;
-  const normalized = stage.toLowerCase();
-  const idx = pipeline.findIndex((s) => s.toLowerCase() === normalized);
-  return idx >= 0 ? idx : 0;
-};
-
-const CLOSED_STAGES = new Set(["closed", "offer_accepted", "offer_declined"]);
-
-const getPipelineFillPercent = (
-  stage: string | undefined | null,
-  pipeline: string[],
-): number => {
-  if (pipeline.length <= 1) return 0;
-  // Closed/accepted/declined stages mean the process is complete
-  if (stage && CLOSED_STAGES.has(stage.toLowerCase())) {
-    return 100;
-  }
-  const idx = getPipelineProgress(stage, pipeline);
-  // Align bar to center of current stage label
-  return Math.round(((idx + 0.5) / pipeline.length) * 100);
-};
-
-const unknownStages = new Set<string>();
-
-const reportUnknownStage = (stage: string) => {
-  const normalized = stage.trim().toLowerCase();
-  if (!unknownStages.has(normalized)) {
-    unknownStages.add(normalized);
-    console.warn(
-      "[CandidateDashboardPage] Unknown application stage received from API",
-      {
-        stage,
-        normalized,
-      },
-    );
-  }
-};
-
-const mapStageToStatusKey = (
-  stage: string | undefined | null,
-): ApplicationStatusKey => {
-  if (!stage) return "unknown";
-  const normalized = stage.trim().toLowerCase();
-  const mapped = STAGE_STATUS_MAP[normalized];
-  if (mapped) {
-    return mapped;
-  }
-
-  reportUnknownStage(stage);
-  return "unknown";
-};
-
-type DisplayApplication = {
-  id: string;
-  jobId: string;
-  title: string;
-  status: ApplicationStatusKey;
-  stage: string;
-  pipeline: string[];
-  fillPercent: number;
-  message: string;
-  offerAccepted: boolean;
-};
-
-const transformApplicationToDisplay = (
-  app: DashboardApplication,
-): DisplayApplication => {
-  const status = mapStageToStatusKey(app.stage);
-
-  return {
-    id: app.id,
-    jobId: app.job.id,
-    title: app.job.title,
-    status,
-    stage: app.stage,
-    pipeline: app.pipeline,
-    fillPercent: getPipelineFillPercent(app.stage, app.pipeline),
-    message: app.statusMessage,
-    offerAccepted: false,
-  };
-};
-
 const CandidateDashboardPage = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { data: dashboard, isLoading } = useCandidateDashboardQuery(Boolean(user));
-  const { data: statistics } = useCandidateStatisticsQuery(Boolean(user));
+  const {
+    applications,
+    firstName,
+    isLoading,
+    isNewUser,
+    statistics,
+  } = useCandidateDashboardViewModel();
 
   const handleSkillsBuildClick = () => {
     window.open("https://skillsbuild.org/", "_blank");
   };
 
-  const statCards = useMemo(() => {
-    const stats = statistics?.statistics;
-    return [
-      {
-        value: stats?.totalApplications ?? 0,
-        icon: fileList2LineIcon,
-        label: "Applications",
-        description: "Applications you have submitted through The Skills Mine",
-        colorClass: styles.statCardBlue,
-      },
-      {
-        value: stats?.successfulApplications ?? 0,
-        icon: verifiedBadgeLineIcon,
-        label: "Successful",
-        description: "Successful applications through The Skills Mine",
-        colorClass: styles.statCardGreen,
-      },
-      {
-        value: stats?.inProgressApplications ?? 0,
-        icon: progress5LineIcon,
-        label: "In Progress",
-        description: "Applications in progress through The Skills Mine",
-        colorClass: styles.statCardTealMuted,
-      },
-    ];
-  }, [statistics]);
-
-  const firstName = user?.firstName ?? "there";
-  const applications = dashboard?.applications ?? [];
-  const isNewUser =
-    !isLoading &&
-    applications.length === 0 &&
-    (statistics?.statistics?.totalApplications ?? 0) === 0;
+  const statCards = [
+    {
+      value: statistics.totalApplications,
+      icon: fileList2LineIcon,
+      label: "Applications",
+      description: "Applications you have submitted through The Skills Mine",
+      colorClass: styles.statCardBlue,
+    },
+    {
+      value: statistics.successfulApplications,
+      icon: verifiedBadgeLineIcon,
+      label: "Successful",
+      description: "Successful applications through The Skills Mine",
+      colorClass: styles.statCardGreen,
+    },
+    {
+      value: statistics.inProgressApplications,
+      icon: progress5LineIcon,
+      label: "In Progress",
+      description: "Applications in progress through The Skills Mine",
+      colorClass: styles.statCardTealMuted,
+    },
+  ];
 
   if (isLoading) {
     return (
@@ -485,8 +320,7 @@ const CandidateDashboardPage = () => {
               No applications yet. Start applying to jobs!
             </Typography>
           ) : (
-            applications.map((apiApp, index) => {
-              const app = transformApplicationToDisplay(apiApp);
+            applications.map((app, index) => {
               return (
                 <Fragment key={app.id}>
                   <Box className={styles.applicationEntry}>
@@ -522,7 +356,7 @@ const CandidateDashboardPage = () => {
                         </ButtonBase>
                       </Box>
                       <Box className={styles.statusPill} data-status={app.status}>
-                        {APPLICATION_STATUS_CONFIG[app.status].label}
+                        {DASHBOARD_APPLICATION_STATUS_CONFIG[app.status].label}
                       </Box>
                     </Box>
 
@@ -530,19 +364,16 @@ const CandidateDashboardPage = () => {
                       <Box
                         className={styles.pipelineLabels}
                         style={{
-                          gridTemplateColumns: `repeat(${app.pipeline.length}, minmax(0, 1fr))`,
+                          gridTemplateColumns: `repeat(${app.pipelineStages.length}, minmax(0, 1fr))`,
                         }}
                       >
-                        {app.pipeline.map((stageKey) => (
+                        {app.pipelineStages.map((stage) => (
                           <span
-                            key={stageKey}
+                            key={stage.key}
                             className={styles.pipelineLabel}
-                            data-active={
-                              stageKey.toLowerCase() ===
-                                app.stage.toLowerCase() || undefined
-                            }
+                            data-active={stage.isActive || undefined}
                           >
-                            {getApplicationStatusLabel(stageKey)}
+                            {stage.label}
                           </span>
                         ))}
                       </Box>
