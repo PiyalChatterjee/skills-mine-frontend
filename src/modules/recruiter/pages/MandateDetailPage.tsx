@@ -288,6 +288,19 @@ const MandateDetailPage = () => {
                 </table>
               )}
             </Box>
+
+            {/* View Candidate Pipeline button */}
+            <ButtonBase
+              className={styles.pipelineBtn}
+              disableRipple
+              onClick={() =>
+                navigate(
+                  ROUTE_PATHS.recruiterCandidatePipeline.replace(':cardId', cardId ?? '')
+                )
+              }
+            >
+              View Candidate Pipeline
+            </ButtonBase>
           </Box>
 
           {/* ── Right column ── */}

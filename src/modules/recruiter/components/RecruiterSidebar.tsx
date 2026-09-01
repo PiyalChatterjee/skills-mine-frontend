@@ -1,14 +1,14 @@
 import { Box, ButtonBase, Typography } from '@mui/material'
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
+import { useDispatch } from 'react-redux'
 import { ROUTE_PATHS } from '@/routes/routePaths'
+import { clearAuthSession } from '@/store/slices/authSlice'
 import styles from './RecruiterSidebar.module.css'
 
 import dashboardIcon    from '@/assets/recruiter/speed-up-line.svg'
 import mandatesIcon     from '@/assets/recruiter/Menu Icons-1.svg'
-import settingsIcon     from '@/assets/recruiter/Menu Icons.svg'
 import crmIcon          from '@/assets/recruiter/person.svg'
-import helpIcon         from '@/assets/recruiter/customer-service-line.svg'
-import profileIcon      from '@/assets/recruiter/account-circle-2-fill.svg'
+import logoutIcon       from '@/assets/logout-icon.svg'
 import logoBanner       from '@/assets/recruiter/Group 45 (1).svg'
 
 // ── Types ──────────────────────────────────────────────────────────────
@@ -53,18 +53,17 @@ const MancoIcon = () => (
 
 export const RecruiterSidebar = () => {
   const location = useLocation()
-
   const navigate = useNavigate()
+  const dispatch = useDispatch()
   const handleNewJobPostClick = () => {
     navigate(ROUTE_PATHS.recruiterNewJobPost)
   }
 
-  const handleSettingsClick = () => {
-    // TODO: Navigate to settings page
-  }
-
-  const handleHelpClick = () => {
-    // TODO: Open help panel
+  const handleLogoutClick = () => {
+    dispatch(clearAuthSession())
+    localStorage.clear()
+    sessionStorage.clear()
+    navigate(ROUTE_PATHS.login)
   }
 
   const mainNavItems: NavItem[] = [
@@ -77,9 +76,7 @@ export const RecruiterSidebar = () => {
   ]
 
   const adminNavItems: NavItem[] = [
-    { id: 'settings', label: 'Settings', icon: <img src={settingsIcon} width={20} height={20} alt="" aria-hidden="true" />, onClick: handleSettingsClick },
-    { id: 'profile',  label: 'Profile',  to: ROUTE_PATHS.profile, icon: <img src={profileIcon} width={20} height={20} alt="" aria-hidden="true" /> },
-    { id: 'help',     label: 'Help',     icon: <img src={helpIcon}    width={20} height={20} alt="" aria-hidden="true" />, onClick: handleHelpClick },
+    { id: 'logout', label: 'Log out', icon: <img src={logoutIcon} width={20} height={20} alt="" aria-hidden="true" />, onClick: handleLogoutClick },
   ]
 
   const renderNavItem = (item: NavItem) => {
@@ -149,8 +146,8 @@ export const RecruiterSidebar = () => {
         </Box>
       </Box>
 
-      {/* ── ADMIN section (pushed to bottom) ── */}
-      <Box className={`${styles.navSection} ${styles.adminSection}`}>
+      {/* ── ADMIN section ── */}
+      <Box className={styles.navSection}>
         <Typography component="p" className={styles.navSectionLabel}>
           ADMIN
         </Typography>
