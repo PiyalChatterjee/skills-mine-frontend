@@ -18,6 +18,7 @@ export const ROUTE_PATHS = {
   recruiterJobPosts: '/recruiter/job-posts',
   recruiterMandate: '/recruiter/mandate/:cardId',
   recruiterCandidate: '/recruiter/mandate/:cardId/candidate/:candidateId',
+  recruiterCandidatePipeline: '/recruiter/mandate/:cardId/pipeline',
   recruiterNewJobPost: '/recruiter/new-job-post',
   recruiterEditJobPost: '/recruiter/edit-job-post/:mandateId',
   recruiterCandidates: '/recruiter/candidates',
