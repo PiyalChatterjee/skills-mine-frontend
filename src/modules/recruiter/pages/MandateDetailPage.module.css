@@ -566,6 +566,28 @@
   color: #ffffff;
 }
 
+/* ── View Candidate Pipeline button ─────────────────────────────────── */
+.pipelineBtn:global(.MuiButtonBase-root) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: flex-start;
+  background: #03478C;
+  color: #ffffff;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 15px;
+  font-weight: 400;
+  padding: 14px 28px;
+  border-radius: 100px;
+  border: none;
+  transition: background 0.15s ease;
+  white-space: nowrap;
+}
+
+.pipelineBtn:global(.MuiButtonBase-root):hover {
+  background: #02356b;
+}
+
 /* ── Responsive ──────────────────────────────────────────────────────── */
 @media (max-width: 900px) {
   .shell { margin-left: 0; }
