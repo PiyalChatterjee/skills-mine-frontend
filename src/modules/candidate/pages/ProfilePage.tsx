@@ -256,11 +256,11 @@ const ProfilePage = () => {
 								disabled={!isPersonalEditing}
 								maxLength={10}
 							/>
-							<ProfileSelectField
+							<ProfileTextField
 								control={control}
 								name="residentialLocation"
 								label="Residential location"
-								options={[...PROFILE_SELECT_OPTIONS.residentialLocation]}
+								fullWidth
 								disabled={!isPersonalEditing}
 							/>
 						</Box>
@@ -283,6 +283,7 @@ const ProfilePage = () => {
 								name="targetedIndustries"
 								label="Targeted industries"
 								options={[...PROFILE_SELECT_OPTIONS.targetedIndustries]}
+								multiple
 								disabled={!isDesiredEditing}
 							/>
 							<ProfileSelectField
@@ -290,6 +291,7 @@ const ProfilePage = () => {
 								name="preferredLocations"
 								label="Preferred location(s)"
 								options={[...PROFILE_SELECT_OPTIONS.preferredLocations]}
+								multiple
 								disabled={!isDesiredEditing}
 							/>
 							<ProfileSelectField

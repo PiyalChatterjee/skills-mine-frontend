@@ -33,6 +33,7 @@ export const PROFILE_SELECT_OPTIONS = {
   ],
   targetedIndustries: [
     'Technology',
+    'Financial Services',
     'Banking',
     'Consulting',
     'Digital Marketing',

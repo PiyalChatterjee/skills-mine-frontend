@@ -39,6 +39,7 @@ type SelectFieldProps<TFieldValues extends FieldValues> = {
   disabled?: boolean;
   inputClassName?: string;
   disabledClassName?: string;
+  multiple?: boolean;
 };
 
 const DropdownIcon = ({ className }: { className?: string }) => (
@@ -142,6 +143,7 @@ export const ProfileSelectField = <TFieldValues extends FieldValues>({
   disabled = false,
   inputClassName = styles.readonlyInput,
   disabledClassName = styles.readonlyInputDisabled,
+  multiple = false,
 }: SelectFieldProps<TFieldValues>) => {
   const inputId = useId();
 
@@ -154,6 +156,10 @@ export const ProfileSelectField = <TFieldValues extends FieldValues>({
           const placeholderText = placeholder ?? label;
           const selectedValue =
             typeof field.value === "string" ? field.value : "";
+          const selectedValues = selectedValue
+            .split(",")
+            .map((value) => value.trim())
+            .filter(Boolean);
 
           return (
             <TextField
@@ -161,8 +167,13 @@ export const ProfileSelectField = <TFieldValues extends FieldValues>({
               variant="outlined"
               fullWidth
               select
-              value={selectedValue}
-              onChange={(event) => field.onChange(event.target.value)}
+              value={multiple ? selectedValues : selectedValue}
+              onChange={(event) => {
+                const nextValue = event.target.value;
+                field.onChange(
+                  Array.isArray(nextValue) ? nextValue.join(", ") : nextValue,
+                );
+              }}
               onBlur={field.onBlur}
               inputRef={field.ref}
               disabled={disabled}
@@ -176,10 +187,14 @@ export const ProfileSelectField = <TFieldValues extends FieldValues>({
               slotProps={{
                 select: {
                   displayEmpty: true,
+                  multiple,
                   IconComponent: DropdownIcon,
                   renderValue: (selected: unknown) => {
-                    const currentValue =
-                      typeof selected === "string" ? selected : "";
+                    const currentValue = Array.isArray(selected)
+                      ? selected.join(", ")
+                      : typeof selected === "string"
+                        ? selected
+                        : "";
                     if (!currentValue) {
                       return (
                         <span className={styles.selectPlaceholder}>
@@ -192,9 +207,11 @@ export const ProfileSelectField = <TFieldValues extends FieldValues>({
                 },
               }}
             >
-              <MenuItem value="" disabled>
-                {placeholderText}
-              </MenuItem>
+              {!multiple && (
+                <MenuItem value="" disabled>
+                  {placeholderText}
+                </MenuItem>
+              )}
               {options.map((option) => (
                 <MenuItem key={option} value={option}>
                   {option}

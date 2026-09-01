@@ -42,12 +42,11 @@ export const ProfileCreationPersonalDetailsSection = ({
           name="phoneNumber"
           label="Phone number*"
         />
-        <ProfileSelectField
+        <ProfileTextField
           control={control}
           name="residentialLocation"
           label="Residential location*"
           fullWidth
-          options={[...PROFILE_SELECT_OPTIONS.residentialLocation]}
         />
       </Box>
       {showRequiredHint ? (
@@ -77,12 +76,14 @@ export const ProfileCreationJobDetailsSection = ({
           name="targetedIndustries"
           label="Targeted industries*"
           options={[...PROFILE_SELECT_OPTIONS.targetedIndustries]}
+          multiple
         />
         <ProfileSelectField
           control={control}
           name="preferredLocations"
           label="Preferred location(s)"
           options={[...PROFILE_SELECT_OPTIONS.preferredLocations]}
+          multiple
         />
         <ProfileSelectField
           control={control}
