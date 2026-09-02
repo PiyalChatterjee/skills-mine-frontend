@@ -179,6 +179,12 @@ export const apiEndpoints = {
       "/industries",
     ),
   },
+  locations: {
+    list: withDefault(
+      import.meta.env.VITE_LOCATIONS_LIST_ENDPOINT,
+      "/locations",
+    ),
+  },
   skills: {
     search: withDefault(
       import.meta.env.VITE_SKILLS_SEARCH_ENDPOINT,

@@ -4,16 +4,22 @@ import { useOpportunitySearchModalState } from "./useOpportunitySearchModalState
 
 const mocks = vi.hoisted(() => ({
   useIndustryOptions: vi.fn(),
+  useLocationOptions: vi.fn(),
 }));
 
 vi.mock("@/modules/candidate/hooks/useIndustryOptions", () => ({
   useIndustryOptions: mocks.useIndustryOptions,
 }));
 
+vi.mock("@/modules/candidate/hooks/useLocationOptions", () => ({
+  useLocationOptions: mocks.useLocationOptions,
+}));
+
 describe("useOpportunitySearchModalState", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.useIndustryOptions.mockReturnValue(["Technology", "Finance"]);
+    mocks.useLocationOptions.mockReturnValue(["Hybrid", "Remote", "On-site"]);
   });
 
   it("builds readable filter options and label lookups", () => {

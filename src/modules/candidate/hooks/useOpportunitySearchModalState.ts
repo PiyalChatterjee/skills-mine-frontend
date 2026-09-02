@@ -1,4 +1,5 @@
 import { useIndustryOptions } from "@/modules/candidate/hooks/useIndustryOptions";
+import { useLocationOptions } from "@/modules/candidate/hooks/useLocationOptions";
 import { PROFILE_SELECT_OPTIONS } from "@/modules/candidate/pages/profileForm.config";
 import { useCandidateFilters } from "./useCandidateFilters";
 
@@ -38,7 +39,8 @@ export const useOpportunitySearchModalState = (open: boolean) => {
   } = useCandidateFilters(filterKeys, open);
   const industryOptions = useIndustryOptions(PROFILE_SELECT_OPTIONS.targetedIndustries);
   const readableIndustryOptions = toFilterOptions(industryOptions);
-  const readableLocationOptions = toFilterOptions(PROFILE_SELECT_OPTIONS.preferredLocations);
+  const locationOptions = useLocationOptions(PROFILE_SELECT_OPTIONS.preferredLocations);
+  const readableLocationOptions = toFilterOptions(locationOptions);
 
   const getDatePostedLabel = (value: string) =>
     datePostedOptions.find((option) => option.value === value)?.label ?? value;

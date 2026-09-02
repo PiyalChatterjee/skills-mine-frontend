@@ -1,5 +1,5 @@
 import { createApi, fakeBaseQuery } from "@reduxjs/toolkit/query/react";
-import { candidateApi, industryApi, jobsApi } from "@/services/api";
+import { candidateApi, industryApi, jobsApi, locationApi } from "@/services/api";
 import type {
   CandidateDashboardData,
   CandidateDashboardQuery,
@@ -79,6 +79,7 @@ export const apiSlice = createApi({
     "CandidateStatistics",
     "AiActions",
     "Industries",
+    "Locations",
   ],
   endpoints: (build) => ({
     getIndustries: build.query<string[], void>({
@@ -88,6 +89,14 @@ export const apiSlice = createApi({
           return envelope.data.map((industry) => industry.name).filter(Boolean);
         }),
       providesTags: [{ type: "Industries", id: "LIST" }],
+    }),
+    getLocations: build.query<string[], void>({
+      queryFn: () =>
+        withMappedApiError(async () => {
+          const locations = await locationApi.getLocations();
+          return locations.filter(Boolean);
+        }),
+      providesTags: [{ type: "Locations", id: "LIST" }],
     }),
     getCandidateProfile: build.query<CandidateProfile, CandidateProfileArgs>({
       queryFn: async ({ candidateId, userId }, api) =>
@@ -292,6 +301,7 @@ export const apiSlice = createApi({
 
 export const {
   useGetIndustriesQuery,
+  useGetLocationsQuery,
   useGetCandidateProfileQuery,
   useGetCandidateDashboardQuery,
   useGetCandidateLandingQuery,
