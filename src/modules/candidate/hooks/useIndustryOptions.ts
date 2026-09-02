@@ -1,33 +1,7 @@
-import { useEffect, useState } from 'react'
-import { industryApi } from '@/services/api/industryApi'
+import { useGetIndustriesQuery } from '@/store/api/apiSlice'
 
 export const useIndustryOptions = (fallbackOptions: readonly string[] = []) => {
-  const [options, setOptions] = useState<string[]>(() => [...fallbackOptions])
+  const { data } = useGetIndustriesQuery()
 
-  useEffect(() => {
-    let isMounted = true
-
-    industryApi
-      .getIndustries()
-      .then((envelope) => {
-        if (!isMounted) return
-
-        const industryNames = envelope.data
-          .map((industry) => industry.name)
-          .filter(Boolean)
-
-        setOptions(industryNames.length > 0 ? industryNames : [...fallbackOptions])
-      })
-      .catch(() => {
-        if (isMounted) {
-          setOptions([...fallbackOptions])
-        }
-      })
-
-    return () => {
-      isMounted = false
-    }
-  }, [fallbackOptions])
-
-  return options
+  return data && data.length > 0 ? data : [...fallbackOptions]
 }
