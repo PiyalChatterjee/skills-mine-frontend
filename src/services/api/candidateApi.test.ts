@@ -268,6 +268,46 @@ describe('candidateApi', () => {
     })
   })
 
+  describe('candidate job collections', () => {
+    it('maps canonical saved jobs and preserves its candidate-scoped request', async () => {
+      mockGet.mockResolvedValue({
+        data: {
+          candidate_id: 'CAND100001',
+          saved_jobs: [{ job_profile_id: 'JOB-1', job_title: 'Engineer' }],
+          pagination: { total_items: 1 },
+        },
+      })
+
+      const result = await candidateApi.getSavedJobs('CAND100001')
+
+      expect(mockGet).toHaveBeenCalledWith('/candidates/saved-jobs')
+      expect(result).toMatchObject({
+        candidateId: 'CAND100001',
+        jobs: [{ jobId: 'JOB-1', title: 'Engineer' }],
+        total: 1,
+      })
+    })
+
+    it('maps canonical recommended positions and preserves its candidate-scoped request', async () => {
+      mockGet.mockResolvedValue({
+        data: {
+          candidate_id: 'CAND100001',
+          recommended_positions: [{ job_profile_id: 'JOB-2', job_title: 'Designer' }],
+          pagination: { total_items: 1 },
+        },
+      })
+
+      const result = await candidateApi.getRecommendedPositions('CAND100001')
+
+      expect(mockGet).toHaveBeenCalledWith('/candidates/recommended-positions')
+      expect(result).toMatchObject({
+        candidateId: 'CAND100001',
+        jobs: [{ jobId: 'JOB-2', title: 'Designer' }],
+        total: 1,
+      })
+    })
+  })
+
   describe('getBuildMyCv', () => {
     it('calls GET /candidates/cv-build/ and unwraps envelope', async () => {
       const cvData = {
@@ -320,8 +360,8 @@ describe('candidateApi', () => {
 
   describe('saveBuildMyCv', () => {
     it('calls POST /candidates/cv-build/', async () => {
-      mockPost.mockResolvedValue({ data: { data: { lastModified: '2024-01-01' } } })
-      await candidateApi.saveBuildMyCv('candidate-1', {
+      mockPost.mockResolvedValue({ data: { success: true, data: { lastModified: '2024-01-01' } } })
+      const result = await candidateApi.saveBuildMyCv('candidate-1', {
         personalDetails: {
           firstName: 'Jane',
           lastName: 'Doe',
@@ -340,13 +380,14 @@ describe('candidateApi', () => {
         languages: [],
       })
       expect(mockPost).toHaveBeenCalledWith('/candidates/cv-build/', expect.any(Object))
+      expect(result.lastModified).toBe('2024-01-01')
     })
   })
 
   describe('updateBuildMyCv', () => {
     it('calls PUT /candidates/cv-build/', async () => {
-      mockPut.mockResolvedValue({ data: { data: { lastModified: '2024-06-01' } } })
-      await candidateApi.updateBuildMyCv('candidate-1', {
+      mockPut.mockResolvedValue({ data: { success: true, data: { lastModified: '2024-06-01' } } })
+      const result = await candidateApi.updateBuildMyCv('candidate-1', {
         personalDetails: {
           firstName: 'Jane',
           lastName: 'Doe',
@@ -365,6 +406,7 @@ describe('candidateApi', () => {
         languages: [],
       })
       expect(mockPut).toHaveBeenCalledWith('/candidates/cv-build/', expect.any(Object))
+      expect(result.lastModified).toBe('2024-06-01')
     })
   })
 

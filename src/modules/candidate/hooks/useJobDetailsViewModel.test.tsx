@@ -108,7 +108,7 @@ describe("useJobDetailsViewModel", () => {
     const { result } = renderHook(() => useJobDetailsViewModel());
 
     expect(mocks.useJobs).toHaveBeenCalledWith(undefined, true, 50);
-    expect(mocks.useGetJobByIdQuery).toHaveBeenCalledWith("job-1", { skip: false });
+    expect(mocks.useGetJobByIdQuery).toHaveBeenCalledWith("job-1", { skip: true });
     expect(mocks.useGetJobProfileQuery).toHaveBeenCalledWith("profile-1", { skip: false });
     expect(result.current).toMatchObject({
       backRoute: "/jobs/saved",
@@ -191,6 +191,17 @@ describe("useJobDetailsViewModel", () => {
     expect(mocks.toggleJobSaved).toHaveBeenCalledWith("job-1");
   });
 
+  it("uses the compatibility lookup only when no job profile ID is available", () => {
+    mocks.useLocation.mockReturnValue({ state: null });
+    mocks.useJobs.mockReturnValue({ data: { pages: [] }, isLoading: false });
+    mocks.useGetJobByIdQuery.mockReturnValue({ data: listJob });
+
+    renderHook(() => useJobDetailsViewModel());
+
+    expect(mocks.useGetJobByIdQuery).toHaveBeenCalledWith("job-1", { skip: false });
+    expect(mocks.useGetJobProfileQuery).toHaveBeenCalledWith("profile-1", { skip: false });
+  });
+
   it("exposes loading and not-found states without a resolved job", () => {
     mocks.useLocation.mockReturnValue({ state: null });
     mocks.useJobs.mockReturnValue({ data: { pages: [] }, isLoading: true });
@@ -199,6 +210,8 @@ describe("useJobDetailsViewModel", () => {
 
     const { result } = renderHook(() => useJobDetailsViewModel());
 
+    expect(mocks.useGetJobByIdQuery).toHaveBeenCalledWith("job-1", { skip: false });
+    expect(mocks.useGetJobProfileQuery).toHaveBeenCalledWith("", { skip: true });
     expect(result.current.isInitialLoading).toBe(true);
     expect(result.current.isNotFound).toBe(true);
     act(() => {

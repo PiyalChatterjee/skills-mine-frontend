@@ -100,8 +100,11 @@ export const useJobDetailsViewModel = () => {
     return allJobs.find((job) => job.jobId === jobId) ?? stateJob;
   }, [allJobs, jobId, stateJob]);
 
-  const { data: jobById } = useGetJobByIdQuery(jobId ?? "", { skip: !jobId });
-  const jobProfileId = jobById?.jobProfileId ?? resolvedJob?.jobProfileId;
+  const knownJobProfileId = resolvedJob?.jobProfileId;
+  const { data: jobById } = useGetJobByIdQuery(jobId ?? "", {
+    skip: !jobId || Boolean(knownJobProfileId),
+  });
+  const jobProfileId = knownJobProfileId ?? jobById?.jobProfileId;
   const { data: jobProfile, isFetching: isJobProfileLoading } =
     useGetJobProfileQuery(jobProfileId ?? "", {
       skip: !jobProfileId,

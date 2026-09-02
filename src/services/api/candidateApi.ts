@@ -3,6 +3,7 @@ import {
   unwrapEnvelopeData,
   unwrapResponseData,
 } from "@/services/api/axios";
+import type { AxiosResponse } from "axios";
 import { apiEndpoints, resolveEndpoint } from "@/services/api/endpoints";
 import type {
   BuildMyCvData,
@@ -196,25 +197,32 @@ const mapJobRecord = (job: Record<string, any>) => ({
   savedAt: job.savedAt ?? job.saved_at,
 });
 
-const mapSavedJobsResponse = (payload: unknown): SavedJobsData => {
+type CandidateJobCollectionData = SavedJobsData | RecommendedJobsData;
+
+const mapCandidateJobCollectionResponse = <
+  TCollection extends CandidateJobCollectionData,
+>(
+  payload: unknown,
+  jobsField: "saved_jobs" | "recommended_positions",
+): TCollection => {
   const data = responseData(payload as Record<string, unknown>) as Record<string, any>;
-  const jobs = data.jobs ?? data.saved_jobs ?? [];
+  const jobs = data.jobs ?? data[jobsField] ?? [];
+
   return {
     candidateId: data.candidateId ?? data.candidate_id ?? "",
     jobs: jobs.map(mapJobRecord),
     total: data.total ?? data.pagination?.total_items ?? jobs.length,
-  };
+  } as TCollection;
 };
 
-const mapRecommendedResponse = (payload: unknown): RecommendedJobsData => {
-  const data = responseData(payload as Record<string, unknown>) as Record<string, any>;
-  const jobs = data.jobs ?? data.recommended_positions ?? [];
-  return {
-    candidateId: data.candidateId ?? data.candidate_id ?? "",
-    jobs: jobs.map(mapJobRecord),
-    total: data.total ?? data.pagination?.total_items ?? jobs.length,
-  };
-};
+const mapSavedJobsResponse = (payload: unknown): SavedJobsData =>
+  mapCandidateJobCollectionResponse<SavedJobsData>(payload, "saved_jobs");
+
+const mapRecommendedResponse = (payload: unknown): RecommendedJobsData =>
+  mapCandidateJobCollectionResponse<RecommendedJobsData>(
+    payload,
+    "recommended_positions",
+  );
 
 // The CV builder accepts a partial update: only the sections present in the body
 // are overwritten, so undefined sections are stripped before sending.
@@ -311,6 +319,13 @@ const mapBuildResponse = (payload: unknown): any => {
       availableFrom: "",
     },
   };
+};
+
+const mapBuildMyCvRequest = async (
+  request: Promise<AxiosResponse<SuccessEnvelope<BuildMyCvData>>>,
+): Promise<BuildMyCvData> => {
+  const response = await unwrapResponseData(request);
+  return mapBuildResponse(response) as BuildMyCvData;
 };
 
 const mapProfileResponse = (
@@ -665,23 +680,21 @@ export const candidateApi = {
   },
 
   async saveBuildMyCv(candidateId: string, payload: SaveBuildMyCvRequest): Promise<BuildMyCvData> {
-    const response = await unwrapResponseData(
+    return mapBuildMyCvRequest(
       apiClient.post<SuccessEnvelope<BuildMyCvData>>(
         resolveEndpoint(apiEndpoints.candidate.buildMyCv, { candidateId }),
         toCvPayload(payload),
       ),
     );
-    return mapBuildResponse(response) as BuildMyCvData;
   },
 
   async updateBuildMyCv(candidateId: string, payload: UpdateBuildMyCvRequest): Promise<BuildMyCvData> {
-    const response = await unwrapResponseData(
+    return mapBuildMyCvRequest(
       apiClient.put<SuccessEnvelope<BuildMyCvData>>(
         resolveEndpoint(apiEndpoints.candidate.buildMyCv, { candidateId }),
         toCvPayload(payload),
       ),
     );
-    return mapBuildResponse(response) as BuildMyCvData;
   },
 
   async createSimpleProfile(candidateId: string, payload: SimpleCandidateProfileInput): Promise<SimpleCandidateProfileResponse> {
