@@ -56,7 +56,7 @@ export const useOptimisticSaveJob = () => {
         return next
       })
     }
-  }, [candidateId, dispatch, savedJobIds, savingIds, user])
+  }, [candidateId, dispatch, removeSavedJobMutation, savedJobIds, saveJob, savingIds, user])
 
   return {
     savedJobIds,
