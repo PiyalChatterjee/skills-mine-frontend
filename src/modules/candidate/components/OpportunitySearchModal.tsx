@@ -1,4 +1,4 @@
-import { Box, Chip, Dialog, DialogContent, IconButton, InputBase, MenuItem, Select, Typography, type SelectChangeEvent } from "@mui/material";
+import { Box, Checkbox, Dialog, DialogContent, IconButton, InputBase, MenuItem, Select, Typography, type SelectChangeEvent } from "@mui/material";
 import { datePostedOptions, jobTypeOptions, useOpportunitySearchModalState } from "@/modules/candidate/hooks/useOpportunitySearchModalState";
 import arrowDownIcon from "@/assets/opportunities/figma-arrow-down-s-line.svg";
 import closeIcon from "@/assets/opportunities/figma-close-line.svg";
@@ -60,6 +60,47 @@ const FilterMultiSelect = ({
     >
       {options.map((option) => (
         <MenuItem key={option.value} value={option.value}>
+          <Checkbox checked={value.includes(option.value)} />
+          {option.label}
+        </MenuItem>
+      ))}
+    </Select>
+  );
+};
+
+const FilterSingleSelect = ({
+  label,
+  options,
+  value,
+  onChange,
+}: FilterMultiSelectProps) => {
+  const handleChange = (event: SelectChangeEvent<string>) => {
+    const nextValue = event.target.value;
+    onChange(nextValue ? [nextValue] : []);
+  };
+
+  return (
+    <Select
+      displayEmpty
+      value={value[0] ?? ""}
+      onChange={handleChange}
+      IconComponent={FilterDropdownIcon}
+      className={styles.filterSelect}
+      inputProps={{ "aria-label": label }}
+      MenuProps={{
+        slotProps: {
+          paper: {
+            sx: { maxHeight: 360 },
+          },
+        },
+      }}
+      renderValue={(selected) => {
+        const option = options.find((item) => item.value === selected);
+        return option ? option.label : label;
+      }}
+    >
+      {options.map((option) => (
+        <MenuItem key={option.value} value={option.value}>
           {option.label}
         </MenuItem>
       ))}
@@ -72,15 +113,8 @@ export const OpportunitySearchModal = ({
   onClose,
 }: OpportunitySearchModalProps) => {
   const {
-    getDatePostedLabel,
-    getJobTypeLabel,
-    hasSelectedFilters,
     readableIndustryOptions,
     readableLocationOptions,
-    removeDatePostedFilter,
-    removeIndustryFilter,
-    removeJobTypeFilter,
-    removeLocationFilter,
     selectedDatePosted,
     selectedIndustries,
     selectedJobTypes,
@@ -141,7 +175,7 @@ export const OpportunitySearchModal = ({
               onChange={setSelectedLocations}
             />
 
-            <FilterMultiSelect
+            <FilterSingleSelect
               label="Date posted"
               options={datePostedOptions}
               value={selectedDatePosted}
@@ -155,43 +189,6 @@ export const OpportunitySearchModal = ({
               onChange={setSelectedJobTypes}
             />
           </Box>
-
-          {hasSelectedFilters ? (
-            <Box className={styles.selectedFilters} aria-label="Selected search filters">
-              {selectedDatePosted.map((datePosted) => (
-                <Chip
-                  key={datePosted}
-                  label={getDatePostedLabel(datePosted)}
-                  onDelete={() => removeDatePostedFilter(datePosted)}
-                  className={styles.filterChip}
-                />
-              ))}
-              {selectedIndustries.map((industry) => (
-                <Chip
-                  key={industry}
-                  label={industry}
-                  onDelete={() => removeIndustryFilter(industry)}
-                  className={styles.filterChip}
-                />
-              ))}
-              {selectedLocations.map((location) => (
-                <Chip
-                  key={location}
-                  label={location}
-                  onDelete={() => removeLocationFilter(location)}
-                  className={styles.filterChip}
-                />
-              ))}
-              {selectedJobTypes.map((jobType) => (
-                <Chip
-                  key={jobType}
-                  label={getJobTypeLabel(jobType)}
-                  onDelete={() => removeJobTypeFilter(jobType)}
-                  className={styles.filterChip}
-                />
-              ))}
-            </Box>
-          ) : null}
         </Box>
       </DialogContent>
     </Dialog>

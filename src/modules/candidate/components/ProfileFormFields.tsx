@@ -1,5 +1,6 @@
 import {
   Box,
+  Checkbox,
   MenuItem,
   TextField,
   Typography,
@@ -221,6 +222,9 @@ export const ProfileSelectField = <TFieldValues extends FieldValues>({
               )}
               {options.map((option) => (
                 <MenuItem key={option} value={option}>
+                  {multiple ? (
+                    <Checkbox checked={selectedValues.includes(option)} />
+                  ) : null}
                   {option}
                 </MenuItem>
               ))}
