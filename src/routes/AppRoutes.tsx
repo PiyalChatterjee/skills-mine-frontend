@@ -15,6 +15,7 @@ import LandingPage from "@/modules/public/pages/LandingPage";
 import { PermissionGuard } from "@/routes/guards/PermissionGuard";
 import { ProtectedRoute } from "@/routes/guards/ProtectedRoute";
 import { RoleGuard } from "@/routes/guards/RoleGuard";
+import { CandidateOnboardingGuard } from "@/routes/guards/CandidateOnboardingGuard";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import styles from "@/routes/AppRoutes.module.css";
 
@@ -112,10 +113,12 @@ export const AppRoutes = () => {
                 />
               }
             >
-              <Route
-                path={ROUTE_PATHS.candidateDashboard}
-                element={<CandidateDashboardPage />}
-              />
+              <Route element={<CandidateOnboardingGuard />}>
+                <Route
+                  path={ROUTE_PATHS.candidateDashboard}
+                  element={<CandidateDashboardPage />}
+                />
+              </Route>
               <Route
                 path={ROUTE_PATHS.profileCreation}
                 element={<ProfileCreationPage />}

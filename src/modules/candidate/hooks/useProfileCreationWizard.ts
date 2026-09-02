@@ -151,7 +151,7 @@ export const useProfileCreationWizard = () => {
     try {
       await persistValues(form.getValues())
       sessionStorage.removeItem(PENDING_CANDIDATE_PROFILE_STORAGE_KEY)
-      navigate(ROUTE_PATHS.candidateDashboard, { replace: true })
+      navigate(ROUTE_PATHS.cvBuilder, { replace: true })
     } catch (saveError) {
       setSubmitError(
         getErrorMessage(saveError, 'Failed to save your profile.'),

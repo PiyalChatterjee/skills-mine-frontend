@@ -90,6 +90,13 @@ const mapApiError = (error: unknown): ApiError => {
   }
 }
 
+export const hasBuildMyCvData = (data: BuildMyCvState | undefined): boolean =>
+  Boolean(data?.resumeId) ||
+  Boolean(data?.personalDetails?.firstName) ||
+  Boolean(data?.personalDetails?.lastName) ||
+  (data?.careerHistory?.length ?? 0) > 0 ||
+  (data?.skills?.length ?? 0) > 0
+
 // Fetches UserProfile (savedJobs) and hydrates Redux candidate slice
 export const useUserProfile = (userId?: string) => {
   const dispatch = useDispatch<AppDispatch>()
@@ -159,15 +166,8 @@ export const useBuildMyCvQuery = (enabled = true, candidateId?: string) => {
   useEffect(() => {
     if (result.data) {
       dispatch(setBuildMyCv(result.data as BuildMyCvState))
-      // A non-empty resumeId or any personalDetails field indicates an existing record
       const data = result.data as BuildMyCvState
-      const exists =
-        Boolean(data.resumeId) ||
-        Boolean(data.personalDetails?.firstName) ||
-        Boolean(data.personalDetails?.lastName) ||
-        (data.careerHistory?.length ?? 0) > 0 ||
-        (data.skills?.length ?? 0) > 0
-      dispatch(setBuildMyCvExists(exists))
+      dispatch(setBuildMyCvExists(hasBuildMyCvData(data)))
       dispatch(setBuildMyCvLastModified(data.lastModified ?? null))
     }
   }, [dispatch, result.data])

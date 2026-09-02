@@ -1,0 +1,50 @@
+import { Navigate, Outlet } from 'react-router-dom'
+import { useAuth } from '@/app/auth/AuthContext'
+import {
+  hasBuildMyCvData,
+  useBuildMyCvQuery,
+  useCandidateProfileQuery,
+} from '@/modules/candidate/hooks/useCandidateQueries'
+import { isCandidateProfileCompleteForOnboarding } from '@/modules/candidate/utils/profileCompleteness'
+import { ROUTE_PATHS } from '@/routes/routePaths'
+import type { BuildMyCvState } from '@/types'
+import styles from '@/routes/AppRoutes.module.css'
+
+const OnboardingFallback = ({ message }: { message: string }) => (
+  <div className={styles.fallbackContainer} role="status">
+    <span className={styles.loadingText}>{message}</span>
+  </div>
+)
+
+export const CandidateOnboardingGuard = () => {
+  const { user } = useAuth()
+  const candidateId = user?.candidateId ?? user?.userId ?? ''
+  const profileQuery = useCandidateProfileQuery(
+    user?.candidateId,
+    user?.userId,
+    Boolean(user),
+  )
+  const isProfileComplete = Boolean(
+    profileQuery.data &&
+      isCandidateProfileCompleteForOnboarding(profileQuery.data),
+  )
+  const cvQuery = useBuildMyCvQuery(isProfileComplete, candidateId)
+
+  if (profileQuery.isLoading || profileQuery.isFetching) {
+    return <OnboardingFallback message="Loading your profile..." />
+  }
+
+  if (!isProfileComplete) {
+    return <Navigate to={ROUTE_PATHS.profileCreation} replace />
+  }
+
+  if (cvQuery.isLoading || cvQuery.isFetching) {
+    return <OnboardingFallback message="Loading your CV..." />
+  }
+
+  if (!hasBuildMyCvData(cvQuery.data as BuildMyCvState | undefined)) {
+    return <Navigate to={ROUTE_PATHS.cvBuilder} replace />
+  }
+
+  return <Outlet />
+}
