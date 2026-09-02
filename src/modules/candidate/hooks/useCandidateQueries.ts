@@ -40,7 +40,7 @@ export const useCandidateProfileQuery = (
   enabled = true,
 ) => {
   const fallbackId = useCandidateResourceId()
-  const resolvedId = candidateId || fallbackId
+  const resolvedId = candidateId || fallbackId || userId
 
   return useGetCandidateProfileQuery({ candidateId: resolvedId, userId }, {
     skip: !enabled || !resolvedId,

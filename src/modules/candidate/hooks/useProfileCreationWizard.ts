@@ -75,7 +75,11 @@ export const useProfileCreationWizard = () => {
     isFetching,
     isError,
     error,
-  } = useCandidateProfileQuery(user?.candidateId, userId, Boolean(user?.candidateId))
+  } = useCandidateProfileQuery(
+    user?.candidateId,
+    userId,
+    Boolean(user?.candidateId || userId),
+  )
   const updateProfileMutation = useUpdateCandidateProfileMutation()
 
   const form = useForm<ProfileCreationFormValues>({

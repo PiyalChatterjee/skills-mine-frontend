@@ -1,5 +1,6 @@
 import { Navigate, Outlet } from 'react-router-dom'
 import { useAuth } from '@/app/auth/AuthContext'
+import { tokenStorage } from '@/app/auth/tokenStorage'
 import {
   hasBuildMyCvData,
   useBuildMyCvQuery,
@@ -18,11 +19,12 @@ const OnboardingFallback = ({ message }: { message: string }) => (
 
 export const CandidateOnboardingGuard = () => {
   const { user } = useAuth()
-  const candidateId = user?.candidateId ?? user?.userId ?? ''
+  const effectiveUser = user ?? tokenStorage.getUser()
+  const candidateId = effectiveUser?.candidateId ?? effectiveUser?.userId ?? ''
   const profileQuery = useCandidateProfileQuery(
-    user?.candidateId,
-    user?.userId,
-    Boolean(user),
+    effectiveUser?.candidateId,
+    effectiveUser?.userId,
+    Boolean(effectiveUser),
   )
   const isProfileComplete = Boolean(
     profileQuery.data &&

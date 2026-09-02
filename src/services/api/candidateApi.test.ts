@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { candidateApi } from './candidateApi'
+import { isCandidateProfileCompleteForOnboarding } from '@/modules/candidate/utils/profileCompleteness'
 
 const mockGet = vi.hoisted(() => vi.fn())
 const mockPost = vi.hoisted(() => vi.fn())
@@ -126,6 +127,44 @@ describe('candidateApi', () => {
       expect(profile.desiredJob.industry).toBe('Technology, Financial Services')
       expect(profile.desiredJob.workType).toBe('Hybrid')
       expect(profile.desiredJob.currency).toBe('ZAR')
+    })
+
+    it('maps Michael Smith profile as complete for onboarding', async () => {
+      mockGet.mockResolvedValue({
+        data: {
+          success: true,
+          data: {
+            candidateId: 'CAND100001',
+            userId: 'USR100001',
+            personalDetails: {
+              firstName: 'Michael',
+              lastName: 'Smith',
+              email: 'michael.smith@email.com',
+              mobileNumber: '+27821234567',
+              location: 'Johannesburg',
+            },
+            desiredJob: {
+              jobTitle: 'Senior Software Engineer',
+              jobType: 'Permanent',
+              workType: 'Hybrid',
+              availableFrom: '2025-02-01',
+              industries: ['Technology', 'Banking'],
+              locations: ['Johannesburg', 'Remote'],
+            },
+            education: {
+              secondaryEducation: [],
+              tertiaryEducation: [],
+            },
+            experience: [],
+            skills: [],
+            languages: [],
+          },
+        },
+      })
+
+      const profile = await candidateApi.getById('USR100001')
+
+      expect(isCandidateProfileCompleteForOnboarding(profile)).toBe(true)
     })
 
     it('defaults skills and languages to empty arrays when absent', async () => {
