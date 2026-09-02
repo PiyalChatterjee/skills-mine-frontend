@@ -5,6 +5,7 @@ import {
   toSouthAfricaApiPhoneNumber,
 } from '@/app/phoneNumber'
 import { emailSchema } from '@/app/validation.schema'
+import { splitCandidateFullName } from '@/modules/candidate/utils/candidateName'
 import type { CandidateProfile, CandidateProfileUpdatePayload } from '@/modules/candidate/types'
 
 const requiredField = (label: string) =>
@@ -86,8 +87,7 @@ export const getCandidateProfileUpdatePayload = (
   values: ProfileFormValues,
   currentProfile: CandidateProfile | null,
 ): CandidateProfileUpdatePayload => {
-  const [firstName, ...rest] = values.fullName.trim().split(' ')
-  const lastName = rest.join(' ').trim()
+  const { firstName, lastName } = splitCandidateFullName(values.fullName)
 
   return {
     personalDetails: {

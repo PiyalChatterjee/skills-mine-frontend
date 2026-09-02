@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@/app/auth/AuthContext";
+import { extractErrorMessage } from "@/app/errorUtils";
 import { formatEnumLabel } from "@/app/formatEnumLabel";
 import { useJobs } from "@/modules/public/hooks/useJobs";
 import { ROUTE_PATHS } from "@/routes/routePaths";
@@ -56,12 +57,6 @@ const formatPostedDate = (dateValue?: string) => {
     month: "long",
     year: "numeric",
   }).format(parsed);
-};
-
-const getErrorMessage = (error: unknown) => {
-  return typeof error === "object" && error !== null && "message" in error
-    ? String((error as { message?: unknown }).message ?? "Unable to submit your application.")
-    : "Unable to submit your application.";
 };
 
 export const useJobDetailsViewModel = () => {
@@ -144,7 +139,7 @@ export const useJobDetailsViewModel = () => {
       await applyToJob({ jobProfileId: effectiveJob.jobProfileId ?? effectiveJob.jobId }).unwrap();
       setHasJustApplied(true);
     } catch (error) {
-      setApplyError(getErrorMessage(error));
+      setApplyError(extractErrorMessage(error, "Unable to submit your application."));
     }
   };
 

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/app/auth/AuthContext";
+import { extractErrorMessage } from "@/app/errorUtils";
 import { useZodForm } from "@/hooks/useZodForm";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import type { AppDispatch } from "@/store";
@@ -18,14 +19,6 @@ import {
   useCandidateResourceId,
   useUserProfile,
 } from "@/modules/candidate/hooks/useCandidateQueries";
-
-const getErrorMessage = (error: unknown, fallback: string) => {
-  if (typeof error === "object" && error !== null && "message" in error) {
-    return String((error as { message?: unknown }).message ?? fallback);
-  }
-
-  return fallback;
-};
 
 export const useCandidateProfileViewModel = () => {
   const navigate = useNavigate();
@@ -153,7 +146,7 @@ export const useCandidateProfileViewModel = () => {
     isLoading,
     isMissingUser: !userId,
     isPersonalEditing,
-    loadErrorMessage: getErrorMessage(error, "Failed to load profile."),
+    loadErrorMessage: extractErrorMessage(error, "Failed to load profile."),
     profilePhotoInputRef,
   };
 };
