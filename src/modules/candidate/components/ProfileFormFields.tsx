@@ -13,6 +13,7 @@ import {
   type FieldValues,
 } from "react-hook-form";
 import { type ReactNode, useId } from "react";
+import { formatEnumLabel } from "@/app/formatEnumLabel";
 import dropdownChevronIconSrc from "@/assets/icons/dropdown-chevron.svg";
 import styles from "@/modules/candidate/pages/ProfilePage.module.css";
 
@@ -210,7 +211,10 @@ export const ProfileSelectField = <TFieldValues extends FieldValues>({
                         </span>
                       );
                     }
-                    return currentValue;
+                    return currentValue
+                      .split(", ")
+                      .map(formatEnumLabel)
+                      .join(", ");
                   },
                 },
               }}
@@ -225,7 +229,7 @@ export const ProfileSelectField = <TFieldValues extends FieldValues>({
                   {multiple ? (
                     <Checkbox checked={selectedValues.includes(option)} />
                   ) : null}
-                  {option}
+                  {formatEnumLabel(option)}
                 </MenuItem>
               ))}
             </TextField>
