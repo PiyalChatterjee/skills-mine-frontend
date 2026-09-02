@@ -84,7 +84,7 @@ describe('CandidateOnboardingGuard', () => {
       candidateId: 'persisted-candidate',
     }
     mocks.profileComplete = true
-    mocks.cvData = { personalDetails: { firstName: 'Jane' } }
+    mocks.cvData = { resumeId: 'RES100001' }
 
     renderGuard()
 
@@ -104,6 +104,10 @@ describe('CandidateOnboardingGuard', () => {
 
   it('redirects a complete profile without CV data to CV builder', () => {
     mocks.profileComplete = true
+    mocks.cvData = {
+      extractionStatus: 'NOT_STARTED',
+      personalDetails: { firstName: 'Jane' },
+    }
     renderGuard()
 
     expect(screen.getByText('CV builder')).toBeInTheDocument()
@@ -111,7 +115,7 @@ describe('CandidateOnboardingGuard', () => {
 
   it('allows the dashboard when both profile and CV data exist', () => {
     mocks.profileComplete = true
-    mocks.cvData = { personalDetails: { firstName: 'Jane' } }
+    mocks.cvData = { resumeId: 'RES100001' }
     renderGuard()
 
     expect(screen.getByText('Dashboard')).toBeInTheDocument()

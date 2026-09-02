@@ -267,7 +267,7 @@ describe('useBuildMyCvQuery', () => {
     expect(mockGetBuildMyCv).toHaveBeenCalledWith('u-1')
   })
 
-  it('sets buildMyCvExists based on careerHistory length', async () => {
+  it('does not mark profile-prefilled CV data as an existing completed CV', async () => {
     const cvData = {
       personalDetails: {},
       careerHistory: [{ company: 'Acme', jobTitle: 'Dev', startDate: '', endDate: '' }],
@@ -280,7 +280,7 @@ describe('useBuildMyCvQuery', () => {
     const store = makeTestStore()
     renderHook(() => useBuildMyCvQuery(true, 'c-1'), { wrapper: makeWrapper(store) })
     await waitFor(() => expect(store.getState().candidate.buildMyCvLoaded).toBe(true))
-    expect(store.getState().candidate.buildMyCvExists).toBe(true)
+    expect(store.getState().candidate.buildMyCvExists).toBe(false)
   })
 })
 

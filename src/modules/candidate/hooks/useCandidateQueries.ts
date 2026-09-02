@@ -91,11 +91,7 @@ const mapApiError = (error: unknown): ApiError => {
 }
 
 export const hasBuildMyCvData = (data: BuildMyCvState | undefined): boolean =>
-  Boolean(data?.resumeId) ||
-  Boolean(data?.personalDetails?.firstName) ||
-  Boolean(data?.personalDetails?.lastName) ||
-  (data?.careerHistory?.length ?? 0) > 0 ||
-  (data?.skills?.length ?? 0) > 0
+  Boolean(data?.resumeId)
 
 // Fetches UserProfile (savedJobs) and hydrates Redux candidate slice
 export const useUserProfile = (userId?: string) => {
