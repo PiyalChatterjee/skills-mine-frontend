@@ -218,20 +218,8 @@ export const mandateApi = {
 
   getRecruiterDashboard() {
     return apiClient
-      .get<DashboardSummary>(apiEndpoints.dashboard.summary)
-      .then((response): SuccessEnvelope<RecruiterDashboardData> => ({
-        success: true,
-        statusCode: 200,
-        message: "Dashboard summary retrieved.",
-        data: {
-          weeklyTodo: [],
-          pipeline: [
-            { stage: "Inbound", count: response.data.cvsDue },
-            { stage: "Interview", count: response.data.interviewsToSchedule },
-            { stage: "Offer", count: response.data.offerLettersAcceptanceDeadlines },
-          ],
-        },
-      }));
+      .get<SuccessEnvelope<RecruiterDashboardData>>(apiEndpoints.recruiter.dashboard)
+      .then((response) => response.data);
   },
 
   listRecruiterMandates(params?: {
@@ -403,7 +391,7 @@ export const mandateApi = {
           salaryMax: body.salaryMax,
         };
       })
-      .then((body) => apiClient.put<JobProfile>(
+      .then((body) => apiClient.patch<JobProfile>(
           resolveEndpoint(apiEndpoints.jobs.details, { jobProfileId: mandateId }),
           body,
         ))

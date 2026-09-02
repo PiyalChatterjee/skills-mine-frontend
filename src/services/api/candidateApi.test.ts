@@ -214,6 +214,33 @@ describe('candidateApi', () => {
       await candidateApi.getDashboard()
       expect(mockGet).toHaveBeenCalledWith('/candidates/dashboard', { params: {} })
     })
+
+    it('maps candidate-service v2 dashboard fields', async () => {
+      mockGet.mockResolvedValue({
+        data: {
+          candidate_id: 'CAND100001',
+          applications: [{
+            application_id: 'APP-1',
+            job_profile_id_ref: 'JOB-1',
+            job_title: 'Engineer',
+            current_stage_code: 'SCREENING',
+            stage_progress: [{ stage_code: 'APPLIED' }, { stage_code: 'SCREENING' }],
+          }],
+          pagination: { current_page: 1, page_size: 10, total_items: 1, total_pages: 1 },
+        },
+      })
+
+      const result = await candidateApi.getDashboard()
+
+      expect(result.id).toBe('CAND100001')
+      expect(result.candidateId).toBe('CAND100001')
+      expect(result.applications[0]).toMatchObject({
+        id: 'APP-1',
+        stage: 'SCREENING',
+        job: { id: 'JOB-1', title: 'Engineer' },
+        pipeline: ['APPLIED', 'SCREENING'],
+      })
+    })
   })
 
   describe('applyToJob', () => {
@@ -267,6 +294,27 @@ describe('candidateApi', () => {
       expect(mockGet).toHaveBeenCalledWith('/candidates/cv-build/')
       expect((result as { personalDetails: { firstName: string } }).personalDetails.firstName).toBe('Jane')
       expect((result as { lastModified?: string }).lastModified).toBe('2024-11-01T14:30:00Z')
+    })
+
+    it('maps candidate-service v2 array education', async () => {
+      mockGet.mockResolvedValue({
+        data: {
+          candidate_id: 'CAND100001',
+          personal_details: { first_name: 'Jane', last_name: 'Doe' },
+          career_history: [],
+          skills: [],
+          education: [
+            { institution_name: 'High School', level_code: 'SECONDARY' },
+            { institution_name: 'University', level_code: 'TERTIARY' },
+          ],
+          languages: [],
+        },
+      })
+
+      const result = await candidateApi.getBuildMyCv('CAND100001')
+
+      expect(result.education.secondaryEducation).toHaveLength(1)
+      expect(result.education.tertiaryEducation).toHaveLength(1)
     })
   })
 

@@ -142,11 +142,11 @@ const mapDashboardResponse = (payload: unknown): CandidateDashboardData => {
     return {
       id: application.id ?? application.application_id,
       job: application.job ?? {
-        id: application.job_id ?? application.job_profile_id ?? "",
+        id: application.job_id ?? application.job_profile_id ?? application.job_profile_id_ref ?? "",
         title: application.job_title ?? "",
         company: application.company_name ?? "",
       },
-      stage: application.stage ?? application.current_stage,
+      stage: application.stage ?? application.current_stage ?? application.current_stage_code,
       statusMessage: application.statusMessage ?? application.message ?? "",
       pipeline: Array.isArray(progress)
         ? progress.map((stage: Record<string, string> | string) =>
@@ -161,7 +161,7 @@ const mapDashboardResponse = (payload: unknown): CandidateDashboardData => {
   const statuses = applications.map((item) => String((item as Record<string, unknown>).application_status ?? ""));
 
   return {
-    id: String(data.id ?? ""),
+    id: String(data.id ?? data.candidate_id ?? ""),
     candidateId: data.candidateId as string | undefined ?? data.candidate_id as string | undefined,
     summary: {
       totalApplications: summary.totalApplications ?? normalizedApplications.length,
@@ -183,7 +183,7 @@ const mapJobRecord = (job: Record<string, any>) => ({
   jobId: job.jobId ?? job.job_profile_id ?? "",
   title: job.title ?? job.job_title ?? "",
   company: job.company ?? job.company_name ?? "",
-  location: job.location ?? "",
+  location: job.location ?? job.location_text ?? "",
   workType: formatEnumLabel(job.workType ?? job.work_type),
   employmentType: formatEnumLabel(job.employmentType ?? job.employment_type),
   salaryRange: job.salaryRange ?? `${job.salary_min ?? ""}-${job.salary_max ?? ""}`,
@@ -260,6 +260,7 @@ const mapBuildResponse = (payload: unknown): any => {
   const data = responseData(payload as Record<string, unknown>) as Record<string, any>;
   const personal = data.personalDetails ?? data.personal_details ?? {};
   const education = data.education ?? {};
+  const educationEntries = Array.isArray(education) ? education : [];
   const careerHistory = data.careerHistory ?? data.career_history ?? data.experience ?? [];
   return {
     resumeId: data.resumeId ?? data.resume_id ?? "",
@@ -288,8 +289,12 @@ const mapBuildResponse = (payload: unknown): any => {
     })),
     skills: data.skills ?? [],
     education: {
-      secondaryEducation: education.secondary ? [education.secondary] : education.secondaryEducation ?? [],
-      tertiaryEducation: education.tertiary ?? education.tertiaryEducation ?? [],
+      secondaryEducation: Array.isArray(education)
+        ? educationEntries.filter((item: Record<string, any>) => item.level_code === "SECONDARY")
+        : education.secondary ? [education.secondary] : education.secondaryEducation ?? [],
+      tertiaryEducation: Array.isArray(education)
+        ? educationEntries.filter((item: Record<string, any>) => item.level_code !== "SECONDARY")
+        : education.tertiary ?? education.tertiaryEducation ?? [],
     },
     languages: (data.languages ?? []).map((item: any) => typeof item === "string" ? { language: item, proficiency: "" } : item),
     validation: data.validation ?? [],

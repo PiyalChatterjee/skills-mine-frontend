@@ -7,10 +7,11 @@ import { recruiterCandidatesApi } from "./recruiterCandidatesApi";
 const mockGet = vi.hoisted(() => vi.fn());
 const mockPost = vi.hoisted(() => vi.fn());
 const mockPut = vi.hoisted(() => vi.fn());
+const mockPatch = vi.hoisted(() => vi.fn());
 const mockDelete = vi.hoisted(() => vi.fn());
 
 vi.mock("@/services/api/axios", () => ({
-  apiClient: { get: mockGet, post: mockPost, put: mockPut, delete: mockDelete },
+  apiClient: { get: mockGet, post: mockPost, put: mockPut, patch: mockPatch, delete: mockDelete },
 }));
 
 const summary = {
@@ -62,19 +63,23 @@ describe("Mandate Service v2 frontend adapters", () => {
     });
   });
 
-  it("maps dashboard summary values into existing recruiter pipeline cards", async () => {
+  it("maps recruiter dashboard data into existing recruiter pipeline cards", async () => {
     mockGet.mockResolvedValue({
-      data: { cvsDue: 4, interviewsToSchedule: 3, offerLettersAcceptanceDeadlines: 2 },
+      data: {
+        success: true,
+        statusCode: 200,
+        message: "Recruiter dashboard retrieved.",
+        data: {
+          weeklyTodo: [],
+          pipeline: [{ stage: "Inbound", count: 4 }],
+        },
+      },
     });
 
     const result = await mandateApi.getRecruiterDashboard();
 
-    expect(mockGet).toHaveBeenCalledWith("/dashboard/summary");
-    expect(result.data.pipeline).toEqual([
-      { stage: "Inbound", count: 4 },
-      { stage: "Interview", count: 3 },
-      { stage: "Offer", count: 2 },
-    ]);
+    expect(mockGet).toHaveBeenCalledWith("/recruiter/dashboard");
+    expect(result.data.pipeline).toEqual([{ stage: "Inbound", count: 4 }]);
   });
 
   it("maps v2 job summaries into recruiter job posts", async () => {
