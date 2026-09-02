@@ -217,7 +217,7 @@ describe('useSkillsSearch', () => {
       expect(store.getState().candidate.availableSkills.length).toBeGreaterThan(0),
     )
     expect(store.getState().candidate.availableSkills[0].skillId).toBe('s1')
-    expect(store.getState().candidate.selectedSkillIds).toContain('s2')
+    expect(store.getState().candidate.availableSkills[1].selected).toBe(true)
   })
 
   it('skips when enabled=false', () => {

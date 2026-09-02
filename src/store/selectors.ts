@@ -9,9 +9,6 @@ export const selectUserId = (state: RootState): string | null =>
 
 export const selectAuthUser = (state: RootState) => state.auth.currentUser;
 
-export const selectSelectedJobId = (state: RootState) =>
-  state.candidate.selectedJobId;
-
 // ── User Profile & Saved Jobs ──────────────────────────────────────────────
 
 export const selectSavedJobs = (state: RootState) => state.candidate.savedJobs;
@@ -34,8 +31,10 @@ export const selectIsJobSaved = (jobId: string) =>
 export const selectAvailableSkills = (state: RootState) =>
   state.candidate.availableSkills;
 
-export const selectSelectedSkillIds = (state: RootState) =>
-  state.candidate.selectedSkillIds;
+export const selectSelectedSkillIds = createSelector(
+  selectAvailableSkills,
+  (skills) => skills.filter((skill) => skill.selected).map((skill) => skill.skillId),
+);
 
 export const selectSelectedSkills = createSelector(
   selectAvailableSkills,

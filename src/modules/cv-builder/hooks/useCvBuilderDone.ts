@@ -12,13 +12,11 @@ import { ROUTE_PATHS } from "@/routes/routePaths";
 import type { AppDispatch } from "@/store";
 import { pushNotification } from "@/store/slices/notificationSlice";
 import {
-  setBuildMyCvExists,
-  setBuildMyCvLastModified,
+  setBuildMyCvMetadata,
 } from "@/store/slices/candidateSlice";
 import type { SaveBuildMyCvRequest } from "@/types";
 import type { Role } from "@/types/auth";
 import type { CvBuilderFormValues } from "../types/cvBuilderSchema";
-import { generateCvPdfBlobFromText } from "../utils/downloadCvPdf";
 import {
   saveGuestApplicationCv,
   type GuestApplicationDraft,
@@ -268,6 +266,9 @@ export const useCvBuilderDone = ({
     let fileName: string;
 
     try {
+      const { generateCvPdfBlobFromText } = await import(
+        "../utils/downloadCvPdf"
+      );
       pdfBlob = generateCvPdfBlobFromText(JSON.stringify(payload, null, 2));
       fileName = buildResumeFileName(
         payload.personalDetails?.firstName ?? "",
@@ -307,11 +308,11 @@ export const useCvBuilderDone = ({
         ? await triggerUpdate({ candidateId, payload }).unwrap()
         : await triggerCreate({ candidateId, payload }).unwrap();
 
-      dispatch(setBuildMyCvExists(true));
       dispatch(
-        setBuildMyCvLastModified(
-          result.lastModified ?? new Date().toISOString(),
-        ),
+        setBuildMyCvMetadata({
+          exists: true,
+          lastModified: result.lastModified ?? new Date().toISOString(),
+        }),
       );
 
       dispatch(

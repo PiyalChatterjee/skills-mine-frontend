@@ -85,11 +85,6 @@ type JobProfile = JobProfileSummary & {
   versionNo: number;
 };
 type JobProfilePage = { data: JobProfileSummary[]; total: number; page: number; size: number };
-type DashboardSummary = {
-  cvsDue: number;
-  interviewsToSchedule: number;
-  offerLettersAcceptanceDeadlines: number;
-};
 type CompanyPage = { data: CompanyItem[]; total: number; page: number; size: number };
 
 const splitBulletLines = (value: string) => value

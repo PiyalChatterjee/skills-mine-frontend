@@ -1,13 +1,11 @@
 import { useMemo } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { useInfiniteScrollTrigger } from "@/hooks/useInfiniteScrollTrigger";
 import { useSearchQueryState } from "@/hooks/useSearchQueryState";
 import { useJobsSearch } from "@/modules/public/hooks/useJobsSearch";
 import { ROUTE_PATHS } from "@/routes/routePaths";
-import type { AppDispatch } from "@/store";
 import { selectRecommendedJobIds } from "@/store/selectors";
-import { setSelectedJobId } from "@/store/slices/candidateSlice";
 import type { Job, RecommendedJob } from "@/types";
 import { getApplicationStatusLabel } from "../utils/applicationStatus";
 import { useAppliedJobIds } from "./useAppliedJobIds";
@@ -81,7 +79,6 @@ const toContractJob = (job: JobsFeedCandidateJob): JobsFeedJob => ({
 
 export const useJobsFeedViewModel = (mode: JobsFeedMode) => {
   const navigate = useNavigate();
-  const dispatch = useDispatch<AppDispatch>();
   const { savedJobIds, isJobSaved, isJobSaving, toggleJobSaved } = useOptimisticSaveJob();
   const { applicationStages } = useAppliedJobIds();
   const isSavedOnlyMode = mode === "saved";
@@ -216,7 +213,6 @@ export const useJobsFeedViewModel = (mode: JobsFeedMode) => {
   };
 
   const handleViewJob = (job: JobsFeedJob) => {
-    dispatch(setSelectedJobId(job.jobId));
     navigate(ROUTE_PATHS.jobDetails.replace(":jobId", job.jobId), {
       state: { job, from: modeConfig.route },
     });

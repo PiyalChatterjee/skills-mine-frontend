@@ -15,7 +15,7 @@ import {
   useUpdateBuildMyCvMutation,
   useUpdateCandidateProfileMutation as useUpdateCandidateProfileRtkMutation,
 } from '@/store/api/apiSlice'
-import { setSavedJobs, setRecommendedJobs, setAvailableSkills, setBuildMyCv, setBuildMyCvExists, setBuildMyCvLastModified } from '@/store/slices/candidateSlice'
+import { setSavedJobs, setRecommendedJobs, setAvailableSkills, setBuildMyCv, setBuildMyCvMetadata } from '@/store/slices/candidateSlice'
 import type { CandidateProfileUpdatePayload } from '@/modules/candidate/types'
 import type { ApiError, BuildMyCvData, BuildMyCvState, SaveBuildMyCvRequest, UpdateBuildMyCvRequest } from '@/types'
 import type { AppDispatch } from '@/store'
@@ -42,7 +42,7 @@ export const useCandidateProfileQuery = (
   const fallbackId = useCandidateResourceId()
   const resolvedId = candidateId || fallbackId || userId
 
-  return useGetCandidateProfileQuery({ candidateId: resolvedId, userId }, {
+  return useGetCandidateProfileQuery({ candidateId: resolvedId ?? '', userId }, {
     skip: !enabled || !resolvedId,
   })
 }
@@ -163,8 +163,10 @@ export const useBuildMyCvQuery = (enabled = true, candidateId?: string) => {
     if (result.data) {
       dispatch(setBuildMyCv(result.data as BuildMyCvState))
       const data = result.data as BuildMyCvState
-      dispatch(setBuildMyCvExists(hasBuildMyCvData(data)))
-      dispatch(setBuildMyCvLastModified(data.lastModified ?? null))
+      dispatch(setBuildMyCvMetadata({
+        exists: hasBuildMyCvData(data),
+        lastModified: data.lastModified ?? null,
+      }))
     }
   }, [dispatch, result.data])
 

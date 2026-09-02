@@ -10,7 +10,6 @@ const mocks = vi.hoisted(() => ({
   isJobSaved: vi.fn(),
   isJobSaving: vi.fn(),
   navigate: vi.fn(),
-  setSelectedJobId: vi.fn(),
   toggleJobSaved: vi.fn(),
   useAppliedJobIds: vi.fn(),
   useInfiniteScrollTrigger: vi.fn(),
@@ -41,10 +40,6 @@ vi.mock("@/hooks/useSearchQueryState", () => ({
 
 vi.mock("@/modules/public/hooks/useJobsSearch", () => ({
   useJobsSearch: mocks.useJobsSearch,
-}));
-
-vi.mock("@/store/slices/candidateSlice", () => ({
-  setSelectedJobId: mocks.setSelectedJobId,
 }));
 
 vi.mock("./useAppliedJobIds", () => ({
@@ -89,11 +84,6 @@ const recommendedJob = {
 describe("useJobsFeedViewModel", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.dispatch.mockReturnValue({ type: "candidate/setSelectedJobId" });
-    mocks.setSelectedJobId.mockImplementation((jobId: string) => ({
-      type: "candidate/setSelectedJobId",
-      payload: jobId,
-    }));
     mocks.useSelector.mockReturnValue(new Set(["job-2"]));
     mocks.isJobSaved.mockImplementation((jobId: string) => jobId === "job-1");
     mocks.isJobSaving.mockImplementation((jobId: string) => jobId === "job-2");
@@ -210,11 +200,6 @@ describe("useJobsFeedViewModel", () => {
 
     result.current.handleViewJob(result.current.jobCards[0].job);
 
-    expect(mocks.setSelectedJobId).toHaveBeenCalledWith("job-1");
-    expect(mocks.dispatch).toHaveBeenCalledWith({
-      type: "candidate/setSelectedJobId",
-      payload: "job-1",
-    });
     expect(mocks.navigate).toHaveBeenCalledWith("/jobs/job-1", {
       state: { job: result.current.jobCards[0].job, from: "/jobs/latest" },
     });
