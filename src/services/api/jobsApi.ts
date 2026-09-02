@@ -28,6 +28,21 @@ type JobProfilePage = {
   size: number;
 };
 
+type JobProfileSkill = {
+  originalText: string | null;
+};
+
+type JobProfileDetail = JobProfileSummary & {
+  workType: string | null;
+  salaryMin: number | null;
+  salaryMax: number | null;
+  jobDescription: string | null;
+  requirements: string[];
+  responsibilities: string[];
+  skills: JobProfileSkill[];
+  applicantCount: number | null;
+};
+
 const toJob = (job: JobProfileSummary): Job => ({
   jobId: job.jobProfileId,
   jobProfileId: job.jobProfileId,
@@ -85,10 +100,10 @@ export const jobsApi = {
   // Full job profile detail (Mandate_Service_v2 job-service) — called when a
   // candidate opens a job to view, instead of relying on the list-cached data.
   async getJobProfile(jobProfileId: string): Promise<Job> {
-    const response = await apiClient.get(
+    const response = await apiClient.get<JobProfileDetail>(
       resolveEndpoint(apiEndpoints.jobs.profileDetails, { jobProfileId }),
     );
-    const data = response.data as Record<string, any>;
+    const data = response.data;
     return {
       jobId: data.jobReferenceNumber ?? jobProfileId,
       jobProfileId: data.jobProfileId ?? jobProfileId,
@@ -107,7 +122,9 @@ export const jobsApi = {
       description: data.jobDescription ?? "",
       requirements: data.requirements ?? [],
       responsibilities: data.responsibilities ?? [],
-      skills: (data.skills ?? []).map((s: Record<string, any>) => s.originalText).filter(Boolean),
+      skills: (data.skills ?? [])
+        .map((skill) => skill.originalText)
+        .filter((skill): skill is string => Boolean(skill)),
       status: data.status ?? "",
       applicationCount: data.applicantCount ?? 0,
       postedDate: data.publishedAt ?? "",

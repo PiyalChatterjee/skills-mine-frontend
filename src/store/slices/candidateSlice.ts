@@ -77,6 +77,8 @@ const candidateSlice = createSlice({
     setBuildMyCv: (state, action: PayloadAction<BuildMyCvState>) => {
       state.buildMyCv = action.payload;
       state.buildMyCvLoaded = true;
+      state.buildMyCvExists = Boolean(action.payload.resumeId);
+      state.buildMyCvLastModified = action.payload.lastModified ?? null;
     },
 
     setBuildMyCvMetadata: (

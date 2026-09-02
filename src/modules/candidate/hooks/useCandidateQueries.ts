@@ -15,7 +15,7 @@ import {
   useUpdateBuildMyCvMutation,
   useUpdateCandidateProfileMutation as useUpdateCandidateProfileRtkMutation,
 } from '@/store/api/apiSlice'
-import { setSavedJobs, setRecommendedJobs, setAvailableSkills, setBuildMyCv, setBuildMyCvMetadata } from '@/store/slices/candidateSlice'
+import { setSavedJobs, setRecommendedJobs, setAvailableSkills, setBuildMyCv } from '@/store/slices/candidateSlice'
 import type { CandidateProfileUpdatePayload } from '@/modules/candidate/types'
 import type { ApiError, BuildMyCvData, BuildMyCvState, SaveBuildMyCvRequest, UpdateBuildMyCvRequest } from '@/types'
 import type { AppDispatch } from '@/store'
@@ -162,11 +162,6 @@ export const useBuildMyCvQuery = (enabled = true, candidateId?: string) => {
   useEffect(() => {
     if (result.data) {
       dispatch(setBuildMyCv(result.data as BuildMyCvState))
-      const data = result.data as BuildMyCvState
-      dispatch(setBuildMyCvMetadata({
-        exists: hasBuildMyCvData(data),
-        lastModified: data.lastModified ?? null,
-      }))
     }
   }, [dispatch, result.data])
 

@@ -63,6 +63,40 @@ describe("Mandate Service v2 frontend adapters", () => {
     });
   });
 
+  it("maps a typed v2 job profile detail into the candidate job contract", async () => {
+    mockGet.mockResolvedValue({
+      data: {
+        ...summary,
+        workType: "REMOTE",
+        salaryMin: 28000,
+        salaryMax: 46000,
+        jobDescription: "Build reliable services.",
+        requirements: ["Relevant tertiary qualification"],
+        responsibilities: ["Own delivery outcomes"],
+        skills: [
+          { originalText: "TypeScript" },
+          { originalText: null },
+        ],
+        applicantCount: 4,
+      },
+    });
+
+    const result = await jobsApi.getJobProfile(summary.jobProfileId);
+
+    expect(mockGet).toHaveBeenCalledWith(
+      `/jobs/${summary.jobProfileId}`,
+    );
+    expect(result).toMatchObject({
+      jobId: summary.jobReferenceNumber,
+      jobProfileId: summary.jobProfileId,
+      title: summary.positionTitle,
+      workType: "Remote",
+      salaryRange: "R28,000 – R46,000",
+      skills: ["TypeScript"],
+      applicationCount: 4,
+    });
+  });
+
   it("maps recruiter dashboard data into existing recruiter pipeline cards", async () => {
     mockGet.mockResolvedValue({
       data: {

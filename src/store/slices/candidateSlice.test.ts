@@ -122,11 +122,18 @@ describe('candidateSlice', () => {
   })
 
   describe('setBuildMyCv', () => {
-    it('stores buildMyCv data and sets buildMyCvLoaded to true', () => {
-      const cv = { ...emptyBuildMyCv, skills: ['React'] }
+    it('hydrates CV data and derived metadata in one state update', () => {
+      const cv = {
+        ...emptyBuildMyCv,
+        resumeId: 'resume-1',
+        lastModified: '2026-09-02T10:00:00.000Z',
+        skills: ['React'],
+      }
       const state = candidateReducer(buildInitialState(), setBuildMyCv(cv))
       expect(state.buildMyCv.skills).toEqual(['React'])
       expect(state.buildMyCvLoaded).toBe(true)
+      expect(state.buildMyCvExists).toBe(true)
+      expect(state.buildMyCvLastModified).toBe('2026-09-02T10:00:00.000Z')
     })
   })
 
