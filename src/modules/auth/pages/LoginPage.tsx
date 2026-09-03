@@ -6,7 +6,6 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { GoogleLogin, type CredentialResponse } from "@react-oauth/google";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/app/auth/AuthContext";
 import { useZodForm } from "@/hooks/useZodForm";
@@ -18,6 +17,7 @@ import { loginSchema, type LoginFormValues } from "@/modules/auth/types";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import { authApi, mapLoginResponseToSession } from "@/services/api/authApi";
 import styles from "./LoginPage.module.css";
+import { redirectToGoogleLogin } from "@/app/auth/cognitoHostedUi";
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -25,8 +25,9 @@ const LoginPage = () => {
   const { login, isAuthenticated, user } = useAuth();
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [googleAuthError, setGoogleAuthError] = useState<string | null>(null);
-  const [pendingGoogleAuth, setPendingGoogleAuth] = useState(false);
-  const hasGoogleClientId = Boolean(import.meta.env.VITE_GOOGLE_CLIENT_ID?.trim());
+  const [isGoogleRedirecting, setIsGoogleRedirecting] = useState(false);
+  // Check for error redirected back from AuthCallbackPage (?error=google_callback)
+  const isGoogleCallbackError = searchParams.get('error') === 'google_callback';
   const {
     register,
     handleSubmit,
@@ -82,26 +83,15 @@ const LoginPage = () => {
     };
   }, [isAuthenticated, isPostSignupCandidate, navigate, user]);
 
-  const handleGoogleAuthSuccess = async (credentialResponse: CredentialResponse) => {
+  const handleGoogleSignIn = async () => {
     try {
       setGoogleAuthError(null);
-      if (!credentialResponse.credential) {
-        throw new Error("Google did not provide an ID token.");
-      }
-      await authApi.exchangeGoogleToken({
-        idToken: credentialResponse.credential,
-      });
-      setGoogleAuthError("Google account registered. Please sign in with your email and password.");
+      setIsGoogleRedirecting(true);
+      await redirectToGoogleLogin();
     } catch {
+      setIsGoogleRedirecting(false);
       setGoogleAuthError("Google sign-in failed. Please try again.");
-    } finally {
-      setPendingGoogleAuth(false);
     }
-  };
-
-  const handleGoogleAuthError = () => {
-    setPendingGoogleAuth(false);
-    setGoogleAuthError("Google sign-in failed. Please try again.");
   };
 
   const onSubmit = async (values: LoginFormValues) => {
@@ -137,6 +127,9 @@ const LoginPage = () => {
         <Box component="form" className={styles.formFields} onSubmit={handleSubmit(onSubmit)}>
           {submitError ? <Alert severity="error">{submitError}</Alert> : null}
           {googleAuthError ? <Alert severity="error">{googleAuthError}</Alert> : null}
+          {isGoogleCallbackError ? (
+            <Alert severity="error">Google sign-in failed. Please try again.</Alert>
+          ) : null}
 
           <Box className={styles.fieldGroup}>
             <Typography className={styles.fieldLabel}>Email</Typography>
@@ -169,7 +162,7 @@ const LoginPage = () => {
             type="submit"
             variant="contained"
             size="large"
-            disabled={isSubmitting || pendingGoogleAuth}
+            disabled={isSubmitting}
             className={styles.submitButton}
           >
             {isSubmitting ? "Signing in..." : "Log In"}
@@ -186,24 +179,15 @@ const LoginPage = () => {
             </Typography>
           </Box>
 
-          {hasGoogleClientId ? (
-            <Box className={styles.googleButton}>
-              <GoogleLogin
-                onSuccess={handleGoogleAuthSuccess}
-                onError={handleGoogleAuthError}
-                useOneTap={false}
-              />
-            </Box>
-          ) : (
-            <Button
-              type="button"
-              variant="outlined"
-              className={styles.googleButton}
-              onClick={() => setGoogleAuthError("Google Client ID is missing. Please set VITE_GOOGLE_CLIENT_ID.")}
-            >
-              Sign in with Google
-            </Button>
-          )}
+          <Button
+            type="button"
+            variant="outlined"
+            disabled={isGoogleRedirecting}
+            className={styles.googleButton}
+            onClick={() => void handleGoogleSignIn()}
+          >
+            {isGoogleRedirecting ? "Redirecting..." : "Sign in with Google"}
+          </Button>
         </Box>
       </Box>
     </Box>

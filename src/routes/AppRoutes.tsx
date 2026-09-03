@@ -7,6 +7,7 @@ import { MancoLayout } from "@/layouts/MancoLayout";
 import { PublicLayout } from "@/layouts/PublicLayout";
 import { OptionalCandidateLayout } from "@/layouts/OptionalCandidateLayout";
 import { RecruiterLayout } from "@/layouts/RecruiterLayout";
+import AuthCallbackPage from "@/modules/auth/pages/AuthCallbackPage";
 import LoginPage from "@/modules/auth/pages/LoginPage";
 import RecruiterSignupPage from "@/modules/auth/pages/RecruiterSignupPage";
 import SignupPage from "@/modules/auth/pages/SignupPage";
@@ -95,6 +96,7 @@ export const AppRoutes = () => {
         <Route element={<PublicLayout />}>
           <Route path={ROUTE_PATHS.landing} element={<LandingPage />} />
           <Route path={ROUTE_PATHS.login} element={<LoginPage />} />
+          <Route path={ROUTE_PATHS.authCallback} element={<AuthCallbackPage />} />
           <Route path={ROUTE_PATHS.signup} element={<SignupPage />} />
           <Route path={ROUTE_PATHS.recruiterSignup} element={<RecruiterSignupPage />} />
           <Route
