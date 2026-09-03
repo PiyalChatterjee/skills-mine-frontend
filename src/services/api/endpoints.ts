@@ -5,59 +5,47 @@ const withDefault = (value: string | undefined, fallback: string): string =>
 
 export const apiEndpoints = {
   auth: {
-    register: withDefault(
-      import.meta.env.VITE_AUTH_REGISTER_ENDPOINT,
-      "/auth/register",
-    ),
     candidateRegister: withDefault(
       import.meta.env.VITE_AUTH_CANDIDATE_REGISTER_ENDPOINT,
-      "/api/v1/auth/candidates/register",
-    ),
-    recruiterRegister: withDefault(
-      import.meta.env.VITE_AUTH_RECRUITER_REGISTER_ENDPOINT,
-      "/api/v1/auth/recruiters/register",
+      "/api/auth-service/v1/auth/candidates/register",
     ),
     staffRegister: withDefault(
       import.meta.env.VITE_AUTH_STAFF_REGISTER_ENDPOINT,
-      "/api/v1/auth/staff/register",
+      "/api/auth-service/v1/auth/staff/register",
     ),
-    staffInvitationValidate: withDefault(
-      import.meta.env.VITE_AUTH_STAFF_INVITATION_VALIDATE_ENDPOINT,
-      "/api/v1/auth/staff-invitations/validate",
+    candidateVisitorConversion: withDefault(
+      import.meta.env.VITE_AUTH_CANDIDATE_VISITOR_CONVERSION_ENDPOINT,
+      "/api/auth-service/v1/auth/candidates/register/visitor/conversion",
     ),
-    login: withDefault(import.meta.env.VITE_AUTH_LOGIN_ENDPOINT, "/auth/login"),
+    googleRegister: withDefault(
+      import.meta.env.VITE_AUTH_GOOGLE_REGISTER_ENDPOINT,
+      "/api/auth-service/v1/auth/candidates/register-google",
+    ),
+    login: withDefault(import.meta.env.VITE_AUTH_LOGIN_ENDPOINT, "/api/auth-service/v1/auth/login"),
     forgotPassword: withDefault(
       import.meta.env.VITE_AUTH_FORGOT_PASSWORD_ENDPOINT,
-      "/auth/forgot-password",
+      "/api/auth-service/v1/auth/forgot-password",
     ),
     resetPassword: withDefault(
       import.meta.env.VITE_AUTH_RESET_PASSWORD_ENDPOINT,
-      "/api/v1/auth/reset-password",
-    ),
-    changePassword: withDefault(
-      import.meta.env.VITE_AUTH_CHANGE_PASSWORD_ENDPOINT,
-      "/auth/change-password",
+      "/api/auth-service/v1/auth/reset-password",
     ),
     logout: withDefault(
       import.meta.env.VITE_AUTH_LOGOUT_ENDPOINT,
-      "/auth/logout",
-    ),
-    googleExchange: withDefault(
-      import.meta.env.VITE_AUTH_GOOGLE_EXCHANGE_ENDPOINT,
-      "/auth/google/exchange",
+      "/api/auth-service/v1/auth/logout",
     ),
     me: withDefault(
       import.meta.env.VITE_AUTH_ME_ENDPOINT,
-      "/api/v1/users/me",
+      "/api/auth-service/v1/users/me",
     ),
+    validate: withDefault(import.meta.env.VITE_AUTH_VALIDATE_ENDPOINT, "/api/auth-service/v1/users/validate"),
   },
-  // admin.staffInvitations is not yet called anywhere in the app.
-  // admin: {
-  //   staffInvitations: withDefault(
-  //     import.meta.env.VITE_ADMIN_STAFF_INVITATIONS_ENDPOINT,
-  //     "/api/v1/admin/staff-invitations",
-  //   ),
-  // },
+  staff: {
+    profiles: withDefault(import.meta.env.VITE_STAFF_PROFILES_ENDPOINT, "/api/auth-service/v1/staff/profiles"),
+  },
+  admin: {
+    staffInvitationsSend: withDefault(import.meta.env.VITE_ADMIN_STAFF_INVITATIONS_SEND_ENDPOINT, "/api/auth-service/v1/admin/staff-invitations/send"),
+  },
   documents: {
     upload: withDefault(
       import.meta.env.VITE_DOCUMENTS_UPLOAD_ENDPOINT,

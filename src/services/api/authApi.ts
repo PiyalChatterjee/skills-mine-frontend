@@ -7,7 +7,8 @@ import {
   type AuthUser,
   type CandidateRegistrationRequest,
   type CandidateRegistrationResponse,
-  type ChangePasswordRequest,
+  type CreateStaffProfileRequest,
+  type CreateStaffProfileResponse,
   type CurrentUserResponse,
   type ForgotPasswordRequest,
   type GoogleTokenExchangeRequest,
@@ -16,15 +17,16 @@ import {
   type LoginRequest,
   type LoginResponse,
   type Permission,
-  type RecruiterRegistrationRequest,
-  type RecruiterRegistrationResponse,
-  type RegisterRequest,
   type ResetPasswordRequest,
   type ResetPasswordResponse,
   type Role,
-  type SignUpResponse,
+  type SendStaffInvitationRequest,
+  type SendStaffInvitationResponse,
+  type StaffProfile,
   type StaffRegistrationRequest,
   type StaffRegistrationResponse,
+  type TokenValidationResponse,
+  type VisitorConversionRequest,
 } from "@/types/auth";
 import type { SuccessEnvelope } from "@/types/api";
 import { toSouthAfricaApiPhoneNumber } from "@/app/phoneNumber";
@@ -162,7 +164,7 @@ const buildAuthUserFromJwt = (accessToken: string): AuthUser => {
 export const mapLoginResponseToSession = async (
   response: LoginResponse,
 ): Promise<{ user: AuthUser; tokens: JwtTokens }> => {
-  const { accessToken, idToken, refreshToken } = response.data;
+  const { accessToken, idToken, refreshToken } = response;
   const tokens: JwtTokens = { accessToken, idToken, refreshToken };
   const jwtUser = buildAuthUserFromJwt(accessToken);
 
@@ -201,18 +203,8 @@ export const authApi = {
   ): Promise<GoogleTokenExchangeResponse> {
     return unwrapResponseData(
       apiClient.post<GoogleTokenExchangeResponse>(
-        apiEndpoints.auth.googleExchange,
+        apiEndpoints.auth.googleRegister,
         payload,
-      ),
-    );
-  },
-
-  /** @deprecated Use candidateRegister or staffRegister */
-  async register(payload: RegisterRequest): Promise<SignUpResponse> {
-    return unwrapResponseData(
-      apiClient.post<SignUpResponse>(
-        apiEndpoints.auth.register,
-        withNormalizedMobileNumber(payload),
       ),
     );
   },
@@ -228,13 +220,13 @@ export const authApi = {
     );
   },
 
-  async recruiterRegister(
-    payload: RecruiterRegistrationRequest,
-  ): Promise<RecruiterRegistrationResponse> {
+  async candidateRegisterFromVisitor(
+    payload: VisitorConversionRequest,
+  ): Promise<CandidateRegistrationResponse> {
     return unwrapResponseData(
-      apiClient.post<RecruiterRegistrationResponse>(
-        apiEndpoints.auth.recruiterRegister,
-        payload,
+      apiClient.post<CandidateRegistrationResponse>(
+        apiEndpoints.auth.candidateVisitorConversion,
+        withNormalizedMobileNumber(payload),
       ),
     );
   },
@@ -245,14 +237,14 @@ export const authApi = {
     return unwrapResponseData(
       apiClient.post<StaffRegistrationResponse>(
         apiEndpoints.auth.staffRegister,
-        withNormalizedMobileNumber(payload),
+        payload,
       ),
     );
   },
 
-  async validateStaffInvitation(token: string): Promise<unknown> {
+  async validateToken(): Promise<TokenValidationResponse> {
     return unwrapResponseData(
-      apiClient.post(apiEndpoints.auth.staffInvitationValidate, { token }),
+      apiClient.post<TokenValidationResponse>(apiEndpoints.auth.validate),
     );
   },
 
@@ -268,10 +260,22 @@ export const authApi = {
     );
   },
 
-  async changePassword(payload: ChangePasswordRequest): Promise<unknown> {
+  async changePassword(payload: ResetPasswordRequest): Promise<ResetPasswordResponse> {
     return unwrapResponseData(
-      apiClient.post(apiEndpoints.auth.changePassword, payload),
+      apiClient.post<ResetPasswordResponse>(apiEndpoints.auth.resetPassword, payload),
     );
+  },
+
+  async getStaffProfiles(): Promise<StaffProfile[]> {
+    return unwrapResponseData(apiClient.get<StaffProfile[]>(apiEndpoints.staff.profiles));
+  },
+
+  async createStaffProfile(payload: CreateStaffProfileRequest): Promise<CreateStaffProfileResponse> {
+    return unwrapResponseData(apiClient.post<CreateStaffProfileResponse>(apiEndpoints.staff.profiles, payload));
+  },
+
+  async sendStaffInvitation(payload: SendStaffInvitationRequest): Promise<SendStaffInvitationResponse> {
+    return unwrapResponseData(apiClient.post<SendStaffInvitationResponse>(apiEndpoints.admin.staffInvitationsSend, payload));
   },
 
   async logout(): Promise<void> {

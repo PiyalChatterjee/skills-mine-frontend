@@ -1,5 +1,5 @@
 import { Box, Button } from "@mui/material";
-import { useGoogleLogin, type TokenResponse } from "@react-oauth/google";
+import { GoogleLogin, type CredentialResponse } from "@react-oauth/google";
 import googleLogoUrl from "@/assets/public-layout/google-logo.png";
 import styles from "./CandidateSignUpDrawer.module.css";
 
@@ -7,7 +7,7 @@ type SignUpGoogleButtonProps = {
   hasGoogleClientId: boolean;
   disabled: boolean;
   onAuthStart: () => void;
-  onAuthSuccess: (tokenResponse: TokenResponse) => void;
+  onAuthSuccess: (credentialResponse: CredentialResponse) => void;
   onAuthError: () => void;
   onUnavailable: () => void;
 };
@@ -15,7 +15,7 @@ type SignUpGoogleButtonProps = {
 type SignUpGoogleOAuthButtonProps = {
   disabled: boolean;
   onAuthStart: () => void;
-  onAuthSuccess: (tokenResponse: TokenResponse) => void;
+  onAuthSuccess: (credentialResponse: CredentialResponse) => void;
   onAuthError: () => void;
 };
 
@@ -25,35 +25,20 @@ const SignUpGoogleOAuthButton = ({
   onAuthSuccess,
   onAuthError,
 }: SignUpGoogleOAuthButtonProps) => {
-  const startGoogleLogin = useGoogleLogin({
-    flow: "implicit",
-    onSuccess: onAuthSuccess,
-    onError: onAuthError,
-  });
-
-  const handleClick = () => {
-    onAuthStart();
-    startGoogleLogin();
-  };
-
   return (
-    <Button
-      variant="outlined"
+    <Box
       className={styles.googleButton}
-      startIcon={
-        <Box
-          component="img"
-          src={googleLogoUrl}
-          alt=""
-          aria-hidden="true"
-          className={styles.googleIcon}
-        />
-      }
-      onClick={handleClick}
-      disabled={disabled}
+      sx={{ opacity: disabled ? 0.5 : 1, pointerEvents: disabled ? "none" : "auto" }}
     >
-      Sign Up with Google
-    </Button>
+      <GoogleLogin
+        onSuccess={(credentialResponse) => {
+          onAuthStart();
+          onAuthSuccess(credentialResponse);
+        }}
+        onError={onAuthError}
+        useOneTap={false}
+      />
+    </Box>
   );
 };
 

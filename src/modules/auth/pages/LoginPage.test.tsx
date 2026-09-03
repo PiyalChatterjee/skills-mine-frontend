@@ -7,12 +7,10 @@ import LoginPage from './LoginPage'
 // Asset mocks
 vi.mock('@/assets/login-face-img.jpg', () => ({ default: 'face.jpg' }))
 vi.mock('@/assets/login-vector.svg', () => ({ default: 'vector.svg' }))
-vi.mock('@/assets/public-layout/google-logo.png', () => ({ default: 'google-logo.png' }))
 vi.mock('@/assets/icons/password-eye-figma.svg', () => ({ default: 'eye.svg' }))
 
 const mockNavigate = vi.hoisted(() => vi.fn())
 const mockLogin = vi.hoisted(() => vi.fn())
-const mockStartGoogleLogin = vi.hoisted(() => vi.fn())
 const mockApiLogin = vi.hoisted(() => vi.fn())
 const mockExchangeGoogleToken = vi.hoisted(() => vi.fn())
 const mockIsProfileComplete = vi.hoisted(() => vi.fn())
@@ -42,16 +40,17 @@ const mockGoogleLoginBehavior = vi.hoisted(() => ({
 }))
 
 vi.mock('@react-oauth/google', () => ({
-  useGoogleLogin: (opts: { onSuccess?: (r: unknown) => void; onError?: () => void }) => {
-    mockStartGoogleLogin.mockImplementation(() => {
-      if (mockGoogleLoginBehavior.shouldCallError) {
-        opts.onError?.()
-      } else {
-        opts.onSuccess?.({ access_token: 'tok' })
-      }
-    })
-    return mockStartGoogleLogin
-  },
+  GoogleLogin: (opts: { onSuccess?: (r: unknown) => void; onError?: () => void }) => (
+    <button
+      type="button"
+      onClick={() => {
+        if (mockGoogleLoginBehavior.shouldCallError) opts.onError?.()
+        else opts.onSuccess?.({ credential: 'tok' })
+      }}
+    >
+      Sign in with Google
+    </button>
+  ),
 }))
 
 vi.mock('@/services/api/authApi', () => ({
@@ -137,7 +136,7 @@ describe('LoginPage', () => {
     fireEvent.submit(screen.getByRole('button', { name: /sign in/i }).closest('form')!)
     await waitFor(() => {
       expect(mockAuthApi.login).toHaveBeenCalledWith(
-        expect.objectContaining({ username: 'user@test.com', password: 'mypassword' }),
+        expect.objectContaining({ email: 'user@test.com', password: 'mypassword' }),
       )
       expect(mockLogin).toHaveBeenCalled()
     })
@@ -170,14 +169,14 @@ describe('LoginPage', () => {
     expect(screen.getByText(/where talent meets opportunity/i)).toBeInTheDocument()
   })
 
-  it('completes google sign-in when VITE_GOOGLE_CLIENT_ID is set', async () => {
+  it('registers with the Google OpenID Connect credential when VITE_GOOGLE_CLIENT_ID is set', async () => {
     vi.stubEnv('VITE_GOOGLE_CLIENT_ID', 'test-client-id')
-    mockExchangeGoogleToken.mockResolvedValue({ accessToken: 'g-token', refreshToken: 'g-refresh' })
+    mockExchangeGoogleToken.mockResolvedValue({})
     renderPage()
     fireEvent.click(screen.getByRole('button', { name: /sign in with google/i }))
     await waitFor(() => {
-      expect(mockExchangeGoogleToken).toHaveBeenCalledWith({ accessToken: 'tok' })
-      expect(mockLogin).toHaveBeenCalled()
+      expect(mockExchangeGoogleToken).toHaveBeenCalledWith({ idToken: 'tok' })
+      expect(mockLogin).not.toHaveBeenCalled()
     })
     vi.unstubAllEnvs()
   })

@@ -6,7 +6,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { useGoogleLogin, type TokenResponse } from "@react-oauth/google";
+import { GoogleLogin, type CredentialResponse } from "@react-oauth/google";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/app/auth/AuthContext";
 import { useZodForm } from "@/hooks/useZodForm";
@@ -17,7 +17,6 @@ import { roleToDefaultRoute } from "@/routes/roleDefaultRoutes";
 import { loginSchema, type LoginFormValues } from "@/modules/auth/types";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import { authApi, mapLoginResponseToSession } from "@/services/api/authApi";
-import googleLogoUrl from "@/assets/public-layout/google-logo.png";
 import styles from "./LoginPage.module.css";
 
 const LoginPage = () => {
@@ -35,13 +34,13 @@ const LoginPage = () => {
     formState: { errors, isSubmitting },
   } = useZodForm(loginSchema, {
     defaultValues: {
-      username: "",
+      email: "",
       password: "",
       rememberMe: true,
     },
   });
   const passwordValue = watch("password");
-  const usernameValue = watch("username");
+  const emailValue = watch("email");
   const isForgotPasswordModalOpen = searchParams.get("forgot-password") === "1";
   const isPostSignupCandidate = searchParams.get("postSignup") === "candidate";
 
@@ -83,14 +82,16 @@ const LoginPage = () => {
     };
   }, [isAuthenticated, isPostSignupCandidate, navigate, user]);
 
-  const handleGoogleAuthSuccess = async (tokenResponse: TokenResponse) => {
+  const handleGoogleAuthSuccess = async (credentialResponse: CredentialResponse) => {
     try {
       setGoogleAuthError(null);
-      const response = await authApi.exchangeGoogleToken({
-        accessToken: tokenResponse.access_token,
+      if (!credentialResponse.credential) {
+        throw new Error("Google did not provide an ID token.");
+      }
+      await authApi.exchangeGoogleToken({
+        idToken: credentialResponse.credential,
       });
-      const session = await mapLoginResponseToSession(response);
-      login(session);
+      setGoogleAuthError("Google account registered. Please sign in with your email and password.");
     } catch {
       setGoogleAuthError("Google sign-in failed. Please try again.");
     } finally {
@@ -101,25 +102,6 @@ const LoginPage = () => {
   const handleGoogleAuthError = () => {
     setPendingGoogleAuth(false);
     setGoogleAuthError("Google sign-in failed. Please try again.");
-  };
-
-  const startGoogleLogin = useGoogleLogin({
-    flow: "implicit",
-    onSuccess: handleGoogleAuthSuccess,
-    onError: handleGoogleAuthError,
-  });
-
-  const handleGoogleLogin = () => {
-    setSubmitError(null);
-
-    if (!hasGoogleClientId) {
-      setGoogleAuthError("Google Client ID is missing. Please set VITE_GOOGLE_CLIENT_ID.");
-      return;
-    }
-
-    setGoogleAuthError(null);
-    setPendingGoogleAuth(true);
-    startGoogleLogin();
   };
 
   const onSubmit = async (values: LoginFormValues) => {
@@ -138,7 +120,7 @@ const LoginPage = () => {
     <Box className={styles.pageRoot}>
       <ChangePasswordModal
         open={isForgotPasswordModalOpen}
-        prefillEmail={usernameValue}
+        prefillEmail={emailValue}
         onClose={handleForgotPasswordClose}
         mode="reset"
       />
@@ -161,9 +143,9 @@ const LoginPage = () => {
             <TextField
               placeholder="Email"
               autoComplete="email"
-              error={Boolean(errors.username)}
-              helperText={errors.username?.message}
-              {...register("username")}
+              error={Boolean(errors.email)}
+              helperText={errors.email?.message}
+              {...register("email")}
               className={styles.inputField}
             />
           </Box>
@@ -204,24 +186,24 @@ const LoginPage = () => {
             </Typography>
           </Box>
 
-          <Button
-            type="button"
-            variant="outlined"
-            className={styles.googleButton}
-            onClick={handleGoogleLogin}
-            disabled={isSubmitting || pendingGoogleAuth}
-            startIcon={
-              <Box
-                component="img"
-                src={googleLogoUrl}
-                alt=""
-                aria-hidden="true"
-                className={styles.googleIcon}
+          {hasGoogleClientId ? (
+            <Box className={styles.googleButton}>
+              <GoogleLogin
+                onSuccess={handleGoogleAuthSuccess}
+                onError={handleGoogleAuthError}
+                useOneTap={false}
               />
-            }
-          >
-            {pendingGoogleAuth ? "Opening Google..." : "Sign in with Google"}
-          </Button>
+            </Box>
+          ) : (
+            <Button
+              type="button"
+              variant="outlined"
+              className={styles.googleButton}
+              onClick={() => setGoogleAuthError("Google Client ID is missing. Please set VITE_GOOGLE_CLIENT_ID.")}
+            >
+              Sign in with Google
+            </Button>
+          )}
         </Box>
       </Box>
     </Box>

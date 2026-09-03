@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Alert,
   Box,
@@ -23,6 +23,8 @@ import styles from "./SignupPage.module.css";
 
 const RecruiterSignupPage = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const invitationToken = searchParams.get("token");
 
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -38,6 +40,7 @@ const RecruiterSignupPage = () => {
       firstName: "",
       lastName: "",
       email: "",
+      staffNumber: "",
       mobileNumber: "",
       password: "",
       confirmPassword: "",
@@ -57,15 +60,18 @@ const RecruiterSignupPage = () => {
   const onSubmit = async (values: InviteSignupFormValues) => {
     setSubmitError(null);
     try {
-      await authApi.recruiterRegister({
+      if (!invitationToken || !values.staffNumber) {
+        setSubmitError("Recruiter registration requires an invitation link and staff number.");
+        return;
+      }
+
+      await authApi.staffRegister({
         firstName: values.firstName,
         lastName: values.lastName,
         email: values.email,
-        mobileNumber: values.mobileNumber,
+        staffNumber: values.staffNumber,
         password: values.password,
-        confirmPassword: values.confirmPassword,
-        acceptTerms: values.acceptTerms,
-        acceptPrivacyPolicy: values.acceptTerms,
+        invitationToken,
       });
 
       setSubmitSuccess(
@@ -147,6 +153,17 @@ const RecruiterSignupPage = () => {
                 },
               }}
               {...phoneNumberRegistration}
+              className={styles.inputField}
+            />
+          </Box>
+
+          <Box className={styles.fieldGroup}>
+            <Typography className={styles.fieldLabel}>Staff Number</Typography>
+            <TextField
+              placeholder="Staff Number"
+              error={Boolean(errors.staffNumber)}
+              helperText={errors.staffNumber?.message}
+              {...register("staffNumber")}
               className={styles.inputField}
             />
           </Box>
