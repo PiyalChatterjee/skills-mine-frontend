@@ -98,7 +98,7 @@ const normalizePermissions = (roles: Role[]): Permission[] => {
   return Array.from(merged);
 };
 
-const buildAuthUserFromCurrentUser = (
+export const buildAuthUserFromCurrentUser = (
   currentUser: CurrentUserResponse,
   accessToken: string,
 ): AuthUser => {

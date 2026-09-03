@@ -6,7 +6,6 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { useGoogleLogin, type TokenResponse } from "@react-oauth/google";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/app/auth/AuthContext";
 import { useZodForm } from "@/hooks/useZodForm";
@@ -17,6 +16,7 @@ import { roleToDefaultRoute } from "@/routes/roleDefaultRoutes";
 import { loginSchema, type LoginFormValues } from "@/modules/auth/types";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import { authApi, mapLoginResponseToSession } from "@/services/api/authApi";
+import { redirectToGoogleLogin } from "@/app/auth/cognitoHostedUi";
 import googleLogoUrl from "@/assets/public-layout/google-logo.png";
 import styles from "./LoginPage.module.css";
 
@@ -26,8 +26,8 @@ const LoginPage = () => {
   const { login, isAuthenticated, user } = useAuth();
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [googleAuthError, setGoogleAuthError] = useState<string | null>(null);
-  const [pendingGoogleAuth, setPendingGoogleAuth] = useState(false);
-  const hasGoogleClientId = Boolean(import.meta.env.VITE_GOOGLE_CLIENT_ID?.trim());
+  // Check for error redirected back from AuthCallbackPage (?error=google_callback)
+  const isGoogleCallbackError = searchParams.get('error') === 'google_callback';
   const {
     register,
     handleSubmit,
@@ -42,7 +42,7 @@ const LoginPage = () => {
   });
   const passwordValue = watch("password");
   const usernameValue = watch("username");
-  const isForgotPasswordModalOpen = searchParams.get("forgot-password") === "1";
+  const isForgotPasswordModalOpen = searchParams.get('forgot-password') === '1';
   const isPostSignupCandidate = searchParams.get("postSignup") === "candidate";
 
   const handleForgotPasswordClose = () => {
@@ -83,43 +83,11 @@ const LoginPage = () => {
     };
   }, [isAuthenticated, isPostSignupCandidate, navigate, user]);
 
-  const handleGoogleAuthSuccess = async (tokenResponse: TokenResponse) => {
-    try {
-      setGoogleAuthError(null);
-      const response = await authApi.exchangeGoogleToken({
-        accessToken: tokenResponse.access_token,
-      });
-      const session = await mapLoginResponseToSession(response);
-      login(session);
-    } catch {
-      setGoogleAuthError("Google sign-in failed. Please try again.");
-    } finally {
-      setPendingGoogleAuth(false);
-    }
-  };
-
-  const handleGoogleAuthError = () => {
-    setPendingGoogleAuth(false);
-    setGoogleAuthError("Google sign-in failed. Please try again.");
-  };
-
-  const startGoogleLogin = useGoogleLogin({
-    flow: "implicit",
-    onSuccess: handleGoogleAuthSuccess,
-    onError: handleGoogleAuthError,
-  });
-
   const handleGoogleLogin = () => {
     setSubmitError(null);
-
-    if (!hasGoogleClientId) {
-      setGoogleAuthError("Google Client ID is missing. Please set VITE_GOOGLE_CLIENT_ID.");
-      return;
-    }
-
     setGoogleAuthError(null);
-    setPendingGoogleAuth(true);
-    startGoogleLogin();
+    // Redirects the browser to Cognito Hosted UI → Google consent → /auth/callback
+    void redirectToGoogleLogin();
   };
 
   const onSubmit = async (values: LoginFormValues) => {
@@ -155,6 +123,9 @@ const LoginPage = () => {
         <Box component="form" className={styles.formFields} onSubmit={handleSubmit(onSubmit)}>
           {submitError ? <Alert severity="error">{submitError}</Alert> : null}
           {googleAuthError ? <Alert severity="error">{googleAuthError}</Alert> : null}
+          {isGoogleCallbackError ? (
+            <Alert severity="error">Google sign-in failed. Please try again.</Alert>
+          ) : null}
 
           <Box className={styles.fieldGroup}>
             <Typography className={styles.fieldLabel}>Email</Typography>
@@ -187,7 +158,7 @@ const LoginPage = () => {
             type="submit"
             variant="contained"
             size="large"
-            disabled={isSubmitting || pendingGoogleAuth}
+            disabled={isSubmitting}
             className={styles.submitButton}
           >
             {isSubmitting ? "Signing in..." : "Log In"}
@@ -209,7 +180,7 @@ const LoginPage = () => {
             variant="outlined"
             className={styles.googleButton}
             onClick={handleGoogleLogin}
-            disabled={isSubmitting || pendingGoogleAuth}
+            disabled={isSubmitting}
             startIcon={
               <Box
                 component="img"
@@ -220,7 +191,7 @@ const LoginPage = () => {
               />
             }
           >
-            {pendingGoogleAuth ? "Opening Google..." : "Sign in with Google"}
+            Sign in with Google
           </Button>
         </Box>
       </Box>
