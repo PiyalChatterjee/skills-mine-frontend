@@ -98,8 +98,7 @@ export const JobsFeedPage = ({ mode }: JobsFeedPageProps) => {
           {isLatestMode && hasNextPage ? (
             <Box
               ref={jobsLoadTriggerRef}
-              className={styles.feedback}
-              sx={{ textAlign: 'center' }}
+              className={`${styles.feedback} ${styles.feedbackCentered}`}
               aria-live="polite"
             >
               {loadMoreMessage}

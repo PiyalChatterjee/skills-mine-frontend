@@ -89,6 +89,11 @@
   box-shadow: none;
 }
 
+.googleButtonDisabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
 .googleButtonContent {
   display: flex;
   align-items: center;

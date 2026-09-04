@@ -7,6 +7,7 @@ import { tokenStorage } from '@/app/auth/tokenStorage';
 import { authApi, buildAuthUserFromCurrentUser } from '@/services/api/authApi';
 import { roleToDefaultRoute } from '@/routes/roleDefaultRoutes';
 import { ROUTE_PATHS } from '@/routes/routePaths';
+import styles from './AuthCallbackPage.module.css';
 
 /**
  * AuthCallbackPage — handles the redirect from Cognito Hosted UI after Google sign-in.
@@ -76,16 +77,7 @@ const AuthCallbackPage = () => {
   }, [login, navigate, searchParams]);
 
   return (
-    <Box
-      sx={{
-        display:        'flex',
-        flexDirection:  'column',
-        alignItems:     'center',
-        justifyContent: 'center',
-        minHeight:      '100vh',
-        gap:            2,
-      }}
-    >
+    <Box className={styles.authCallback}>
       <CircularProgress size={40} />
       <Typography variant="body2" color="text.secondary">
         Signing you in…

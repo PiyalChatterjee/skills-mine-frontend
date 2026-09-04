@@ -27,13 +27,9 @@ const SignUpGoogleOAuthButton = ({
 }: SignUpGoogleOAuthButtonProps) => {
   return (
     <Box
-      className={styles.googleButton}
-      sx={{
-        position: "relative",
-        height: 50,
-        opacity: disabled ? 0.5 : 1,
-        pointerEvents: disabled ? "none" : "auto",
-      }}
+      className={[styles.googleButton, disabled ? styles.googleButtonDisabled : ""]
+        .filter(Boolean)
+        .join(" ")}
     >
       <Box className={styles.googleButtonContent} aria-hidden="true">
         <Box

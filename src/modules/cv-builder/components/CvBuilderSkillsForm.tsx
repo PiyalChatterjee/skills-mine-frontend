@@ -28,7 +28,7 @@ const CvBuilderSkillsForm = ({ skillsFieldArray }: CvBuilderSkillsFormProps) => 
   return (
     <CvBuilderFormPanel>
       {formError && (
-        <Typography component="p" sx={{ color: "#d32f2f", marginBottom: 2 }}>
+        <Typography component="p" className={styles.skillsError}>
           {formError}
         </Typography>
       )}

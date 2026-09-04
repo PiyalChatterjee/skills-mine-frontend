@@ -888,6 +888,12 @@
   margin-bottom: 8px;
 }
 
+.skillsError,
+.skillsError:global(.MuiTypography-root) {
+  color: #d32f2f;
+  margin: 0 0 16px;
+}
+
 .skillsList {
   display: flex;
   flex-direction: column;
