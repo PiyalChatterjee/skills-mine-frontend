@@ -27,6 +27,7 @@ const JobDetailsPage = () => {
     applyButtonLabel,
     applyError,
     companyName,
+    description,
     employmentType,
     footerSaveLabel,
     handleApply,
@@ -165,6 +166,12 @@ const JobDetailsPage = () => {
         <Typography component="h2" className={styles.sectionTitle}>
           Job description
         </Typography>
+
+        {description ? (
+          <Typography component="p" className={styles.description}>
+            {description}
+          </Typography>
+        ) : null}
 
         <Box className={styles.contentRow}>
           <Box className={styles.metaCard}>

@@ -84,10 +84,6 @@ export const useJobDetailsViewModel = () => {
   }, [data]);
 
   const resolvedJob = useMemo(() => {
-    if (stateJob && stateJob.jobId === jobId) {
-      return stateJob;
-    }
-
     if (!jobId) {
       return stateJob;
     }
@@ -106,10 +102,16 @@ export const useJobDetailsViewModel = () => {
     });
 
   const displayJob = useMemo(() => {
-    const base = resolvedJob ?? jobById;
+    const base = resolvedJob ?? stateJob ?? jobById;
     if (!base) return undefined;
-    return { ...base, ...jobById, ...jobProfile, jobId: base.jobId };
-  }, [resolvedJob, jobById, jobProfile]);
+    return {
+      ...stateJob,
+      ...base,
+      ...jobById,
+      ...jobProfile,
+      jobId: base.jobId,
+    };
+  }, [jobById, jobProfile, resolvedJob, stateJob]);
 
   const effectiveJob = resolvedJob ?? jobById;
   const isSaved = effectiveJob ? isJobSaved(effectiveJob.jobId) : false;
@@ -172,6 +174,7 @@ export const useJobDetailsViewModel = () => {
     applyError,
     backRoute,
     companyName,
+    description: displayJob?.description ?? "",
     employmentType,
     handleApply,
     handleBack: () => navigate(backRoute),
