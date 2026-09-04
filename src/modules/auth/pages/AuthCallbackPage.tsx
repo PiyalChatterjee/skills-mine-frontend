@@ -49,6 +49,9 @@ const AuthCallbackPage = () => {
       try {
         // Step 1: exchange authorization code for Cognito tokens (PKCE)
         const tokens = await exchangeCodeForTokens(code);
+        if (!tokens.idToken) {
+          throw new Error('Cognito token exchange did not return an idToken.');
+        }
 
         // Step 2: store tokens so authApi's Axios interceptor sends Authorization header
         tokenStorage.setTokens(tokens);
@@ -57,7 +60,7 @@ const AuthCallbackPage = () => {
         const currentUser = await authApi.getCurrentUser();
 
         // Step 4: build the AuthUser and log in
-        const user = buildAuthUserFromCurrentUser(currentUser, tokens.accessToken);
+        const user = buildAuthUserFromCurrentUser(currentUser, tokens.idToken);
         tokenStorage.setUser(user);
         login({ user, tokens });
 

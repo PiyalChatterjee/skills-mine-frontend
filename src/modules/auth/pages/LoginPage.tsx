@@ -18,6 +18,7 @@ import { ROUTE_PATHS } from "@/routes/routePaths";
 import { authApi, mapLoginResponseToSession } from "@/services/api/authApi";
 import styles from "./LoginPage.module.css";
 import { redirectToGoogleLogin } from "@/app/auth/cognitoHostedUi";
+import googleLogoUrl from "@/assets/public-layout/google-logo.png";
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -184,6 +185,15 @@ const LoginPage = () => {
             variant="outlined"
             disabled={isGoogleRedirecting}
             className={styles.googleButton}
+            startIcon={
+              <Box
+                component="img"
+                src={googleLogoUrl}
+                alt=""
+                aria-hidden="true"
+                className={styles.googleIcon}
+              />
+            }
             onClick={() => void handleGoogleSignIn()}
           >
             {isGoogleRedirecting ? "Redirecting..." : "Sign in with Google"}

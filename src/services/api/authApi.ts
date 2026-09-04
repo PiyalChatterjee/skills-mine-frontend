@@ -102,9 +102,9 @@ const normalizePermissions = (roles: Role[]): Permission[] => {
 
 export const buildAuthUserFromCurrentUser = (
   currentUser: CurrentUserResponse,
-  accessToken: string,
+  idToken: string,
 ): AuthUser => {
-  const payload = decodeJwtPayload(accessToken);
+  const payload = decodeJwtPayload(idToken);
   const roles =
     currentUser.roles.length > 0
       ? currentUser.roles.map(normalizeRole)
@@ -134,8 +134,8 @@ export const buildAuthUserFromCurrentUser = (
   };
 };
 
-const buildAuthUserFromJwt = (accessToken: string): AuthUser => {
-  const payload = decodeJwtPayload(accessToken);
+const buildAuthUserFromJwt = (idToken: string): AuthUser => {
+  const payload = decodeJwtPayload(idToken);
   const roles = [normalizeRole(payload?.roles?.[0])];
   const role = roles[0];
   const firstName =
@@ -166,14 +166,14 @@ export const mapLoginResponseToSession = async (
 ): Promise<{ user: AuthUser; tokens: JwtTokens }> => {
   const { accessToken, idToken, refreshToken } = response;
   const tokens: JwtTokens = { accessToken, idToken, refreshToken };
-  const jwtUser = buildAuthUserFromJwt(accessToken);
+  const jwtUser = buildAuthUserFromJwt(idToken);
 
   // Store tokens temporarily so the Axios interceptor can attach the Bearer header
   tokenStorage.setTokens(tokens);
 
   try {
     const currentUser = await authApi.getCurrentUser();
-    const user = buildAuthUserFromCurrentUser(currentUser, accessToken);
+    const user = buildAuthUserFromCurrentUser(currentUser, idToken);
     return { user, tokens };
   } catch {
     // Fall back to JWT claims only when the current-user request is unavailable.
