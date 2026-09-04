@@ -177,6 +177,18 @@
     letter-spacing: 0.1px;
 }
 
+.description,
+.description:global(.MuiTypography-root) {
+    max-width: 860px;
+    margin: -8px 0 40px;
+    color: #2a3132;
+    font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.5;
+    letter-spacing: 0.1px;
+}
+
 .contentRow {
     display: grid;
     grid-template-columns: 258px minmax(0, 1fr);

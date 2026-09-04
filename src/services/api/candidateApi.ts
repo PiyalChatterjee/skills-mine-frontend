@@ -217,7 +217,11 @@ const mapDashboardResponse = (
         ? progress.map((stage) =>
             typeof stage === "string"
               ? stage
-              : stage.stage_code ?? stage.display_name ?? "",
+              : stage.stage_code ??
+                stage.display_name ??
+                stage.to_stage_code ??
+                stage.from_stage_code ??
+                "",
           )
         : [],
     };
@@ -299,6 +303,7 @@ type RawCandidateJobCollectionEnvelope = {
 
 const mapJobRecord = (job: RawCandidateJobRecord) => ({
   jobId: job.jobId ?? job.job_profile_id ?? "",
+  jobProfileId: job.jobProfileId ?? job.job_profile_id ?? "",
   title: job.title ?? job.job_title ?? "",
   company: job.company ?? job.company_name ?? "",
   location: job.location ?? job.location_text ?? "",
@@ -329,7 +334,7 @@ const mapCandidateJobCollectionResponse = <
     candidateId: data.candidateId ?? data.candidate_id ?? "",
     jobs: jobs.map(mapJobRecord),
     total: data.total ?? data.pagination?.total_items ?? jobs.length,
-  } as TCollection;
+  } as unknown as TCollection;
 };
 
 const mapSavedJobsResponse = (
@@ -362,19 +367,33 @@ const toCvPayload = (payload: SaveBuildMyCvRequest) => {
     : undefined;
 
   const body: Record<string, unknown> = {
-    personalDetails,
-    careerHistory: payload.careerHistory?.map((item) => ({
-      company: item.company,
-      jobTitle: item.jobTitle,
-      startDate: item.startDate,
-      endDate: item.endDate || null,
+    personal_details: personalDetails
+      ? {
+          first_name: personalDetails.firstName,
+          last_name: personalDetails.lastName,
+          phone_number: personalDetails.mobileNumber,
+          residential_location: personalDetails.location,
+          nationality: personalDetails.nationality,
+          race: personalDetails.race,
+          gender: personalDetails.gender,
+          disability_status: personalDetails.disabilityStatus,
+          current_company: personalDetails.currentCompany,
+          current_position: personalDetails.currentPosition,
+          notice_period: personalDetails.noticePeriod,
+        }
+      : undefined,
+    career_history: payload.careerHistory?.map((item) => ({
+      company_name: item.company,
+      position_held: item.jobTitle,
+      start_date: item.startDate,
+      end_date: item.endDate || null,
       responsibilities: item.responsibilities ?? "",
     })),
     skills: payload.skills,
     education: payload.education
       ? {
-          secondaryEducation: payload.education.secondaryEducation,
-          tertiaryEducation: payload.education.tertiaryEducation,
+          secondary: payload.education.secondaryEducation,
+          tertiary: payload.education.tertiaryEducation,
         }
       : undefined,
     languages: payload.languages,
@@ -408,6 +427,13 @@ type RawBuildMyCvCareerHistoryEntry = Partial<CandidateExperience> & {
 
 type RawBuildMyCvEducationEntry = {
   level_code?: string;
+  institution?: string;
+  institution_name?: string;
+  schoolName?: string;
+  school_name?: string;
+  qualification?: string;
+  yearCompleted?: number | string | null;
+  year_completed?: number | string | null;
 };
 
 type RawBuildMyCvEducation =
@@ -463,6 +489,24 @@ const mapBuildResponse = (
   const education = data.education ?? {};
   const educationEntries = Array.isArray(education) ? education : [];
   const careerHistory = data.careerHistory ?? data.career_history ?? data.experience ?? [];
+  const normalizeEducationEntry = (entry: RawBuildMyCvEducationEntry) => ({
+    institution:
+      entry.institution ??
+      entry.institution_name ??
+      entry.schoolName ??
+      entry.school_name ??
+      "",
+    qualification: entry.qualification ?? "",
+    yearCompleted: entry.yearCompleted ?? entry.year_completed ?? null,
+  });
+  const secondaryEducation = Array.isArray(education)
+    ? educationEntries.filter((item) => item.level_code === "SECONDARY")
+    : education.secondary
+      ? [education.secondary]
+      : education.secondaryEducation ?? [];
+  const tertiaryEducation = Array.isArray(education)
+    ? educationEntries.filter((item) => item.level_code !== "SECONDARY")
+    : education.tertiary ?? education.tertiaryEducation ?? [];
   return {
     resumeId: data.resumeId ?? data.resume_id ?? "",
     currentStep: data.currentStep ?? "",
@@ -486,16 +530,14 @@ const mapBuildResponse = (
       jobTitle: item.jobTitle ?? item.position_held ?? item.role_title ?? "",
       startDate: item.startDate ?? item.start_date ?? "",
       endDate: item.endDate ?? item.end_date ?? (item.is_current ? "Present" : ""),
-      responsibilities: item.responsibilities ?? item.responsibilities_text,
+      responsibilities: Array.isArray(item.responsibilities)
+        ? item.responsibilities.filter(Boolean).join("; ")
+        : item.responsibilities ?? item.responsibilities_text,
     })),
     skills: data.skills ?? [],
     education: {
-      secondaryEducation: Array.isArray(education)
-        ? educationEntries.filter((item) => item.level_code === "SECONDARY")
-        : education.secondary ? [education.secondary] : education.secondaryEducation ?? [],
-      tertiaryEducation: Array.isArray(education)
-        ? educationEntries.filter((item) => item.level_code !== "SECONDARY")
-        : education.tertiary ?? education.tertiaryEducation ?? [],
+      secondaryEducation: secondaryEducation.map(normalizeEducationEntry),
+      tertiaryEducation: tertiaryEducation.map(normalizeEducationEntry),
       } as unknown as BuildMyCvEducationSection,
     languages: (data.languages ?? []).map((item) =>
       typeof item === "string" ? { language: item, proficiency: "" } : item,
@@ -810,10 +852,10 @@ export const candidateApi = {
     // deployments that put it in the path still resolve via the template.
     return unwrapResponseData(
       apiClient.post(
-        resolveEndpoint(apiEndpoints.candidate.savedJobs, {
+        resolveEndpoint(apiEndpoints.candidate.savedJob, {
           candidateId: payload.candidateId,
+          jobProfileId: payload.jobProfileId,
         }),
-        { jobId: payload.jobProfileId },
       ),
     );
   },
@@ -842,8 +884,10 @@ export const candidateApi = {
     });
   },
 
-  buildMyCv(): Promise<SuccessEnvelope<BuildMyCvData>> {
-    return unwrapResponseData(apiClient.post(apiEndpoints.candidate.buildMyCv));
+  buildMyCv(candidateId?: string): Promise<SuccessEnvelope<BuildMyCvData>> {
+    return unwrapResponseData(
+      apiClient.post(resolveEndpoint(apiEndpoints.candidate.buildMyCv, { candidateId: candidateId ?? "" })),
+    );
   },
 
   previewResume(resumeId: string): Promise<SuccessEnvelope<CvPreviewData>> {
@@ -971,7 +1015,7 @@ export const candidateApi = {
 
   async updateBuildMyCv(candidateId: string, payload: UpdateBuildMyCvRequest): Promise<BuildMyCvData> {
     return mapBuildMyCvRequest(
-      apiClient.put<RawBuildMyCvResponse | RawBuildMyCvEnvelope>(
+      apiClient.post<RawBuildMyCvResponse | RawBuildMyCvEnvelope>(
         resolveEndpoint(apiEndpoints.candidate.buildMyCv, { candidateId }),
         toCvPayload(payload),
       ),

@@ -79,6 +79,14 @@ const STAGE_STATUS_MAP: Record<string, ApplicationStatusKey> = {
 };
 
 const CLOSED_STAGES = new Set(["closed", "offer_accepted", "offer_declined"]);
+const DEFAULT_PIPELINE = [
+  "APPLIED",
+  "SCREENING",
+  "ASSESSMENT",
+  "INTERVIEW",
+  "SHORTLISTED",
+  "OFFER",
+];
 const unknownStages = new Set<string>();
 
 const getPipelineProgress = (
@@ -149,19 +157,22 @@ const transformApplicationToDisplay = (
   app: DashboardApplication,
 ): DisplayApplication => {
   const status = mapStageToStatusKey(app.stage);
+  const pipeline = app.pipeline.length >= DEFAULT_PIPELINE.length
+    ? app.pipeline
+    : DEFAULT_PIPELINE;
 
   return {
     id: app.id,
     jobId: app.job.id,
     title: app.job.title,
     status,
-    pipelineStages: app.pipeline.map((stageKey) => ({
-      key: stageKey,
+    pipelineStages: pipeline.map((stageKey, index) => ({
+      key: `${stageKey}-${index}`,
       label: getApplicationStatusLabel(stageKey),
       isActive: stageKey.toLowerCase() === app.stage.toLowerCase(),
     })),
-    fillPercent: getPipelineFillPercent(app.stage, app.pipeline),
-    message: app.statusMessage,
+    fillPercent: getPipelineFillPercent(app.stage, pipeline),
+    message: app.statusMessage || DASHBOARD_APPLICATION_STATUS_CONFIG[status].caption || "",
     offerAccepted: false,
   };
 };

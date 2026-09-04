@@ -90,8 +90,22 @@ const mapApiError = (error: unknown): ApiError => {
   }
 }
 
-export const hasBuildMyCvData = (data: BuildMyCvState | undefined): boolean =>
-  Boolean(data?.resumeId)
+export const hasBuildMyCvData = (data: BuildMyCvState | undefined): boolean => {
+  if (!data) return false
+  if (data.resumeId) return true
+
+  const personalDetails = data.personalDetails
+  const hasPersonalDetails = Boolean(
+    personalDetails?.firstName?.trim() && personalDetails?.lastName?.trim(),
+  )
+  const hasCareerHistory = (data.careerHistory?.length ?? 0) > 0
+  const hasSkills = (data.skills?.length ?? 0) > 0
+  const hasEducation =
+    (data.education?.tertiaryEducation?.length ?? 0) > 0 ||
+    (data.education?.secondaryEducation?.length ?? 0) > 0
+
+  return hasPersonalDetails && (hasCareerHistory || hasSkills || hasEducation)
+}
 
 // Fetches UserProfile (savedJobs) and hydrates Redux candidate slice
 export const useUserProfile = (userId?: string) => {

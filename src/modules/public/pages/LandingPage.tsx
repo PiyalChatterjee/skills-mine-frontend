@@ -289,7 +289,7 @@ const LandingPage = () => {
                     landingData.stats.totalCandidates,
                     landingData.stats.totalPlacements,
                   ]
-                : [];
+                : metrics.map((item) => item.value);
 
               return (
               <Card
@@ -310,7 +310,7 @@ const LandingPage = () => {
                     className={styles.metricValue}
                     sx={{ m: 0 }}
                   >
-                    {statValues[index] ?? "—"}
+                    {statValues[index] ?? metric.value}
                   </Typography>
                 )}
                 <Typography

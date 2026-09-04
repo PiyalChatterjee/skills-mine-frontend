@@ -302,7 +302,9 @@ export interface BuildMyCvPersonalDetails {
 
 export interface BuildMyCvSecondaryEducationEntry {
   schoolName: string;
+  institution?: string;
   qualification: string;
+  highestGradePassed?: string;
   yearCompleted: number;
 }
 
