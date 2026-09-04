@@ -90,7 +90,7 @@ const HEADER_NAV_DEFINITIONS: Record<HeaderNavKey, HeaderNavDefinition> = {
   },
   candidateBlog: {
     label: "Blog",
-    actionId: "blog",
+    href: "https://theskillsmine.com/blog/",
   },
   recruiterDashboard: {
     label: "Dashboard",
@@ -115,7 +115,7 @@ const HEADER_NAV_DEFINITIONS: Record<HeaderNavKey, HeaderNavDefinition> = {
   },
   recruiterBlog: {
     label: "Blog",
-    actionId: "blog",
+    href: "https://theskillsmine.com/blog/",
   },
 };
 

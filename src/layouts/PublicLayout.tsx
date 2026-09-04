@@ -77,10 +77,6 @@ export const PublicLayout = () => {
     // TODO: Implement skills build navigation
   };
 
-  const handleBlogClick = () => {
-    // TODO: Implement blog navigation
-  };
-
   const handleNotificationClick = () => {
     // TODO: Implement notifications panel
   };
@@ -120,7 +116,6 @@ export const PublicLayout = () => {
     savedJobPosts: handleSavedJobPostsClick,
     cvBuilder: handleCvBuilderClick,
     skillsBuild: handleSkillsBuildClick,
-    blog: handleBlogClick,
   };
 
   const resetPasswordCandidateNavItems = buildHeaderNavItems({
