@@ -810,10 +810,10 @@ export const candidateApi = {
     // deployments that put it in the path still resolve via the template.
     return unwrapResponseData(
       apiClient.post(
-        resolveEndpoint(apiEndpoints.candidate.savedJobs, {
+        resolveEndpoint(apiEndpoints.candidate.savedJob, {
           candidateId: payload.candidateId,
+          jobProfileId: payload.jobProfileId,
         }),
-        { jobId: payload.jobProfileId },
       ),
     );
   },
@@ -842,8 +842,10 @@ export const candidateApi = {
     });
   },
 
-  buildMyCv(): Promise<SuccessEnvelope<BuildMyCvData>> {
-    return unwrapResponseData(apiClient.post(apiEndpoints.candidate.buildMyCv));
+  buildMyCv(candidateId?: string): Promise<SuccessEnvelope<BuildMyCvData>> {
+    return unwrapResponseData(
+      apiClient.post(resolveEndpoint(apiEndpoints.candidate.buildMyCv, { candidateId: candidateId ?? "" })),
+    );
   },
 
   previewResume(resumeId: string): Promise<SuccessEnvelope<CvPreviewData>> {

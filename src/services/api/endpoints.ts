@@ -86,11 +86,11 @@ export const apiEndpoints = {
     ),
     buildMyCv: withDefault(
       import.meta.env.VITE_CANDIDATE_BUILDMYCV_ENDPOINT,
-      "/candidates/cv-build/",
+      "/candidates/cv-build/:candidateId",
     ),
     profile: withDefault(
       import.meta.env.VITE_CANDIDATE_PROFILE_ENDPOINT,
-      "/candidates/profile/",
+      "/candidates/profile/:candidateId",
     ),
     resumePreview: withDefault(
       import.meta.env.VITE_CANDIDATE_RESUME_PREVIEW_ENDPOINT,
@@ -102,15 +102,15 @@ export const apiEndpoints = {
     ),
     recommendedJobs: withDefault(
       import.meta.env.VITE_CANDIDATE_RECOMMENDED_JOBS_ENDPOINT,
-      "/candidates/recommended-positions",
+      "/candidates/:candidateId/recommended-positions",
     ),
     savedJobs: withDefault(
       import.meta.env.VITE_CANDIDATE_SAVED_JOBS_ENDPOINT,
-      "/candidates/saved-jobs",
+      "/candidates/:candidateId/saved-jobs",
     ),
     savedJob: withDefault(
       import.meta.env.VITE_CANDIDATE_SAVED_JOB_ENDPOINT,
-      "/candidates/saved-jobs/:jobProfileId",
+      "/candidates/:candidateId/saved-jobs/:jobProfileId",
     ),
     aiActions: withDefault(
       import.meta.env.VITE_CANDIDATE_AI_ACTIONS_ENDPOINT,
@@ -118,7 +118,11 @@ export const apiEndpoints = {
     ),
     applications: withDefault(
       import.meta.env.VITE_CANDIDATE_APPLICATIONS_ENDPOINT,
-      "/candidates/applications",
+      "/candidates/apply",
+    ),
+    byEmail: withDefault(
+      import.meta.env.VITE_CANDIDATE_BY_EMAIL_ENDPOINT,
+      "/candidates/by-email",
     ),
   },
   applications: {
