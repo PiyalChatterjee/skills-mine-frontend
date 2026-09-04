@@ -28,16 +28,33 @@ const SignUpGoogleOAuthButton = ({
   return (
     <Box
       className={styles.googleButton}
-      sx={{ opacity: disabled ? 0.5 : 1, pointerEvents: disabled ? "none" : "auto" }}
+      sx={{
+        position: "relative",
+        height: 50,
+        opacity: disabled ? 0.5 : 1,
+        pointerEvents: disabled ? "none" : "auto",
+      }}
     >
-      <GoogleLogin
-        onSuccess={(credentialResponse) => {
-          onAuthStart();
-          onAuthSuccess(credentialResponse);
-        }}
-        onError={onAuthError}
-        useOneTap={false}
-      />
+      <Box className={styles.googleButtonContent} aria-hidden="true">
+        <Box
+          component="img"
+          src={googleLogoUrl}
+          alt=""
+          className={styles.googleIcon}
+        />
+        Sign Up with Google
+      </Box>
+      {/* Real Google button rendered invisibly on top so clicks trigger the actual OAuth flow */}
+      <Box className={styles.googleButtonOverlay}>
+        <GoogleLogin
+          onSuccess={(credentialResponse) => {
+            onAuthStart();
+            onAuthSuccess(credentialResponse);
+          }}
+          onError={onAuthError}
+          useOneTap={false}
+        />
+      </Box>
     </Box>
   );
 };
