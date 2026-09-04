@@ -56,7 +56,7 @@ type CompanyItem = {
 type JobProfileSummary = {
   jobProfileId: string;
   jobReferenceNumber: string;
-  client: CompanyItem;
+  client: CompanyItem | null;
   positionTitle: string;
   industry: IndustryItem | null;
   locationText: string;
@@ -82,7 +82,7 @@ type JobProfile = JobProfileSummary & {
   benefitsText: string[];
   skills?: Array<{ originalText: string | null }>;
   applicantCount?: number;
-  versionNo: number;
+  versionNo?: number;
 };
 type JobProfilePage = { data: JobProfileSummary[]; total: number; page: number; size: number };
 type CompanyPage = { data: CompanyItem[]; total: number; page: number; size: number };
@@ -169,7 +169,7 @@ const toMandate = (job: JobProfileSummary): RecruiterMandatesData["mandates"][nu
   pipeline: {},
 });
 
-const toJobWriteRequest = async (payload: CreateMandateRequest, versionNo?: number) => {
+const toJobWriteRequest = async (payload: CreateMandateRequest) => {
   const industries = await apiClient
     .get<IndustryItem[]>(apiEndpoints.industries.list)
     .then((response) => response.data);
@@ -198,7 +198,6 @@ const toJobWriteRequest = async (payload: CreateMandateRequest, versionNo?: numb
     benefitsText: splitBulletLines(payload.benefits),
     industryId: selectedIndustry?.industryId ?? null,
     skills: payload.skills.map((originalText) => ({ originalText, sourceType: "RECRUITER_ENTERED" })),
-    ...(versionNo === undefined ? {} : { versionNo }),
   };
 };
 
@@ -372,20 +371,7 @@ export const mandateApi = {
   },
 
   updateJobPost(mandateId: string, payload: CreateMandateRequest) {
-    return apiClient
-      .get<JobProfile>(resolveEndpoint(apiEndpoints.jobs.details, { jobProfileId: mandateId }))
-      .then(async (current) => {
-        const body = await toJobWriteRequest(payload, current.data.versionNo);
-        if (current.data.status !== "POSTED") return body;
-        return {
-          positionTitle: body.positionTitle,
-          fillByDate: body.fillByDate,
-          versionNo: body.versionNo,
-          jobDescription: body.jobDescription,
-          salaryMin: body.salaryMin,
-          salaryMax: body.salaryMax,
-        };
-      })
+    return toJobWriteRequest(payload)
       .then((body) => apiClient.patch<JobProfile>(
           resolveEndpoint(apiEndpoints.jobs.details, { jobProfileId: mandateId }),
           body,
