@@ -137,6 +137,7 @@ npm run preview
 
 - CV Builder completion now saves the structured CV, generates an A4 PDF from the saved payload, and uploads the document through the RTK Query `uploadCvResumeDocument` mutation.
 - Generated resume filenames include sanitized first and last names, the uploader role, and a UTC timestamp. A failed document upload warns the user while preserving the successfully saved CV.
+- Guests can open a shared job detail URL, complete a contextual CV review, and retain a session-scoped application draft for seven days without authenticating. After sign-up and profile creation, completed guest CVs and their pending applications are imported automatically, then the candidate is routed to the dashboard without a second CV-builder pass.
 - Added the candidate opportunity search modal with debounced, minimum-length search behavior and responsive job-card layouts.
 - Recruiter pipeline cards now support drag-and-drop stage changes with responsive layout handling.
 - Added CV upload modal validation for PDF, DOC, and DOCX files.

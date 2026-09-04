@@ -1,5 +1,5 @@
 import { createApi, fakeBaseQuery } from "@reduxjs/toolkit/query/react";
-import { candidateApi, jobsApi } from "@/services/api";
+import { candidateApi, industryApi, jobsApi, locationApi } from "@/services/api";
 import type {
   CandidateDashboardData,
   CandidateDashboardQuery,
@@ -12,6 +12,7 @@ import {
 } from "@/store/slices/candidateSlice";
 import type {
   ApiError,
+  ApplyJobResponse,
   AiActionsData,
   CandidateLandingData,
   CandidateStatisticsData,
@@ -77,8 +78,26 @@ export const apiSlice = createApi({
     "CandidateLanding",
     "CandidateStatistics",
     "AiActions",
+    "Industries",
+    "Locations",
   ],
   endpoints: (build) => ({
+    getIndustries: build.query<string[], void>({
+      queryFn: () =>
+        withMappedApiError(async () => {
+          const envelope = await industryApi.getIndustries();
+          return envelope.data.map((industry) => industry.name).filter(Boolean);
+        }),
+      providesTags: [{ type: "Industries", id: "LIST" }],
+    }),
+    getLocations: build.query<string[], void>({
+      queryFn: () =>
+        withMappedApiError(async () => {
+          const locations = await locationApi.getLocations();
+          return locations.filter(Boolean);
+        }),
+      providesTags: [{ type: "Locations", id: "LIST" }],
+    }),
     getCandidateProfile: build.query<CandidateProfile, CandidateProfileArgs>({
       queryFn: async ({ candidateId, userId }, api) =>
         withMappedApiError(async () => {
@@ -144,6 +163,11 @@ export const apiSlice = createApi({
       queryFn: (jobId) =>
         withMappedApiError(async () => (await jobsApi.getById(jobId)).data),
       providesTags: (_result, _error, jobId) => [{ type: "Jobs", id: jobId }],
+    }),
+    applyToJob: build.mutation<ApplyJobResponse, { jobProfileId: string }>({
+      queryFn: ({ jobProfileId }) =>
+        withMappedApiError(() => candidateApi.applyToJob(jobProfileId)),
+      invalidatesTags: [{ type: "CandidateDashboard", id: "SELF" }],
     }),
     getUserProfile: build.query<UserProfile, string>({
       queryFn: (userId) =>
@@ -276,6 +300,8 @@ export const apiSlice = createApi({
 });
 
 export const {
+  useGetIndustriesQuery,
+  useGetLocationsQuery,
   useGetCandidateProfileQuery,
   useGetCandidateDashboardQuery,
   useGetCandidateLandingQuery,
@@ -284,6 +310,7 @@ export const {
   useLazyListJobsPageQuery,
   useGetJobProfileQuery,
   useGetJobByIdQuery,
+  useApplyToJobMutation,
   useGetUserProfileQuery,
   useSaveJobMutation,
   useRemoveSavedJobMutation,

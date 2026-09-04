@@ -1,15 +1,13 @@
 import { describe, it, expect } from 'vitest'
 import candidateReducer, {
   setUserId,
-  setSelectedJobId,
   setSavedJobs,
   addSavedJob,
   removeSavedJob,
   setAvailableSkills,
   toggleSkill,
   setBuildMyCv,
-  setBuildMyCvExists,
-  setBuildMyCvLastModified,
+  setBuildMyCvMetadata,
   updateBuildMyCvPersonalDetails,
   updateBuildMyCvCareerHistory,
   updateBuildMyCvSkills,
@@ -40,10 +38,8 @@ describe('candidateSlice', () => {
   it('returns the initial state', () => {
     const state = buildInitialState()
     expect(state.userId).toBeNull()
-    expect(state.selectedJobId).toBeNull()
     expect(state.savedJobs).toEqual([])
     expect(state.availableSkills).toEqual([])
-    expect(state.selectedSkillIds).toEqual([])
     expect(state.buildMyCvExists).toBe(false)
     expect(state.buildMyCvLastModified).toBeNull()
     expect(state.buildMyCvLoaded).toBe(false)
@@ -53,19 +49,6 @@ describe('candidateSlice', () => {
     it('sets the userId', () => {
       const state = candidateReducer(buildInitialState(), setUserId('u-42'))
       expect(state.userId).toBe('u-42')
-    })
-  })
-
-  describe('setSelectedJobId', () => {
-    it('sets selected job id', () => {
-      const state = candidateReducer(buildInitialState(), setSelectedJobId('j001'))
-      expect(state.selectedJobId).toBe('j001')
-    })
-
-    it('clears selected job id', () => {
-      let state = candidateReducer(buildInitialState(), setSelectedJobId('j001'))
-      state = candidateReducer(state, setSelectedJobId(null))
-      expect(state.selectedJobId).toBeNull()
     })
   })
 
@@ -100,11 +83,11 @@ describe('candidateSlice', () => {
   })
 
   describe('setAvailableSkills', () => {
-    it('sets availableSkills and derives selectedSkillIds from selected=true skills', () => {
+    it('sets available skills with their API selection state', () => {
       const skills = [mockSkill('s1', true), mockSkill('s2', false), mockSkill('s3', true)]
       const state = candidateReducer(buildInitialState(), setAvailableSkills(skills))
       expect(state.availableSkills).toHaveLength(3)
-      expect(state.selectedSkillIds).toEqual(['s1', 's3'])
+      expect(state.availableSkills.filter((skill) => skill.selected).map((skill) => skill.skillId)).toEqual(['s1', 's3'])
     })
 
     it('handles non-array payload gracefully', () => {
@@ -113,60 +96,55 @@ describe('candidateSlice', () => {
         setAvailableSkills(null as unknown as UserSkill[]),
       )
       expect(state.availableSkills).toEqual([])
-      expect(state.selectedSkillIds).toEqual([])
     })
   })
 
   describe('toggleSkill', () => {
-    it('adds a skill to selectedSkillIds when not selected', () => {
+    it('marks an unselected skill as selected', () => {
       let state = candidateReducer(
         buildInitialState(),
         setAvailableSkills([mockSkill('s1'), mockSkill('s2')]),
       )
       state = candidateReducer(state, toggleSkill('s1'))
-      expect(state.selectedSkillIds).toContain('s1')
       const skill = state.availableSkills.find((s) => s.skillId === 's1')
       expect(skill?.selected).toBe(true)
     })
 
-    it('removes a skill from selectedSkillIds when already selected', () => {
+    it('marks a selected skill as unselected', () => {
       let state = candidateReducer(
         buildInitialState(),
         setAvailableSkills([mockSkill('s1', true)]),
       )
       state = candidateReducer(state, toggleSkill('s1'))
-      expect(state.selectedSkillIds).not.toContain('s1')
       const skill = state.availableSkills.find((s) => s.skillId === 's1')
       expect(skill?.selected).toBe(false)
     })
   })
 
   describe('setBuildMyCv', () => {
-    it('stores buildMyCv data and sets buildMyCvLoaded to true', () => {
-      const cv = { ...emptyBuildMyCv, skills: ['React'] }
+    it('hydrates CV data and derived metadata in one state update', () => {
+      const cv = {
+        ...emptyBuildMyCv,
+        resumeId: 'resume-1',
+        lastModified: '2026-09-02T10:00:00.000Z',
+        skills: ['React'],
+      }
       const state = candidateReducer(buildInitialState(), setBuildMyCv(cv))
       expect(state.buildMyCv.skills).toEqual(['React'])
       expect(state.buildMyCvLoaded).toBe(true)
-    })
-  })
-
-  describe('setBuildMyCvExists', () => {
-    it('sets buildMyCvExists', () => {
-      const state = candidateReducer(buildInitialState(), setBuildMyCvExists(true))
       expect(state.buildMyCvExists).toBe(true)
+      expect(state.buildMyCvLastModified).toBe('2026-09-02T10:00:00.000Z')
     })
   })
 
-  describe('setBuildMyCvLastModified', () => {
-    it('sets the last modified timestamp', () => {
-      const ts = '2024-06-01T12:00:00Z'
-      const state = candidateReducer(buildInitialState(), setBuildMyCvLastModified(ts))
-      expect(state.buildMyCvLastModified).toBe(ts)
-    })
-
-    it('sets null', () => {
-      const state = candidateReducer(buildInitialState(), setBuildMyCvLastModified(null))
-      expect(state.buildMyCvLastModified).toBeNull()
+  describe('setBuildMyCvMetadata', () => {
+    it('updates CV existence and last modified metadata atomically', () => {
+      const state = candidateReducer(
+        buildInitialState(),
+        setBuildMyCvMetadata({ exists: true, lastModified: '2024-06-01T12:00:00Z' }),
+      )
+      expect(state.buildMyCvExists).toBe(true)
+      expect(state.buildMyCvLastModified).toBe('2024-06-01T12:00:00Z')
     })
   })
 
@@ -234,11 +212,9 @@ describe('candidateSlice', () => {
   describe('clearCandidateState', () => {
     it('resets to initial state', () => {
       let state = candidateReducer(buildInitialState(), setUserId('u-1'))
-      state = candidateReducer(state, setSelectedJobId('j001'))
-      state = candidateReducer(state, setBuildMyCvExists(true))
+      state = candidateReducer(state, setBuildMyCvMetadata({ exists: true, lastModified: null }))
       state = candidateReducer(state, clearCandidateState())
       expect(state.userId).toBeNull()
-      expect(state.selectedJobId).toBeNull()
       expect(state.buildMyCvExists).toBe(false)
       expect(state.savedJobs).toEqual([])
     })

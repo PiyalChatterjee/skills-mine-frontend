@@ -50,6 +50,13 @@
     gap: 24px;
 }
 
+.guestHeaderRow {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'title';
+    align-items: center;
+}
+
 .backButton.backButton {
     grid-area: back;
     justify-self: start;

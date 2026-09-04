@@ -134,6 +134,10 @@
   letter-spacing: 0.1px;
 }
 
+.feedbackCentered {
+  text-align: center;
+}
+
 @media (max-width: 1320px) {
   .pageRoot {
     padding-left: 32px;

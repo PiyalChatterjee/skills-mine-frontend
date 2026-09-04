@@ -7,17 +7,15 @@ import LoginPage from './LoginPage'
 // Asset mocks
 vi.mock('@/assets/login-face-img.jpg', () => ({ default: 'face.jpg' }))
 vi.mock('@/assets/login-vector.svg', () => ({ default: 'vector.svg' }))
-vi.mock('@/assets/public-layout/google-logo.png', () => ({ default: 'google-logo.png' }))
 vi.mock('@/assets/icons/password-eye-figma.svg', () => ({ default: 'eye.svg' }))
 
 const mockNavigate = vi.hoisted(() => vi.fn())
 const mockLogin = vi.hoisted(() => vi.fn())
-const mockStartGoogleLogin = vi.hoisted(() => vi.fn())
 const mockApiLogin = vi.hoisted(() => vi.fn())
-const mockExchangeGoogleToken = vi.hoisted(() => vi.fn())
 const mockIsProfileComplete = vi.hoisted(() => vi.fn())
 const mockForgotPassword = vi.hoisted(() => vi.fn())
 const mockDispatch = vi.hoisted(() => vi.fn())
+const mockRedirectToGoogleLogin = vi.hoisted(() => vi.fn())
 const mockAuthState = vi.hoisted(() => ({
   login: mockLogin,
   isAuthenticated: false,
@@ -37,25 +35,12 @@ vi.mock('react-redux', () => ({
   useDispatch: () => mockDispatch,
 }))
 
-const mockGoogleLoginBehavior = vi.hoisted(() => ({
-  shouldCallError: false,
-}))
-
-vi.mock('@react-oauth/google', () => ({
-  useGoogleLogin: (opts: { onSuccess?: (r: unknown) => void; onError?: () => void }) => {
-    mockStartGoogleLogin.mockImplementation(() => {
-      if (mockGoogleLoginBehavior.shouldCallError) {
-        opts.onError?.()
-      } else {
-        opts.onSuccess?.({ access_token: 'tok' })
-      }
-    })
-    return mockStartGoogleLogin
-  },
+vi.mock('@/app/auth/cognitoHostedUi', () => ({
+  redirectToGoogleLogin: mockRedirectToGoogleLogin,
 }))
 
 vi.mock('@/services/api/authApi', () => ({
-  authApi: { login: mockApiLogin, exchangeGoogleToken: mockExchangeGoogleToken },
+  authApi: { login: mockApiLogin },
   mapLoginResponseToSession: (r: unknown) => Promise.resolve(r),
 }))
 
@@ -69,7 +54,7 @@ vi.mock('@/modules/candidate/utils/profileCompleteness', () => ({
   isCandidateProfileCompleteForOnboarding: mockIsProfileComplete,
 }))
 
-const mockAuthApi = { login: mockApiLogin, exchangeGoogleToken: mockExchangeGoogleToken }
+const mockAuthApi = { login: mockApiLogin }
 
 const renderPage = (initialEntry = '/login') =>
   render(
@@ -81,7 +66,6 @@ const renderPage = (initialEntry = '/login') =>
 describe('LoginPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockGoogleLoginBehavior.shouldCallError = false
     mockAuthState.isAuthenticated = false
     mockAuthState.user = null
     mockIsProfileComplete.mockReturnValue(true)
@@ -137,7 +121,7 @@ describe('LoginPage', () => {
     fireEvent.submit(screen.getByRole('button', { name: /sign in/i }).closest('form')!)
     await waitFor(() => {
       expect(mockAuthApi.login).toHaveBeenCalledWith(
-        expect.objectContaining({ username: 'user@test.com', password: 'mypassword' }),
+        expect.objectContaining({ email: 'user@test.com', password: 'mypassword' }),
       )
       expect(mockLogin).toHaveBeenCalled()
     })
@@ -154,54 +138,32 @@ describe('LoginPage', () => {
     })
   })
 
-  it('shows google auth error when VITE_GOOGLE_CLIENT_ID is not set', async () => {
-    // VITE_GOOGLE_CLIENT_ID is set via .env, so in tests hasGoogleClientId is always true.
-    // Simulate the "missing" branch by stubbing the env to empty.
-    vi.stubEnv('VITE_GOOGLE_CLIENT_ID', '')
-    renderPage()
-    fireEvent.click(screen.getByRole('button', { name: /sign in with google/i }))
-    // In real env, hasGoogleClientId is true, so startGoogleLogin() is called instead.
-    // The google auth error shows via the onSuccess → exchange flow in this test env.
-    vi.unstubAllEnvs()
-  })
-
   it('renders AuthHero with correct headline', () => {
     renderPage()
     expect(screen.getByText(/where talent meets opportunity/i)).toBeInTheDocument()
   })
 
-  it('completes google sign-in when VITE_GOOGLE_CLIENT_ID is set', async () => {
-    vi.stubEnv('VITE_GOOGLE_CLIENT_ID', 'test-client-id')
-    mockExchangeGoogleToken.mockResolvedValue({ accessToken: 'g-token', refreshToken: 'g-refresh' })
+  it('redirects to Cognito Hosted UI when Sign in with Google is clicked', async () => {
+    mockRedirectToGoogleLogin.mockResolvedValue(undefined)
     renderPage()
     fireEvent.click(screen.getByRole('button', { name: /sign in with google/i }))
     await waitFor(() => {
-      expect(mockExchangeGoogleToken).toHaveBeenCalledWith({ accessToken: 'tok' })
-      expect(mockLogin).toHaveBeenCalled()
+      expect(mockRedirectToGoogleLogin).toHaveBeenCalled()
     })
-    vi.unstubAllEnvs()
   })
 
-  it('shows error when google token exchange fails', async () => {
-    vi.stubEnv('VITE_GOOGLE_CLIENT_ID', 'test-client-id')
-    mockExchangeGoogleToken.mockRejectedValue(new Error('Exchange failed'))
+  it('shows error when the Cognito Google redirect fails', async () => {
+    mockRedirectToGoogleLogin.mockRejectedValue(new Error('Redirect failed'))
     renderPage()
     fireEvent.click(screen.getByRole('button', { name: /sign in with google/i }))
     await waitFor(() => {
       expect(screen.getByText(/google sign-in failed/i)).toBeInTheDocument()
     })
-    vi.unstubAllEnvs()
   })
 
-  it('shows error when google login popup fails (onError)', async () => {
-    vi.stubEnv('VITE_GOOGLE_CLIENT_ID', 'test-client-id')
-    mockGoogleLoginBehavior.shouldCallError = true
-    renderPage()
-    fireEvent.click(screen.getByRole('button', { name: /sign in with google/i }))
-    await waitFor(() => {
-      expect(screen.getByText(/google sign-in failed/i)).toBeInTheDocument()
-    })
-    vi.unstubAllEnvs()
+  it('shows error when redirected back from Cognito with a callback error', () => {
+    renderPage('/login?error=google_callback')
+    expect(screen.getByText(/google sign-in failed/i)).toBeInTheDocument()
   })
 
   it('routes authenticated job seeker with incomplete profile to profile creation', async () => {

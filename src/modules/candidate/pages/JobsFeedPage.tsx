@@ -1,137 +1,34 @@
-import { useMemo } from 'react'
 import { Box, ButtonBase, CircularProgress, Typography } from '@mui/material'
-import { useDispatch } from 'react-redux'
-import { useSelector } from 'react-redux'
-import { useNavigate } from 'react-router-dom'
 import { OpportunitiesSearchInput, OpportunityJobCard } from '@/components/opportunities'
-import { useInfiniteScrollTrigger } from '@/hooks/useInfiniteScrollTrigger'
-import { useSearchQueryState } from '@/hooks/useSearchQueryState'
-import { useJobsSearch } from '@/modules/public/hooks/useJobsSearch'
-import { ROUTE_PATHS } from '@/routes/routePaths'
-import { setSelectedJobId } from '@/store/slices/candidateSlice'
-import { selectRecommendedJobIds } from '@/store/selectors'
-
-import type { AppDispatch } from '@/store'
 import arrowRight from '@/assets/cv-builder/arrow-right.svg'
-import { useOptimisticSaveJob } from '../hooks/useOptimisticSaveJob'
-import { useAppliedJobIds } from '../hooks/useAppliedJobIds'
-import {
-  useRecommendedPositionsQuery,
-  useSavedJobsQuery,
-} from '../hooks/useCandidateQueries'
-import { getApplicationStatusLabel } from '../utils/applicationStatus'
+import { useJobsFeedViewModel, type JobsFeedMode } from '../hooks/useJobsFeedViewModel'
 import styles from './LatestJobsPage.module.css'
-
-const toCityFromLocation = (location: string) => {
-  const [city] = location.split(',')
-  return city?.trim() || 'Unknown'
-}
-
-export type JobsFeedMode = 'latest' | 'saved' | 'recommended'
 
 type JobsFeedPageProps = {
   mode: JobsFeedMode
 }
 
 export const JobsFeedPage = ({ mode }: JobsFeedPageProps) => {
-  const navigate = useNavigate()
-  const dispatch = useDispatch<AppDispatch>()
-  const { savedJobIds, isJobSaved, isJobSaving, toggleJobSaved } = useOptimisticSaveJob()
-  const { applicationStages } = useAppliedJobIds()
-  const isSavedOnlyMode = mode === 'saved'
-  const isRecommendedOnlyMode = mode === 'recommended'
-  const isLatestMode = !isSavedOnlyMode && !isRecommendedOnlyMode
-  const recommendedJobIds = useSelector(selectRecommendedJobIds)
-  const feedRoute = isSavedOnlyMode
-    ? ROUTE_PATHS.savedJobs
-    : isRecommendedOnlyMode
-      ? ROUTE_PATHS.recommendedJobs
-      : ROUTE_PATHS.latestJobs
-  const savedJobsQuery = useSavedJobsQuery(isSavedOnlyMode)
-  const recommendedPositionsQuery = useRecommendedPositionsQuery(isRecommendedOnlyMode)
-
   const {
-    inputValue: searchInputValue,
-    normalizedValue: normalizedSearchTerm,
-    debouncedValue: debouncedSearchTerm,
-    shouldFilter: shouldFilterOpportunities,
-    shouldUseDebouncedQuery: shouldUseApiSearch,
-    handleInputChange: handleSearchChange,
-    clear: handleClearSearch,
-  } = useSearchQueryState({
-    minCharacters: 3,
-    debounceMs: 250,
-  })
-
-  const {
-    allJobs,
-    visibleJobs,
-    isJobsError,
-    jobsError,
-    isJobsLoading,
+    emptyMessage,
+    handleBack,
+    handleClearSearch,
+    handleSearchChange,
+    handleToggleSave,
+    handleViewJob,
+    hasJobs,
     hasNextPage,
-    isFetchingNextPage,
-    fetchNextPage,
-  } = useJobsSearch({
-    normalizedSearchTerm,
-    shouldFilter: shouldFilterOpportunities,
-    shouldUseDebouncedQuery: shouldUseApiSearch,
-    debouncedSearchTerm,
-    enabled: isLatestMode,
-  })
-  const jobsLoadTriggerRef = useInfiniteScrollTrigger({
-    enabled: !isSavedOnlyMode && !isRecommendedOnlyMode,
-    hasNextPage,
-    isFetchingNextPage,
-    isError: isJobsError,
-    itemCount: visibleJobs.length,
-    onLoadMore: fetchNextPage,
-  })
-
-  const jobsWithMatch = useMemo(() => {
-    const contractJobs = isSavedOnlyMode
-      ? (savedJobsQuery.data?.jobs ?? []).map((job) => ({
-          ...job,
-          industry: job.industry,
-          employmentType: job.employmentType ?? 'Permanent',
-          status: 'Open' as const,
-          applicationCount: job.applicationCount ?? 0,
-          requirements: job.requirements ?? [],
-          responsibilities: job.responsibilities ?? [],
-        }))
-      : isRecommendedOnlyMode
-        ? (recommendedPositionsQuery.data?.jobs ?? []).map((job) => ({
-            ...job,
-            industry: job.industry,
-            employmentType: job.employmentType ?? 'Permanent',
-            status: 'Open' as const,
-            applicationCount: job.applicationCount ?? 0,
-            requirements: job.requirements ?? [],
-            responsibilities: job.responsibilities ?? [],
-          }))
-        : visibleJobs.map((job) => ({
-            ...job,
-            matchScore: undefined,
-          }))
-
-    return contractJobs
-  }, [isRecommendedOnlyMode, isSavedOnlyMode, recommendedPositionsQuery.data, savedJobsQuery.data, visibleJobs])
-
-  const feedJobs = useMemo(() => {
-    // Saved/recommended jobs are fetched in full, so search filters them client-side by title
-    if ((isSavedOnlyMode || isRecommendedOnlyMode) && shouldFilterOpportunities) {
-      const term = normalizedSearchTerm.toLowerCase()
-      return jobsWithMatch.filter((job) => job.title.toLowerCase().includes(term))
-    }
-
-    return jobsWithMatch
-  }, [
-    isRecommendedOnlyMode,
+    isError,
+    isLatestMode,
+    isLoading,
     isSavedOnlyMode,
-    jobsWithMatch,
-    normalizedSearchTerm,
-    shouldFilterOpportunities,
-  ])
+    jobCards,
+    jobsLoadTriggerRef,
+    loadErrorMessage,
+    loadMoreMessage,
+    modeConfig,
+    searchInputValue,
+  } = useJobsFeedViewModel(mode)
 
   return (
     <Box className={[styles.pageRoot, isSavedOnlyMode ? styles.savedPageRoot : ''].filter(Boolean).join(' ')}>
@@ -140,7 +37,7 @@ export const JobsFeedPage = ({ mode }: JobsFeedPageProps) => {
           <ButtonBase
             type="button"
             className={styles.backButton}
-            onClick={() => navigate(ROUTE_PATHS.candidateDashboard)}
+            onClick={handleBack}
             disableRipple
           >
             <span className={styles.backButtonIconWrap} aria-hidden="true">
@@ -152,11 +49,11 @@ export const JobsFeedPage = ({ mode }: JobsFeedPageProps) => {
             component="h1"
             className={[styles.pageTitle, isSavedOnlyMode ? styles.savedPageTitle : ''].filter(Boolean).join(' ')}
           >
-            {isSavedOnlyMode ? 'Saved Jobs' : isRecommendedOnlyMode ? 'Recommended Jobs' : 'Latest Opportunities'}
+            {modeConfig.title}
           </Typography>
         </Box>
 
-        {!isSavedOnlyMode ? (
+        {modeConfig.showSearch ? (
           <Box className={styles.searchArea}>
             <OpportunitiesSearchInput
               value={searchInputValue}
@@ -167,77 +64,50 @@ export const JobsFeedPage = ({ mode }: JobsFeedPageProps) => {
         ) : null}
       </Box>
 
-      {(isJobsError || savedJobsQuery.isError || recommendedPositionsQuery.isError) ? (
+      {isError ? (
         <Typography component="p" className={styles.feedback}>
-          {jobsError?.message || 'Failed to load jobs.'}
+          {loadErrorMessage}
         </Typography>
-      ) : isJobsLoading || savedJobsQuery.isLoading || recommendedPositionsQuery.isLoading ? (
+      ) : isLoading ? (
         <Box className={styles.loadingState} aria-live="polite" aria-busy="true">
           <CircularProgress size={28} />
         </Box>
-      ) : feedJobs.length > 0 ? (
+      ) : hasJobs ? (
         <>
           <Box className={[styles.cardGrid, isSavedOnlyMode ? styles.savedCardGrid : ''].filter(Boolean).join(' ')}>
-            {feedJobs.map((job) => {
-              const isSaved = isJobSaved(job.jobId)
-              const isSaving = isJobSaving(job.jobId)
-
-              return (
+            {jobCards.map((card) => (
                 <OpportunityJobCard
-                  key={job.jobId}
-                  title={job.title}
-                  description={job.description ?? ''}
-                  tags={[
-                    job.industry,
-                    toCityFromLocation(job.location ?? ''),
-                    job.employmentType,
-                  ].filter(Boolean) as string[]}
+                  key={card.jobId}
+                  title={card.title}
+                  description={card.description}
+                  tags={card.tags}
                   actionLabel="View"
-                  onAction={() => {
-                    dispatch(setSelectedJobId(job.jobId))
-                    navigate(ROUTE_PATHS.jobDetails.replace(':jobId', job.jobId), {
-                      state: { job, from: feedRoute },
-                    })
-                  }}
-                  matchScore={isRecommendedOnlyMode ? job.matchScore : undefined}
-                  applicationStatus={getApplicationStatusLabel(applicationStages.get(job.jobId))}
-                  applicationStatusKey={applicationStages.get(job.jobId)?.trim().toLowerCase()}
+                  onAction={() => handleViewJob(card.job)}
+                  matchScore={card.matchScore}
+                  applicationStatus={card.applicationStatus}
+                  applicationStatusKey={card.applicationStatusKey}
                   showSaveButton
-                  isSaved={isSaved}
-                  isSaving={isSaving}
-                  onToggleSave={() => {
-                    void toggleJobSaved(job.jobId)
-                  }}
-                  saveLabel={isSaved ? `Unsave ${job.title}` : `Save ${job.title}`}
+                  isSaved={card.isSaved}
+                  isSaving={card.isSaving}
+                  onToggleSave={() => handleToggleSave(card.jobId)}
+                  saveLabel={card.saveLabel}
                 />
-              )
-            })}
+              ))}
           </Box>
 
-          {!isSavedOnlyMode && !isRecommendedOnlyMode && hasNextPage ? (
+          {isLatestMode && hasNextPage ? (
             <Box
               ref={jobsLoadTriggerRef}
-              className={styles.feedback}
-              sx={{ textAlign: 'center' }}
+              className={`${styles.feedback} ${styles.feedbackCentered}`}
               aria-live="polite"
             >
-              {isFetchingNextPage ? 'Loading more opportunities...' : 'Scroll to load more opportunities'}
+              {loadMoreMessage}
             </Box>
           ) : null}
         </>
       ) : (
         <Typography component="p" className={styles.feedback}>
-          {isSavedOnlyMode || isRecommendedOnlyMode
-            ? (isSavedOnlyMode ? savedJobIds : recommendedJobIds).size === 0
-              ? `You have no ${isSavedOnlyMode ? 'saved' : 'recommended'} jobs yet.`
-              : shouldFilterOpportunities
-                ? `No ${isSavedOnlyMode ? 'saved' : 'recommended'} jobs found for your search.`
-                : `No ${isSavedOnlyMode ? 'saved' : 'recommended'} jobs available right now.`
-            : shouldFilterOpportunities
-              ? 'No jobs found for your search.'
-              : allJobs.length === 0
-                ? 'No jobs available right now.'
-                : 'No matching jobs found.'}
+          {emptyMessage}
         </Typography>
       )}
     </Box>

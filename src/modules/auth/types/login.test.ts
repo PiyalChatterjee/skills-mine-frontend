@@ -4,7 +4,7 @@ import { loginSchema } from './login'
 describe('loginSchema', () => {
   it('accepts valid credentials', () => {
     const result = loginSchema.safeParse({
-      username: 'user@example.com',
+      email: 'user@example.com',
       password: 'secret',
       rememberMe: true,
     })
@@ -13,13 +13,13 @@ describe('loginSchema', () => {
 
   it('accepts credentials without rememberMe', () => {
     const result = loginSchema.safeParse({
-      username: 'user@example.com',
+      email: 'user@example.com',
       password: 'pass',
     })
     expect(result.success).toBe(true)
   })
 
-  it('rejects empty username', () => {
+  it('rejects empty email', () => {
     const result = loginSchema.safeParse({ username: '', password: 'pass' })
     expect(result.success).toBe(false)
     if (!result.success) {
@@ -28,9 +28,9 @@ describe('loginSchema', () => {
     }
   })
 
-  it('rejects non-email username', () => {
+  it('rejects non-email email', () => {
     const result = loginSchema.safeParse({
-      username: 'not-an-email',
+      email: 'not-an-email',
       password: 'pass',
     })
     expect(result.success).toBe(false)
@@ -42,7 +42,7 @@ describe('loginSchema', () => {
 
   it('rejects empty password', () => {
     const result = loginSchema.safeParse({
-      username: 'user@example.com',
+      email: 'user@example.com',
       password: '',
     })
     expect(result.success).toBe(false)
@@ -52,14 +52,14 @@ describe('loginSchema', () => {
     }
   })
 
-  it('trims whitespace from username before validating', () => {
+  it('trims whitespace from email before validating', () => {
     const result = loginSchema.safeParse({
-      username: '  user@example.com  ',
+      email: '  user@example.com  ',
       password: 'pass',
     })
     expect(result.success).toBe(true)
     if (result.success) {
-      expect(result.data.username).toBe('user@example.com')
+      expect(result.data.email).toBe('user@example.com')
     }
   })
 })

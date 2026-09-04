@@ -10,11 +10,9 @@ import type {
 
 interface CandidateState {
   userId: string | null;
-  selectedJobId: string | null;
   savedJobs: string[];
   recommendedJobs: string[];
   availableSkills: UserSkill[];
-  selectedSkillIds: string[];
   buildMyCv: BuildMyCvState;
   buildMyCvLoaded: boolean;
   buildMyCvExists: boolean;
@@ -32,11 +30,9 @@ const initialBuildMyCv: BuildMyCvState = {
 
 const initialState: CandidateState = {
   userId: null,
-  selectedJobId: null,
   savedJobs: [],
   recommendedJobs: [],
   availableSkills: [],
-  selectedSkillIds: [],
   buildMyCv: initialBuildMyCv,
   buildMyCvLoaded: false,
   buildMyCvExists: false,
@@ -49,10 +45,6 @@ const candidateSlice = createSlice({
   reducers: {
     setUserId: (state, action: PayloadAction<string>) => {
       state.userId = action.payload;
-    },
-
-    setSelectedJobId: (state, action: PayloadAction<string | null>) => {
-      state.selectedJobId = action.payload;
     },
 
     setSavedJobs: (state, action: PayloadAction<string[]>) => {
@@ -74,39 +66,30 @@ const candidateSlice = createSlice({
     },
 
     setAvailableSkills: (state, action: PayloadAction<UserSkill[]>) => {
-      const nextSkills = Array.isArray(action.payload) ? action.payload : [];
-      state.availableSkills = nextSkills;
-      // sync selectedSkillIds from skills marked selected by the API
-      state.selectedSkillIds = nextSkills
-        .filter((s) => s.selected)
-        .map((s) => s.skillId);
+      state.availableSkills = Array.isArray(action.payload) ? action.payload : [];
     },
 
     toggleSkill: (state, action: PayloadAction<string>) => {
-      const skillId = action.payload;
-      const idx = state.selectedSkillIds.indexOf(skillId);
-      if (idx >= 0) {
-        state.selectedSkillIds.splice(idx, 1);
-        const skill = state.availableSkills.find((s) => s.skillId === skillId);
-        if (skill) skill.selected = false;
-      } else {
-        state.selectedSkillIds.push(skillId);
-        const skill = state.availableSkills.find((s) => s.skillId === skillId);
-        if (skill) skill.selected = true;
-      }
+      const skill = state.availableSkills.find((item) => item.skillId === action.payload);
+      if (skill) skill.selected = !skill.selected;
     },
 
     setBuildMyCv: (state, action: PayloadAction<BuildMyCvState>) => {
       state.buildMyCv = action.payload;
       state.buildMyCvLoaded = true;
+      state.buildMyCvExists = Boolean(action.payload.resumeId);
+      state.buildMyCvLastModified = action.payload.lastModified ?? null;
     },
 
-    setBuildMyCvExists: (state, action: PayloadAction<boolean>) => {
-      state.buildMyCvExists = action.payload;
-    },
-
-    setBuildMyCvLastModified: (state, action: PayloadAction<string | null>) => {
-      state.buildMyCvLastModified = action.payload;
+    setBuildMyCvMetadata: (
+      state,
+      action: PayloadAction<{
+        exists: boolean;
+        lastModified: string | null;
+      }>,
+    ) => {
+      state.buildMyCvExists = action.payload.exists;
+      state.buildMyCvLastModified = action.payload.lastModified;
     },
 
     updateBuildMyCvPersonalDetails: (
@@ -150,7 +133,6 @@ const candidateSlice = createSlice({
 
 export const {
   setUserId,
-  setSelectedJobId,
   setSavedJobs,
   setRecommendedJobs,
   addSavedJob,
@@ -158,8 +140,7 @@ export const {
   setAvailableSkills,
   toggleSkill,
   setBuildMyCv,
-  setBuildMyCvExists,
-  setBuildMyCvLastModified,
+  setBuildMyCvMetadata,
   updateBuildMyCvPersonalDetails,
   updateBuildMyCvCareerHistory,
   updateBuildMyCvSkills,

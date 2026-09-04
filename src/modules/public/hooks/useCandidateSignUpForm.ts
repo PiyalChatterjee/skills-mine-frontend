@@ -42,8 +42,11 @@ export const useCandidateSignUpForm = () => {
 
     await handleSubmit(async (formValues: SignUpFormValues) => {
       const response = await authApi.candidateRegister({
-        ...formValues,
-        acceptPrivacyPolicy: formValues.acceptTerms,
+        firstName: formValues.firstName,
+        lastName: formValues.lastName,
+        email: formValues.email,
+        mobileNumber: formValues.mobileNumber,
+        password: formValues.password,
       });
       submitted = isSuccessfulRegistration(response);
       if (submitted) {

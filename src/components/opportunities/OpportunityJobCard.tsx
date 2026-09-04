@@ -93,7 +93,7 @@ export const OpportunityJobCard = ({
             </div>
           ) : null}
 
-          <Typography component="h3" className={styles.title} sx={{ m: 0 }}>
+          <Typography component="h3" className={styles.title}>
             {title}
           </Typography>
 
@@ -149,7 +149,6 @@ export const OpportunityJobCard = ({
             <Typography
               component="p"
               className={styles.description}
-              sx={{ m: 0 }}
             >
               {description}
             </Typography>

@@ -181,6 +181,21 @@ export const PublicHeader = ({
                     );
                   }
 
+                  if (item.href) {
+                    return (
+                      <Box
+                        key={item.id}
+                        component="a"
+                        href={item.href}
+                        target="_blank"
+                        rel="noreferrer"
+                        className={itemClassName}
+                      >
+                        {item.label}
+                      </Box>
+                    );
+                  }
+
                   return (
                     <Box
                       key={item.id}
@@ -371,6 +386,22 @@ export const PublicHeader = ({
                         item.onClick?.();
                         setIsMobileNavOpen(false);
                       }}
+                      className={`${itemClassName} ${styles.mobileNavItem}`}
+                    >
+                      {item.label}
+                    </Box>
+                  );
+                }
+
+                if (item.href) {
+                  return (
+                    <Box
+                      key={`mobile-${item.id}`}
+                      component="a"
+                      href={item.href}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={() => setIsMobileNavOpen(false)}
                       className={`${itemClassName} ${styles.mobileNavItem}`}
                     >
                       {item.label}

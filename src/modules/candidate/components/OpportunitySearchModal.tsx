@@ -1,10 +1,5 @@
-import { useState } from "react";
-import { Box, Chip, Dialog, DialogContent, IconButton, InputBase, Typography } from "@mui/material";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { usePickerContext } from "@mui/x-date-pickers/hooks";
-import type { Dayjs } from "dayjs";
+import { Box, Checkbox, Dialog, DialogContent, IconButton, InputBase, MenuItem, Select, Typography, type SelectChangeEvent } from "@mui/material";
+import { datePostedOptions, jobTypeOptions, useOpportunitySearchModalState } from "@/modules/candidate/hooks/useOpportunitySearchModalState";
 import arrowDownIcon from "@/assets/opportunities/figma-arrow-down-s-line.svg";
 import closeIcon from "@/assets/opportunities/figma-close-line.svg";
 import searchIcon from "@/assets/opportunities/figma-search-line.svg";
@@ -15,21 +10,101 @@ type OpportunitySearchModalProps = {
   onClose: () => void;
 };
 
-// Renders the "Date posted" filter as a pill button that opens the calendar popup on click.
-const DatePostedField = () => {
-  const pickerContext = usePickerContext();
-  const label = pickerContext.value ? pickerContext.value.format("MMM D, YYYY") : "Date posted";
+type FilterOption = {
+  value: string;
+  label: string;
+};
+
+type FilterMultiSelectProps = {
+  label: string;
+  options: readonly FilterOption[];
+  value: string[];
+  onChange: (value: string[]) => void;
+};
+
+const FilterDropdownIcon = ({ className }: { className?: string }) => (
+  <img src={arrowDownIcon} alt="" className={`${styles.filterArrow} ${className ?? ""}`} />
+);
+
+const FilterMultiSelect = ({
+  label,
+  options,
+  value,
+  onChange,
+}: FilterMultiSelectProps) => {
+  const handleChange = (event: SelectChangeEvent<string[]>) => {
+    const nextValue = event.target.value;
+    onChange(typeof nextValue === "string" ? nextValue.split(",") : nextValue);
+  };
 
   return (
-    <button
-      type="button"
-      className={styles.filterButton}
-      ref={pickerContext.triggerRef}
-      onClick={() => pickerContext.setOpen((prev) => !prev)}
+    <Select
+      multiple
+      displayEmpty
+      value={value}
+      onChange={handleChange}
+      IconComponent={FilterDropdownIcon}
+      className={styles.filterSelect}
+      inputProps={{ "aria-label": label }}
+      MenuProps={{
+        slotProps: {
+          paper: {
+            sx: { maxHeight: 360 },
+          },
+        },
+      }}
+      renderValue={(selected) => {
+        const values = selected as string[];
+        return values.length > 0 ? `${label} (${values.length})` : label;
+      }}
     >
-      {label}
-      <img src={arrowDownIcon} alt="" className={styles.filterArrow} />
-    </button>
+      {options.map((option) => (
+        <MenuItem key={option.value} value={option.value}>
+          <Checkbox checked={value.includes(option.value)} />
+          {option.label}
+        </MenuItem>
+      ))}
+    </Select>
+  );
+};
+
+const FilterSingleSelect = ({
+  label,
+  options,
+  value,
+  onChange,
+}: FilterMultiSelectProps) => {
+  const handleChange = (event: SelectChangeEvent<string>) => {
+    const nextValue = event.target.value;
+    onChange(nextValue ? [nextValue] : []);
+  };
+
+  return (
+    <Select
+      displayEmpty
+      value={value[0] ?? ""}
+      onChange={handleChange}
+      IconComponent={FilterDropdownIcon}
+      className={styles.filterSelect}
+      inputProps={{ "aria-label": label }}
+      MenuProps={{
+        slotProps: {
+          paper: {
+            sx: { maxHeight: 360 },
+          },
+        },
+      }}
+      renderValue={(selected) => {
+        const option = options.find((item) => item.value === selected);
+        return option ? option.label : label;
+      }}
+    >
+      {options.map((option) => (
+        <MenuItem key={option.value} value={option.value}>
+          {option.label}
+        </MenuItem>
+      ))}
+    </Select>
   );
 };
 
@@ -37,7 +112,18 @@ export const OpportunitySearchModal = ({
   open,
   onClose,
 }: OpportunitySearchModalProps) => {
-  const [datePosted, setDatePosted] = useState<Dayjs | null>(null);
+  const {
+    readableIndustryOptions,
+    readableLocationOptions,
+    selectedDatePosted,
+    selectedIndustries,
+    selectedJobTypes,
+    selectedLocations,
+    setSelectedDatePosted,
+    setSelectedIndustries,
+    setSelectedJobTypes,
+    setSelectedLocations,
+  } = useOpportunitySearchModalState(open);
 
   return (
     <Dialog
@@ -63,13 +149,6 @@ export const OpportunitySearchModal = ({
           </Typography>
 
           <Box className={styles.searchField}>
-            {datePosted && (
-              <Chip
-                label={datePosted.format("MMM D, YYYY")}
-                onDelete={() => setDatePosted(null)}
-                className={styles.filterChip}
-              />
-            )}
             <InputBase
               autoFocus
               placeholder="Search by job type"
@@ -82,29 +161,33 @@ export const OpportunitySearchModal = ({
           </Box>
 
           <Box className={styles.filters} aria-label="Search filters">
-            <button type="button" className={styles.filterButton}>
-              Industry
-              <img src={arrowDownIcon} alt="" className={styles.filterArrow} />
-            </button>
+            <FilterMultiSelect
+              label="Industry"
+              options={readableIndustryOptions}
+              value={selectedIndustries}
+              onChange={setSelectedIndustries}
+            />
 
-            <button type="button" className={styles.filterButton}>
-              Location
-              <img src={arrowDownIcon} alt="" className={styles.filterArrow} />
-            </button>
+            <FilterMultiSelect
+              label="Location"
+              options={readableLocationOptions}
+              value={selectedLocations}
+              onChange={setSelectedLocations}
+            />
 
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <DatePicker
-                value={datePosted}
-                onChange={(value) => setDatePosted(value)}
-                disableFuture
-                slots={{ field: DatePostedField }}
-              />
-            </LocalizationProvider>
+            <FilterSingleSelect
+              label="Date posted"
+              options={datePostedOptions}
+              value={selectedDatePosted}
+              onChange={setSelectedDatePosted}
+            />
 
-            <button type="button" className={styles.filterButton}>
-              Job type
-              <img src={arrowDownIcon} alt="" className={styles.filterArrow} />
-            </button>
+            <FilterMultiSelect
+              label="Job type"
+              options={jobTypeOptions}
+              value={selectedJobTypes}
+              onChange={setSelectedJobTypes}
+            />
           </Box>
         </Box>
       </DialogContent>

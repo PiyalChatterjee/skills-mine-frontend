@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ChangeEvent } from "react";
+import type { ReactNode } from "react";
 import {
 	Alert,
 	Box,
@@ -8,24 +8,14 @@ import {
 	Stack,
 	Typography,
 } from "@mui/material";
-import { useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/app/auth/AuthContext";
-import { useZodForm } from "@/hooks/useZodForm";
-import { ROUTE_PATHS } from "@/routes/routePaths";
-import type { AppDispatch } from "@/store";
-import { saveProfileThunk } from "@/store/slices/candidateThunks";
 import {
 	ProfileSelectField,
 	ProfileTextField,
 } from "@/modules/candidate/components/ProfileFormFields";
 import {
-	getCandidateProfileUpdatePayload,
-	getProfileFormValues,
 	PROFILE_SELECT_OPTIONS,
-	profileFormSchema,
 } from "@/modules/candidate/pages/profileForm.config";
-import { useCandidateProfileQuery, useCandidateResourceId, useUserProfile } from "@/modules/candidate/hooks/useCandidateQueries";
+import { useCandidateProfileViewModel } from "@/modules/candidate/hooks/useCandidateProfileViewModel";
 import cameraPlaceholderIconSrc from "@/assets/icons/camera-placeholder.svg";
 import pencilLineIconSrc from "@/assets/icons/pencil-line.svg";
 import iconPersonalSrc from "@/assets/profile/icon-personal.svg";
@@ -37,7 +27,7 @@ type SectionCardProps = {
 	title: string;
 	showEdit?: boolean;
 	onEdit?: () => void;
-	children: React.ReactNode;
+	children: ReactNode;
 };
 
 const SectionCard = ({
@@ -82,116 +72,28 @@ const SectionCard = ({
 );
 
 const ProfilePage = () => {
-	const navigate = useNavigate();
-	const dispatch = useDispatch<AppDispatch>();
-	const { user } = useAuth();
-	const userId = user?.userId;
-	const candidateId = useCandidateResourceId();
 	const {
-		data: candidateProfile,
-		isLoading,
-		isFetching,
-		isError,
-		error,
-	} = useCandidateProfileQuery(candidateId, userId, Boolean(candidateId));
-	const { data: userProfile } = useUserProfile(userId);
-	const resolvedCandidateProfile = candidateProfile ?? null;
-	const {
+		activeProfilePhotoUrl,
 		control,
-		formState: { isDirty },
-		getValues,
-		reset,
-		trigger,
-	} = useZodForm(profileFormSchema, {
-		defaultValues: getProfileFormValues(null),
-	});
-	const [isPersonalEditing, setIsPersonalEditing] = useState(false);
-	const [isDesiredEditing, setIsDesiredEditing] = useState(false);
-	const [profilePhotoPreviewUrl, setProfilePhotoPreviewUrl] = useState<
-		string | null
-	>(null);
-	const profilePhotoInputRef = useRef<HTMLInputElement | null>(null);
+		handleDashboard,
+		handleEditDesired,
+		handleEditPersonal,
+		handleProfilePhotoSelect,
+		handleUploadPhotoClick,
+		industryOptions,
+		isDesiredEditing,
+		isDirty,
+		isError,
+		isFetching,
+		isInitialProfileLoading,
+		isLoading,
+		isMissingUser,
+		isPersonalEditing,
+		loadErrorMessage,
+		profilePhotoInputRef,
+	} = useCandidateProfileViewModel();
 
-	useEffect(() => {
-		const formValues = getProfileFormValues(resolvedCandidateProfile);
-		reset({
-			...formValues,
-			password: userProfile?.authentication?.password ?? formValues.password,
-		});
-	}, [resolvedCandidateProfile, userProfile, reset]);
-
-	const handleEditPersonal = () => {
-		setIsPersonalEditing(true);
-	};
-
-	const handleEditDesired = () => {
-		setIsDesiredEditing(true);
-	};
-
-	const handleUploadPhotoClick = () => {
-		profilePhotoInputRef.current?.click();
-	};
-
-	const handleProfilePhotoSelect = (event: ChangeEvent<HTMLInputElement>) => {
-		const file = event.target.files?.[0];
-		if (!file) return;
-
-		const nextPreviewUrl = URL.createObjectURL(file);
-		setProfilePhotoPreviewUrl((previousUrl) => {
-			if (previousUrl) {
-				URL.revokeObjectURL(previousUrl);
-			}
-			return nextPreviewUrl;
-		});
-		event.target.value = "";
-	};
-
-	useEffect(() => {
-		return () => {
-			if (profilePhotoPreviewUrl) {
-				URL.revokeObjectURL(profilePhotoPreviewUrl);
-			}
-		};
-	}, [profilePhotoPreviewUrl]);
-
-	const handleDashboard = async () => {
-		if (!userId || isLoading || isFetching) {
-			return;
-		}
-
-		if (isDirty) {
-			const isFormValid = await trigger();
-			if (!isFormValid) {
-				return;
-			}
-
-			const payload = getCandidateProfileUpdatePayload(
-				getValues(),
-				resolvedCandidateProfile,
-			);
-
-			try {
-				const updatedProfile = await dispatch(
-					saveProfileThunk({ userId, payload }),
-				).unwrap();
-
-				reset(getProfileFormValues(updatedProfile));
-				setIsPersonalEditing(false);
-				setIsDesiredEditing(false);
-				navigate(ROUTE_PATHS.candidateDashboard);
-			} catch {
-				return;
-			}
-
-			return;
-		}
-		navigate(ROUTE_PATHS.candidateDashboard);
-	};
-
-	const activeProfilePhotoUrl =
-		profilePhotoPreviewUrl ?? resolvedCandidateProfile?.personalDetails?.profileImageUrl ?? null;
-
-	if (!userId) {
+	if (isMissingUser) {
 		return (
 			<Box className={styles.pageRoot}>
 				<Typography component="p">
@@ -201,7 +103,7 @@ const ProfilePage = () => {
 		);
 	}
 
-	if ((isLoading || isFetching) && !resolvedCandidateProfile) {
+	if (isInitialProfileLoading) {
 		return (
 			<Box className={styles.pageRoot}>
 				<CircularProgress />
@@ -210,14 +112,9 @@ const ProfilePage = () => {
 	}
 
 	if (isError) {
-		const message =
-			typeof error === "object" && error !== null && "message" in error
-				? String((error as { message?: unknown }).message ?? "Failed to load profile.")
-				: "Failed to load profile.";
-
 		return (
 			<Box className={styles.pageRoot}>
-				<Alert severity="error">{message}</Alert>
+				<Alert severity="error">{loadErrorMessage}</Alert>
 			</Box>
 		);
 	}
@@ -256,11 +153,11 @@ const ProfilePage = () => {
 								disabled={!isPersonalEditing}
 								maxLength={10}
 							/>
-							<ProfileSelectField
+							<ProfileTextField
 								control={control}
 								name="residentialLocation"
 								label="Residential location"
-								options={[...PROFILE_SELECT_OPTIONS.residentialLocation]}
+								fullWidth
 								disabled={!isPersonalEditing}
 							/>
 						</Box>
@@ -282,7 +179,8 @@ const ProfilePage = () => {
 								control={control}
 								name="targetedIndustries"
 								label="Targeted industries"
-								options={[...PROFILE_SELECT_OPTIONS.targetedIndustries]}
+								options={industryOptions}
+								multiple
 								disabled={!isDesiredEditing}
 							/>
 							<ProfileSelectField
@@ -290,6 +188,7 @@ const ProfilePage = () => {
 								name="preferredLocations"
 								label="Preferred location(s)"
 								options={[...PROFILE_SELECT_OPTIONS.preferredLocations]}
+								multiple
 								disabled={!isDesiredEditing}
 							/>
 							<ProfileSelectField

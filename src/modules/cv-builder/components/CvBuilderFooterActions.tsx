@@ -3,7 +3,7 @@ import arrowRight from '@/assets/cv-builder/arrow-right.svg'
 import styles from '../pages/CvBuilderPage.module.css'
 
 type CvBuilderFooterActionsProps = {
-  onBack: () => void
+  onBack?: () => void
   onNext: () => void
   isNextDisabled: boolean
   nextLabel?: string
@@ -21,10 +21,14 @@ const CvBuilderFooterActions = ({
 }: CvBuilderFooterActionsProps) => (
   <Box className={styles.footerBar}>
     <Box className={styles.footerBarInner}>
-      <Button type="button" onClick={onBack} className={`${styles.backButton} no-global-hover`} disableRipple>
-        <Box component="img" src={arrowRight} alt="" className={styles.buttonArrowBack} aria-hidden="true" />
-        Back
-      </Button>
+      {onBack ? (
+        <Button type="button" onClick={onBack} className={`${styles.backButton} no-global-hover`} disableRipple>
+          <Box component="img" src={arrowRight} alt="" className={styles.buttonArrowBack} aria-hidden="true" />
+          Back
+        </Button>
+      ) : (
+        <Box />
+      )}
       <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.5 }}>
         <Button type="button" onClick={onNext} className={styles.nextButton} disabled={isNextDisabled} disableRipple>
           {nextLabel}

@@ -263,6 +263,14 @@ sequenceDiagram
 
 The generated filename follows `<first>_<last>_<role>_<UTC timestamp>.pdf`. The role segment is `visitor`, `candidate`, or `recruiter`; filename parts are sanitized to alphanumeric lowercase values.
 
+### Guest Job Applications
+
+Unauthenticated visitors can open `/jobs/:jobId` directly. Selecting Apply stores a session-scoped guest application draft under `skillsmine.guest-application-drafts` and opens the standard CV Builder launcher without making an application API request. The destination is composed as `/candidate/cv-builder?job=<encoded jobId>`; the query parameter makes the selected job available after a refresh, while navigation state is only a fallback. Each draft retains the job snapshot, its source channel, timestamps, a seven-day expiry, and the completed normalized CV payload.
+
+Guest CV Builder shows the selected job title and metadata chips in its hero. Its Back button uses the `job` query parameter to return to `/jobs/:jobId`, preserving the application draft. The guest launcher provides both manual CV building and CV upload; either path can continue to the standard CV review screen.
+
+Guest CV submission changes the draft to `cv-completed` and returns to `/`. When a new candidate completes profile creation, the app imports one completed guest CV through the existing CV API, restores each completed draft through the normal job-application API, then clears the restored drafts and routes to the candidate dashboard. Drafts with missing CV data or failed restoration remain in session storage and follow the normal CV Builder route instead. The mock application endpoint is idempotent for the same authenticated user and job, preventing duplicate applications during restoration retries.
+
 ## API Layer
 
 ```mermaid

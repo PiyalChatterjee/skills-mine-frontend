@@ -1,28 +1,52 @@
-import { Box, Typography } from "@mui/material";
+import { Box, ButtonBase, Typography } from "@mui/material";
+import arrowRight from "@/assets/cv-builder/arrow-right.svg";
 import { GradientPatternHero } from "@/components/hero";
 import styles from "../pages/CvBuilderPage.module.css";
 
 type CvBuilderHeroSectionProps = {
-  totalSteps: number;
-  activeStepId: number;
+  onBack?: () => void;
+  heading?: string;
+  tags?: string[];
+  isJobContext?: boolean;
 };
 
 const CvBuilderHeroSection = ({
-  totalSteps,
-  activeStepId,
+  onBack,
+  heading = "CV Builder",
+  tags,
+  isJobContext = false,
 }: CvBuilderHeroSectionProps) => (
   <GradientPatternHero height={200}>
-    <Box className={styles.stepsIndicator}>
-      {Array.from({ length: totalSteps }, (_, index) => (
-        <span
-          key={index}
-          className={`${styles.step} ${index + 1 === activeStepId ? styles.stepActive : ""}`}
-        />
-      ))}
-    </Box>
-    <Typography component="h1" className={styles.heroHeading}>
-      CV Builder
+    {onBack && (
+      <ButtonBase
+        type="button"
+        className={
+          isJobContext ? styles.heroJobBackButton : styles.heroBackButton
+        }
+        onClick={onBack}
+        disableRipple
+      >
+        <span className={styles.heroBackButtonIconWrap} aria-hidden="true">
+          <Box component="img" src={arrowRight} alt="" className={styles.heroBackButtonArrow} />
+        </span>
+        <span>Back</span>
+      </ButtonBase>
+    )}
+    <Typography
+      component="h1"
+      className={tags?.length ? styles.heroJobHeading : styles.heroHeading}
+    >
+      {heading}
     </Typography>
+    {tags?.length ? (
+      <Box className={styles.heroTagsRow}>
+        {tags.map((tag) => (
+          <span key={tag} className={styles.heroTag}>
+            {tag}
+          </span>
+        ))}
+      </Box>
+    ) : null}
   </GradientPatternHero>
 );
 

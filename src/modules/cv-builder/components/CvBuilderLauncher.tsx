@@ -4,12 +4,16 @@ import type { CvActionCard } from "../types/cvBuilder";
 
 type CvBuilderLauncherProps = {
   cards: CvActionCard[];
+  heading?: string;
 };
 
-const CvBuilderLauncher = ({ cards }: CvBuilderLauncherProps) => (
+const CvBuilderLauncher = ({
+  cards,
+  heading = "Welcome to The Skills Mine CV Builder.",
+}: CvBuilderLauncherProps) => (
   <>
     <Typography component="h2" className={styles.welcomeHeading}>
-      Welcome to The Skills Mine CV Builder.
+      {heading}
     </Typography>
 
     <Box className={styles.cardsGrid}>

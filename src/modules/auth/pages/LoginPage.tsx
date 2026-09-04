@@ -6,7 +6,6 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { useGoogleLogin, type TokenResponse } from "@react-oauth/google";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/app/auth/AuthContext";
 import { useZodForm } from "@/hooks/useZodForm";
@@ -17,8 +16,9 @@ import { roleToDefaultRoute } from "@/routes/roleDefaultRoutes";
 import { loginSchema, type LoginFormValues } from "@/modules/auth/types";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import { authApi, mapLoginResponseToSession } from "@/services/api/authApi";
-import googleLogoUrl from "@/assets/public-layout/google-logo.png";
 import styles from "./LoginPage.module.css";
+import { redirectToGoogleLogin } from "@/app/auth/cognitoHostedUi";
+import googleLogoUrl from "@/assets/public-layout/google-logo.png";
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -26,8 +26,9 @@ const LoginPage = () => {
   const { login, isAuthenticated, user } = useAuth();
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [googleAuthError, setGoogleAuthError] = useState<string | null>(null);
-  const [pendingGoogleAuth, setPendingGoogleAuth] = useState(false);
-  const hasGoogleClientId = Boolean(import.meta.env.VITE_GOOGLE_CLIENT_ID?.trim());
+  const [isGoogleRedirecting, setIsGoogleRedirecting] = useState(false);
+  // Check for error redirected back from AuthCallbackPage (?error=google_callback)
+  const isGoogleCallbackError = searchParams.get('error') === 'google_callback';
   const {
     register,
     handleSubmit,
@@ -35,13 +36,13 @@ const LoginPage = () => {
     formState: { errors, isSubmitting },
   } = useZodForm(loginSchema, {
     defaultValues: {
-      username: "",
+      email: "",
       password: "",
       rememberMe: true,
     },
   });
   const passwordValue = watch("password");
-  const usernameValue = watch("username");
+  const emailValue = watch("email");
   const isForgotPasswordModalOpen = searchParams.get("forgot-password") === "1";
   const isPostSignupCandidate = searchParams.get("postSignup") === "candidate";
 
@@ -83,43 +84,15 @@ const LoginPage = () => {
     };
   }, [isAuthenticated, isPostSignupCandidate, navigate, user]);
 
-  const handleGoogleAuthSuccess = async (tokenResponse: TokenResponse) => {
+  const handleGoogleSignIn = async () => {
     try {
       setGoogleAuthError(null);
-      const response = await authApi.exchangeGoogleToken({
-        accessToken: tokenResponse.access_token,
-      });
-      const session = await mapLoginResponseToSession(response);
-      login(session);
+      setIsGoogleRedirecting(true);
+      await redirectToGoogleLogin();
     } catch {
+      setIsGoogleRedirecting(false);
       setGoogleAuthError("Google sign-in failed. Please try again.");
-    } finally {
-      setPendingGoogleAuth(false);
     }
-  };
-
-  const handleGoogleAuthError = () => {
-    setPendingGoogleAuth(false);
-    setGoogleAuthError("Google sign-in failed. Please try again.");
-  };
-
-  const startGoogleLogin = useGoogleLogin({
-    flow: "implicit",
-    onSuccess: handleGoogleAuthSuccess,
-    onError: handleGoogleAuthError,
-  });
-
-  const handleGoogleLogin = () => {
-    setSubmitError(null);
-
-    if (!hasGoogleClientId) {
-      setGoogleAuthError("Google Client ID is missing. Please set VITE_GOOGLE_CLIENT_ID.");
-      return;
-    }
-
-    setGoogleAuthError(null);
-    setPendingGoogleAuth(true);
-    startGoogleLogin();
   };
 
   const onSubmit = async (values: LoginFormValues) => {
@@ -138,7 +111,7 @@ const LoginPage = () => {
     <Box className={styles.pageRoot}>
       <ChangePasswordModal
         open={isForgotPasswordModalOpen}
-        prefillEmail={usernameValue}
+        prefillEmail={emailValue}
         onClose={handleForgotPasswordClose}
         mode="reset"
       />
@@ -155,15 +128,18 @@ const LoginPage = () => {
         <Box component="form" className={styles.formFields} onSubmit={handleSubmit(onSubmit)}>
           {submitError ? <Alert severity="error">{submitError}</Alert> : null}
           {googleAuthError ? <Alert severity="error">{googleAuthError}</Alert> : null}
+          {isGoogleCallbackError ? (
+            <Alert severity="error">Google sign-in failed. Please try again.</Alert>
+          ) : null}
 
           <Box className={styles.fieldGroup}>
             <Typography className={styles.fieldLabel}>Email</Typography>
             <TextField
               placeholder="Email"
               autoComplete="email"
-              error={Boolean(errors.username)}
-              helperText={errors.username?.message}
-              {...register("username")}
+              error={Boolean(errors.email)}
+              helperText={errors.email?.message}
+              {...register("email")}
               className={styles.inputField}
             />
           </Box>
@@ -187,7 +163,7 @@ const LoginPage = () => {
             type="submit"
             variant="contained"
             size="large"
-            disabled={isSubmitting || pendingGoogleAuth}
+            disabled={isSubmitting}
             className={styles.submitButton}
           >
             {isSubmitting ? "Signing in..." : "Log In"}
@@ -207,9 +183,8 @@ const LoginPage = () => {
           <Button
             type="button"
             variant="outlined"
+            disabled={isGoogleRedirecting}
             className={styles.googleButton}
-            onClick={handleGoogleLogin}
-            disabled={isSubmitting || pendingGoogleAuth}
             startIcon={
               <Box
                 component="img"
@@ -219,8 +194,9 @@ const LoginPage = () => {
                 className={styles.googleIcon}
               />
             }
+            onClick={() => void handleGoogleSignIn()}
           >
-            {pendingGoogleAuth ? "Opening Google..." : "Sign in with Google"}
+            {isGoogleRedirecting ? "Redirecting..." : "Sign in with Google"}
           </Button>
         </Box>
       </Box>

@@ -12,13 +12,15 @@ import { ROUTE_PATHS } from "@/routes/routePaths";
 import type { AppDispatch } from "@/store";
 import { pushNotification } from "@/store/slices/notificationSlice";
 import {
-  setBuildMyCvExists,
-  setBuildMyCvLastModified,
+  setBuildMyCvMetadata,
 } from "@/store/slices/candidateSlice";
 import type { SaveBuildMyCvRequest } from "@/types";
 import type { Role } from "@/types/auth";
 import type { CvBuilderFormValues } from "../types/cvBuilderSchema";
-import { generateCvPdfBlobFromText } from "../utils/downloadCvPdf";
+import {
+  saveGuestApplicationCv,
+  type GuestApplicationDraft,
+} from "@/modules/candidate/utils/guestApplicationDraft";
 
 // Not logged in => visitor; RECRUITER role => recruiter; everyone else => candidate
 const resolveResumeRoleLabel = (userId?: string, role?: Role): string => {
@@ -135,9 +137,10 @@ type UseCvBuilderDoneArgs = {
   buildMyCvExists: boolean;
   hasFormChanges?: boolean;
   userRole?: Role;
+  guestApplicationDraft?: GuestApplicationDraft;
 };
 
-const buildBuildMyCvRequest = ({
+export const buildBuildMyCvRequest = ({
   formValues,
   selectedLanguageEntries,
 }: {
@@ -212,6 +215,7 @@ export const useCvBuilderDone = ({
   buildMyCvExists,
   hasFormChanges = true,
   userRole,
+  guestApplicationDraft,
 }: UseCvBuilderDoneArgs) => {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
@@ -225,6 +229,24 @@ export const useCvBuilderDone = ({
   const isSavingCandidateProfile = isCreating || isUpdating;
 
   const handleDone = useCallback(async () => {
+    const payload = buildBuildMyCvRequest({
+      formValues: getFormValues(),
+      selectedLanguageEntries,
+    });
+
+    if (guestApplicationDraft) {
+      saveGuestApplicationCv(guestApplicationDraft.jobId, payload);
+      dispatch(
+        pushNotification({
+          title: "CV saved",
+          message: `Your application for ${guestApplicationDraft.jobTitle} is ready when you create an account.`,
+          level: "success",
+        }),
+      );
+      navigate(ROUTE_PATHS.landing);
+      return;
+    }
+
     const roleLabel = resolveResumeRoleLabel(userId, userRole);
     const successRoute = resolveSuccessRoute(roleLabel, candidateId);
 
@@ -240,15 +262,13 @@ export const useCvBuilderDone = ({
       return;
     }
 
-    const payload = buildBuildMyCvRequest({
-      formValues: getFormValues(),
-      selectedLanguageEntries,
-    });
-
     let pdfBlob: Blob;
     let fileName: string;
 
     try {
+      const { generateCvPdfBlobFromText } = await import(
+        "../utils/downloadCvPdf"
+      );
       pdfBlob = generateCvPdfBlobFromText(JSON.stringify(payload, null, 2));
       fileName = buildResumeFileName(
         payload.personalDetails?.firstName ?? "",
@@ -288,11 +308,11 @@ export const useCvBuilderDone = ({
         ? await triggerUpdate({ candidateId, payload }).unwrap()
         : await triggerCreate({ candidateId, payload }).unwrap();
 
-      dispatch(setBuildMyCvExists(true));
       dispatch(
-        setBuildMyCvLastModified(
-          result.lastModified ?? new Date().toISOString(),
-        ),
+        setBuildMyCvMetadata({
+          exists: true,
+          lastModified: result.lastModified ?? new Date().toISOString(),
+        }),
       );
 
       dispatch(
@@ -326,6 +346,7 @@ export const useCvBuilderDone = ({
     buildMyCvExists,
     candidateId,
     dispatch,
+    guestApplicationDraft,
     getFormValues,
     hasFormChanges,
     selectedLanguageEntries,
