@@ -11,7 +11,6 @@ import {
 import {
   DISABILITY_OPTIONS,
   GENDER_OPTIONS,
-  LOCATION_OPTIONS,
   NOTICE_PERIOD_OPTIONS,
   RACE_OPTIONS,
 } from "../types/cvBuilder";
@@ -85,22 +84,12 @@ const CvBuilderPersonalDetailsForm = () => {
           placeholder="Nationality"
         />
 
-        <Controller
+        <CvBuilderControlledTextField
           name="personalDetails.residentialLocation"
           control={control}
-          render={({ field, fieldState }) => (
-            <CvBuilderSelectField
-              label="Residential location"
-              value={field.value}
-              onChange={field.onChange}
-              options={LOCATION_OPTIONS}
-              span="full"
-              allowEmptyOption={false}
-              displayEmpty={true}
-              error={Boolean(fieldState.error)}
-              helperText={fieldState.error?.message}
-            />
-          )}
+          label="Residential location"
+          span="full"
+          placeholder="Residential location"
         />
 
         <CvBuilderControlledTextField

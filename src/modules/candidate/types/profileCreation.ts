@@ -4,6 +4,7 @@ import {
   toSouthAfricaApiPhoneNumber,
 } from '@/app/phoneNumber'
 import { profileCreationSchema } from '@/modules/candidate/schemas/profileCreationSchema'
+import { splitCandidateFullName } from '@/modules/candidate/utils/candidateName'
 import type {
   CandidateProfile,
   CandidateProfileUpdatePayload,
@@ -57,15 +58,6 @@ export type PendingCandidateProfile = Pick<
   'fullName' | 'email' | 'phoneNumber'
 >
 
-const splitFullName = (fullName: string) => {
-  const [firstName, ...rest] = fullName.trim().split(/\s+/)
-
-  return {
-    firstName: firstName ?? '',
-    lastName: rest.join(' ').trim(),
-  }
-}
-
 export const getProfileCreationDefaultValues = (
   profile: CandidateProfile | null,
 ): ProfileCreationFormValues => {
@@ -108,7 +100,7 @@ export const getProfileCreationPayload = (
   values: ProfileCreationFormValues,
   currentProfile: CandidateProfile | null,
 ): CandidateProfileUpdatePayload => {
-  const { firstName, lastName } = splitFullName(values.fullName)
+  const { firstName, lastName } = splitCandidateFullName(values.fullName)
   const currentExperience = currentProfile?.experience ?? []
   const firstExperience = currentExperience[0]
   const hasExperienceInput = Boolean(

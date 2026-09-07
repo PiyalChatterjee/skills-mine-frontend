@@ -10,6 +10,7 @@ import {
   getRoleHeaderNavKeys,
   type HeaderNavActionMap,
 } from "@/layouts/headerNav";
+import { OpportunitySearchModal } from "@/modules/candidate/components/OpportunitySearchModal";
 import { CandidateSignUpDrawer } from "@/modules/public/components/CandidateSignUpDrawer";
 import { RecruiterSignUpDrawer } from "@/modules/public/components/RecruiterSignUpDrawer";
 import { ROUTE_PATHS } from "@/routes/routePaths";
@@ -24,6 +25,7 @@ export type PublicLayoutOutletContext = {
 
 export const PublicLayout = () => {
   const [isSignUpDrawerOpen, setSignUpDrawerOpen] = useState(false);
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated, tokens, user } = useAuth();
@@ -60,7 +62,7 @@ export const PublicLayout = () => {
   };
 
   const handleSearchClick = () => {
-    // TODO: Implement action
+    setIsSearchModalOpen(true);
   };
 
   const handleSavedJobPostsClick = () => {
@@ -152,12 +154,7 @@ export const PublicLayout = () => {
             !isResetPasswordPage)
         }
         showSearchButton={
-          shouldUseAuthHeaderVariant ||
-          (!isLoginPage &&
-            !isSignupPage &&
-            !isLandingPage &&
-            !isHiringLandingMode &&
-            !isResetPasswordPage)
+          shouldUseAuthHeaderVariant || !shouldUseLoginHeaderVariant
         }
         showSignUp={
           !shouldUseLoginHeaderVariant &&
@@ -166,6 +163,11 @@ export const PublicLayout = () => {
           !isHiringLandingMode &&
           !shouldUseAuthHeaderVariant
         }
+      />
+
+      <OpportunitySearchModal
+        open={isSearchModalOpen}
+        onClose={() => setIsSearchModalOpen(false)}
       />
 
       <Box component="main" className={styles.contentArea}>

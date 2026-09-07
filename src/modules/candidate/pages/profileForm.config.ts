@@ -5,6 +5,7 @@ import {
   toSouthAfricaApiPhoneNumber,
 } from '@/app/phoneNumber'
 import { emailSchema } from '@/app/validation.schema'
+import { splitCandidateFullName } from '@/modules/candidate/utils/candidateName'
 import type { CandidateProfile, CandidateProfileUpdatePayload } from '@/modules/candidate/types'
 
 const requiredField = (label: string) =>
@@ -33,12 +34,20 @@ export const PROFILE_SELECT_OPTIONS = {
   ],
   targetedIndustries: [
     'Technology',
+    'Financial Services',
     'Banking',
     'Consulting',
     'Digital Marketing',
   ],
   preferredLocations: ['Hybrid', 'Remote', 'On-site'],
-  employmentType: ['Permanent', 'Contract'],
+  employmentType: [
+    'FULL_TIME',
+    'PART_TIME',
+    'CONTRACT',
+    'TEMPORARY',
+    'INTERNSHIP',
+    'FREELANCE',
+  ],
   availability: ['Immediately', '2 weeks', '1 month'],
 } as const
 
@@ -62,18 +71,23 @@ export const getProfileFormValues = (
     preferredJobTitle: profile?.desiredJob?.jobTitle ?? '',
     targetedIndustries: profile?.desiredJob?.industry ?? '',
     preferredLocations: profile?.desiredJob?.workType ?? '',
-    employmentType: profile?.desiredJob?.employmentType ?? '',
+    employmentType: normalizeEmploymentType(profile?.desiredJob?.employmentType),
     availability: profile?.desiredJob?.availableFrom ?? '',
     password: profile?.authentication?.password ?? '',
   }
+}
+
+const normalizeEmploymentType = (value?: string) => {
+  if (!value) return ''
+  if (value === 'Permanent') return 'FULL_TIME'
+  return value.toUpperCase().replaceAll(' ', '_')
 }
 
 export const getCandidateProfileUpdatePayload = (
   values: ProfileFormValues,
   currentProfile: CandidateProfile | null,
 ): CandidateProfileUpdatePayload => {
-  const [firstName, ...rest] = values.fullName.trim().split(' ')
-  const lastName = rest.join(' ').trim()
+  const { firstName, lastName } = splitCandidateFullName(values.fullName)
 
   return {
     personalDetails: {

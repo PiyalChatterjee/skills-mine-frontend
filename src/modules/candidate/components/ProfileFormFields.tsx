@@ -1,5 +1,6 @@
 import {
   Box,
+  Checkbox,
   MenuItem,
   TextField,
   Typography,
@@ -12,6 +13,7 @@ import {
   type FieldValues,
 } from "react-hook-form";
 import { type ReactNode, useId } from "react";
+import { formatEnumLabel } from "@/app/formatEnumLabel";
 import dropdownChevronIconSrc from "@/assets/icons/dropdown-chevron.svg";
 import styles from "@/modules/candidate/pages/ProfilePage.module.css";
 
@@ -39,6 +41,7 @@ type SelectFieldProps<TFieldValues extends FieldValues> = {
   disabled?: boolean;
   inputClassName?: string;
   disabledClassName?: string;
+  multiple?: boolean;
 };
 
 const DropdownIcon = ({ className }: { className?: string }) => (
@@ -142,6 +145,7 @@ export const ProfileSelectField = <TFieldValues extends FieldValues>({
   disabled = false,
   inputClassName = styles.readonlyInput,
   disabledClassName = styles.readonlyInputDisabled,
+  multiple = false,
 }: SelectFieldProps<TFieldValues>) => {
   const inputId = useId();
 
@@ -154,6 +158,10 @@ export const ProfileSelectField = <TFieldValues extends FieldValues>({
           const placeholderText = placeholder ?? label;
           const selectedValue =
             typeof field.value === "string" ? field.value : "";
+          const selectedValues = selectedValue
+            .split(",")
+            .map((value) => value.trim())
+            .filter(Boolean);
 
           return (
             <TextField
@@ -161,8 +169,13 @@ export const ProfileSelectField = <TFieldValues extends FieldValues>({
               variant="outlined"
               fullWidth
               select
-              value={selectedValue}
-              onChange={(event) => field.onChange(event.target.value)}
+              value={multiple ? selectedValues : selectedValue}
+              onChange={(event) => {
+                const nextValue = event.target.value;
+                field.onChange(
+                  Array.isArray(nextValue) ? nextValue.join(", ") : nextValue,
+                );
+              }}
               onBlur={field.onBlur}
               inputRef={field.ref}
               disabled={disabled}
@@ -176,10 +189,21 @@ export const ProfileSelectField = <TFieldValues extends FieldValues>({
               slotProps={{
                 select: {
                   displayEmpty: true,
+                  multiple,
                   IconComponent: DropdownIcon,
+                  MenuProps: {
+                    slotProps: {
+                      paper: {
+                        sx: { maxHeight: 360 },
+                      },
+                    },
+                  },
                   renderValue: (selected: unknown) => {
-                    const currentValue =
-                      typeof selected === "string" ? selected : "";
+                    const currentValue = Array.isArray(selected)
+                      ? selected.join(", ")
+                      : typeof selected === "string"
+                        ? selected
+                        : "";
                     if (!currentValue) {
                       return (
                         <span className={styles.selectPlaceholder}>
@@ -187,17 +211,25 @@ export const ProfileSelectField = <TFieldValues extends FieldValues>({
                         </span>
                       );
                     }
-                    return currentValue;
+                    return currentValue
+                      .split(", ")
+                      .map(formatEnumLabel)
+                      .join(", ");
                   },
                 },
               }}
             >
-              <MenuItem value="" disabled>
-                {placeholderText}
-              </MenuItem>
+              {!multiple && (
+                <MenuItem value="" disabled>
+                  {placeholderText}
+                </MenuItem>
+              )}
               {options.map((option) => (
                 <MenuItem key={option} value={option}>
-                  {option}
+                  {multiple ? (
+                    <Checkbox checked={selectedValues.includes(option)} />
+                  ) : null}
+                  {formatEnumLabel(option)}
                 </MenuItem>
               ))}
             </TextField>

@@ -27,9 +27,9 @@ function toFormValues(post: JobPost): MandateFormValues {
   return {
     companyName:          post.client ?? '',
     clientRate:           (post as unknown as Record<string, string>).clientRate ?? '',
-    contactPerson:        (post as unknown as Record<string, string>).contactPerson ?? '',
-    contactPersonEmail:   (post as unknown as Record<string, string>).contactPersonEmail ?? '',
-    contactPersonPhone:   (post as unknown as Record<string, string>).contactPersonPhone ?? '',
+    contactPerson:        post.contactPersonName ?? '',
+    contactPersonEmail:   post.contactPersonEmail ?? '',
+    contactPersonPhone:   post.contactPersonNumber ?? '',
     positionTitle:        post.title ?? '',
     location:             post.location ?? '',
     fillByDate:           post.targetCloseDate ? post.targetCloseDate.split('T')[0] : '',
@@ -77,6 +77,10 @@ const EditMandatePage = () => {
     try {
       await mandateApi.updateJobPost(mandateId!, {
         companyName:      values.companyName,
+        clientRate:       values.clientRate,
+        contactName:      values.contactPerson,
+        contactEmail:     values.contactPersonEmail,
+        contactPhoneNumber: values.contactPersonPhone,
         positionTitle:    values.positionTitle,
         location:         values.location,
         fillByDate:       values.fillByDate,

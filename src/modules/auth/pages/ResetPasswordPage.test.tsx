@@ -11,7 +11,7 @@ vi.mock('@/assets/icons/password-eye-figma.svg', () => ({ default: 'eye.svg' }))
 
 const mockNavigate = vi.hoisted(() => vi.fn())
 const mockDispatch = vi.hoisted(() => vi.fn())
-const mockResetPasswordThunk = vi.hoisted(() => vi.fn())
+const mockResetPassword = vi.hoisted(() => vi.fn())
 const mockClearTokens = vi.hoisted(() => vi.fn())
 const mockClearUser = vi.hoisted(() => vi.fn())
 const mockClearAuth = vi.hoisted(() => vi.fn())
@@ -25,8 +25,8 @@ vi.mock('react-router-dom', async () => {
   return { ...actual, useNavigate: () => mockNavigate }
 })
 
-vi.mock('@/store/slices/authThunks', () => ({
-  resetPasswordThunk: mockResetPasswordThunk,
+vi.mock('@/services/api/authApi', () => ({
+  authApi: { resetPassword: mockResetPassword, forgotPassword: vi.fn() },
 }))
 
 vi.mock('@/app/auth/tokenStorage', () => ({
@@ -56,23 +56,8 @@ describe('ResetPasswordPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
 
-    mockResetPasswordThunk.mockImplementation((payload: unknown) => ({
-      type: 'auth/resetPasswordThunkMock',
-      payload,
-    }))
-
-    mockDispatch.mockImplementation((action: { type?: string }) => {
-      if (action?.type === 'auth/resetPasswordThunkMock') {
-        return {
-          unwrap: () => Promise.resolve({
-            success: true,
-            statusCode: 200,
-            message: 'Password has been reset successfully.',
-          }),
-        }
-      }
-      return action
-    })
+    mockResetPassword.mockResolvedValue({ message: 'Password has been reset successfully.' })
+    mockDispatch.mockImplementation((action: unknown) => action)
   })
 
   it('shows an error notification when reset token is missing', async () => {
@@ -80,7 +65,7 @@ describe('ResetPasswordPage', () => {
     await submitValidForm()
 
     await waitFor(() => {
-      expect(mockResetPasswordThunk).not.toHaveBeenCalled()
+      expect(mockResetPassword).not.toHaveBeenCalled()
       expect(mockDispatch).toHaveBeenCalledWith(
         expect.objectContaining({
           type: 'notification/pushNotification',
@@ -104,7 +89,7 @@ describe('ResetPasswordPage', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Passwords do not match')).toBeInTheDocument()
-      expect(mockResetPasswordThunk).not.toHaveBeenCalled()
+      expect(mockResetPassword).not.toHaveBeenCalled()
     })
   })
 
@@ -113,10 +98,10 @@ describe('ResetPasswordPage', () => {
     await submitValidForm()
 
     await waitFor(() => {
-      expect(mockResetPasswordThunk).toHaveBeenCalledWith({
-        resetToken: expect.stringMatching(/^mock-/),
+      expect(mockResetPassword).toHaveBeenCalledWith({
+        email: 'test@example.com',
+        confirmationCode: '123456',
         newPassword: 'Password1!',
-        confirmNewPassword: 'Password1!',
       })
 
       expect(mockDispatch).toHaveBeenCalledWith(
@@ -140,14 +125,7 @@ describe('ResetPasswordPage', () => {
   })
 
   it('shows a generic error notification when reset fails', async () => {
-    mockDispatch.mockImplementation((action: { type?: string }) => {
-      if (action?.type === 'auth/resetPasswordThunkMock') {
-        return {
-          unwrap: () => Promise.reject(new Error('failed')),
-        }
-      }
-      return action
-    })
+    mockResetPassword.mockRejectedValue(new Error('failed'))
 
     renderPage('/reset-password?email=test@example.com')
     await submitValidForm()

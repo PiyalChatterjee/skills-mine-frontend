@@ -26,6 +26,7 @@ const SignupPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const invitationToken = searchParams.get("token") ?? undefined;
+  const visitorId = searchParams.get("visitorId") ?? undefined;
 
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -41,7 +42,7 @@ const SignupPage = () => {
       firstName: "",
       lastName: "",
       email: "",
-      staffNumber: "",
+          staffNumber: "",
       mobileNumber: "",
       password: "",
       confirmPassword: "",
@@ -61,24 +62,32 @@ const SignupPage = () => {
     setSubmitError(null);
     try {
       if (invitationToken) {
+        if (!values.staffNumber) {
+          setSubmitError("Staff number is required for invitation registration.");
+          return;
+        }
         // Recruiter (or any staff) invited via email link — use the staff registration flow
         await authApi.staffRegister({
           firstName: values.firstName,
           lastName: values.lastName,
           email: values.email,
-          mobileNumber: values.mobileNumber,
+          staffNumber: values.staffNumber,
           password: values.password,
-          confirmPassword: values.confirmPassword,
           invitationToken,
-          acceptTerms: values.acceptTerms,
-          acceptPrivacyPolicy: values.acceptTerms,
         });
       } else {
-        // Self-service candidate registration
-        await authApi.register({
-          ...values,
-          acceptPrivacyPolicy: values.acceptTerms,
-        });
+        const payload = {
+          firstName: values.firstName,
+          lastName: values.lastName,
+          email: values.email,
+          mobileNumber: values.mobileNumber,
+          password: values.password,
+        };
+        if (visitorId) {
+          await authApi.candidateRegisterFromVisitor({ ...payload, visitorId });
+        } else {
+          await authApi.candidateRegister(payload);
+        }
       }
 
       setSubmitSuccess(
@@ -164,16 +173,18 @@ const SignupPage = () => {
             />
           </Box>
 
-          <Box className={styles.fieldGroup}>
-            <Typography className={styles.fieldLabel}>Staff Number</Typography>
-            <TextField
-              placeholder="Staff Number"
-              error={Boolean(errors.staffNumber)}
-              helperText={errors.staffNumber?.message}
-              {...register("staffNumber")}
-              className={styles.inputField}
-            />
-          </Box>
+          {invitationToken ? (
+            <Box className={styles.fieldGroup}>
+              <Typography className={styles.fieldLabel}>Staff Number</Typography>
+              <TextField
+                placeholder="Staff Number"
+                error={Boolean(errors.staffNumber)}
+                helperText={errors.staffNumber?.message}
+                {...register("staffNumber")}
+                className={styles.inputField}
+              />
+            </Box>
+          ) : null}
 
           <AuthPasswordField
             label="Password"

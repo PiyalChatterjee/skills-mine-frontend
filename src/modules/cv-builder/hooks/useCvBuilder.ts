@@ -10,7 +10,6 @@ import {
   type CvBuilderFormValues,
 } from "../types/cvBuilderSchema";
 import {
-  CV_BUILDER_STEPS,
   DISABILITY_OPTIONS,
   GENDER_OPTIONS,
   LANGUAGES_LIST,
@@ -20,9 +19,6 @@ import {
   type CvBuilderView,
   type Language,
 } from "../types/cvBuilder";
-
-const FIRST_STEP = 1;
-const LAST_STEP = CV_BUILDER_STEPS.length;
 
 const isoYearMonthPattern = /^(19|20)\d{2}-(0[1-9]|1[0-2])$/;
 const currentRolePattern = /^(present|current)$/i;
@@ -171,13 +167,14 @@ export type CvBuilderPrefillData = Partial<CvBuilderFormValues>;
 const useCvBuilder = (
   prefillData?: CvBuilderPrefillData,
   forceApply = false,
+  initialView: CvBuilderView = "launcher",
 ) => {
   const uploadInputRef = useRef<HTMLInputElement | null>(null);
-  const [activeView, setActiveView] = useState<CvBuilderView>("launcher");
+  const [activeView, setActiveView] = useState<CvBuilderView>(initialView);
+  const [reviewSource, setReviewSource] = useState<"build" | "upload">("build");
   const [selectedUploadFile, setSelectedUploadFile] = useState<File | null>(
     null,
   );
-  const [currentStepId, setCurrentStepId] = useState<number>(FIRST_STEP);
 
   const form = useForm<CvBuilderFormValues>({
     resolver: zodResolver(cvBuilderSchema) as never,
@@ -357,93 +354,6 @@ const useCvBuilder = (
     isSkillsValid &&
     isEducationValid &&
     isLanguagesValid;
-  const canGoNext =
-    activeView === "form" &&
-    ((currentStepId === 1 && isPersonalDetailsValid) ||
-      (currentStepId === 2 && isCareerHistoryValid) ||
-      (currentStepId === 3 && isSkillsValid) ||
-      (currentStepId === 4 && isEducationValid) ||
-      (currentStepId === 5 && isLanguagesValid));
-
-  const validateStep = async (stepId: number): Promise<boolean> => {
-    switch (stepId) {
-      case 1:
-        return form.trigger("personalDetails");
-
-      case 2: {
-        const currentPosition = form
-          .getValues("personalDetails.currentPosition")
-          .trim();
-        if (!currentPosition) return true;
-        form.clearErrors("careerHistory");
-        const careerHistory = form.getValues("careerHistory");
-        if (!careerHistory.length) {
-          form.setError("careerHistory", {
-            type: "custom",
-            message:
-              "At least one position is required when current position is provided",
-          });
-          return false;
-        }
-        return form.trigger("careerHistory");
-      }
-
-      case 3: {
-        form.clearErrors("skills");
-        if (!form.getValues("skills").some((s) => s.name.trim())) {
-          form.setError("skills", {
-            type: "custom",
-            message: "At least one skill is required",
-          });
-          return false;
-        }
-        return true;
-      }
-
-      case 4: {
-        form.clearErrors("tertiaryEducation");
-        const tertiaryLen = form.getValues("tertiaryEducation").length;
-        const secondaryLen = form.getValues("secondaryEducation").length;
-        if (!tertiaryLen && !secondaryLen) {
-          form.setError("tertiaryEducation", {
-            type: "custom",
-            message: "At least one education entry is required",
-          });
-          return false;
-        }
-        const tertiaryOk = await form.trigger("tertiaryEducation");
-        const secondaryOk = await form.trigger("secondaryEducation");
-        return tertiaryOk && secondaryOk;
-      }
-
-      case 5: {
-        form.clearErrors("languages");
-        form.clearErrors("otherLanguage");
-        const langs = form.getValues("languages");
-        if (!langs.length) {
-          form.setError("languages", {
-            type: "custom",
-            message: "At least one language must be selected",
-          });
-          return false;
-        }
-        if (
-          langs.includes("Other") &&
-          !form.getValues("otherLanguage").trim()
-        ) {
-          form.setError("otherLanguage", {
-            type: "custom",
-            message: "Please enter the other language",
-          });
-          return false;
-        }
-        return true;
-      }
-
-      default:
-        return true;
-    }
-  };
 
   const handleUploadFileSelect = (event: ChangeEvent<HTMLInputElement>) => {
     const nextFile = event.target.files?.[0] ?? null;
@@ -453,29 +363,16 @@ const useCvBuilder = (
   const selectUploadFile = (file: File | null) => setSelectedUploadFile(file);
   const openUploadPicker = () => uploadInputRef.current?.click();
   const openBuildFlow = () => {
-    setActiveView("form");
-    setCurrentStepId(FIRST_STEP);
+    setReviewSource("build");
+    setActiveView("review");
   };
-  const goBack = () => {
-    if (activeView === "review") {
-      setActiveView("form");
-      setCurrentStepId(LAST_STEP);
-      return;
-    }
-    if (currentStepId > FIRST_STEP) {
-      setCurrentStepId((prev) => prev - 1);
-      return;
-    }
-    setActiveView("launcher");
-  };
-
-  const goNext = async () => {
-    if (!(await validateStep(currentStepId))) return;
-    if (currentStepId < LAST_STEP) {
-      setCurrentStepId((prev) => prev + 1);
-    } else {
-      setActiveView("review");
-    }
+  const goBack = () => setActiveView("launcher");
+  // Resume extraction isn't wired up to the mock API yet, so the uploaded-CV
+  // flow shows a blank form instead of stale/unrelated profile data.
+  const openReviewFlowBlank = () => {
+    form.reset(DEFAULT_FORM_VALUES);
+    setReviewSource("upload");
+    setActiveView("review");
   };
 
   const toggleLanguage = (language: Language) => {
@@ -537,16 +434,15 @@ const useCvBuilder = (
     form,
     uploadInputRef,
     activeView,
+    reviewSource,
     selectedUploadFile,
-    currentStepId,
     canViewCv,
-    canGoNext,
     handleUploadFileSelect,
     selectUploadFile,
     openUploadPicker,
     openBuildFlow,
+    openReviewFlowBlank,
     goBack,
-    goNext,
     selectedLanguages,
     selectedLanguageEntries,
     otherLanguage: otherLanguageValue ?? "",

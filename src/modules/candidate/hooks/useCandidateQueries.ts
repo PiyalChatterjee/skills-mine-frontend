@@ -15,7 +15,7 @@ import {
   useUpdateBuildMyCvMutation,
   useUpdateCandidateProfileMutation as useUpdateCandidateProfileRtkMutation,
 } from '@/store/api/apiSlice'
-import { setSavedJobs, setRecommendedJobs, setAvailableSkills, setBuildMyCv, setBuildMyCvExists, setBuildMyCvLastModified } from '@/store/slices/candidateSlice'
+import { setSavedJobs, setRecommendedJobs, setAvailableSkills, setBuildMyCv } from '@/store/slices/candidateSlice'
 import type { CandidateProfileUpdatePayload } from '@/modules/candidate/types'
 import type { ApiError, BuildMyCvData, BuildMyCvState, SaveBuildMyCvRequest, UpdateBuildMyCvRequest } from '@/types'
 import type { AppDispatch } from '@/store'
@@ -40,9 +40,9 @@ export const useCandidateProfileQuery = (
   enabled = true,
 ) => {
   const fallbackId = useCandidateResourceId()
-  const resolvedId = candidateId || fallbackId
+  const resolvedId = candidateId || fallbackId || userId
 
-  return useGetCandidateProfileQuery({ candidateId: resolvedId, userId }, {
+  return useGetCandidateProfileQuery({ candidateId: resolvedId ?? '', userId }, {
     skip: !enabled || !resolvedId,
   })
 }
@@ -88,6 +88,23 @@ const mapApiError = (error: unknown): ApiError => {
     message: 'Unexpected query error',
     details: error,
   }
+}
+
+export const hasBuildMyCvData = (data: BuildMyCvState | undefined): boolean => {
+  if (!data) return false
+  if (data.resumeId) return true
+
+  const personalDetails = data.personalDetails
+  const hasPersonalDetails = Boolean(
+    personalDetails?.firstName?.trim() && personalDetails?.lastName?.trim(),
+  )
+  const hasCareerHistory = (data.careerHistory?.length ?? 0) > 0
+  const hasSkills = (data.skills?.length ?? 0) > 0
+  const hasEducation =
+    (data.education?.tertiaryEducation?.length ?? 0) > 0 ||
+    (data.education?.secondaryEducation?.length ?? 0) > 0
+
+  return hasPersonalDetails && (hasCareerHistory || hasSkills || hasEducation)
 }
 
 // Fetches UserProfile (savedJobs) and hydrates Redux candidate slice
@@ -159,16 +176,6 @@ export const useBuildMyCvQuery = (enabled = true, candidateId?: string) => {
   useEffect(() => {
     if (result.data) {
       dispatch(setBuildMyCv(result.data as BuildMyCvState))
-      // A non-empty resumeId or any personalDetails field indicates an existing record
-      const data = result.data as BuildMyCvState
-      const exists =
-        Boolean(data.resumeId) ||
-        Boolean(data.personalDetails?.firstName) ||
-        Boolean(data.personalDetails?.lastName) ||
-        (data.careerHistory?.length ?? 0) > 0 ||
-        (data.skills?.length ?? 0) > 0
-      dispatch(setBuildMyCvExists(exists))
-      dispatch(setBuildMyCvLastModified(data.lastModified ?? null))
     }
   }, [dispatch, result.data])
 

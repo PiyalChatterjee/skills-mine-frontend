@@ -1,5 +1,5 @@
 import { Box, Button } from "@mui/material";
-import { useGoogleLogin, type TokenResponse } from "@react-oauth/google";
+import { GoogleLogin, type CredentialResponse } from "@react-oauth/google";
 import googleLogoUrl from "@/assets/public-layout/google-logo.png";
 import styles from "./CandidateSignUpDrawer.module.css";
 
@@ -7,7 +7,7 @@ type SignUpGoogleButtonProps = {
   hasGoogleClientId: boolean;
   disabled: boolean;
   onAuthStart: () => void;
-  onAuthSuccess: (tokenResponse: TokenResponse) => void;
+  onAuthSuccess: (credentialResponse: CredentialResponse) => void;
   onAuthError: () => void;
   onUnavailable: () => void;
 };
@@ -15,7 +15,7 @@ type SignUpGoogleButtonProps = {
 type SignUpGoogleOAuthButtonProps = {
   disabled: boolean;
   onAuthStart: () => void;
-  onAuthSuccess: (tokenResponse: TokenResponse) => void;
+  onAuthSuccess: (credentialResponse: CredentialResponse) => void;
   onAuthError: () => void;
 };
 
@@ -25,35 +25,33 @@ const SignUpGoogleOAuthButton = ({
   onAuthSuccess,
   onAuthError,
 }: SignUpGoogleOAuthButtonProps) => {
-  const startGoogleLogin = useGoogleLogin({
-    flow: "implicit",
-    onSuccess: onAuthSuccess,
-    onError: onAuthError,
-  });
-
-  const handleClick = () => {
-    onAuthStart();
-    startGoogleLogin();
-  };
-
   return (
-    <Button
-      variant="outlined"
-      className={styles.googleButton}
-      startIcon={
+    <Box
+      className={[styles.googleButton, disabled ? styles.googleButtonDisabled : ""]
+        .filter(Boolean)
+        .join(" ")}
+    >
+      <Box className={styles.googleButtonContent} aria-hidden="true">
         <Box
           component="img"
           src={googleLogoUrl}
           alt=""
-          aria-hidden="true"
           className={styles.googleIcon}
         />
-      }
-      onClick={handleClick}
-      disabled={disabled}
-    >
-      Sign Up with Google
-    </Button>
+        Sign Up with Google
+      </Box>
+      {/* Real Google button rendered invisibly on top so clicks trigger the actual OAuth flow */}
+      <Box className={styles.googleButtonOverlay}>
+        <GoogleLogin
+          onSuccess={(credentialResponse) => {
+            onAuthStart();
+            onAuthSuccess(credentialResponse);
+          }}
+          onError={onAuthError}
+          useOneTap={false}
+        />
+      </Box>
+    </Box>
   );
 };
 

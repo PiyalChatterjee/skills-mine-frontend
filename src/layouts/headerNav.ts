@@ -5,6 +5,7 @@ export type HeaderNavKey =
   | "exploreJobs"
   | "dashboard"
   | "skillsBuild"
+  | "blog"
   | "signIn"
   | "candidateDashboard"
   | "candidateSavedJobPosts"
@@ -28,6 +29,7 @@ export type HeaderNavActionId =
 type HeaderNavDefinition = {
   label: string;
   to?: string;
+  href?: string;
   requiresAuth?: boolean;
   actionId?: HeaderNavActionId;
 };
@@ -36,6 +38,7 @@ export type HeaderNavItem = {
   id: HeaderNavKey;
   label: string;
   to?: string;
+  href?: string;
   isActive: boolean;
   requiresAuth?: boolean;
   onClick?: () => void;
@@ -56,7 +59,11 @@ const HEADER_NAV_DEFINITIONS: Record<HeaderNavKey, HeaderNavDefinition> = {
   },
   skillsBuild: {
     label: "Skills Build",
-    to: ROUTE_PATHS.landing,
+    href: "https://skillsbuild.org/",
+  },
+  blog: {
+    label: "Blog",
+    href: "https://theskillsmine.com/blog/",
   },
   signIn: {
     label: "Sign in",
@@ -113,8 +120,8 @@ const HEADER_NAV_DEFINITIONS: Record<HeaderNavKey, HeaderNavDefinition> = {
 };
 
 export const PUBLIC_HEADER_NAV_PRESETS = {
-  landing: ["signIn"] as const,
-  discovery: ["exploreJobs", "dashboard", "skillsBuild", "signIn"] as const,
+  landing: ["skillsBuild", "blog", "signIn"] as const,
+  discovery: ["skillsBuild", "blog", "signIn"] as const,
 } satisfies Record<string, readonly HeaderNavKey[]>;
 
 const ROLE_HEADER_NAV_PRESETS: Partial<Record<Role, readonly HeaderNavKey[]>> =
@@ -162,6 +169,7 @@ export const buildHeaderNavItems = ({
       id: key,
       label: definition.label,
       to: definition.to,
+      href: definition.href,
       isActive: Boolean(definition.to && definition.to === pathname),
       requiresAuth: definition.requiresAuth,
       onClick: definition.actionId ? actions[definition.actionId] : undefined,

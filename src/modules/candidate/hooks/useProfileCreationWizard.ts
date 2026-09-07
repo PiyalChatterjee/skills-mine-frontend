@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/app/auth/AuthContext'
+import { extractErrorMessage } from '@/app/errorUtils'
 import {
   useCandidateProfileQuery,
   useUpdateCandidateProfileMutation,
@@ -54,14 +55,6 @@ const isCurrentStepValid = (values: ProfileCreationFormValues) => {
   }).success
 }
 
-const getErrorMessage = (error: unknown, fallback: string) => {
-  if (typeof error === 'object' && error !== null && 'message' in error) {
-    return String((error as { message?: unknown }).message ?? fallback)
-  }
-
-  return fallback
-}
-
 export const useProfileCreationWizard = () => {
   const navigate = useNavigate()
   const { user } = useAuth()
@@ -75,7 +68,11 @@ export const useProfileCreationWizard = () => {
     isFetching,
     isError,
     error,
-  } = useCandidateProfileQuery(user?.candidateId, userId, Boolean(user?.candidateId))
+  } = useCandidateProfileQuery(
+    user?.candidateId,
+    userId,
+    Boolean(user?.candidateId || userId),
+  )
   const updateProfileMutation = useUpdateCandidateProfileMutation()
 
   const form = useForm<ProfileCreationFormValues>({
@@ -90,7 +87,7 @@ export const useProfileCreationWizard = () => {
 
   useEffect(() => {
     const profileDefaults = getProfileCreationDefaultValues(candidateProfile ?? null)
-    let pendingSignupDefaults: Partial<ProfileCreationFormValues> = {}
+    let pendingSignupDefaults: Partial<ProfileCreationFormValues>
 
     try {
       const storedDefaults = sessionStorage.getItem(PENDING_CANDIDATE_PROFILE_STORAGE_KEY)
@@ -154,7 +151,7 @@ export const useProfileCreationWizard = () => {
       navigate(ROUTE_PATHS.cvBuilder, { replace: true })
     } catch (saveError) {
       setSubmitError(
-        getErrorMessage(saveError, 'Failed to save your profile.'),
+        extractErrorMessage(saveError, 'Failed to save your profile.'),
       )
     }
   }
@@ -170,7 +167,7 @@ export const useProfileCreationWizard = () => {
     isLoading,
     isFetching,
     isError,
-    loadErrorMessage: getErrorMessage(error, 'Failed to load your profile.'),
+    loadErrorMessage: extractErrorMessage(error, 'Failed to load your profile.'),
     submitError,
     isSubmitting: updateProfileMutation.isLoading,
     isMissingUser: !userId,

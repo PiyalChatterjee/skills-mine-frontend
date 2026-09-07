@@ -5,59 +5,47 @@ const withDefault = (value: string | undefined, fallback: string): string =>
 
 export const apiEndpoints = {
   auth: {
-    register: withDefault(
-      import.meta.env.VITE_AUTH_REGISTER_ENDPOINT,
-      "/auth/register",
-    ),
     candidateRegister: withDefault(
       import.meta.env.VITE_AUTH_CANDIDATE_REGISTER_ENDPOINT,
-      "/api/v1/auth/candidates/register",
-    ),
-    recruiterRegister: withDefault(
-      import.meta.env.VITE_AUTH_RECRUITER_REGISTER_ENDPOINT,
-      "/api/v1/auth/recruiters/register",
+      "/api/auth-service/v1/auth/candidates/register",
     ),
     staffRegister: withDefault(
       import.meta.env.VITE_AUTH_STAFF_REGISTER_ENDPOINT,
-      "/api/v1/auth/staff/register",
+      "/api/auth-service/v1/auth/staff/register",
     ),
-    staffInvitationValidate: withDefault(
-      import.meta.env.VITE_AUTH_STAFF_INVITATION_VALIDATE_ENDPOINT,
-      "/api/v1/auth/staff-invitations/validate",
+    candidateVisitorConversion: withDefault(
+      import.meta.env.VITE_AUTH_CANDIDATE_VISITOR_CONVERSION_ENDPOINT,
+      "/api/auth-service/v1/auth/candidates/register/visitor/conversion",
     ),
-    login: withDefault(import.meta.env.VITE_AUTH_LOGIN_ENDPOINT, "/auth/login"),
+    googleRegister: withDefault(
+      import.meta.env.VITE_AUTH_GOOGLE_REGISTER_ENDPOINT,
+      "/api/auth-service/v1/auth/candidates/register-google",
+    ),
+    login: withDefault(import.meta.env.VITE_AUTH_LOGIN_ENDPOINT, "/api/auth-service/v1/auth/login"),
     forgotPassword: withDefault(
       import.meta.env.VITE_AUTH_FORGOT_PASSWORD_ENDPOINT,
-      "/auth/forgot-password",
+      "/api/auth-service/v1/auth/forgot-password",
     ),
     resetPassword: withDefault(
       import.meta.env.VITE_AUTH_RESET_PASSWORD_ENDPOINT,
-      "/api/v1/auth/reset-password",
-    ),
-    changePassword: withDefault(
-      import.meta.env.VITE_AUTH_CHANGE_PASSWORD_ENDPOINT,
-      "/auth/change-password",
+      "/api/auth-service/v1/auth/reset-password",
     ),
     logout: withDefault(
       import.meta.env.VITE_AUTH_LOGOUT_ENDPOINT,
-      "/auth/logout",
-    ),
-    googleExchange: withDefault(
-      import.meta.env.VITE_AUTH_GOOGLE_EXCHANGE_ENDPOINT,
-      "/auth/google/exchange",
+      "/api/auth-service/v1/auth/logout",
     ),
     me: withDefault(
       import.meta.env.VITE_AUTH_ME_ENDPOINT,
-      "/api/v1/users/me",
+      "/api/auth-service/v1/users/me",
     ),
+    validate: withDefault(import.meta.env.VITE_AUTH_VALIDATE_ENDPOINT, "/api/auth-service/v1/users/validate"),
   },
-  // admin.staffInvitations is not yet called anywhere in the app.
-  // admin: {
-  //   staffInvitations: withDefault(
-  //     import.meta.env.VITE_ADMIN_STAFF_INVITATIONS_ENDPOINT,
-  //     "/api/v1/admin/staff-invitations",
-  //   ),
-  // },
+  staff: {
+    profiles: withDefault(import.meta.env.VITE_STAFF_PROFILES_ENDPOINT, "/api/auth-service/v1/staff/profiles"),
+  },
+  admin: {
+    staffInvitationsSend: withDefault(import.meta.env.VITE_ADMIN_STAFF_INVITATIONS_SEND_ENDPOINT, "/api/auth-service/v1/admin/staff-invitations/send"),
+  },
   documents: {
     upload: withDefault(
       import.meta.env.VITE_DOCUMENTS_UPLOAD_ENDPOINT,
@@ -98,11 +86,11 @@ export const apiEndpoints = {
     ),
     buildMyCv: withDefault(
       import.meta.env.VITE_CANDIDATE_BUILDMYCV_ENDPOINT,
-      "/candidates/cv-build/",
+      "/candidates/cv-build/:candidateId",
     ),
     profile: withDefault(
       import.meta.env.VITE_CANDIDATE_PROFILE_ENDPOINT,
-      "/candidates/profile/",
+      "/candidates/profile/:candidateId",
     ),
     resumePreview: withDefault(
       import.meta.env.VITE_CANDIDATE_RESUME_PREVIEW_ENDPOINT,
@@ -114,19 +102,27 @@ export const apiEndpoints = {
     ),
     recommendedJobs: withDefault(
       import.meta.env.VITE_CANDIDATE_RECOMMENDED_JOBS_ENDPOINT,
-      "/candidates/recommended-positions",
+      "/candidates/:candidateId/recommended-positions",
     ),
     savedJobs: withDefault(
       import.meta.env.VITE_CANDIDATE_SAVED_JOBS_ENDPOINT,
-      "/candidates/saved-jobs",
+      "/candidates/:candidateId/saved-jobs",
     ),
     savedJob: withDefault(
       import.meta.env.VITE_CANDIDATE_SAVED_JOB_ENDPOINT,
-      "/candidates/saved-jobs/:jobProfileId",
+      "/candidates/:candidateId/saved-jobs/:jobProfileId",
     ),
     aiActions: withDefault(
       import.meta.env.VITE_CANDIDATE_AI_ACTIONS_ENDPOINT,
       "/candidates/ai-actions/",
+    ),
+    applications: withDefault(
+      import.meta.env.VITE_CANDIDATE_APPLICATIONS_ENDPOINT,
+      "/candidates/apply",
+    ),
+    byEmail: withDefault(
+      import.meta.env.VITE_CANDIDATE_BY_EMAIL_ENDPOINT,
+      "/candidates/by-email",
     ),
   },
   applications: {
@@ -147,28 +143,38 @@ export const apiEndpoints = {
     list: withDefault(import.meta.env.VITE_JOBS_ENDPOINT, "/jobs"),
     details: withDefault(
       import.meta.env.VITE_JOB_DETAILS_ENDPOINT,
-      "/jobs/:jobId",
+      "/jobs/:jobProfileId",
     ),
     profileDetails: withDefault(
       import.meta.env.VITE_JOB_PROFILE_DETAILS_ENDPOINT,
-      "/api/v1/job-service/jobs/:jobProfileId",
+      "/jobs/:jobProfileId",
     ),
-    save: withDefault(
-      import.meta.env.VITE_JOB_SAVE_ENDPOINT,
-      "/jobs/:jobId/save",
-    ),
-    apply: withDefault(
-      import.meta.env.VITE_JOB_APPLY_ENDPOINT,
-      "/jobs/:jobId/apply",
-    ),
-    listQueryParam: withDefault(import.meta.env.VITE_JOBS_QUERY_PARAM, "q"),
+    listQueryParam: withDefault(import.meta.env.VITE_JOBS_QUERY_PARAM, "search"),
     listPageParam: withDefault(import.meta.env.VITE_JOBS_PAGE_PARAM, "page"),
-    listLimitParam: withDefault(import.meta.env.VITE_JOBS_LIMIT_PARAM, "limit"),
+    listLimitParam: withDefault(import.meta.env.VITE_JOBS_LIMIT_PARAM, "size"),
+  },
+  dashboard: {
+    summary: withDefault(
+      import.meta.env.VITE_DASHBOARD_SUMMARY_ENDPOINT,
+      "/dashboard/summary",
+    ),
+  },
+  companies: {
+    list: withDefault(
+      import.meta.env.VITE_COMPANIES_LIST_ENDPOINT,
+      "/companies",
+    ),
   },
   industries: {
     list: withDefault(
       import.meta.env.VITE_INDUSTRIES_LIST_ENDPOINT,
       "/industries",
+    ),
+  },
+  locations: {
+    list: withDefault(
+      import.meta.env.VITE_LOCATIONS_LIST_ENDPOINT,
+      "/locations",
     ),
   },
   skills: {

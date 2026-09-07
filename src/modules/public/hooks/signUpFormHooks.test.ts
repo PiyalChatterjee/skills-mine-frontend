@@ -6,18 +6,15 @@ import { useRecruiterSignUpForm } from "@/modules/public/hooks/useRecruiterSignU
 
 const {
   mockCandidateRegister,
-  mockStaffRegister,
   mockReset,
 } = vi.hoisted(() => ({
   mockCandidateRegister: vi.fn(),
-  mockStaffRegister: vi.fn(),
   mockReset: vi.fn(),
 }));
 
 vi.mock("@/services/api/authApi", () => ({
   authApi: {
     candidateRegister: mockCandidateRegister,
-    staffRegister: mockStaffRegister,
   },
 }));
 
@@ -80,10 +77,11 @@ describe("sign up form hooks", () => {
     await expect(result.current.submitForm()).resolves.toBe(true);
   });
 
-  it("recruiter submitForm returns true on successful registration", async () => {
-    mockStaffRegister.mockResolvedValue({ statusCode: 201 });
+  it("recruiter submitForm rejects without the required invitation context", async () => {
     const { result } = renderHook(() => useRecruiterSignUpForm());
 
-    await expect(result.current.submitForm()).resolves.toBe(true);
+    await expect(result.current.submitForm()).rejects.toThrow(
+      "Recruiter registration requires an invitation link from an administrator.",
+    );
   });
 });

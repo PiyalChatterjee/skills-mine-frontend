@@ -3,18 +3,25 @@ import {
   unwrapEnvelopeData,
   unwrapResponseData,
 } from "@/services/api/axios";
+import type { AxiosResponse } from "axios";
 import { apiEndpoints, resolveEndpoint } from "@/services/api/endpoints";
 import type {
   BuildMyCvData,
+  BuildMyCvEducationSection,
+  BuildMyCvPersonalDetails,
   BuildMyCvState,
   AiActionsData,
+  ApplyJobRequest,
+  ApplyJobResponse,
   CandidateLandingData,
   CandidateStatisticsData,
   CandidateApplication,
+  CandidateAuthentication,
+  CandidateExperience,
+  CandidateLanguage,
   CandidateDashboardData,
   CandidateDashboardQuery,
   CandidateProfile,
-  CandidateProfileResponse,
   CvDownloadData,
   CvPreviewData,
   CvUploadData,
@@ -27,12 +34,16 @@ import type {
   SimpleCandidateProfileResponse,
   UpdateBuildMyCvRequest,
   ResumeDocumentUploadResult,
+  ResumeRef,
+  PersonalDetails,
+  DesiredJob,
   SuccessEnvelope,
   UserProfile,
   UserSkill,
 } from "@/types/api";
 import type { CandidateProfileUpdatePayload } from "@/modules/candidate/types";
 import { toSouthAfricaApiPhoneNumber } from "@/app/phoneNumber";
+import { formatEnumLabel } from "@/app/formatEnumLabel";
 
 const isUserSkill = (value: unknown): value is UserSkill => {
   if (!value || typeof value !== "object") {
@@ -128,38 +139,99 @@ const responseData = <T>(payload: T | { data?: T }): T => {
   return payload as T;
 };
 
-const mapDashboardResponse = (payload: unknown): CandidateDashboardData => {
-  const data = responseData(payload as Record<string, unknown>) as Record<string, unknown>;
+type RawDashboardPipelineStage =
+  | string
+  | {
+      stage_code?: string;
+      display_name?: string;
+      from_stage_code?: string;
+      to_stage_code?: string;
+      stage_history_id?: string;
+    };
+
+type RawDashboardApplication = {
+  id?: string;
+  application_id?: string;
+  job?: {
+    id?: string;
+    title?: string;
+    company?: string;
+  };
+  job_id?: string;
+  job_profile_id?: string;
+  job_profile_id_ref?: string;
+  job_title?: string;
+  company_name?: string;
+  stage?: string;
+  current_stage?: string;
+  current_stage_code?: string;
+  statusMessage?: string;
+  message?: string;
+  stage_progress?: RawDashboardPipelineStage[];
+  pipeline?: RawDashboardPipelineStage[];
+  application_status?: string;
+};
+
+type RawCandidateDashboardResponse = {
+  id?: string;
+  candidateId?: string;
+  candidate_id?: string;
+  summary?: Partial<CandidateDashboardData["summary"]>;
+  activity?: CandidateDashboardData["activity"];
+  applications?: RawDashboardApplication[];
+  quickLinks?: string[];
+};
+
+type RawCandidateDashboardEnvelope = {
+  success?: boolean;
+  status?: string;
+  statusCode?: number;
+  message?: string;
+  data?: RawCandidateDashboardResponse;
+};
+
+const mapDashboardResponse = (
+  payload: RawCandidateDashboardResponse | RawCandidateDashboardEnvelope,
+): CandidateDashboardData => {
+  const data = responseData<RawCandidateDashboardResponse>(payload);
   const applications = Array.isArray(data.applications) ? data.applications : [];
   const normalizedApplications = applications.map((item) => {
-    const application = item as Record<string, any>;
-    const progress = Array.isArray(application.stage_progress)
-      ? application.stage_progress
-      : application.pipeline;
+    const progress = Array.isArray(item.stage_progress)
+      ? item.stage_progress
+      : item.pipeline;
     return {
-      id: application.id ?? application.application_id,
-      job: application.job ?? {
-        id: application.job_id ?? application.job_profile_id ?? "",
-        title: application.job_title ?? "",
-        company: application.company_name ?? "",
+      id: item.id ?? item.application_id ?? "",
+      job: {
+        id:
+          item.job?.id ??
+          item.job_id ??
+          item.job_profile_id ??
+          item.job_profile_id_ref ??
+          "",
+        title: item.job?.title ?? item.job_title ?? "",
+        company: item.job?.company ?? item.company_name ?? "",
       },
-      stage: application.stage ?? application.current_stage,
-      statusMessage: application.statusMessage ?? application.message ?? "",
+      stage: item.stage ?? item.current_stage ?? item.current_stage_code ?? "",
+      statusMessage: item.statusMessage ?? item.message ?? "",
       pipeline: Array.isArray(progress)
-        ? progress.map((stage: Record<string, string> | string) =>
+        ? progress.map((stage) =>
             typeof stage === "string"
               ? stage
-              : stage.stage_code ?? stage.display_name ?? "",
+              : stage.stage_code ??
+                stage.display_name ??
+                stage.to_stage_code ??
+                stage.from_stage_code ??
+                "",
           )
         : [],
     };
   });
-  const summary = (data.summary ?? {}) as Record<string, number>;
-  const statuses = applications.map((item) => String((item as Record<string, unknown>).application_status ?? ""));
+  const summary = data.summary ?? {};
+  const statuses = applications.map((item) => String(item.application_status ?? ""));
 
   return {
-    id: String(data.id ?? ""),
-    candidateId: data.candidateId as string | undefined ?? data.candidate_id as string | undefined,
+    id: String(data.id ?? data.candidate_id ?? ""),
+    candidateId: data.candidateId ?? data.candidate_id,
     summary: {
       totalApplications: summary.totalApplications ?? normalizedApplications.length,
       submitted: summary.submitted ?? statuses.filter((status) => status === "SUBMITTED").length,
@@ -176,13 +248,67 @@ const mapDashboardResponse = (payload: unknown): CandidateDashboardData => {
   };
 };
 
-const mapJobRecord = (job: Record<string, any>) => ({
+type RawCandidateJobRecord = {
+  jobId?: string;
+  jobProfileId?: string;
+  job_profile_id?: string;
+  title?: string;
+  job_title?: string;
+  company?: string;
+  company_name?: string;
+  location?: string;
+  location_text?: string;
+  industry?: string;
+  workType?: string;
+  work_type?: string;
+  employmentType?: string;
+  employment_type?: string;
+  salaryRange?: string;
+  salary_min?: string | number;
+  salary_max?: string | number;
+  matchScore?: number;
+  match_score?: number;
+  skills?: string[];
+  skills_required?: string[];
+  requirements?: string[];
+  requirements_list?: string[];
+  responsibilities?: string[];
+  responsibilities_list?: string[];
+  postedDate?: string;
+  published_at?: string;
+  description?: string;
+  job_description?: string;
+  job_description_snippet?: string;
+  savedAt?: string;
+  saved_at?: string;
+};
+
+type RawCandidateJobCollection = {
+  candidateId?: string;
+  candidate_id?: string;
+  jobs?: RawCandidateJobRecord[];
+  saved_jobs?: RawCandidateJobRecord[];
+  recommended_positions?: RawCandidateJobRecord[];
+  total?: number;
+  pagination?: { total_items?: number };
+};
+
+type RawCandidateJobCollectionEnvelope = {
+  success?: boolean;
+  status?: string;
+  statusCode?: number;
+  message?: string;
+  data?: RawCandidateJobCollection;
+};
+
+const mapJobRecord = (job: RawCandidateJobRecord) => ({
   jobId: job.jobId ?? job.job_profile_id ?? "",
+  jobProfileId: job.jobProfileId ?? job.job_profile_id ?? "",
   title: job.title ?? job.job_title ?? "",
   company: job.company ?? job.company_name ?? "",
-  location: job.location ?? "",
-  workType: job.workType ?? job.work_type ?? "",
-  employmentType: job.employmentType ?? job.employment_type ?? "",
+  location: job.location ?? job.location_text ?? "",
+  workType: formatEnumLabel(job.workType ?? job.work_type),
+  employmentType: formatEnumLabel(job.employmentType ?? job.employment_type),
   salaryRange: job.salaryRange ?? `${job.salary_min ?? ""}-${job.salary_max ?? ""}`,
   matchScore: job.matchScore ?? job.match_score ?? 0,
   skills: job.skills ?? job.skills_required ?? [],
@@ -193,25 +319,36 @@ const mapJobRecord = (job: Record<string, any>) => ({
   savedAt: job.savedAt ?? job.saved_at,
 });
 
-const mapSavedJobsResponse = (payload: unknown): SavedJobsData => {
-  const data = responseData(payload as Record<string, unknown>) as Record<string, any>;
-  const jobs = data.jobs ?? data.saved_jobs ?? [];
+type CandidateJobCollectionData = SavedJobsData | RecommendedJobsData;
+
+const mapCandidateJobCollectionResponse = <
+  TCollection extends CandidateJobCollectionData,
+>(
+  payload: RawCandidateJobCollection | RawCandidateJobCollectionEnvelope,
+  jobsField: "saved_jobs" | "recommended_positions",
+): TCollection => {
+  const data = responseData<RawCandidateJobCollection>(payload);
+  const jobs = data.jobs ?? data[jobsField] ?? [];
+
   return {
     candidateId: data.candidateId ?? data.candidate_id ?? "",
     jobs: jobs.map(mapJobRecord),
     total: data.total ?? data.pagination?.total_items ?? jobs.length,
-  };
+  } as unknown as TCollection;
 };
 
-const mapRecommendedResponse = (payload: unknown): RecommendedJobsData => {
-  const data = responseData(payload as Record<string, unknown>) as Record<string, any>;
-  const jobs = data.jobs ?? data.recommended_positions ?? [];
-  return {
-    candidateId: data.candidateId ?? data.candidate_id ?? "",
-    jobs: jobs.map(mapJobRecord),
-    total: data.total ?? data.pagination?.total_items ?? jobs.length,
-  };
-};
+const mapSavedJobsResponse = (
+  payload: RawCandidateJobCollection | RawCandidateJobCollectionEnvelope,
+): SavedJobsData =>
+  mapCandidateJobCollectionResponse<SavedJobsData>(payload, "saved_jobs");
+
+const mapRecommendedResponse = (
+  payload: RawCandidateJobCollection | RawCandidateJobCollectionEnvelope,
+): RecommendedJobsData =>
+  mapCandidateJobCollectionResponse<RecommendedJobsData>(
+    payload,
+    "recommended_positions",
+  );
 
 // The CV builder accepts a partial update: only the sections present in the body
 // are overwritten, so undefined sections are stripped before sending.
@@ -230,19 +367,33 @@ const toCvPayload = (payload: SaveBuildMyCvRequest) => {
     : undefined;
 
   const body: Record<string, unknown> = {
-    personalDetails,
-    careerHistory: payload.careerHistory?.map((item) => ({
-      company: item.company,
-      jobTitle: item.jobTitle,
-      startDate: item.startDate,
-      endDate: item.endDate || null,
+    personal_details: personalDetails
+      ? {
+          first_name: personalDetails.firstName,
+          last_name: personalDetails.lastName,
+          phone_number: personalDetails.mobileNumber,
+          residential_location: personalDetails.location,
+          nationality: personalDetails.nationality,
+          race: personalDetails.race,
+          gender: personalDetails.gender,
+          disability_status: personalDetails.disabilityStatus,
+          current_company: personalDetails.currentCompany,
+          current_position: personalDetails.currentPosition,
+          notice_period: personalDetails.noticePeriod,
+        }
+      : undefined,
+    career_history: payload.careerHistory?.map((item) => ({
+      company_name: item.company,
+      position_held: item.jobTitle,
+      start_date: item.startDate,
+      end_date: item.endDate || null,
       responsibilities: item.responsibilities ?? "",
     })),
     skills: payload.skills,
     education: payload.education
       ? {
-          secondaryEducation: payload.education.secondaryEducation,
-          tertiaryEducation: payload.education.tertiaryEducation,
+          secondary: payload.education.secondaryEducation,
+          tertiary: payload.education.tertiaryEducation,
         }
       : undefined,
     languages: payload.languages,
@@ -253,11 +404,109 @@ const toCvPayload = (payload: SaveBuildMyCvRequest) => {
   );
 };
 
-const mapBuildResponse = (payload: unknown): any => {
-  const data = responseData(payload as Record<string, unknown>) as Record<string, any>;
+type RawBuildMyCvPersonalDetails = Partial<BuildMyCvPersonalDetails> & {
+  first_name?: string;
+  last_name?: string;
+  disability_status?: string;
+  residential_location?: string;
+  current_company?: string;
+  current_position?: string;
+  notice_period?: string;
+};
+
+type RawBuildMyCvCareerHistoryEntry = Partial<CandidateExperience> & {
+  company_name?: string;
+  employer_name?: string;
+  position_held?: string;
+  role_title?: string;
+  start_date?: string;
+  end_date?: string;
+  is_current?: boolean;
+  responsibilities_text?: string;
+};
+
+type RawBuildMyCvEducationEntry = {
+  level_code?: string;
+  institution?: string;
+  institution_name?: string;
+  schoolName?: string;
+  school_name?: string;
+  qualification?: string;
+  yearCompleted?: number | string | null;
+  year_completed?: number | string | null;
+};
+
+type RawBuildMyCvEducation =
+  | RawBuildMyCvEducationEntry[]
+  | {
+      secondary?: RawBuildMyCvEducationEntry;
+      tertiary?: RawBuildMyCvEducationEntry[];
+      secondaryEducation?: RawBuildMyCvEducationEntry[];
+      tertiaryEducation?: RawBuildMyCvEducationEntry[];
+    };
+
+type RawBuildMyCvResponse = {
+  resumeId?: string;
+  resume_id?: string;
+  currentStep?: string;
+  completedSteps?: string[];
+  steps?: string[];
+  personalDetails?: RawBuildMyCvPersonalDetails;
+  personal_details?: RawBuildMyCvPersonalDetails;
+  careerHistory?: RawBuildMyCvCareerHistoryEntry[];
+  career_history?: RawBuildMyCvCareerHistoryEntry[];
+  experience?: RawBuildMyCvCareerHistoryEntry[];
+  skills?: string[];
+  education?: RawBuildMyCvEducation;
+  languages?: Array<string | CandidateLanguage>;
+  validation?: string[];
+  summary?: string;
+  extractionStatus?: string;
+  extraction_status?: string;
+  createdAt?: string | null;
+  created_at?: string | null;
+  lastModified?: string | null;
+  last_modified?: string | null;
+  updatedAt?: string | null;
+  updated_at?: string | null;
+  desiredJob?: DesiredJob;
+  desired_job?: DesiredJob;
+};
+
+type RawBuildMyCvEnvelope = {
+  success?: boolean;
+  status?: string;
+  statusCode?: number;
+  message?: string;
+  data?: RawBuildMyCvResponse;
+};
+
+const mapBuildResponse = (
+  payload: RawBuildMyCvResponse | RawBuildMyCvEnvelope,
+): BuildMyCvData => {
+  const data = responseData<RawBuildMyCvResponse>(payload);
   const personal = data.personalDetails ?? data.personal_details ?? {};
   const education = data.education ?? {};
+  const educationEntries = Array.isArray(education) ? education : [];
   const careerHistory = data.careerHistory ?? data.career_history ?? data.experience ?? [];
+  const normalizeEducationEntry = (entry: RawBuildMyCvEducationEntry) => ({
+    institution:
+      entry.institution ??
+      entry.institution_name ??
+      entry.schoolName ??
+      entry.school_name ??
+      "",
+    qualification: entry.qualification ?? "",
+    yearCompleted: entry.yearCompleted ?? entry.year_completed ?? null,
+  });
+  const secondaryEducation = Array.isArray(education)
+    ? educationEntries.filter((item) => item.level_code === "SECONDARY")
+    : education.secondary
+      ? [education.secondary]
+      : education.secondaryEducation ?? [];
+  const tertiaryEducation = Array.isArray(education)
+    ? educationEntries.filter((item) => item.level_code !== "SECONDARY")
+    : education.tertiary ?? education.tertiaryEducation ?? [];
   return {
     resumeId: data.resumeId ?? data.resume_id ?? "",
     currentStep: data.currentStep ?? "",
@@ -276,19 +525,23 @@ const mapBuildResponse = (payload: unknown): any => {
       currentPosition: personal.currentPosition ?? personal.current_position,
       noticePeriod: personal.noticePeriod ?? personal.notice_period,
     },
-    careerHistory: careerHistory.map((item: Record<string, any>) => ({
+    careerHistory: careerHistory.map((item) => ({
       company: item.company ?? item.company_name ?? item.employer_name ?? "",
       jobTitle: item.jobTitle ?? item.position_held ?? item.role_title ?? "",
       startDate: item.startDate ?? item.start_date ?? "",
       endDate: item.endDate ?? item.end_date ?? (item.is_current ? "Present" : ""),
-      responsibilities: item.responsibilities ?? item.responsibilities_text,
+      responsibilities: Array.isArray(item.responsibilities)
+        ? item.responsibilities.filter(Boolean).join("; ")
+        : item.responsibilities ?? item.responsibilities_text,
     })),
     skills: data.skills ?? [],
     education: {
-      secondaryEducation: education.secondary ? [education.secondary] : education.secondaryEducation ?? [],
-      tertiaryEducation: education.tertiary ?? education.tertiaryEducation ?? [],
-    },
-    languages: (data.languages ?? []).map((item: any) => typeof item === "string" ? { language: item, proficiency: "" } : item),
+      secondaryEducation: secondaryEducation.map(normalizeEducationEntry),
+      tertiaryEducation: tertiaryEducation.map(normalizeEducationEntry),
+      } as unknown as BuildMyCvEducationSection,
+    languages: (data.languages ?? []).map((item) =>
+      typeof item === "string" ? { language: item, proficiency: "" } : item,
+    ),
     validation: data.validation ?? [],
     summary: data.summary ?? "",
     extractionStatus: data.extractionStatus ?? data.extraction_status ?? "NOT_STARTED",
@@ -305,16 +558,101 @@ const mapBuildResponse = (payload: unknown): any => {
   };
 };
 
+const mapBuildMyCvRequest = async (
+  request: Promise<AxiosResponse<RawBuildMyCvResponse | RawBuildMyCvEnvelope>>,
+): Promise<BuildMyCvData> => {
+  const response = await unwrapResponseData(request);
+  return mapBuildResponse(response);
+};
+
+type RawProfilePersonalDetails = Partial<PersonalDetails> & {
+  userId?: string;
+  first_name?: string;
+  last_name?: string;
+  full_name?: string;
+  phone_number?: string;
+  disability_status?: string;
+  residential_location?: string;
+  current_company?: string;
+  current_position?: string;
+  notice_period?: string;
+};
+
+type RawProfileDesiredJob = Partial<DesiredJob> & {
+  role_title?: string;
+  targeted_industry?: string;
+  work_type?: string;
+  employment_type?: string;
+  availability_code?: string;
+};
+
+type RawProfileEducationEntry = {
+  qualification?: string;
+  highest_grade_passed?: string;
+  [key: string]: unknown;
+};
+
+type RawProfileEducation = {
+  tertiary?: RawProfileEducationEntry[];
+  secondary?: RawProfileEducationEntry | null;
+  tertiaryEducation?: RawProfileEducationEntry[];
+  secondaryEducation?: RawProfileEducationEntry[];
+};
+
+type RawProfileExperience = Partial<CandidateExperience> & {
+  company_name?: string;
+  employer_name?: string;
+  position_held?: string;
+  role_title?: string;
+  start_date?: string;
+  end_date?: string;
+  is_current?: boolean;
+  responsibilities_text?: string;
+};
+
+type RawSavedJobReference = string | { jobId?: string; jobProfileId?: string };
+
+type RawCandidateProfileResponse = {
+  candidateId?: string;
+  candidate_id?: string;
+  userId?: string;
+  user_id?: string;
+  accountStatus?: string;
+  profile_status?: string;
+  profileCompleted?: number;
+  personalDetails?: RawProfilePersonalDetails;
+  personal_details?: RawProfilePersonalDetails;
+  desiredJob?: RawProfileDesiredJob;
+  desired_job?: RawProfileDesiredJob | null;
+  education?: RawProfileEducation | null;
+  experience?: RawProfileExperience[];
+  career_history?: RawProfileExperience[];
+  skills?: string[];
+  languages?: CandidateLanguage[];
+  authentication?: CandidateAuthentication | null;
+  applications?: CandidateApplication[];
+  savedJobs?: RawSavedJobReference[];
+  resume?: ResumeRef | null;
+};
+
+type RawCandidateProfileEnvelope = {
+  success?: boolean;
+  status?: string;
+  statusCode?: number;
+  message?: string;
+  data?: RawCandidateProfileResponse;
+};
+
 const mapProfileResponse = (
-  payload: CandidateProfileResponse | Record<string, any>,
+  payload: RawCandidateProfileResponse | RawCandidateProfileEnvelope,
 ): CandidateProfile => {
-  const data = responseData(payload as Record<string, any>) as Record<string, any>;
+  const data = responseData<RawCandidateProfileResponse>(payload);
   const personal = data.personalDetails ?? data.personal_details ?? {};
-  const desiredJob = (data.desiredJob ?? data.desired_job ?? {}) as Record<string, any>;
+  const desiredJob = data.desiredJob ?? data.desired_job ?? {};
 
   return {
     candidateId: data.candidateId ?? data.candidate_id,
-    userId: data.userId ?? data.user_id ?? personal.userId,
+    userId: data.userId ?? data.user_id ?? personal.userId ?? "",
     accountStatus: data.accountStatus ?? data.profile_status,
     profileCompleted: data.profileCompleted,
     personalDetails: {
@@ -342,22 +680,24 @@ const mapProfileResponse = (
       industry: desiredJob.industry ?? desiredJob.targeted_industry ?? desiredJob.industries?.join(", ") ?? "",
       workType: desiredJob.workType ?? desiredJob.work_type ?? desiredJob.locations?.join(", ") ?? "",
       employmentType: desiredJob.employmentType ?? desiredJob.employment_type ?? desiredJob.jobType ?? "",
-      salaryExpectation: desiredJob.salaryExpectation,
+      salaryExpectation: desiredJob.salaryExpectation ?? 0,
       currency: desiredJob.currency,
       industries: desiredJob.industries,
       locations: desiredJob.locations,
       jobType: desiredJob.jobType,
-      availableFrom: desiredJob.availableFrom ?? desiredJob.availability_code,
+      availableFrom: desiredJob.availableFrom ?? desiredJob.availability_code ?? "",
     },
     education: data.education
       ? {
-          certifications: ((data.education.tertiary ?? []) as Array<Record<string, any>>).map((item) => item.qualification).filter(Boolean),
+          certifications: (data.education.tertiary ?? [])
+            .map((item) => item.qualification)
+            .filter((qualification): qualification is string => Boolean(qualification)),
           highestEarned: data.education.secondary?.qualification ?? data.education.secondary?.highest_grade_passed ?? "",
           tertiary: data.education.tertiary,
           secondary: data.education.secondary,
         }
       : null,
-    experience: (data.experience ?? data.career_history ?? []).map((item: Record<string, any>) => ({
+    experience: (data.experience ?? data.career_history ?? []).map((item) => ({
       company: item.company ?? item.company_name ?? item.employer_name ?? "",
       jobTitle: item.jobTitle ?? item.position_held ?? item.role_title ?? "",
       startDate: item.startDate ?? item.start_date ?? "",
@@ -365,13 +705,13 @@ const mapProfileResponse = (
       responsibilities: item.responsibilities ?? item.responsibilities_text,
     })),
     skills: data.skills ?? [],
-    languages: Array.isArray(data.languages) ? data.languages.map((language: any) => typeof language === "string" ? { language, proficiency: "" } : language) : [],
+    languages: Array.isArray(data.languages) ? data.languages : [],
     authentication: data.authentication ?? null,
     applications: data.applications ?? [],
     savedJobs: Array.isArray(data.savedJobs)
-      ? data.savedJobs.map((job: any) =>
-          typeof job === "string" ? job : job.jobId,
-        )
+      ? data.savedJobs.map((job) =>
+          typeof job === "string" ? job : job.jobProfileId ?? job.jobId,
+        ).filter((jobId): jobId is string => Boolean(jobId))
       : [],
     resume: data.resume ?? null,
   };
@@ -380,9 +720,11 @@ const mapProfileResponse = (
 export const candidateApi = {
   async getById(candidateId: string, userId?: string): Promise<CandidateProfile> {
     const payload = await unwrapResponseData(
-      apiClient.get(resolveEndpoint(apiEndpoints.candidate.profile, { candidateId })),
+      apiClient.get<RawCandidateProfileResponse | RawCandidateProfileEnvelope>(
+        resolveEndpoint(apiEndpoints.candidate.profile, { candidateId }),
+      ),
     );
-    const profile = mapProfileResponse(payload as Record<string, any>);
+    const profile = mapProfileResponse(payload);
     // Prefer the caller's userId, but keep the one the response carries.
     return { ...profile, userId: userId ?? profile.userId ?? "" };
   },
@@ -489,8 +831,20 @@ export const candidateApi = {
 
   getSavedJobs(candidateId: string): Promise<SavedJobsData> {
     return unwrapResponseData(
-      apiClient.get(resolveEndpoint(apiEndpoints.candidate.savedJobs, { candidateId })),
+      apiClient.get<RawCandidateJobCollection | RawCandidateJobCollectionEnvelope>(
+        resolveEndpoint(apiEndpoints.candidate.savedJobs, { candidateId }),
+      ),
     ).then(mapSavedJobsResponse);
+  },
+
+  applyToJob(jobProfileId: string, payload: ApplyJobRequest = {}): Promise<ApplyJobResponse> {
+    return unwrapResponseData(
+      apiClient.post<ApplyJobResponse>(apiEndpoints.candidate.applications, {
+        jobProfileId,
+        cvId: payload.cvId,
+        sourceChannel: payload.sourceChannel ?? "job-details",
+      }),
+    );
   },
 
   saveJob(payload: SaveJobRequest): Promise<unknown> {
@@ -498,10 +852,10 @@ export const candidateApi = {
     // deployments that put it in the path still resolve via the template.
     return unwrapResponseData(
       apiClient.post(
-        resolveEndpoint(apiEndpoints.candidate.savedJobs, {
+        resolveEndpoint(apiEndpoints.candidate.savedJob, {
           candidateId: payload.candidateId,
+          jobProfileId: payload.jobProfileId,
         }),
-        { jobId: payload.jobProfileId },
       ),
     );
   },
@@ -514,7 +868,9 @@ export const candidateApi = {
 
   getRecommendedPositions(candidateId: string): Promise<RecommendedJobsData> {
     return unwrapResponseData(
-      apiClient.get(resolveEndpoint(apiEndpoints.candidate.recommendedJobs, { candidateId })),
+      apiClient.get<RawCandidateJobCollection | RawCandidateJobCollectionEnvelope>(
+        resolveEndpoint(apiEndpoints.candidate.recommendedJobs, { candidateId }),
+      ),
     ).then(mapRecommendedResponse);
   },
 
@@ -528,8 +884,10 @@ export const candidateApi = {
     });
   },
 
-  buildMyCv(): Promise<SuccessEnvelope<BuildMyCvData>> {
-    return unwrapResponseData(apiClient.post(apiEndpoints.candidate.buildMyCv));
+  buildMyCv(candidateId?: string): Promise<SuccessEnvelope<BuildMyCvData>> {
+    return unwrapResponseData(
+      apiClient.post(resolveEndpoint(apiEndpoints.candidate.buildMyCv, { candidateId: candidateId ?? "" })),
+    );
   },
 
   previewResume(resumeId: string): Promise<SuccessEnvelope<CvPreviewData>> {
@@ -647,23 +1005,21 @@ export const candidateApi = {
   },
 
   async saveBuildMyCv(candidateId: string, payload: SaveBuildMyCvRequest): Promise<BuildMyCvData> {
-    const response = await unwrapResponseData(
-      apiClient.post<SuccessEnvelope<BuildMyCvData>>(
+    return mapBuildMyCvRequest(
+      apiClient.post<RawBuildMyCvResponse | RawBuildMyCvEnvelope>(
         resolveEndpoint(apiEndpoints.candidate.buildMyCv, { candidateId }),
         toCvPayload(payload),
       ),
     );
-    return mapBuildResponse(response) as BuildMyCvData;
   },
 
   async updateBuildMyCv(candidateId: string, payload: UpdateBuildMyCvRequest): Promise<BuildMyCvData> {
-    const response = await unwrapResponseData(
-      apiClient.put<SuccessEnvelope<BuildMyCvData>>(
+    return mapBuildMyCvRequest(
+      apiClient.post<RawBuildMyCvResponse | RawBuildMyCvEnvelope>(
         resolveEndpoint(apiEndpoints.candidate.buildMyCv, { candidateId }),
         toCvPayload(payload),
       ),
     );
-    return mapBuildResponse(response) as BuildMyCvData;
   },
 
   async createSimpleProfile(candidateId: string, payload: SimpleCandidateProfileInput): Promise<SimpleCandidateProfileResponse> {

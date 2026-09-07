@@ -8,10 +8,10 @@ vi.mock('@/assets/login-face-img.jpg', () => ({ default: 'face.jpg' }))
 vi.mock('@/assets/login-vector.svg', () => ({ default: 'vector.svg' }))
 vi.mock('@/assets/icons/password-eye-figma.svg', () => ({ default: 'eye.svg' }))
 
-const mockRegister = vi.hoisted(() => vi.fn())
+const mockCandidateRegister = vi.hoisted(() => vi.fn())
 
 vi.mock('@/services/api/authApi', () => ({
-  authApi: { register: mockRegister },
+  authApi: { candidateRegister: mockCandidateRegister, candidateRegisterFromVisitor: vi.fn(), staffRegister: vi.fn() },
 }))
 
 const renderPage = () =>
@@ -32,7 +32,7 @@ describe('SignupPage', () => {
     expect(screen.getByPlaceholderText('Last name')).toBeInTheDocument()
     expect(screen.getByPlaceholderText('Email')).toBeInTheDocument()
     expect(screen.getByPlaceholderText('Phone number')).toBeInTheDocument()
-    expect(screen.getByPlaceholderText('Staff Number')).toBeInTheDocument()
+    expect(screen.queryByPlaceholderText('Staff Number')).not.toBeInTheDocument()
   })
 
   it('renders the Submit button', () => {
@@ -65,7 +65,6 @@ describe('SignupPage', () => {
     await userEvent.type(screen.getByPlaceholderText('Last name'), 'Doe')
     await userEvent.type(screen.getByPlaceholderText('Email'), 'jane@test.com')
     await userEvent.type(screen.getByPlaceholderText('Phone number'), '0821234567')
-    await userEvent.type(screen.getByPlaceholderText('Staff Number'), 'SM-REC-001')
     await userEvent.type(screen.getByPlaceholderText('At least 8 characters'), 'Password1!')
     await userEvent.type(screen.getByPlaceholderText('Re-enter your password'), 'Different1!')
     fireEvent.click(screen.getByRole('button', { name: /submit/i }))
@@ -74,14 +73,13 @@ describe('SignupPage', () => {
     })
   })
 
-  it('calls authApi.register and shows success message on valid submit', async () => {
-    mockRegister.mockResolvedValue({})
+  it('calls authApi.candidateRegister and shows success message on valid submit', async () => {
+    mockCandidateRegister.mockResolvedValue({})
     renderPage()
     await userEvent.type(screen.getByPlaceholderText('First name'), 'Jane')
     await userEvent.type(screen.getByPlaceholderText('Last name'), 'Doe')
     await userEvent.type(screen.getByPlaceholderText('Email'), 'jane@test.com')
     await userEvent.type(screen.getByPlaceholderText('Phone number'), '0821234567')
-    await userEvent.type(screen.getByPlaceholderText('Staff Number'), 'SM-REC-001')
     await userEvent.type(screen.getByPlaceholderText('At least 8 characters'), 'Password1!')
     await userEvent.type(screen.getByPlaceholderText('Re-enter your password'), 'Password1!')
 
@@ -91,7 +89,12 @@ describe('SignupPage', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /submit/i }))
     await waitFor(() => {
-      expect(mockRegister).toHaveBeenCalled()
+      expect(mockCandidateRegister).toHaveBeenCalledWith(expect.objectContaining({
+        firstName: 'Jane',
+        email: 'jane@test.com',
+        mobileNumber: '0821234567',
+        password: 'Password1!',
+      }))
       expect(screen.getByText(/you can now continue with sign in/i)).toBeInTheDocument()
     })
   })
@@ -107,7 +110,6 @@ describe('SignupPage', () => {
     await userEvent.type(screen.getByPlaceholderText('Last name'), 'Doe')
     await userEvent.type(screen.getByPlaceholderText('Email'), 'jane@test.com')
     await userEvent.type(screen.getByPlaceholderText('Phone number'), '0821234567')
-    await userEvent.type(screen.getByPlaceholderText('Staff Number'), 'SM-REC-001')
     await userEvent.type(screen.getByPlaceholderText('At least 8 characters'), 'Password1!')
     await userEvent.type(screen.getByPlaceholderText('Re-enter your password'), 'Password1!')
     fireEvent.click(screen.getByRole('button', { name: /submit/i }))

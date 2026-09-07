@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { TokenResponse } from "@react-oauth/google";
+import type { CredentialResponse } from "@react-oauth/google";
 import type { GoogleAuthStatus } from "@/modules/public/components/SignUpDrawer.types";
 import { authApi } from "@/services/api/authApi";
 
@@ -19,10 +19,13 @@ export const useCandidateGoogleAuthState = () => {
     setGoogleAuthMessage("");
   };
 
-  const handleGoogleAuthSuccess = async (tokenResponse: TokenResponse) => {
+  const handleGoogleAuthSuccess = async (credentialResponse: CredentialResponse) => {
     try {
+      if (!credentialResponse.credential) {
+        throw new Error("Google did not provide an ID token.");
+      }
       await authApi.exchangeGoogleToken({
-        accessToken: tokenResponse.access_token,
+        idToken: credentialResponse.credential,
       });
       setGoogleAuthStatus("success");
       setGoogleAuthMessage("Google sign-in succeeded.");

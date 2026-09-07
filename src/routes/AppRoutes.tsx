@@ -5,7 +5,9 @@ import { CandidateLayout } from "@/layouts/CandidateLayout";
 import { ExcoLayout } from "@/layouts/ExcoLayout";
 import { MancoLayout } from "@/layouts/MancoLayout";
 import { PublicLayout } from "@/layouts/PublicLayout";
+import { OptionalCandidateLayout } from "@/layouts/OptionalCandidateLayout";
 import { RecruiterLayout } from "@/layouts/RecruiterLayout";
+import AuthCallbackPage from "@/modules/auth/pages/AuthCallbackPage";
 import LoginPage from "@/modules/auth/pages/LoginPage";
 import RecruiterSignupPage from "@/modules/auth/pages/RecruiterSignupPage";
 import SignupPage from "@/modules/auth/pages/SignupPage";
@@ -14,6 +16,7 @@ import LandingPage from "@/modules/public/pages/LandingPage";
 import { PermissionGuard } from "@/routes/guards/PermissionGuard";
 import { ProtectedRoute } from "@/routes/guards/ProtectedRoute";
 import { RoleGuard } from "@/routes/guards/RoleGuard";
+import { CandidateOnboardingGuard } from "@/routes/guards/CandidateOnboardingGuard";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import styles from "@/routes/AppRoutes.module.css";
 
@@ -93,6 +96,7 @@ export const AppRoutes = () => {
         <Route element={<PublicLayout />}>
           <Route path={ROUTE_PATHS.landing} element={<LandingPage />} />
           <Route path={ROUTE_PATHS.login} element={<LoginPage />} />
+          <Route path={ROUTE_PATHS.authCallback} element={<AuthCallbackPage />} />
           <Route path={ROUTE_PATHS.signup} element={<SignupPage />} />
           <Route path={ROUTE_PATHS.recruiterSignup} element={<RecruiterSignupPage />} />
           <Route
@@ -111,17 +115,17 @@ export const AppRoutes = () => {
                 />
               }
             >
-              <Route
-                path={ROUTE_PATHS.candidateDashboard}
-                element={<CandidateDashboardPage />}
-              />
-              <Route path={ROUTE_PATHS.cvBuilder} element={<CvBuilderPage />} />
+              <Route element={<CandidateOnboardingGuard />}>
+                <Route
+                  path={ROUTE_PATHS.candidateDashboard}
+                  element={<CandidateDashboardPage />}
+                />
+              </Route>
               <Route
                 path={ROUTE_PATHS.profileCreation}
                 element={<ProfileCreationPage />}
               />
             </Route>
-            <Route path={ROUTE_PATHS.jobDetails} element={<JobDetailsPage />} />
             <Route path={ROUTE_PATHS.savedJobs} element={<SavedJobsPage />} />
             <Route path={ROUTE_PATHS.latestJobs} element={<LatestJobsPage />} />
             <Route
@@ -203,6 +207,11 @@ export const AppRoutes = () => {
               />
             </Route>
           </Route>
+        </Route>
+
+        <Route element={<OptionalCandidateLayout />}>
+          <Route path={ROUTE_PATHS.jobDetails} element={<JobDetailsPage />} />
+          <Route path={ROUTE_PATHS.cvBuilder} element={<CvBuilderPage />} />
         </Route>
 
         <Route

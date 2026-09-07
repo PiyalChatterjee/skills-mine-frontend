@@ -28,6 +28,9 @@ const mockUpdateBuildMyCv = vi.fn()
 const mockUpdateById = vi.fn()
 const mockUpdateUserProfile = vi.fn()
 const mockSaveJob = vi.fn()
+const mockAuthUser = vi.hoisted(() => ({
+  current: { userId: 'u-1' } as { userId: string } | null,
+}))
 
 vi.mock('@/services/api', () => ({
   candidateApi: {
@@ -56,7 +59,7 @@ vi.mock('@/app/auth/AuthContext', async () => {
   )
   return {
     ...actual,
-    useAuth: () => ({ user: { userId: 'u-1' } }),
+    useAuth: () => ({ user: mockAuthUser.current }),
   }
 })
 
@@ -99,6 +102,10 @@ const mockProfile = {
 }
 
 describe('useCandidateProfileQuery', () => {
+  beforeEach(() => {
+    mockAuthUser.current = { userId: 'u-1' }
+  })
+
   it('uses the authenticated user when candidateId is not provided', async () => {
     mockGetById.mockResolvedValue(mockProfile)
     const store = makeTestStore()
@@ -117,6 +124,22 @@ describe('useCandidateProfileQuery', () => {
     })
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
     expect(result.current.data?.userId).toBe('u-1')
+  })
+
+  it('uses the explicit userId while the auth context hydrates', async () => {
+    mockAuthUser.current = null
+    mockGetById.mockResolvedValue(mockProfile)
+    const store = makeTestStore()
+    const { result } = renderHook(
+      () => useCandidateProfileQuery(undefined, 'persisted-user', true),
+      { wrapper: makeWrapper(store) },
+    )
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    expect(mockGetById).toHaveBeenCalledWith(
+      'persisted-user',
+      'persisted-user',
+    )
   })
 
   it('skips when enabled=false', () => {
@@ -194,7 +217,7 @@ describe('useSkillsSearch', () => {
       expect(store.getState().candidate.availableSkills.length).toBeGreaterThan(0),
     )
     expect(store.getState().candidate.availableSkills[0].skillId).toBe('s1')
-    expect(store.getState().candidate.selectedSkillIds).toContain('s2')
+    expect(store.getState().candidate.availableSkills[1].selected).toBe(true)
   })
 
   it('skips when enabled=false', () => {
@@ -244,7 +267,7 @@ describe('useBuildMyCvQuery', () => {
     expect(mockGetBuildMyCv).toHaveBeenCalledWith('u-1')
   })
 
-  it('sets buildMyCvExists based on careerHistory length', async () => {
+  it('does not mark profile-prefilled CV data as an existing completed CV', async () => {
     const cvData = {
       personalDetails: {},
       careerHistory: [{ company: 'Acme', jobTitle: 'Dev', startDate: '', endDate: '' }],
@@ -257,7 +280,7 @@ describe('useBuildMyCvQuery', () => {
     const store = makeTestStore()
     renderHook(() => useBuildMyCvQuery(true, 'c-1'), { wrapper: makeWrapper(store) })
     await waitFor(() => expect(store.getState().candidate.buildMyCvLoaded).toBe(true))
-    expect(store.getState().candidate.buildMyCvExists).toBe(true)
+    expect(store.getState().candidate.buildMyCvExists).toBe(false)
   })
 })
 

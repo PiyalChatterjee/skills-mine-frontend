@@ -13,18 +13,11 @@ import { pushNotification } from "@/store/slices/notificationSlice";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "@/store";
 import { useSearchParams } from "react-router-dom";
-import { resetPasswordThunk } from "@/store/slices/authThunks";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import { tokenStorage } from "@/app/auth/tokenStorage";
 import { authApi } from "@/services/api/authApi";
 import { z } from "zod";
 import { strongPasswordSchema } from "@/app/passwordPolicy";
-
-// Mock stand-in for a real reset token until the backend exposes OTP verification.
-const buildMockResetToken = (email: string, otpCode: string) => {
-  const payload = `${email}:${otpCode}:${Date.now()}`;
-  return `mock-${btoa(payload)}`;
-};
 
 const changePasswordSchema = z
   .object({
@@ -138,16 +131,12 @@ const ResetPasswordPage = () => {
       return;
     }
 
-    const resetToken = buildMockResetToken(email.toLowerCase(), otpCode.trim());
-
     try {
-      const resetResponse = await dispatch(
-        resetPasswordThunk({
-          resetToken,
-          newPassword: _values.password,
-          confirmNewPassword: _values.confirmPassword,
-        }),
-      ).unwrap();
+      const resetResponse = await authApi.resetPassword({
+        email: email.toLowerCase(),
+        confirmationCode: otpCode.trim(),
+        newPassword: _values.password,
+      });
 
       dispatch(
         pushNotification({
@@ -181,10 +170,9 @@ const ResetPasswordPage = () => {
     confirmPassword: string;
   }) => {
     try {
-      await authApi.changePassword({
+      await authApi.resetPassword({
         currentPassword: _values.currentPassword,
         newPassword: _values.password,
-        confirmNewPassword: _values.confirmPassword,
       });
 
       dispatch(

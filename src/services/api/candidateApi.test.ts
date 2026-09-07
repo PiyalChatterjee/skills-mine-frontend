@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { candidateApi } from './candidateApi'
+import { isCandidateProfileCompleteForOnboarding } from '@/modules/candidate/utils/profileCompleteness'
 
 const mockGet = vi.hoisted(() => vi.fn())
 const mockPost = vi.hoisted(() => vi.fn())
@@ -26,6 +27,7 @@ vi.mock('@/services/api/endpoints', () => ({
       resumeDownload: '/candidate/:resumeId/download',
       recommendedJobs: '/candidates/recommended-positions',
       savedJobs: '/candidates/saved-jobs',
+      applications: '/candidates/applications',
       aiActions: '/candidates/ai-actions/',
     },
     applications: {
@@ -127,6 +129,44 @@ describe('candidateApi', () => {
       expect(profile.desiredJob.currency).toBe('ZAR')
     })
 
+    it('maps Michael Smith profile as complete for onboarding', async () => {
+      mockGet.mockResolvedValue({
+        data: {
+          success: true,
+          data: {
+            candidateId: 'CAND100001',
+            userId: 'USR100001',
+            personalDetails: {
+              firstName: 'Michael',
+              lastName: 'Smith',
+              email: 'michael.smith@email.com',
+              mobileNumber: '+27821234567',
+              location: 'Johannesburg',
+            },
+            desiredJob: {
+              jobTitle: 'Senior Software Engineer',
+              jobType: 'Permanent',
+              workType: 'Hybrid',
+              availableFrom: '2025-02-01',
+              industries: ['Technology', 'Banking'],
+              locations: ['Johannesburg', 'Remote'],
+            },
+            education: {
+              secondaryEducation: [],
+              tertiaryEducation: [],
+            },
+            experience: [],
+            skills: [],
+            languages: [],
+          },
+        },
+      })
+
+      const profile = await candidateApi.getById('USR100001')
+
+      expect(isCandidateProfileCompleteForOnboarding(profile)).toBe(true)
+    })
+
     it('defaults skills and languages to empty arrays when absent', async () => {
       const noSkillsResponse = {
         data: {
@@ -143,6 +183,26 @@ describe('candidateApi', () => {
       expect(profile.skills).toEqual([])
       expect(profile.languages).toEqual([])
     })
+
+    it('maps canonical saved job profile references to string IDs', async () => {
+      mockGet.mockResolvedValue({
+        data: {
+          status: 'success',
+          data: {
+            ...mockProfileResponse.data.data,
+            savedJobs: [
+              { jobProfileId: '00000003-0000-4000-8000-000000000002', savedAt: '2026-09-01T08:00:00Z' },
+            ],
+          },
+        },
+      })
+
+      const profile = await candidateApi.getById('u-1')
+
+      expect(profile.savedJobs).toEqual([
+        '00000003-0000-4000-8000-000000000002',
+      ])
+    })
   })
 
   describe('getDashboard', () => {
@@ -153,6 +213,98 @@ describe('candidateApi', () => {
       mockGet.mockResolvedValue(dashboardResponse)
       await candidateApi.getDashboard()
       expect(mockGet).toHaveBeenCalledWith('/candidates/dashboard', { params: {} })
+    })
+
+    it('maps candidate-service v2 dashboard fields', async () => {
+      mockGet.mockResolvedValue({
+        data: {
+          candidate_id: 'CAND100001',
+          applications: [{
+            application_id: 'APP-1',
+            job_profile_id_ref: 'JOB-1',
+            job_title: 'Engineer',
+            current_stage_code: 'SCREENING',
+            stage_progress: [{ stage_code: 'APPLIED' }, { stage_code: 'SCREENING' }],
+          }],
+          pagination: { current_page: 1, page_size: 10, total_items: 1, total_pages: 1 },
+        },
+      })
+
+      const result = await candidateApi.getDashboard()
+
+      expect(result.id).toBe('CAND100001')
+      expect(result.candidateId).toBe('CAND100001')
+      expect(result.applications[0]).toMatchObject({
+        id: 'APP-1',
+        stage: 'SCREENING',
+        job: { id: 'JOB-1', title: 'Engineer' },
+        pipeline: ['APPLIED', 'SCREENING'],
+      })
+    })
+  })
+
+  describe('applyToJob', () => {
+    it('submits a canonical jobProfileId to the candidate application endpoint', async () => {
+      mockPost.mockResolvedValue({
+        data: {
+          applicationId: '70000000-0000-4000-8000-000000000001',
+          jobProfileId: '00000003-0000-4000-8000-000000000008',
+          matchScore: 82,
+          status: 'submitted',
+          nextStep: 'view_dashboard',
+        },
+      })
+
+      const result = await candidateApi.applyToJob(
+        '00000003-0000-4000-8000-000000000008',
+      )
+
+      expect(mockPost).toHaveBeenCalledWith('/candidates/applications', {
+        jobProfileId: '00000003-0000-4000-8000-000000000008',
+        cvId: undefined,
+        sourceChannel: 'job-details',
+      })
+      expect(result.status).toBe('submitted')
+    })
+  })
+
+  describe('candidate job collections', () => {
+    it('maps canonical saved jobs and preserves its candidate-scoped request', async () => {
+      mockGet.mockResolvedValue({
+        data: {
+          candidate_id: 'CAND100001',
+          saved_jobs: [{ job_profile_id: 'JOB-1', job_title: 'Engineer' }],
+          pagination: { total_items: 1 },
+        },
+      })
+
+      const result = await candidateApi.getSavedJobs('CAND100001')
+
+      expect(mockGet).toHaveBeenCalledWith('/candidates/saved-jobs')
+      expect(result).toMatchObject({
+        candidateId: 'CAND100001',
+        jobs: [{ jobId: 'JOB-1', title: 'Engineer' }],
+        total: 1,
+      })
+    })
+
+    it('maps canonical recommended positions and preserves its candidate-scoped request', async () => {
+      mockGet.mockResolvedValue({
+        data: {
+          candidate_id: 'CAND100001',
+          recommended_positions: [{ job_profile_id: 'JOB-2', job_title: 'Designer' }],
+          pagination: { total_items: 1 },
+        },
+      })
+
+      const result = await candidateApi.getRecommendedPositions('CAND100001')
+
+      expect(mockGet).toHaveBeenCalledWith('/candidates/recommended-positions')
+      expect(result).toMatchObject({
+        candidateId: 'CAND100001',
+        jobs: [{ jobId: 'JOB-2', title: 'Designer' }],
+        total: 1,
+      })
     })
   })
 
@@ -183,12 +335,33 @@ describe('candidateApi', () => {
       expect((result as { personalDetails: { firstName: string } }).personalDetails.firstName).toBe('Jane')
       expect((result as { lastModified?: string }).lastModified).toBe('2024-11-01T14:30:00Z')
     })
+
+    it('maps candidate-service v2 array education', async () => {
+      mockGet.mockResolvedValue({
+        data: {
+          candidate_id: 'CAND100001',
+          personal_details: { first_name: 'Jane', last_name: 'Doe' },
+          career_history: [],
+          skills: [],
+          education: [
+            { institution_name: 'High School', level_code: 'SECONDARY' },
+            { institution_name: 'University', level_code: 'TERTIARY' },
+          ],
+          languages: [],
+        },
+      })
+
+      const result = await candidateApi.getBuildMyCv('CAND100001')
+
+      expect(result.education.secondaryEducation).toHaveLength(1)
+      expect(result.education.tertiaryEducation).toHaveLength(1)
+    })
   })
 
   describe('saveBuildMyCv', () => {
     it('calls POST /candidates/cv-build/', async () => {
-      mockPost.mockResolvedValue({ data: { data: { lastModified: '2024-01-01' } } })
-      await candidateApi.saveBuildMyCv('candidate-1', {
+      mockPost.mockResolvedValue({ data: { success: true, data: { lastModified: '2024-01-01' } } })
+      const result = await candidateApi.saveBuildMyCv('candidate-1', {
         personalDetails: {
           firstName: 'Jane',
           lastName: 'Doe',
@@ -207,13 +380,14 @@ describe('candidateApi', () => {
         languages: [],
       })
       expect(mockPost).toHaveBeenCalledWith('/candidates/cv-build/', expect.any(Object))
+      expect(result.lastModified).toBe('2024-01-01')
     })
   })
 
   describe('updateBuildMyCv', () => {
     it('calls PUT /candidates/cv-build/', async () => {
-      mockPut.mockResolvedValue({ data: { data: { lastModified: '2024-06-01' } } })
-      await candidateApi.updateBuildMyCv('candidate-1', {
+      mockPut.mockResolvedValue({ data: { success: true, data: { lastModified: '2024-06-01' } } })
+      const result = await candidateApi.updateBuildMyCv('candidate-1', {
         personalDetails: {
           firstName: 'Jane',
           lastName: 'Doe',
@@ -232,6 +406,7 @@ describe('candidateApi', () => {
         languages: [],
       })
       expect(mockPut).toHaveBeenCalledWith('/candidates/cv-build/', expect.any(Object))
+      expect(result.lastModified).toBe('2024-06-01')
     })
   })
 

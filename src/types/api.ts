@@ -302,7 +302,9 @@ export interface BuildMyCvPersonalDetails {
 
 export interface BuildMyCvSecondaryEducationEntry {
   schoolName: string;
+  institution?: string;
   qualification: string;
+  highestGradePassed?: string;
   yearCompleted: number;
 }
 
@@ -366,20 +368,13 @@ export interface SaveJobRequest {
   jobProfileId: string;
 }
 
-export interface BuildMyCvData {
+export interface BuildMyCvData extends BuildMyCvState {
   resumeId: string;
   currentStep: string;
   completedSteps: string[];
   steps: string[];
-  personalDetails: PersonalDetails;
-  careerHistory: CandidateExperience[];
-  skills: string[];
-  education: CandidateEducation[];
-  languages: CandidateLanguage[];
   summary: string;
   desiredJob: DesiredJob;
-  createdAt?: string | null;
-  lastModified?: string | null;
 }
 
 export interface CvPreviewData {

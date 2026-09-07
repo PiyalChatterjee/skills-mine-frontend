@@ -47,24 +47,17 @@ export interface AuthSession {
 }
 
 export interface LoginRequest {
-  username: string
+  email: string
   password: string
-  rememberMe?: boolean
 }
 
-export interface LoginResponseData {
+export interface LoginResponse {
   accessToken: string
   idToken: string
   refreshToken: string
   expiresIn: number
   tokenType: string
-}
-
-export interface LoginResponse {
-  success: boolean
-  statusCode: number
-  message: string
-  data: LoginResponseData
+  isFirstLogin?: boolean
 }
 
 export interface CurrentUserResponse {
@@ -82,96 +75,106 @@ export interface CandidateRegistrationRequest {
   firstName: string
   lastName: string
   email: string
-  mobileNumber?: string
-  staffNumber?: string
+  mobileNumber: string
   password: string
-  confirmPassword: string
-  acceptTerms?: boolean
-  acceptPrivacyPolicy?: boolean
+  visitorId?: string
 }
 
 export interface CandidateRegistrationResponse {
-  success: boolean
-  statusCode: number
-  message: string
-  data: {
-    userId: string
-    email: string
-    accountStatus: 'ACTIVE' | 'PENDING_VERIFICATION' | 'SUSPENDED'
-  }
-}
-
-export interface RecruiterRegistrationRequest {
-  firstName: string
-  lastName: string
-  email: string
-  mobileNumber?: string
-  password: string
-  confirmPassword: string
-  acceptTerms?: boolean
-  acceptPrivacyPolicy?: boolean
-}
-
-export interface RecruiterRegistrationResponse {
   userId: string
   email: string
-  role: 'RECRUITER'
-  registrationType: 'SELF_SERVICE'
-  accountStatus: 'ACTIVE' | 'PENDING_VERIFICATION' | 'SUSPENDED'
+  role: 'JOB_SEEKER'
+  registrationType: string
+  accountStatus: string
+}
+
+export interface VisitorConversionRequest extends CandidateRegistrationRequest {
+  visitorId: string
 }
 
 export interface StaffRegistrationRequest {
   firstName: string
   lastName: string
   email: string
-  mobileNumber?: string
+  staffNumber: string
   password: string
-  confirmPassword: string
-  invitationToken?: string
-  acceptTerms?: boolean
-  acceptPrivacyPolicy?: boolean
+  invitationToken: string
 }
 
 export interface StaffRegistrationResponse {
-  success: boolean
-  statusCode: number
-  message: string
-  data: {
-    userId: string
-    email: string
-    accountStatus: 'ACTIVE' | 'PENDING_VERIFICATION' | 'SUSPENDED'
-  }
+  userId: string
+  staffNumber: string
+  email: string
+  role: Exclude<Role, 'JOB_SEEKER'>
+  accountStatus: string
 }
 
 export interface GoogleTokenExchangeRequest {
-  accessToken: string
+  idToken: string
 }
 
-export type GoogleTokenExchangeResponse = LoginResponse
+export type GoogleTokenExchangeResponse = CandidateRegistrationResponse
 
-// Backward-compat aliases
-export type RegisterRequest = CandidateRegistrationRequest
-export type SignUpRequest = CandidateRegistrationRequest
-export type SignUpResponse = CandidateRegistrationResponse
+export interface TokenValidationResponse {
+  valid: boolean
+}
+
+export interface StaffProfile {
+  staffId: string
+  userId: string
+  staffNumber: string
+  primaryEmail: string
+  firstName: string
+  lastName: string
+  roleCode: Exclude<Role, 'JOB_SEEKER'>
+  registrationStatus: string
+  employmentStatus: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface CreateStaffProfileRequest {
+  staffNumber: string
+  primaryEmail: string
+  roleCode: Exclude<Role, 'JOB_SEEKER'>
+  firstName: string
+  lastName: string
+}
+
+export interface CreateStaffProfileResponse {
+  staffId: string
+  userId: string
+  staffNumber: string
+  firstName: string
+  lastName: string
+  roleCode: Exclude<Role, 'JOB_SEEKER'>
+  employmentStatus: string
+}
+
+export interface SendStaffInvitationRequest {
+  email: string
+  staffNumber: string
+}
+
+export interface SendStaffInvitationResponse {
+  invitationId: string
+  email: string
+  staffNumber: string
+  expiresAt: string
+  message: string
+}
 
 export interface ForgotPasswordRequest {
   email: string
 }
 
 export interface ResetPasswordRequest {
-  resetToken: string
   newPassword: string
-  confirmNewPassword: string
+  email?: string
+  confirmationCode?: string
+  currentPassword?: string
 }
 
 export interface ResetPasswordResponse {
-  success: boolean
-  statusCode: number
   message: string
-}
-
-export interface ChangePasswordRequest {
-  currentPassword: string
-  newPassword: string
-  confirmNewPassword: string
 }

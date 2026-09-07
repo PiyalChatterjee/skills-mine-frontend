@@ -99,6 +99,14 @@
   margin-top: 20px;
 }
 
+.selectedFilters {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
 .filterButton {
   height: 48px;
   display: inline-flex;
@@ -117,7 +125,39 @@
   letter-spacing: 0.1px;
 }
 
+.filterSelect:global(.MuiInputBase-root) {
+  height: 48px;
+  border: 1px solid #03478c;
+  border-radius: 100px;
+  color: #03478c;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
+}
+
+.filterSelect:global(.MuiInputBase-root):hover {
+  border-color: #03478c;
+}
+
+.filterSelect:global(.Mui-focused) {
+  outline: 2px solid #32abbf;
+  outline-offset: 2px;
+}
+
+.filterSelect :global(.MuiSelect-select) {
+  min-height: 0;
+  padding: 11px 50px 11px 24px;
+  color: #03478c;
+}
+
+.filterSelect :global(.MuiOutlinedInput-notchedOutline) {
+  border: 0;
+}
+
 .filterButton:focus-visible,
+.filterSelect:focus-visible,
 .closeButton:focus-visible,
 .searchIconButton:focus-visible {
   outline: 2px solid #32abbf;
