@@ -528,6 +528,62 @@ export interface RecruiterDashboardData {
   }>;
 }
 
+export interface RecruiterPipelineJobProfile {
+  jobProfileId: string;
+  positionTitle: string;
+  clientId: string;
+  clientName: string;
+  fillByDate: string;
+  workType: string;
+  employmentType: string;
+  status: string;
+}
+
+export interface RecruiterPipelineCandidate {
+  candidateId: string;
+  visitorId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  profileStatus: string;
+}
+
+export interface RecruiterPipelineOfferDetails {
+  offeredSalary: number;
+  currencyCode: string;
+  startDate: string;
+  offerDate: string;
+  validUntil: string;
+  responseStatus: string;
+}
+
+export interface RecruiterPipelineCard {
+  applicationId: string;
+  applicationPartyId: string;
+  jobProfile: RecruiterPipelineJobProfile;
+  candidate: RecruiterPipelineCandidate;
+  assignedRecruiterId: string;
+  currentStageCode: string;
+  applicationStatus: string;
+  sourceCode: string;
+  matchScoreLatest: number;
+  offerDetails: RecruiterPipelineOfferDetails | null;
+  createdAt: string;
+  closedAt: string | null;
+  companyIcon: string;
+  tone: string;
+  stage: string;
+}
+
+export interface RecruiterPipelineStage {
+  label: string;
+  colorClass: string;
+  cards: RecruiterPipelineCard[];
+}
+
+export type RecruiterPipelineData = RecruiterPipelineStage[];
+
 export interface Mandate {
   mandateId: string;
   jobId: string;
@@ -619,6 +675,33 @@ export interface PipelineStageUpdateData {
     to: string;
     requiredChecklist: string[];
   };
+}
+
+// ── Bulk-move pipeline stage  (PUT /pipelines/jobs/:jobId/stage) ─────────────
+
+export interface PipelineJobStageAdvanceRequest {
+  applicationIds: string[];
+  targetStage: string;
+  notes?: string;
+}
+
+export interface PipelineJobStageAdvanceSucceeded {
+  applicationId: string;
+  previousStage: string;
+  currentStage: string;
+  updatedAt: string;
+}
+
+export interface PipelineJobStageAdvanceFailed {
+  applicationId: string;
+  reason: string;
+}
+
+export interface PipelineJobStageAdvanceData {
+  jobId: string;
+  targetStage: string;
+  succeeded: PipelineJobStageAdvanceSucceeded[];
+  failed: PipelineJobStageAdvanceFailed[];
 }
 
 export interface RecruiterCandidateSearchItem {

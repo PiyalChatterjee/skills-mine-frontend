@@ -8,12 +8,15 @@ import type {
   MandateDetail,
   ManualStageUpdateData,
   ManualStageUpdateRequest,
+  PipelineJobStageAdvanceData,
+  PipelineJobStageAdvanceRequest,
   PipelineStageUpdateData,
   PipelineStageUpdateRequest,
   RecruiterCandidateSearchData,
   RecruiterDashboardData,
   RecruiterMandatesData,
   RecruiterPerformanceData,
+  RecruiterPipelineData,
   StageTransitionData,
   SuccessEnvelope,
 } from "@/types/api";
@@ -41,6 +44,12 @@ export type CreateMandateRequest = {
 };
 
 export const mandateApi = {
+  getPipeline(): Promise<SuccessEnvelope<RecruiterPipelineData>> {
+    return apiClient
+      .get<SuccessEnvelope<RecruiterPipelineData>>(apiEndpoints.recruiter.pipeline)
+      .then((response) => response.data);
+  },
+
   getRecruiterDashboard() {
     return apiClient
       .get<
@@ -125,6 +134,17 @@ export const mandateApi = {
       .patch<
         SuccessEnvelope<PipelineStageUpdateData>
       >(resolveEndpoint(apiEndpoints.pipeline.stageUpdate, { pipelineId }), payload)
+      .then((response) => response.data);
+  },
+
+  advanceJobStage(
+    jobId: string,
+    payload: PipelineJobStageAdvanceRequest,
+  ) {
+    return apiClient
+      .put<
+        SuccessEnvelope<PipelineJobStageAdvanceData>
+      >(resolveEndpoint(apiEndpoints.pipeline.jobStageAdvance, { jobId }), payload)
       .then((response) => response.data);
   },
 
