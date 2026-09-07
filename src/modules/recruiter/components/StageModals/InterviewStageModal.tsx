@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Box, ButtonBase, Typography } from '@mui/material'
+import { Box, ButtonBase, CircularProgress, Typography } from '@mui/material'
+import { mandateApi } from '@/services/api/mandateApi'
 import styles from './InterviewStageModal.module.css'
 
 // ── Icons ──────────────────────────────────────────────────────────────
@@ -23,8 +24,11 @@ export interface InterviewStageModalProps {
   candidateName: string
   candidateTitle: string
   company: string
+  applicationId: string
+  jobId: string
   dueDate?: string
   onClose: () => void
+  onAdvance?: (applicationId: string) => void
 }
 
 // ── Component ──────────────────────────────────────────────────────────
@@ -33,12 +37,34 @@ const InterviewStageModal = ({
   candidateName,
   candidateTitle,
   company,
+  applicationId,
+  jobId,
   dueDate = 'Jan 20, 2026',
   onClose,
+  onAdvance,
 }: InterviewStageModalProps) => {
-  const [notes, setNotes] = useState(
+  const [notes, setNotes]         = useState(
     'Andrew performed exceptionally well during the interview and is a strong candidate.'
   )
+  const [advancing, setAdvancing] = useState(false)
+
+  const canAdvance = notes.trim().length > 0
+
+  const handleAdvance = async () => {
+    if (!canAdvance || advancing) return
+    setAdvancing(true)
+    try {
+      await mandateApi.advanceJobStage(jobId, {
+        applicationIds: [applicationId],
+        targetStage: 'Shortlisted',
+        notes,
+      })
+      onAdvance?.(applicationId)
+      onClose()
+    } finally {
+      setAdvancing(false)
+    }
+  }
 
   return (
     <Box className={styles.backdrop} onClick={onClose}>
@@ -108,8 +134,13 @@ const InterviewStageModal = ({
             <ButtonBase className={styles.rejectBtn} disableRipple>
               Reject
             </ButtonBase>
-            <ButtonBase className={styles.advanceBtn} disableRipple>
-              Advance
+            <ButtonBase
+              className={`${styles.advanceBtn} ${!canAdvance ? styles.advanceBtnDisabled : ''}`}
+              disableRipple
+              disabled={!canAdvance || advancing}
+              onClick={handleAdvance}
+            >
+              {advancing ? <CircularProgress size={14} sx={{ color: '#fff' }} /> : 'Advance'}
             </ButtonBase>
           </Box>
         </Box>

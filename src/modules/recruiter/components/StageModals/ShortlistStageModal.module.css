@@ -262,3 +262,11 @@
 .advanceBtn:global(.MuiButtonBase-root):hover {
   background: #162d56;
 }
+
+/* Disabled state — fields empty */
+.advanceBtnDisabled:global(.MuiButtonBase-root) {
+  color: #9ca3af;
+  background: #e5e7eb;
+  cursor: default;
+  pointer-events: none;
+}

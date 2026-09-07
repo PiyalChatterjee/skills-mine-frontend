@@ -245,7 +245,7 @@
   background: #c94040;
 }
 
-/* Advance — filled grey, disabled */
+/* Advance — filled grey (disabled state) */
 .actionBtn:global(.MuiButtonBase-root) {
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
   font-size: 14px;
@@ -261,4 +261,20 @@
   text-transform: none;
   transition: none;
   height: 42px;
+}
+
+/* Active Advance button — enabled when checkbox is checked */
+.actionBtnActive:global(.MuiButtonBase-root) {
+  color: #ffffff;
+  background: #E8A82A;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.actionBtnActive:global(.MuiButtonBase-root):hover {
+  background: #c98e1e;
+}
+
+.actionBtnActive:global(.MuiButtonBase-root):active {
+  background: #b07918;
 }

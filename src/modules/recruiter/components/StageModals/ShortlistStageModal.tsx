@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Box, ButtonBase, Typography } from '@mui/material'
+import { Box, ButtonBase, CircularProgress, Typography } from '@mui/material'
+import { mandateApi } from '@/services/api/mandateApi'
 import styles from './ShortlistStageModal.module.css'
 
 // ── Icons ──────────────────────────────────────────────────────────────
@@ -23,8 +24,11 @@ export interface ShortlistStageModalProps {
   candidateName: string
   candidateTitle: string
   company: string
+  applicationId: string
+  jobId: string
   dueDate?: string
   onClose: () => void
+  onAdvance?: (applicationId: string) => void
 }
 
 // ── Component ──────────────────────────────────────────────────────────
@@ -33,11 +37,32 @@ const ShortlistStageModal = ({
   candidateName,
   candidateTitle,
   company,
+  applicationId,
+  jobId,
   dueDate = 'Jan 20, 2026',
   onClose,
+  onAdvance,
 }: ShortlistStageModalProps) => {
   const [offerDate, setOfferDate] = useState('17 August 2026')
-  const [ctcTotal, setCtcTotal] = useState('850000')
+  const [ctcTotal, setCtcTotal]   = useState('850000')
+  const [advancing, setAdvancing] = useState(false)
+
+  const canAdvance = offerDate.trim().length > 0 && ctcTotal.trim().length > 0
+
+  const handleAdvance = async () => {
+    if (!canAdvance || advancing) return
+    setAdvancing(true)
+    try {
+      await mandateApi.advanceJobStage(jobId, {
+        applicationIds: [applicationId],
+        targetStage: 'Interview',
+      })
+      onAdvance?.(applicationId)
+      onClose()
+    } finally {
+      setAdvancing(false)
+    }
+  }
 
   return (
     <Box className={styles.backdrop} onClick={onClose}>
@@ -135,8 +160,13 @@ const ShortlistStageModal = ({
             <ButtonBase className={styles.rejectBtn} disableRipple>
               Reject
             </ButtonBase>
-            <ButtonBase className={styles.advanceBtn} disableRipple>
-              Advance
+            <ButtonBase
+              className={`${styles.advanceBtn} ${!canAdvance ? styles.advanceBtnDisabled : ''}`}
+              disableRipple
+              disabled={!canAdvance || advancing}
+              onClick={handleAdvance}
+            >
+              {advancing ? <CircularProgress size={14} sx={{ color: '#fff' }} /> : 'Advance'}
             </ButtonBase>
           </Box>
         </Box>
