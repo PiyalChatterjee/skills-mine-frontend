@@ -81,6 +81,7 @@
   overflow: hidden;
   box-sizing: border-box;
   flex-shrink: 0;
+  position: relative;
 }
 
 .googleButton:global(.MuiButton-root):hover {

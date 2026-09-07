@@ -17,12 +17,16 @@ const COGNITO_DOMAIN = (import.meta.env.VITE_COGNITO_DOMAIN as string | undefine
 const CLIENT_ID      = (import.meta.env.VITE_COGNITO_CLIENT_ID as string | undefined) ?? '';
 const REDIRECT_URI   = (import.meta.env.VITE_COGNITO_REDIRECT_URI as string | undefined) ?? '';
 
+export const hasCognitoHostedUiConfig = Boolean(
+  COGNITO_DOMAIN && CLIENT_ID && REDIRECT_URI,
+);
+
 /**
  * Redirects the browser to the Cognito Hosted UI Google sign-in page.
  * The PKCE verifier is stored in sessionStorage; the challenge is sent to Cognito.
  * The browser will return to REDIRECT_URI (/auth/callback) with ?code=...
  */
-export const redirectToGoogleLogin = async (): Promise<void> => {
+export const redirectToGoogleLogin = async (intent: 'login' | 'signup' = 'login'): Promise<void> => {
   const verifier  = generateVerifier();
   const challenge = await computeChallenge(verifier);
 
@@ -32,6 +36,7 @@ export const redirectToGoogleLogin = async (): Promise<void> => {
     scope:                 'openid email profile',
     redirect_uri:          REDIRECT_URI,
     identity_provider:     'Google',
+    state:                 intent,
     code_challenge:        challenge,
     code_challenge_method: 'S256',
   });

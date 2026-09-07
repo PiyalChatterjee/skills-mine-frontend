@@ -10,8 +10,8 @@ import { useDispatch } from "react-redux";
 import { SignUpForm } from "@/modules/public/components/SignUpForm";
 import { SignUpGoogleButton } from "@/modules/public/components/SignUpGoogleButton";
 import { SignUpSuccess } from "@/modules/public/components/SignUpSuccess";
-import { useCandidateGoogleAuthState } from "@/modules/public/hooks/useCandidateGoogleAuthState";
 import { useCandidateSignUpForm } from "@/modules/public/hooks/useCandidateSignUpForm";
+import { hasCognitoHostedUiConfig } from "@/app/auth/cognitoHostedUi";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import type { AppDispatch } from "@/store";
 import { pushNotification } from "@/store/slices/notificationSlice";
@@ -37,24 +37,6 @@ export const CandidateSignUpDrawer = ({
     submitForm,
     resetForm,
   } = useCandidateSignUpForm();
-  const {
-    hasGoogleClientId,
-    pendingGoogleAuth,
-    googleAuthStatus,
-    googleAuthMessage,
-    handleGoogleAuthStart,
-    handleGoogleAuthSuccess,
-    handleGoogleAuthError,
-    handleGoogleLoginUnavailable,
-  } = useCandidateGoogleAuthState();
-
-  const googleStatusClassName =
-    googleAuthStatus === "success"
-      ? styles.googleStatusSuccess
-      : googleAuthStatus === "error"
-        ? styles.googleStatusError
-        : styles.googleStatus;
-
   const handleDrawerClose = () => {
     onClose();
   };
@@ -140,19 +122,10 @@ export const CandidateSignUpDrawer = ({
           <Divider className={styles.sectionDivider} />
 
           <SignUpGoogleButton
-            hasGoogleClientId={hasGoogleClientId}
-            disabled={pendingGoogleAuth}
-            onAuthStart={handleGoogleAuthStart}
-            onAuthSuccess={handleGoogleAuthSuccess}
-            onAuthError={handleGoogleAuthError}
-            onUnavailable={handleGoogleLoginUnavailable}
+            hasGoogleClientId={hasCognitoHostedUiConfig}
+            disabled={false}
+            onUnavailable={() => undefined}
           />
-
-          {hasGoogleClientId && googleAuthMessage ? (
-            <Typography className={`${styles.googleStatus} ${googleStatusClassName}`}>
-              {googleAuthMessage}
-            </Typography>
-          ) : null}
 
           <Box className={styles.dividerRow}>
             <Divider className={styles.dividerLine} />
@@ -165,7 +138,7 @@ export const CandidateSignUpDrawer = ({
             control={control}
             errors={errors}
             isSubmitting={isSubmitting}
-            disableSubmit={pendingGoogleAuth}
+            disableSubmit={false}
             onSubmit={() => {
               void handleSignUpSubmit();
             }}

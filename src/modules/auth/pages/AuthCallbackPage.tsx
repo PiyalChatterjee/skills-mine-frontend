@@ -39,6 +39,7 @@ const AuthCallbackPage = () => {
 
     const code  = searchParams.get('code');
     const error = searchParams.get('error');
+    const isSignup = searchParams.get('state') === 'signup';
 
     // Cognito signals a user-cancelled or IdP error via ?error=
     if (error != null || code == null) {
@@ -66,7 +67,11 @@ const AuthCallbackPage = () => {
         login({ user, tokens });
 
         // Step 5: route to the user's default page
-        navigate(roleToDefaultRoute[user.role] ?? ROUTE_PATHS.login, { replace: true });
+        const destination =
+          isSignup && user.role === 'JOB_SEEKER'
+            ? ROUTE_PATHS.profileCreation
+            : roleToDefaultRoute[user.role] ?? ROUTE_PATHS.login;
+        navigate(destination, { replace: true });
       } catch {
         tokenStorage.clearAuth();
         navigate(`${ROUTE_PATHS.login}?error=google_callback`, { replace: true });
