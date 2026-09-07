@@ -12,6 +12,7 @@ const mockDelete = vi.hoisted(() => vi.fn());
 
 vi.mock("@/services/api/axios", () => ({
   apiClient: { get: mockGet, post: mockPost, put: mockPut, patch: mockPatch, delete: mockDelete },
+  mandateApiClient: { get: mockGet, post: mockPost, put: mockPut, patch: mockPatch, delete: mockDelete },
 }));
 
 const summary = {

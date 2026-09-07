@@ -1,9 +1,9 @@
-import { apiClient } from "@/services/api/axios";
+import { mandateApiClient } from "@/services/api/axios";
 import { apiEndpoints } from "@/services/api/endpoints";
 
 export const locationApi = {
   getLocations() {
-    return apiClient
+    return mandateApiClient
       .get<string[]>(apiEndpoints.locations.list)
       .then((response) => response.data);
   },

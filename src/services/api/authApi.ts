@@ -1,6 +1,6 @@
 import { decodeJwtPayload } from "@/app/auth/jwt";
 import { tokenStorage } from "@/app/auth/tokenStorage";
-import { apiClient, unwrapResponseData } from "@/services/api/axios";
+import { authApiClient, unwrapResponseData } from "@/services/api/axios";
 import { apiEndpoints } from "@/services/api/endpoints";
 import {
   PERMISSIONS,
@@ -184,13 +184,13 @@ export const mapLoginResponseToSession = async (
 export const authApi = {
   async login(payload: LoginRequest): Promise<LoginResponse> {
     return unwrapResponseData(
-      apiClient.post<LoginResponse>(apiEndpoints.auth.login, payload),
+      authApiClient.post<LoginResponse>(apiEndpoints.auth.login, payload),
     );
   },
 
   async getCurrentUser(): Promise<CurrentUserResponse> {
     const response = await unwrapResponseData(
-      apiClient.get<CurrentUserResponse | SuccessEnvelope<CurrentUserResponse>>(
+      authApiClient.get<CurrentUserResponse | SuccessEnvelope<CurrentUserResponse>>(
         apiEndpoints.auth.me,
       ),
     );
@@ -202,7 +202,7 @@ export const authApi = {
     payload: GoogleTokenExchangeRequest,
   ): Promise<GoogleTokenExchangeResponse> {
     return unwrapResponseData(
-      apiClient.post<GoogleTokenExchangeResponse>(
+      authApiClient.post<GoogleTokenExchangeResponse>(
         apiEndpoints.auth.googleRegister,
         payload,
       ),
@@ -213,7 +213,7 @@ export const authApi = {
     payload: CandidateRegistrationRequest,
   ): Promise<CandidateRegistrationResponse> {
     return unwrapResponseData(
-      apiClient.post<CandidateRegistrationResponse>(
+      authApiClient.post<CandidateRegistrationResponse>(
         apiEndpoints.auth.candidateRegister,
         withNormalizedMobileNumber(payload),
       ),
@@ -224,7 +224,7 @@ export const authApi = {
     payload: VisitorConversionRequest,
   ): Promise<CandidateRegistrationResponse> {
     return unwrapResponseData(
-      apiClient.post<CandidateRegistrationResponse>(
+      authApiClient.post<CandidateRegistrationResponse>(
         apiEndpoints.auth.candidateVisitorConversion,
         withNormalizedMobileNumber(payload),
       ),
@@ -235,7 +235,7 @@ export const authApi = {
     payload: StaffRegistrationRequest,
   ): Promise<StaffRegistrationResponse> {
     return unwrapResponseData(
-      apiClient.post<StaffRegistrationResponse>(
+      authApiClient.post<StaffRegistrationResponse>(
         apiEndpoints.auth.staffRegister,
         payload,
       ),
@@ -244,41 +244,41 @@ export const authApi = {
 
   async validateToken(): Promise<TokenValidationResponse> {
     return unwrapResponseData(
-      apiClient.post<TokenValidationResponse>(apiEndpoints.auth.validate),
+      authApiClient.post<TokenValidationResponse>(apiEndpoints.auth.validate),
     );
   },
 
   async forgotPassword(payload: ForgotPasswordRequest): Promise<unknown> {
     return unwrapResponseData(
-      apiClient.post(apiEndpoints.auth.forgotPassword, payload),
+      authApiClient.post(apiEndpoints.auth.forgotPassword, payload),
     );
   },
 
   async resetPassword(payload: ResetPasswordRequest): Promise<ResetPasswordResponse> {
     return unwrapResponseData(
-      apiClient.post<ResetPasswordResponse>(apiEndpoints.auth.resetPassword, payload),
+      authApiClient.post<ResetPasswordResponse>(apiEndpoints.auth.resetPassword, payload),
     );
   },
 
   async changePassword(payload: ResetPasswordRequest): Promise<ResetPasswordResponse> {
     return unwrapResponseData(
-      apiClient.post<ResetPasswordResponse>(apiEndpoints.auth.resetPassword, payload),
+      authApiClient.post<ResetPasswordResponse>(apiEndpoints.auth.resetPassword, payload),
     );
   },
 
   async getStaffProfiles(): Promise<StaffProfile[]> {
-    return unwrapResponseData(apiClient.get<StaffProfile[]>(apiEndpoints.staff.profiles));
+    return unwrapResponseData(authApiClient.get<StaffProfile[]>(apiEndpoints.staff.profiles));
   },
 
   async createStaffProfile(payload: CreateStaffProfileRequest): Promise<CreateStaffProfileResponse> {
-    return unwrapResponseData(apiClient.post<CreateStaffProfileResponse>(apiEndpoints.staff.profiles, payload));
+    return unwrapResponseData(authApiClient.post<CreateStaffProfileResponse>(apiEndpoints.staff.profiles, payload));
   },
 
   async sendStaffInvitation(payload: SendStaffInvitationRequest): Promise<SendStaffInvitationResponse> {
-    return unwrapResponseData(apiClient.post<SendStaffInvitationResponse>(apiEndpoints.admin.staffInvitationsSend, payload));
+    return unwrapResponseData(authApiClient.post<SendStaffInvitationResponse>(apiEndpoints.admin.staffInvitationsSend, payload));
   },
 
   async logout(): Promise<void> {
-    await apiClient.post(apiEndpoints.auth.logout);
+    await authApiClient.post(apiEndpoints.auth.logout);
   },
 };

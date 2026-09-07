@@ -1,5 +1,6 @@
 import {
   apiClient,
+  candidateApiClient,
   unwrapEnvelopeData,
   unwrapResponseData,
 } from "@/services/api/axios";
@@ -720,7 +721,7 @@ const mapProfileResponse = (
 export const candidateApi = {
   async getById(candidateId: string, userId?: string): Promise<CandidateProfile> {
     const payload = await unwrapResponseData(
-      apiClient.get<RawCandidateProfileResponse | RawCandidateProfileEnvelope>(
+      candidateApiClient.get<RawCandidateProfileResponse | RawCandidateProfileEnvelope>(
         resolveEndpoint(apiEndpoints.candidate.profile, { candidateId }),
       ),
     );
@@ -733,7 +734,7 @@ export const candidateApi = {
     candidateId: string,
     payload: CandidateProfileUpdatePayload,
   ): Promise<CandidateProfile> {
-    await apiClient.put(
+    await candidateApiClient.put(
       resolveEndpoint(apiEndpoints.candidate.buildMyCv, { candidateId }),
       toCvPayload({
         personalDetails: payload.personalDetails as SaveBuildMyCvRequest["personalDetails"],
@@ -787,12 +788,12 @@ export const candidateApi = {
 
   getDashboard(query: CandidateDashboardQuery = {}): Promise<CandidateDashboardData> {
     return unwrapResponseData(
-      apiClient.get(apiEndpoints.candidate.dashboard, { params: query }),
+      candidateApiClient.get(apiEndpoints.candidate.dashboard, { params: query }),
     ).then(mapDashboardResponse);
   },
 
   getLanding(): Promise<CandidateLandingData> {
-    return unwrapResponseData(apiClient.get(apiEndpoints.candidate.landing)).then((payload) => {
+    return unwrapResponseData(candidateApiClient.get(apiEndpoints.candidate.landing)).then((payload) => {
       const data = responseData(payload as Record<string, unknown>) as Record<string, any>;
       return {
         stats: {
@@ -806,7 +807,7 @@ export const candidateApi = {
   },
 
   getStatistics(): Promise<CandidateStatisticsData> {
-    return unwrapResponseData(apiClient.get(apiEndpoints.candidate.statistics)).then((payload) => {
+    return unwrapResponseData(candidateApiClient.get(apiEndpoints.candidate.statistics)).then((payload) => {
       const data = responseData(payload as Record<string, unknown>) as Record<string, any>;
       const stats = data.statistics ?? {};
       const profileSummary = data.profile_summary ?? data.profileSummary ?? {};
@@ -831,7 +832,7 @@ export const candidateApi = {
 
   getSavedJobs(candidateId: string): Promise<SavedJobsData> {
     return unwrapResponseData(
-      apiClient.get<RawCandidateJobCollection | RawCandidateJobCollectionEnvelope>(
+      candidateApiClient.get<RawCandidateJobCollection | RawCandidateJobCollectionEnvelope>(
         resolveEndpoint(apiEndpoints.candidate.savedJobs, { candidateId }),
       ),
     ).then(mapSavedJobsResponse);
@@ -839,7 +840,7 @@ export const candidateApi = {
 
   applyToJob(jobProfileId: string, payload: ApplyJobRequest = {}): Promise<ApplyJobResponse> {
     return unwrapResponseData(
-      apiClient.post<ApplyJobResponse>(apiEndpoints.candidate.applications, {
+      candidateApiClient.post<ApplyJobResponse>(apiEndpoints.candidate.applications, {
         jobProfileId,
         cvId: payload.cvId,
         sourceChannel: payload.sourceChannel ?? "job-details",
@@ -851,7 +852,7 @@ export const candidateApi = {
     // The collection endpoint takes the job in the body; candidate-scoped
     // deployments that put it in the path still resolve via the template.
     return unwrapResponseData(
-      apiClient.post(
+      candidateApiClient.post(
         resolveEndpoint(apiEndpoints.candidate.savedJob, {
           candidateId: payload.candidateId,
           jobProfileId: payload.jobProfileId,
@@ -862,20 +863,20 @@ export const candidateApi = {
 
   removeSavedJob(candidateId: string, jobProfileId: string): Promise<unknown> {
     return unwrapResponseData(
-      apiClient.delete(resolveEndpoint(apiEndpoints.candidate.savedJob, { candidateId, jobProfileId })),
+      candidateApiClient.delete(resolveEndpoint(apiEndpoints.candidate.savedJob, { candidateId, jobProfileId })),
     );
   },
 
   getRecommendedPositions(candidateId: string): Promise<RecommendedJobsData> {
     return unwrapResponseData(
-      apiClient.get<RawCandidateJobCollection | RawCandidateJobCollectionEnvelope>(
+      candidateApiClient.get<RawCandidateJobCollection | RawCandidateJobCollectionEnvelope>(
         resolveEndpoint(apiEndpoints.candidate.recommendedJobs, { candidateId }),
       ),
     ).then(mapRecommendedResponse);
   },
 
   getAiActions(candidateId: string): Promise<AiActionsData> {
-    return unwrapResponseData(apiClient.get(resolveEndpoint(apiEndpoints.candidate.aiActions, { candidateId }))).then((payload) => {
+    return unwrapResponseData(candidateApiClient.get(resolveEndpoint(apiEndpoints.candidate.aiActions, { candidateId }))).then((payload) => {
       const data = responseData(payload as Record<string, unknown>) as Record<string, any>;
       return {
         candidateId: data.candidateId ?? data.candidate_id ?? candidateId,
@@ -886,19 +887,19 @@ export const candidateApi = {
 
   buildMyCv(candidateId?: string): Promise<SuccessEnvelope<BuildMyCvData>> {
     return unwrapResponseData(
-      apiClient.post(resolveEndpoint(apiEndpoints.candidate.buildMyCv, { candidateId: candidateId ?? "" })),
+      candidateApiClient.post(resolveEndpoint(apiEndpoints.candidate.buildMyCv, { candidateId: candidateId ?? "" })),
     );
   },
 
   previewResume(resumeId: string): Promise<SuccessEnvelope<CvPreviewData>> {
     return unwrapResponseData(
-      apiClient.get(resolveEndpoint(apiEndpoints.candidate.resumePreview, { resumeId })),
+      candidateApiClient.get(resolveEndpoint(apiEndpoints.candidate.resumePreview, { resumeId })),
     );
   },
 
   downloadResume(resumeId: string): Promise<SuccessEnvelope<CvDownloadData>> {
     return unwrapResponseData(
-      apiClient.get(resolveEndpoint(apiEndpoints.candidate.resumeDownload, { resumeId })),
+      candidateApiClient.get(resolveEndpoint(apiEndpoints.candidate.resumeDownload, { resumeId })),
     );
   },
 
@@ -918,7 +919,7 @@ export const candidateApi = {
 
   getRecommendedJobs(): Promise<SuccessEnvelope<RecommendedJobsData>> {
     return unwrapResponseData(
-      apiClient.get(apiEndpoints.candidate.recommendedJobs),
+      candidateApiClient.get(apiEndpoints.candidate.recommendedJobs),
     );
   },
 
@@ -999,14 +1000,14 @@ export const candidateApi = {
 
   async getBuildMyCv(candidateId: string): Promise<BuildMyCvState> {
     const payload = await unwrapResponseData(
-      apiClient.get(resolveEndpoint(apiEndpoints.candidate.buildMyCv, { candidateId })),
+      candidateApiClient.get(resolveEndpoint(apiEndpoints.candidate.buildMyCv, { candidateId })),
     );
     return mapBuildResponse(payload) as BuildMyCvState;
   },
 
   async saveBuildMyCv(candidateId: string, payload: SaveBuildMyCvRequest): Promise<BuildMyCvData> {
     return mapBuildMyCvRequest(
-      apiClient.post<RawBuildMyCvResponse | RawBuildMyCvEnvelope>(
+      candidateApiClient.post<RawBuildMyCvResponse | RawBuildMyCvEnvelope>(
         resolveEndpoint(apiEndpoints.candidate.buildMyCv, { candidateId }),
         toCvPayload(payload),
       ),
@@ -1015,7 +1016,7 @@ export const candidateApi = {
 
   async updateBuildMyCv(candidateId: string, payload: UpdateBuildMyCvRequest): Promise<BuildMyCvData> {
     return mapBuildMyCvRequest(
-      apiClient.post<RawBuildMyCvResponse | RawBuildMyCvEnvelope>(
+      candidateApiClient.put<RawBuildMyCvResponse | RawBuildMyCvEnvelope>(
         resolveEndpoint(apiEndpoints.candidate.buildMyCv, { candidateId }),
         toCvPayload(payload),
       ),
@@ -1024,7 +1025,7 @@ export const candidateApi = {
 
   async createSimpleProfile(candidateId: string, payload: SimpleCandidateProfileInput): Promise<SimpleCandidateProfileResponse> {
     const raw = await unwrapResponseData(
-      apiClient.post(
+      candidateApiClient.post(
         resolveEndpoint(apiEndpoints.candidate.profile, { candidateId }),
         {
           personal_details: {

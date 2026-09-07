@@ -5,7 +5,7 @@ const mockPost = vi.hoisted(() => vi.fn())
 const mockGet = vi.hoisted(() => vi.fn())
 
 vi.mock('@/services/api/axios', () => ({
-  apiClient: { post: mockPost, get: mockGet },
+  authApiClient: { post: mockPost, get: mockGet },
   unwrapResponseData: async (promise: Promise<unknown>) => (await promise as { data: unknown }).data,
 }))
 
