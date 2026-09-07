@@ -210,6 +210,10 @@ export const apiEndpoints = {
       import.meta.env.VITE_RECRUITER_MANDATES_ENDPOINT,
       "/recruiter/mandates",
     ),
+    pipeline: withDefault(
+      import.meta.env.VITE_RECRUITER_PIPELINE_ENDPOINT,
+      "/recruiter/pipeline",
+    ),
     candidatesSearch: withDefault(
       import.meta.env.VITE_RECRUITER_CANDIDATES_SEARCH_ENDPOINT,
       "/recruiter/candidates/search",
@@ -231,6 +235,10 @@ export const apiEndpoints = {
     stageUpdate: withDefault(
       import.meta.env.VITE_PIPELINE_STAGE_UPDATE_ENDPOINT,
       "/v1/pipeline/:pipelineId/stage",
+    ),
+    jobStageAdvance: withDefault(
+      import.meta.env.VITE_PIPELINE_JOB_STAGE_ADVANCE_ENDPOINT,
+      "/pipelines/jobs/:jobId/stage",
     ),
   },
   manco: {

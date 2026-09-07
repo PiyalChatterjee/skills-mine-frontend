@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Box, ButtonBase, Typography } from '@mui/material'
+import { Box, ButtonBase, CircularProgress, Typography } from '@mui/material'
+import { mandateApi } from '@/services/api/mandateApi'
 import styles from './InboundStageModal.module.css'
 
 // ── Icons ──────────────────────────────────────────────────────────────
@@ -23,8 +24,12 @@ export interface InboundStageModalProps {
   candidateName: string
   candidateTitle: string
   company: string
+  applicationId: string
+  jobId: string
   dueDate?: string
   onClose: () => void
+  /** Called after the card has been successfully advanced to Screening */
+  onAdvance?: (applicationId: string) => void
 }
 
 // ── Component ──────────────────────────────────────────────────────────
@@ -33,10 +38,29 @@ const InboundStageModal = ({
   candidateName,
   candidateTitle,
   company,
+  applicationId,
+  jobId,
   dueDate = 'Jan 20, 2026',
   onClose,
+  onAdvance,
 }: InboundStageModalProps) => {
-  const [checked, setChecked] = useState(false)
+  const [checked, setChecked]   = useState(false)
+  const [advancing, setAdvancing] = useState(false)
+
+  const handleAdvance = async () => {
+    if (!checked || advancing) return
+    setAdvancing(true)
+    try {
+      await mandateApi.advanceJobStage(jobId, {
+        applicationIds: [applicationId],
+        targetStage: 'Screening',
+      })
+      onAdvance?.(applicationId)
+      onClose()
+    } finally {
+      setAdvancing(false)
+    }
+  }
 
   return (
     <Box className={styles.backdrop} onClick={onClose}>
@@ -111,8 +135,13 @@ const InboundStageModal = ({
             <ButtonBase className={styles.actionBtn} disableRipple disabled>
               Move back
             </ButtonBase>
-            <ButtonBase className={styles.actionBtn} disableRipple disabled>
-              Advance
+            <ButtonBase
+              className={`${styles.actionBtn} ${checked ? styles.actionBtnActive : ''}`}
+              disableRipple
+              disabled={!checked || advancing}
+              onClick={handleAdvance}
+            >
+              {advancing ? <CircularProgress size={14} sx={{ color: '#fff' }} /> : 'Advance'}
             </ButtonBase>
           </Box>
         </Box>

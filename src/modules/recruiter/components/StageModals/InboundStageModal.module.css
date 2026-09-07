@@ -221,3 +221,19 @@
   transition: none;
   height: 42px;
 }
+
+/* Active Advance button — enabled when checkbox is checked */
+.actionBtnActive:global(.MuiButtonBase-root) {
+  color: #ffffff;
+  background: #7A5DC7;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.actionBtnActive:global(.MuiButtonBase-root):hover {
+  background: #6448ae;
+}
+
+.actionBtnActive:global(.MuiButtonBase-root):active {
+  background: #533a96;
+}
