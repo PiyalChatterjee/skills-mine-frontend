@@ -57,16 +57,6 @@ const ProfileCreationWizard = () => {
           <Typography component="h1" className={styles.heroHeading}>
             Create your profile
           </Typography>
-
-          <Box className={styles.stepsIndicator} aria-label="Profile creation progress">
-            {Array.from({ length: totalSteps }, (_, index) => (
-              <span
-                key={index}
-                className={`${styles.step} ${index === currentStepIndex ? styles.stepActive : ''}`}
-                aria-hidden="true"
-              />
-            ))}
-          </Box>
         </GradientPatternHero>
 
         <Box component="section" className={styles.contentSection}>

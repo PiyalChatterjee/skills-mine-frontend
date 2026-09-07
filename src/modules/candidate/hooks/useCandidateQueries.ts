@@ -57,6 +57,7 @@ export const useCandidateStatisticsQuery = (enabled = true) =>
 
 type UpdateCandidateProfileVariables = {
   userId: string
+  candidateId?: string
   payload: CandidateProfileUpdatePayload
 }
 

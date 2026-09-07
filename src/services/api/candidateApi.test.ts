@@ -491,11 +491,13 @@ describe('candidateApi', () => {
   })
 
   describe('updateById', () => {
-    it('PUTs the CV builder record then re-fetches the profile', async () => {
-      mockPut.mockResolvedValue({ data: { data: { userId: 'u-1', updatedAt: '2024-01-01' } } })
+    it('creates the profile then re-fetches it', async () => {
+      mockPut.mockResolvedValue({ data: {} })
       mockGet.mockResolvedValue(mockProfileResponse)
       const result = await candidateApi.updateById('u-1', { personalDetails: { firstName: 'Updated' } } as never)
-      expect(mockPut).toHaveBeenCalledWith('/candidates/cv-build/', expect.any(Object))
+      expect(mockPut).toHaveBeenCalledWith('/candidates/profile/', expect.any(Object))
+      expect(mockGet).toHaveBeenCalledWith('/candidates/profile/')
+      expect(mockPost).not.toHaveBeenCalled()
       expect(result.personalDetails.firstName).toBe('Jane')
     })
   })

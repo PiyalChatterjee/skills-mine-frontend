@@ -55,6 +55,12 @@ const isCurrentStepValid = (values: ProfileCreationFormValues) => {
   }).success
 }
 
+const isMissingCandidateProfileError = (error: unknown) =>
+  typeof error === 'object' &&
+  error !== null &&
+  'status' in error &&
+  error.status === 404
+
 export const useProfileCreationWizard = () => {
   const navigate = useNavigate()
   const { user } = useAuth()
@@ -74,6 +80,7 @@ export const useProfileCreationWizard = () => {
     Boolean(user?.candidateId || userId),
   )
   const updateProfileMutation = useUpdateCandidateProfileMutation()
+  const isNewCandidateProfile = isMissingCandidateProfileError(error)
 
   const form = useForm<ProfileCreationFormValues>({
     resolver: zodResolver(profileCreationSchema) as never,
@@ -118,6 +125,7 @@ export const useProfileCreationWizard = () => {
 
     return updateProfileMutation.mutateAsync({
       userId,
+      candidateId: user?.candidateId,
       payload: getProfileCreationPayload(values, candidateProfile ?? null),
     })
   }
@@ -166,8 +174,10 @@ export const useProfileCreationWizard = () => {
     handleNext,
     isLoading,
     isFetching,
-    isError,
-    loadErrorMessage: extractErrorMessage(error, 'Failed to load your profile.'),
+    isError: isError && !isNewCandidateProfile,
+    loadErrorMessage: isNewCandidateProfile
+      ? ''
+      : extractErrorMessage(error, 'Failed to load your profile.'),
     submitError,
     isSubmitting: updateProfileMutation.isLoading,
     isMissingUser: !userId,

@@ -205,6 +205,26 @@ Removed deprecated service:
 - Command: `npm run -s build`
 - Result: success
 
+## Deployed Candidate Service Validation (2026-09-07)
+
+### Environment
+- Auth API: `https://oxbiyfx1yj.execute-api.af-south-1.amazonaws.com`
+- Candidate API: `https://oxbiyfx1yj.execute-api.af-south-1.amazonaws.com/api/candidate-service/v1`
+- Browser origin: `http://localhost:3000`
+
+### Successful Steps
+- `POST /api/auth-service/v1/auth/login` returned `200`.
+- `GET /api/auth-service/v1/users/me` returned `200`.
+- `GET /api/candidate-service/v1/candidates/profile/{candidateId}` returned `200` for the development account.
+
+### Blocking Issue
+- `PUT /api/candidate-service/v1/candidates/profile/{candidateId}` returned `403`.
+- Response: `{ "message": "CSRF check failed: origin not allowed", "code": "AUTHORIZATION_ERROR" }`.
+- The Candidate service must allow `http://localhost:3000` as an approved development origin, or provide the expected CSRF token/bootstrap contract. Until then, profile creation and the subsequent CV Builder journey cannot be completed against the deployed service.
+
+### Mock Server Baseline
+- The same candidate onboarding flow was verified against the local mock server: new profile lookup `404`, profile creation `201`, initial CV lookup `404`, CV creation `201`, then candidate dashboard navigation.
+
 ## Post-Migration Follow-Up: Candidate Onboarding Routing
 
 ### What Happened

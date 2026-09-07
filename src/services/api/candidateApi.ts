@@ -734,34 +734,28 @@ export const candidateApi = {
     candidateId: string,
     payload: CandidateProfileUpdatePayload,
   ): Promise<CandidateProfile> {
+    const personalDetails = payload.personalDetails ?? {};
     await candidateApiClient.put(
-      resolveEndpoint(apiEndpoints.candidate.buildMyCv, { candidateId }),
-      toCvPayload({
-        personalDetails: payload.personalDetails as SaveBuildMyCvRequest["personalDetails"],
-        careerHistory: payload.experience,
-        skills: payload.skills,
-        languages: payload.languages,
-      }),
+      resolveEndpoint(apiEndpoints.candidate.profile, { candidateId }),
+      {
+        personal_details: {
+          first_name: personalDetails.firstName,
+          last_name: personalDetails.lastName,
+          alternate_email: personalDetails.email,
+          phone_number: personalDetails.mobileNumber,
+          residential_location: personalDetails.location,
+        },
+        job_details: {
+          role_title_id: payload.desiredJob?.jobTitle,
+          targeted_industries: payload.desiredJob?.industry,
+          preferred_location: payload.desiredJob?.workType,
+          employment_type: payload.desiredJob?.employmentType,
+          availability: payload.desiredJob?.availableFrom,
+        },
+      },
     );
 
-    try {
-      return await this.getById(candidateId);
-    } catch (error) {
-      const status = (error as { response?: { status?: number } }).response?.status;
-      if (status !== 404) {
-        throw error;
-      }
-
-      return mapProfileResponse({
-        userId: candidateId,
-        personalDetails: payload.personalDetails,
-        desiredJob: payload.desiredJob,
-        education: payload.education,
-        experience: payload.experience,
-        skills: payload.skills,
-        languages: payload.languages,
-      });
-    }
+    return this.getById(candidateId);
   },
 
   uploadProfilePhoto(
