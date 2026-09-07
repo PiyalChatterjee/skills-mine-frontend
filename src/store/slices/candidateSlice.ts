@@ -39,6 +39,23 @@ const initialState: CandidateState = {
   buildMyCvLastModified: null,
 };
 
+// The mock/real v2 cv-build endpoint never returns a resumeId, so existence must be
+// inferred from populated content instead (mirrors useCandidateQueries.hasBuildMyCvData).
+const hasBuildMyCvContent = (data: BuildMyCvState): boolean => {
+  if (data.resumeId) return true;
+
+  const hasPersonalDetails = Boolean(
+    data.personalDetails?.firstName?.trim() && data.personalDetails?.lastName?.trim(),
+  );
+  const hasCareerHistory = (data.careerHistory?.length ?? 0) > 0;
+  const hasSkills = (data.skills?.length ?? 0) > 0;
+  const hasEducation =
+    (data.education?.tertiaryEducation?.length ?? 0) > 0 ||
+    (data.education?.secondaryEducation?.length ?? 0) > 0;
+
+  return hasPersonalDetails && (hasCareerHistory || hasSkills || hasEducation);
+};
+
 const candidateSlice = createSlice({
   name: "candidate",
   initialState,
@@ -77,7 +94,7 @@ const candidateSlice = createSlice({
     setBuildMyCv: (state, action: PayloadAction<BuildMyCvState>) => {
       state.buildMyCv = action.payload;
       state.buildMyCvLoaded = true;
-      state.buildMyCvExists = Boolean(action.payload.resumeId);
+      state.buildMyCvExists = hasBuildMyCvContent(action.payload);
       state.buildMyCvLastModified = action.payload.lastModified ?? null;
     },
 

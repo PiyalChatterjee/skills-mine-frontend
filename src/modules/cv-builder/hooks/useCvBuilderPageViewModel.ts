@@ -66,7 +66,8 @@ const buildPrefillFromSavedCv = (
     yearCompleted: String(entry.yearCompleted ?? ""),
   })),
   secondaryEducation: (buildMyCvData.education?.secondaryEducation ?? []).map((entry) => ({
-    institutionName: entry.schoolName ?? "",
+    // mapBuildResponse (candidateApi.ts) normalizes both levels onto `institution`, not `schoolName`.
+    institutionName: entry.institution ?? entry.schoolName ?? "",
     highestGradePassed: entry.qualification ?? "",
     yearCompleted: String(entry.yearCompleted ?? ""),
   })),
