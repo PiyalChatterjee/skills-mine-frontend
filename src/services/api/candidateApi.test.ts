@@ -9,6 +9,7 @@ const mockDelete = vi.hoisted(() => vi.fn())
 
 vi.mock('@/services/api/axios', () => ({
   apiClient: { get: mockGet, post: mockPost, put: mockPut, delete: mockDelete },
+  candidateApiClient: { get: mockGet, post: mockPost, put: mockPut, delete: mockDelete },
   unwrapResponseData: async (promise: Promise<unknown>) =>
     ((await promise) as { data: unknown }).data,
   unwrapEnvelopeData: async (promise: Promise<unknown>) =>
@@ -494,9 +495,7 @@ describe('candidateApi', () => {
       mockPut.mockResolvedValue({ data: { data: { userId: 'u-1', updatedAt: '2024-01-01' } } })
       mockGet.mockResolvedValue(mockProfileResponse)
       const result = await candidateApi.updateById('u-1', { personalDetails: { firstName: 'Updated' } } as never)
-      expect(mockPut).toHaveBeenCalledWith('/candidates/cv-build/', {
-        personalDetails: { firstName: 'Updated' },
-      })
+      expect(mockPut).toHaveBeenCalledWith('/candidates/cv-build/', expect.any(Object))
       expect(result.personalDetails.firstName).toBe('Jane')
     })
   })

@@ -1,4 +1,4 @@
-import { apiClient } from "@/services/api/axios";
+import { apiClient, mandateApiClient } from "@/services/api/axios";
 import { apiEndpoints, resolveEndpoint } from "@/services/api/endpoints";
 import { formatEnumLabel } from "@/app/formatEnumLabel";
 import type {
@@ -173,7 +173,7 @@ const toMandate = (job: JobProfileSummary): RecruiterMandatesData["mandates"][nu
 });
 
 const toJobWriteRequest = async (payload: CreateMandateRequest) => {
-  const industries = await apiClient
+  const industries = await mandateApiClient
     .get<IndustryItem[]>(apiEndpoints.industries.list)
     .then((response) => response.data);
   const selectedIndustry = industries.find((industry) =>
@@ -206,7 +206,7 @@ const toJobWriteRequest = async (payload: CreateMandateRequest) => {
 
 export const mandateApi = {
   getCompanies(search?: string) {
-    return apiClient
+    return mandateApiClient
       .get<CompanyPage>(apiEndpoints.companies.list, {
         params: { search, page: 0, size: 100 },
       })
@@ -232,7 +232,7 @@ export const mandateApi = {
   }) {
     const page = Math.max(0, (params?.page ?? 1) - 1);
     const size = params?.limit ?? 12;
-    return apiClient
+    return mandateApiClient
       .get<JobProfilePage>(apiEndpoints.jobs.list, {
         params: { status: params?.status, page, size },
       })
@@ -350,7 +350,7 @@ export const mandateApi = {
   },
   createJobPost(payload: CreateMandateRequest) {
     return toJobWriteRequest(payload)
-      .then((body) => apiClient.post<JobProfile>(apiEndpoints.jobs.list, body))
+      .then((body) => mandateApiClient.post<JobProfile>(apiEndpoints.jobs.list, body))
       .then((response): SuccessEnvelope<{ mandateId: string }> => ({
         success: true,
         statusCode: 201,
@@ -360,7 +360,7 @@ export const mandateApi = {
   },
 
   getJobPosts(params?: JobPostsParams) {
-    return apiClient
+    return mandateApiClient
       .get<JobProfilePage>(apiEndpoints.jobs.list, {
         params: {
           search: params?.search,
@@ -378,7 +378,7 @@ export const mandateApi = {
   },
 
   getJobPostDetail(mandateId: string) {
-    return apiClient
+    return mandateApiClient
       .get<JobProfile>(
         resolveEndpoint(apiEndpoints.jobs.details, { jobProfileId: mandateId }),
       )
@@ -392,7 +392,7 @@ export const mandateApi = {
 
   updateJobPost(mandateId: string, payload: CreateMandateRequest) {
     return toJobWriteRequest(payload)
-      .then((body) => apiClient.patch<JobProfile>(
+      .then((body) => mandateApiClient.patch<JobProfile>(
           resolveEndpoint(apiEndpoints.jobs.details, { jobProfileId: mandateId }),
           body,
         ))
@@ -405,7 +405,7 @@ export const mandateApi = {
   },
 
   deleteJobPost(mandateId: string) {
-    return apiClient
+    return mandateApiClient
       .delete(resolveEndpoint(apiEndpoints.jobs.details, { jobProfileId: mandateId }))
       .then((): SuccessEnvelope<{ mandateId: string }> => ({
         success: true,
