@@ -226,6 +226,8 @@ const useCvBuilder = (
         languages: languages ?? DEFAULT_FORM_VALUES.languages,
         otherLanguage: otherLanguage ?? DEFAULT_FORM_VALUES.otherLanguage,
       });
+      // Surface any prefilled-but-incomplete fields (e.g. missing institution name) right away.
+      void form.trigger();
       return;
     }
 
@@ -285,6 +287,8 @@ const useCvBuilder = (
     ) {
       form.setValue("otherLanguage", otherLanguage);
     }
+    // Surface any prefilled-but-incomplete fields (e.g. missing institution name) right away.
+    void form.trigger();
   }, [prefillData, forceApply]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const personalDetailsValues = useWatch({

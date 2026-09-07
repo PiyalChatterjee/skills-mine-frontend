@@ -63,10 +63,6 @@ export const useCandidateLayoutViewModel = () => {
     window.open("https://skillsbuild.org/", "_blank");
   };
 
-  const handleBlogClick = () => {
-    // TODO: Implement blog navigation
-  };
-
   const handleProtectedNavClick = (
     event: MouseEvent<HTMLAnchorElement>,
     targetPath: string,
@@ -82,7 +78,6 @@ export const useCandidateLayoutViewModel = () => {
     savedJobPosts: handleSavedJobPostsClick,
     cvBuilder: handleCvBuilderClick,
     skillsBuild: handleSkillsBuildClick,
-    blog: handleBlogClick,
   };
 
   const candidateNavItems = buildHeaderNavItems({
