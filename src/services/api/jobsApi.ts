@@ -1,4 +1,4 @@
-import { apiClient } from "@/services/api/axios";
+import { mandateApiClient } from "@/services/api/axios";
 import { apiEndpoints, resolveEndpoint } from "@/services/api/endpoints";
 import { formatEnumLabel } from "@/app/formatEnumLabel";
 import type {
@@ -76,7 +76,7 @@ export const jobsApi = {
     limit = 10,
     status: string = "POSTED",
   ): Promise<JobsResponse> {
-    const response = await apiClient.get<JobProfilePage>(apiEndpoints.jobs.list, {
+    const response = await mandateApiClient.get<JobProfilePage>(apiEndpoints.jobs.list, {
       params: {
         status,
         ...(q ? { [apiEndpoints.jobs.listQueryParam]: q } : {}),
@@ -100,7 +100,7 @@ export const jobsApi = {
   // Full job profile detail (Mandate_Service_v2 job-service) — called when a
   // candidate opens a job to view, instead of relying on the list-cached data.
   async getJobProfile(jobProfileId: string): Promise<Job> {
-    const response = await apiClient.get<JobProfileDetail>(
+    const response = await mandateApiClient.get<JobProfileDetail>(
       resolveEndpoint(apiEndpoints.jobs.profileDetails, { jobProfileId }),
     );
     const data = response.data;
