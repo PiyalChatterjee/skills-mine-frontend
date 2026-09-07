@@ -31,7 +31,10 @@ const createApiClient = (baseURL: string) => {
   client.interceptors.response.use(
     (response) => response,
     (error: AxiosError) => {
-      if (error.response?.status === 401) {
+      // Only react to 401s that end an active session; otherwise a 401 from an
+      // already-logged-out/public request would keep re-triggering clearSession
+      // -> resetApiState() -> refetch -> 401 in an infinite loop.
+      if (error.response?.status === 401 && tokenStorage.getTokens()?.accessToken) {
         tokenStorage.clearAuth();
         authEvents.emitUnauthorized();
       }
