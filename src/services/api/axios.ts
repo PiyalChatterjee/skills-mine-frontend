@@ -22,6 +22,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api";
 const AUTH_API_BASE_URL = import.meta.env.VITE_AUTH_API_BASE_URL || API_BASE_URL;
 const CANDIDATE_API_BASE_URL = import.meta.env.VITE_CANDIDATE_API_BASE_URL || API_BASE_URL;
 const MANDATE_API_BASE_URL = import.meta.env.VITE_MANDATE_API_BASE_URL || API_BASE_URL;
+const DOCUMENT_API_BASE_URL = import.meta.env.VITE_DOCUMENT_API_BASE_URL || API_BASE_URL;
 const REQUEST_TIMEOUT_MS = Number(
   import.meta.env.VITE_REQUEST_TIMEOUT_MS ?? 5000,
 );
@@ -62,6 +63,7 @@ export const apiClient = createApiClient(API_BASE_URL);
 export const authApiClient = createApiClient(AUTH_API_BASE_URL);
 export const candidateApiClient = createApiClient(CANDIDATE_API_BASE_URL);
 export const mandateApiClient = createApiClient(MANDATE_API_BASE_URL);
+export const documentApiClient = createApiClient(DOCUMENT_API_BASE_URL);
 
 export const unwrapResponseData = async <T>(
   responsePromise: Promise<AxiosResponse<T>>,

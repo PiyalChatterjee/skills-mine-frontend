@@ -75,6 +75,8 @@ describe('useProfileCreationWizard', () => {
         fullName: 'Jane Doe',
         email: 'jane@example.com',
         phoneNumber: '0821234567',
+        alternateEmail: '',
+        alternatePhoneNumber: '',
         residentialLocation: 'Cape Town',
         preferredJobTitle: 'Software Engineer',
         targetedIndustries: 'Technology',

@@ -6,6 +6,7 @@ interface ImportMetaEnv {
   readonly VITE_AUTH_API_BASE_URL?: string
   readonly VITE_CANDIDATE_API_BASE_URL?: string
   readonly VITE_MANDATE_API_BASE_URL?: string
+  readonly VITE_DOCUMENT_API_BASE_URL?: string
   readonly VITE_REQUEST_TIMEOUT_MS: string
   readonly VITE_MOCK_ERROR_RATE: string
   readonly VITE_MOCK_DELAY_MIN_MS: string

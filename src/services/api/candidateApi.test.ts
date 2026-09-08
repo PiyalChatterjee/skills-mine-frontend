@@ -10,6 +10,7 @@ const mockDelete = vi.hoisted(() => vi.fn())
 vi.mock('@/services/api/axios', () => ({
   apiClient: { get: mockGet, post: mockPost, put: mockPut, delete: mockDelete },
   candidateApiClient: { get: mockGet, post: mockPost, put: mockPut, delete: mockDelete },
+  documentApiClient: { get: mockGet, post: mockPost, put: mockPut, delete: mockDelete },
   unwrapResponseData: async (promise: Promise<unknown>) =>
     ((await promise) as { data: unknown }).data,
   unwrapEnvelopeData: async (promise: Promise<unknown>) =>

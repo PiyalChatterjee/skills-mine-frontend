@@ -1,6 +1,7 @@
 import {
   apiClient,
   candidateApiClient,
+  documentApiClient,
   unwrapEnvelopeData,
   unwrapResponseData,
 } from "@/services/api/axios";
@@ -1092,7 +1093,7 @@ export const candidateApi = {
     formData.append("title", fileName);
 
     const raw = await unwrapResponseData(
-      apiClient.post<Record<string, any>>(
+      documentApiClient.post<Record<string, any>>(
         apiEndpoints.documents.uploadResume,
         formData,
       ),
@@ -1123,7 +1124,7 @@ export const candidateApi = {
     formData.append("title", fileName);
 
     const raw = await unwrapResponseData(
-      apiClient.post<Record<string, any>>(
+      documentApiClient.post<Record<string, any>>(
         apiEndpoints.documents.upload,
         formData,
       ),
