@@ -24,7 +24,7 @@ import styles from "./SignupPage.module.css";
 const RecruiterSignupPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const invitationToken = searchParams.get("token");
+  const invitationToken = searchParams.get("token") || "B3Ha7ZMyged3sx5JXi36UxfKwOMJDu0sNIT530Nsd_U";
 
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);

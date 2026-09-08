@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import {
   Joyride,
   type EventData,
@@ -9,8 +9,6 @@ import {
   EVENTS,
 } from 'react-joyride'
 import faviconIcon from '@/assets/Favicon-2.svg'
-import { useAuth } from '@/app/auth/AuthContext'
-import { recruiterApi } from '@/services/api/recruiterApi'
 
 const BrandIcon = () => (
   <img src={faviconIcon} alt="Skills Mine" style={{ display: 'block', width: 60, height: 60 }} />
@@ -170,21 +168,12 @@ const TOUR_STEPS: Step[] = [
 
 // ── Component ─────────────────────────────────────────────────────────────
 
-export const RecruiterTour = () => {
-  const { hasRole } = useAuth()
-  const isRecruiter = hasRole(['RECRUITER'])
+interface RecruiterTourProps {
+  isFirstLogin: boolean
+}
 
-  // null = still loading from server; false = not seen → show tour; true = already seen → skip
-  const [tourSeen, setTourSeen] = useState<boolean | null>(null)
-
-  useEffect(() => {
-    if (!isRecruiter) return
-
-    recruiterApi
-      .getTourStatus()
-      .then((seen) => setTourSeen(seen))
-      .catch(() => setTourSeen(false)) // on error, default to showing the tour
-  }, [isRecruiter])
+export const RecruiterTour = ({ isFirstLogin }: RecruiterTourProps) => {
+  const [tourDismissed, setTourDismissed] = useState(false)
 
   const handleCallback = (data: EventData) => {
     const { status, type, action } = data
@@ -194,16 +183,12 @@ export const RecruiterTour = () => {
       status === STATUS.SKIPPED ||
       (type === EVENTS.STEP_AFTER && action === ACTIONS.CLOSE)
 
-    if (isTourDone && tourSeen === false) {
-      setTourSeen(true)
-      recruiterApi.markTourSeen().catch(() => {
-        // best-effort — the tour has already closed, nothing more to do
-      })
+    if (isTourDone) {
+      setTourDismissed(true)
     }
   }
 
-  // Don't render while loading, and don't render if tour was already seen
-  if (!isRecruiter || tourSeen !== false) return null
+  if (!isFirstLogin || tourDismissed) return null
 
   return (
     <Joyride

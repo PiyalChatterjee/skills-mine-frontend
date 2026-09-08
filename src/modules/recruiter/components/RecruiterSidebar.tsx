@@ -1,13 +1,14 @@
 import { Box, ButtonBase, Typography } from '@mui/material'
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
-import { useDispatch } from 'react-redux'
 import { ROUTE_PATHS } from '@/routes/routePaths'
-import { clearAuthSession } from '@/store/slices/authSlice'
+import { useAuth } from '@/app/auth/AuthContext'
+import { authApi } from '@/services/api/authApi'
 import styles from './RecruiterSidebar.module.css'
 
 import dashboardIcon    from '@/assets/recruiter/speed-up-line.svg'
 import mandatesIcon     from '@/assets/recruiter/Menu Icons-1.svg'
 import crmIcon          from '@/assets/recruiter/person.svg'
+import mancoIcon        from '@/assets/recruiter/settings_account_box.svg'
 import logoutIcon       from '@/assets/logout-icon.svg'
 import logoBanner       from '@/assets/recruiter/Group 45 (1).svg'
 
@@ -40,29 +41,23 @@ const CandidatesIcon = () => (
   </svg>
 )
 
-/** Bar chart icon — MANCO Dashboard */
-const MancoIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <rect x="3" y="12" width="4" height="9" rx="1" stroke="currentColor" strokeWidth="1.8" />
-    <rect x="10" y="7" width="4" height="14" rx="1" stroke="currentColor" strokeWidth="1.8" />
-    <rect x="17" y="3" width="4" height="18" rx="1" stroke="currentColor" strokeWidth="1.8" />
-  </svg>
-)
-
 // ── Component ──────────────────────────────────────────────────────────
 
 export const RecruiterSidebar = () => {
   const location = useLocation()
   const navigate = useNavigate()
-  const dispatch = useDispatch()
+  const { logout } = useAuth()
   const handleNewJobPostClick = () => {
     navigate(ROUTE_PATHS.recruiterNewJobPost)
   }
 
-  const handleLogoutClick = () => {
-    dispatch(clearAuthSession())
-    localStorage.clear()
-    sessionStorage.clear()
+  const handleLogoutClick = async () => {
+    try {
+      await authApi.logout()
+    } catch {
+      // proceed with local session teardown even if the server call fails
+    }
+    logout()
     navigate(ROUTE_PATHS.login)
   }
 
@@ -72,7 +67,7 @@ export const RecruiterSidebar = () => {
     { id: 'newJobPost', label: 'New Job Post', icon: <PlusIcon />,       onClick: handleNewJobPostClick },
     { id: 'candidates', label: 'Candidates',  to: ROUTE_PATHS.recruiterCandidates, icon: <CandidatesIcon /> },
     { id: 'crm',        label: 'CRM',         to: ROUTE_PATHS.recruiterCrm, icon: <img src={crmIcon}      width={20} height={20} alt="" aria-hidden="true" /> },
-    { id: 'manco',      label: 'MANCO',       to: ROUTE_PATHS.recruiterManco, icon: <MancoIcon /> },
+    { id: 'manco',      label: 'MANCO',       to: ROUTE_PATHS.recruiterManco, icon: <img src={mancoIcon} width={20} height={20} alt="" aria-hidden="true" /> },
   ]
 
   const adminNavItems: NavItem[] = [
