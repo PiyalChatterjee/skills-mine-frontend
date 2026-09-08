@@ -746,7 +746,7 @@ export const candidateApi = {
           residential_location: personalDetails.location,
         },
         job_details: {
-          role_title_id: payload.desiredJob?.jobTitle,
+          role_title: payload.desiredJob?.jobTitle,
           targeted_industries: payload.desiredJob?.industry,
           preferred_location: payload.desiredJob?.workType,
           employment_type: payload.desiredJob?.employmentType,
