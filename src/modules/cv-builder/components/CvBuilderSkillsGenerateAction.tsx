@@ -67,11 +67,15 @@ const CvBuilderSkillsGenerateAction = ({
 
       clearErrors("skills");
       replaceSkills(suggestedSkills.map((skill) => ({ name: skill.skillName })));
-    } catch {
+    } catch (error) {
+      const message =
+        error && typeof error === "object" && "message" in error && typeof error.message === "string"
+          ? error.message
+          : "We could not generate skills right now. Please try again.";
       dispatch(
         pushNotification({
           title: "Skill generation failed",
-          message: "We could not generate skills right now. Please try again.",
+          message,
           level: "error",
         }),
       );

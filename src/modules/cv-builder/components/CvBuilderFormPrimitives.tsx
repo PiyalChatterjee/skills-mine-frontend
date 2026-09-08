@@ -30,6 +30,7 @@ type CvBuilderSelectFieldProps = {
   label: string;
   value: string;
   onChange: (event: ChangeEvent<HTMLInputElement>) => void;
+  onBlur?: () => void;
   options: string[];
   span?: FieldSpan;
   allowEmptyOption?: boolean;
@@ -110,6 +111,7 @@ export const CvBuilderSelectField = ({
   label,
   value,
   onChange,
+  onBlur,
   options,
   span = "one",
   allowEmptyOption = true,
@@ -123,6 +125,7 @@ export const CvBuilderSelectField = ({
       select
       value={value}
       onChange={onChange}
+      onBlur={onBlur}
       error={error}
       helperText={helperText}
       className={styles.fieldControl}

@@ -179,7 +179,9 @@ const useCvBuilder = (
   const form = useForm<CvBuilderFormValues>({
     resolver: zodResolver(cvBuilderSchema) as never,
     defaultValues: DEFAULT_FORM_VALUES,
-    mode: "onSubmit",
+    // onBlur avoids re-running the (large, nested) schema on every keystroke;
+    // reValidateMode still clears/updates errors immediately once a field is fixed.
+    mode: "onBlur",
     reValidateMode: "onChange",
   });
 

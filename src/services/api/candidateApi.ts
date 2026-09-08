@@ -987,17 +987,23 @@ export const candidateApi = {
   // caller is expected to overwrite the current skills list with the result.
   async generateSkills(payload: GenerateSkillsRequest): Promise<UserSkill[]> {
     const raw = await unwrapResponseData(
-      apiClient.post(apiEndpoints.skills.generate, {
-        subject_type: "CANDIDATE",
-        subject_id: payload.candidateId,
-        input_source: "PROFILE",
-        career_history: payload.careerHistory.map((entry) => ({
-          company_name: entry.companyName,
-          position_held: entry.positionHeld,
-          responsibilities: entry.responsibilities,
-          projects: entry.projects,
-        })),
-      }),
+      apiClient.post(
+        apiEndpoints.skills.generate,
+        {
+          subject_type: "CANDIDATE",
+          subject_id: payload.candidateId,
+          input_source: "PROFILE",
+          career_history: payload.careerHistory.map((entry) => ({
+            company_name: entry.companyName,
+            position_held: entry.positionHeld,
+            responsibilities: entry.responsibilities,
+            projects: entry.projects,
+          })),
+        },
+        // A failure here (including a 401) shouldn't end the user's session —
+        // the caller shows an error toast and keeps them on the current page.
+        { skipUnauthorizedRedirect: true },
+      ),
     );
     const data = responseData(raw as Record<string, unknown>) as Record<string, any>;
     const suggested = Array.isArray(data.suggested_skills) ? data.suggested_skills : [];

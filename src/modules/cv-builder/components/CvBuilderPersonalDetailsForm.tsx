@@ -39,6 +39,7 @@ const CvBuilderPersonalDetailsForm = () => {
               label="Race"
               value={field.value}
               onChange={field.onChange}
+              onBlur={field.onBlur}
               options={RACE_OPTIONS}
               error={Boolean(fieldState.error)}
               helperText={fieldState.error?.message}
@@ -54,6 +55,7 @@ const CvBuilderPersonalDetailsForm = () => {
               label="Gender"
               value={field.value}
               onChange={field.onChange}
+              onBlur={field.onBlur}
               options={GENDER_OPTIONS}
               error={Boolean(fieldState.error)}
               helperText={fieldState.error?.message}
@@ -69,6 +71,7 @@ const CvBuilderPersonalDetailsForm = () => {
               label="Disability status"
               value={field.value}
               onChange={field.onChange}
+              onBlur={field.onBlur}
               options={DISABILITY_OPTIONS}
               error={Boolean(fieldState.error)}
               helperText={fieldState.error?.message}
@@ -117,6 +120,7 @@ const CvBuilderPersonalDetailsForm = () => {
               label="Notice period"
               value={field.value}
               onChange={field.onChange}
+              onBlur={field.onBlur}
               options={NOTICE_PERIOD_OPTIONS}
               span="one"
               error={Boolean(fieldState.error)}
