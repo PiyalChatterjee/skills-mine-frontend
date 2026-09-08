@@ -86,7 +86,9 @@ export const apiSlice = createApi({
       queryFn: () =>
         withMappedApiError(async () => {
           const envelope = await industryApi.getIndustries();
-          return envelope.data.map((industry) => industry.name).filter(Boolean);
+          const names = envelope.data.map((industry) => industry.name).filter(Boolean);
+          // Backend may return multiple records with the same name under different ids
+          return Array.from(new Set(names));
         }),
       providesTags: [{ type: "Industries", id: "LIST" }],
     }),
