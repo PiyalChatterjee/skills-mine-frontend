@@ -25,9 +25,11 @@ import type {
 type LoginPayload = {
   user: AuthUser
   tokens: JwtTokens
+  isFirstLogin?: boolean
 }
 
 interface AuthContextValue extends AuthSession {
+  isFirstLogin: boolean
   login: (payload: LoginPayload) => void
   logout: () => void
   hasRole: (roles: Role[]) => boolean
@@ -44,6 +46,7 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 
 export const AuthProvider = ({ children }: PropsWithChildren) => {
   const [session, setSession] = useState<AuthSession>(defaultState)
+  const [isFirstLogin, setIsFirstLogin] = useState(false)
 
   const clearSession = useCallback(() => {
     tokenStorage.clearAuth()
@@ -83,6 +86,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   const login = useCallback((payload: LoginPayload) => {
     tokenStorage.setTokens(payload.tokens)
     tokenStorage.setUser(payload.user)
+    setIsFirstLogin(payload.isFirstLogin ?? false)
     setSession({
       user: payload.user,
       tokens: payload.tokens,
@@ -112,12 +116,13 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   const value = useMemo(
     () => ({
       ...session,
+      isFirstLogin,
       login,
       logout,
       hasRole,
       hasPermission,
     }),
-    [hasPermission, hasRole, login, logout, session],
+    [hasPermission, hasRole, isFirstLogin, login, logout, session],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

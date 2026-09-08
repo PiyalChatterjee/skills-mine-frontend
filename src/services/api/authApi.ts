@@ -163,8 +163,8 @@ const buildAuthUserFromJwt = (idToken: string): AuthUser => {
 
 export const mapLoginResponseToSession = async (
   response: LoginResponse,
-): Promise<{ user: AuthUser; tokens: JwtTokens }> => {
-  const { accessToken, idToken, refreshToken } = response;
+): Promise<{ user: AuthUser; tokens: JwtTokens; isFirstLogin: boolean }> => {
+  const { accessToken, idToken, refreshToken, isFirstLogin = false } = response;
   const tokens: JwtTokens = { accessToken, idToken, refreshToken };
   const jwtUser = buildAuthUserFromJwt(idToken);
 
@@ -174,10 +174,10 @@ export const mapLoginResponseToSession = async (
   try {
     const currentUser = await authApi.getCurrentUser();
     const user = buildAuthUserFromCurrentUser(currentUser, idToken);
-    return { user, tokens };
+    return { user, tokens, isFirstLogin };
   } catch {
     // Fall back to JWT claims only when the current-user request is unavailable.
-    return { user: jwtUser, tokens };
+    return { user: jwtUser, tokens, isFirstLogin };
   }
 };
 

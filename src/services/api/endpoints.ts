@@ -226,10 +226,6 @@ export const apiEndpoints = {
       import.meta.env.VITE_RECRUITER_CANDIDATE_PROFILE_ENDPOINT,
       "/v1/candidates/:candidateId/profile",
     ),
-    tourStatus: withDefault(
-      import.meta.env.VITE_RECRUITER_TOUR_STATUS_ENDPOINT,
-      "/api/v1/recruiters/me/tour-status",
-    ),
   },
   pipeline: {
     stageUpdate: withDefault(

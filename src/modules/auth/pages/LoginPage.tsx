@@ -100,8 +100,8 @@ const LoginPage = () => {
       setSubmitError(null);
 
       const response = await authApi.login(values);
-      const session = await mapLoginResponseToSession(response);
-      login(session);
+      const { user, tokens, isFirstLogin } = await mapLoginResponseToSession(response);
+      login({ user, tokens, isFirstLogin });
     } catch {
       setSubmitError("Login failed. Check your credentials and try again.");
     }
