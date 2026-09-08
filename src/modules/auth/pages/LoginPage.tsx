@@ -8,6 +8,8 @@ import {
 } from "@mui/material";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/app/auth/AuthContext";
+import { tokenStorage } from "@/app/auth/tokenStorage";
+import { isNotFoundError } from "@/app/errorUtils";
 import { useZodForm } from "@/hooks/useZodForm";
 import AuthHero from "@/modules/auth/components/AuthHero";
 import AuthPasswordField from "@/modules/auth/components/AuthPasswordField";
@@ -16,6 +18,7 @@ import { roleToDefaultRoute } from "@/routes/roleDefaultRoutes";
 import { loginSchema, type LoginFormValues } from "@/modules/auth/types";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import { authApi, mapLoginResponseToSession } from "@/services/api/authApi";
+import { candidateApi } from "@/services/api/candidateApi";
 import styles from "./LoginPage.module.css";
 import { redirectToGoogleLogin } from "@/app/auth/cognitoHostedUi";
 import googleLogoUrl from "@/assets/public-layout/google-logo.png";
@@ -101,6 +104,23 @@ const LoginPage = () => {
 
       const response = await authApi.login(values);
       const session = await mapLoginResponseToSession(response);
+
+      // Right after signup the profile hasn't been created yet, so a 404 there is expected.
+      if (session.user.role === "JOB_SEEKER" && !isPostSignupCandidate) {
+        const candidateId = session.user.candidateId ?? session.user.userId;
+        try {
+          await candidateApi.getById(candidateId, session.user.userId);
+        } catch (profileError) {
+          if (isNotFoundError(profileError)) {
+            tokenStorage.clearTokens();
+            setSubmitError(
+              "We couldn't find your candidate profile. Please contact support or sign up again.",
+            );
+            return;
+          }
+        }
+      }
+
       login(session);
     } catch {
       setSubmitError("Login failed. Check your credentials and try again.");

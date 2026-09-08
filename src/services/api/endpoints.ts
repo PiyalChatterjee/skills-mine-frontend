@@ -141,6 +141,8 @@ export const apiEndpoints = {
   },
   jobs: {
     list: withDefault(import.meta.env.VITE_JOBS_ENDPOINT, "/jobs"),
+    // Dashboard/candidate feed listing moved to /view/jobs (Mandate_Service_v3); /jobs is now create-only.
+    listView: withDefault(import.meta.env.VITE_JOBS_LIST_VIEW_ENDPOINT, "/view/jobs"),
     details: withDefault(
       import.meta.env.VITE_JOB_DETAILS_ENDPOINT,
       "/jobs/:jobProfileId",

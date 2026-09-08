@@ -10,9 +10,9 @@ import type {
 type JobProfileSummary = {
   jobProfileId: string;
   jobReferenceNumber: string;
-  client: { clientId: string; clientName: string };
+  client: { clientId: string; clientName: string; clientRate?: number | null };
   positionTitle: string;
-  industry: { industryId: string; industryName: string } | null;
+  industry: { industryId: string; industryName: string; normalizedKey?: string } | null;
   locationText: string;
   employmentType: string | null;
   jobDescriptionSnippet: string | null;
@@ -70,13 +70,14 @@ const toJobsResponse = (payload: JobProfilePage): JobsResponse => {
 };
 
 export const jobsApi = {
+  // Dashboard/candidate feed listing (Mandate_Service_v3: GET /view/jobs).
   async list(
     q?: string,
     page = 1,
     limit = 10,
     status: string = "POSTED",
   ): Promise<JobsResponse> {
-    const response = await mandateApiClient.get<JobProfilePage>(apiEndpoints.jobs.list, {
+    const response = await mandateApiClient.get<JobProfilePage>(apiEndpoints.jobs.listView, {
       params: {
         status,
         ...(q ? { [apiEndpoints.jobs.listQueryParam]: q } : {}),

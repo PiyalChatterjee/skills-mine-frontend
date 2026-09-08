@@ -48,13 +48,14 @@ export type CreateMandateRequest = {
   jobBoards: string[];
 };
 
-type IndustryItem = { industryId: string; industryName: string };
+type IndustryItem = { industryId: string; industryName: string; normalizedKey?: string };
 type CompanyItem = {
   clientId: string;
   clientName: string;
   contactName: string;
   contactEmail: string;
   contactPhoneNumber: string;
+  clientRate?: number | null;
 };
 type JobProfileSummary = {
   jobProfileId: string;
@@ -233,7 +234,7 @@ export const mandateApi = {
     const page = Math.max(0, (params?.page ?? 1) - 1);
     const size = params?.limit ?? 12;
     return mandateApiClient
-      .get<JobProfilePage>(apiEndpoints.jobs.list, {
+      .get<JobProfilePage>(apiEndpoints.jobs.listView, {
         params: { status: params?.status, page, size },
       })
       .then((response): SuccessEnvelope<RecruiterMandatesData> => ({
@@ -361,7 +362,7 @@ export const mandateApi = {
 
   getJobPosts(params?: JobPostsParams) {
     return mandateApiClient
-      .get<JobProfilePage>(apiEndpoints.jobs.list, {
+      .get<JobProfilePage>(apiEndpoints.jobs.listView, {
         params: {
           search: params?.search,
           status: params?.status,

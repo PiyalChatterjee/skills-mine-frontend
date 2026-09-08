@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/app/auth/AuthContext'
-import { extractErrorMessage } from '@/app/errorUtils'
+import { extractErrorMessage, isNotFoundError } from '@/app/errorUtils'
 import {
   useCandidateProfileQuery,
   useUpdateCandidateProfileMutation,
@@ -55,12 +55,6 @@ const isCurrentStepValid = (values: ProfileCreationFormValues) => {
   }).success
 }
 
-const isMissingCandidateProfileError = (error: unknown) =>
-  typeof error === 'object' &&
-  error !== null &&
-  'status' in error &&
-  error.status === 404
-
 export const useProfileCreationWizard = () => {
   const navigate = useNavigate()
   const { user } = useAuth()
@@ -80,7 +74,7 @@ export const useProfileCreationWizard = () => {
     Boolean(user?.candidateId || userId),
   )
   const updateProfileMutation = useUpdateCandidateProfileMutation()
-  const isNewCandidateProfile = isMissingCandidateProfileError(error)
+  const isNewCandidateProfile = isNotFoundError(error)
 
   const form = useForm<ProfileCreationFormValues>({
     resolver: zodResolver(profileCreationSchema) as never,
