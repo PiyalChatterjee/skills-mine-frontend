@@ -77,7 +77,7 @@ export const jobsApi = {
     limit = 10,
     status: string = "POSTED",
   ): Promise<JobsResponse> {
-    const response = await mandateApiClient.get<JobProfilePage>(apiEndpoints.jobs.listView, {
+    const response = await mandateApiClient.get<JobProfilePage>(apiEndpoints.jobs.list, {
       params: {
         status,
         ...(q ? { [apiEndpoints.jobs.listQueryParam]: q } : {}),
