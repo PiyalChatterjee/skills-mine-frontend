@@ -47,6 +47,7 @@ function toFormValues(post: JobPost): MandateFormValues {
     benefits:             toBulletLines(post.benefits),
     skills:               post.skills ?? [],
     industries:           post.industries ?? [],
+    jobBoards:            post.jobBoards ?? [],
   }
 }
 
@@ -77,7 +78,7 @@ function toApiRequest(values: MandateFormValues): CreateMandateRequest {
     benefits:         values.benefits,
     skills:           values.skills,
     industries:       values.industries,
-    jobBoards:        [],
+    jobBoards:        values.jobBoards,
   }
 }
 

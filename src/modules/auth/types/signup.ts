@@ -20,7 +20,7 @@ const baseSignupShape = {
 const passwordsMatch = (values: { password: string; confirmPassword: string }) =>
   values.password === values.confirmPassword;
 const passwordMismatchIssue = {
-  path: ["confirmPassword"] as const,
+  path: ["confirmPassword"],
   message: "Passwords do not match",
 };
 

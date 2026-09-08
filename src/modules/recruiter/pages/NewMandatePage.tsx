@@ -43,6 +43,7 @@ const schema = z
     benefits:             z.string().min(1, 'Benefits are required'),
     skills:               z.array(z.string()).min(1, 'At least one skill is required'),
     industries:           z.array(z.string()).min(1, 'At least one industry is required'),
+    jobBoards:            z.array(z.string()),
   })
   .refine(
     data => {
@@ -78,6 +79,7 @@ const defaultValues: MandateFormValues = {
   benefits: '',
   skills: [],
   industries: [],
+  jobBoards: [],
 }
 
 // ── Component ──────────────────────────────────────────────────────────
@@ -127,7 +129,7 @@ const NewMandatePage = () => {
         benefits: values.benefits,
         skills: values.skills,
         industries: values.industries,
-        jobBoards: [],
+        jobBoards: values.jobBoards,
       })
 
       dispatch(pushNotification({
