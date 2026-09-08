@@ -25,6 +25,12 @@ export const localPhoneNumberSchema = z
   .min(1, "Phone number is required")
   .refine(isValidLocalPhoneNumber, PHONE_NUMBER_FORMAT_MESSAGE);
 
+// Blank is allowed since this backs optional "alternate contact" fields.
+export const optionalLocalPhoneNumberSchema = z
+  .string()
+  .trim()
+  .refine((value) => value === "" || isValidLocalPhoneNumber(value), PHONE_NUMBER_FORMAT_MESSAGE);
+
 export const toSouthAfricaApiPhoneNumber = (value: string) => {
   let digits = digitsOnly(value);
 

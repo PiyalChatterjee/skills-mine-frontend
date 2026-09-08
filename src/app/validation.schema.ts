@@ -6,6 +6,14 @@ export const idSchema = z.string().min(1)
 
 export const emailSchema = z.string().pipe(z.email())
 
+// Blank is allowed since this backs optional "alternate contact" fields.
+export const optionalEmailSchema = z
+	.string()
+	.trim()
+	.refine((value) => value === '' || z.email().safeParse(value).success, {
+		message: 'Enter a valid email address',
+	})
+
 export const candidateSignUpSchema = z
 	.object({
 		firstName: z.string().trim().min(1, 'First name is required'),

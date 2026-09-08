@@ -1,6 +1,6 @@
 import { z } from 'zod'
-import { localPhoneNumberSchema } from '@/app/phoneNumber'
-import { emailSchema } from '@/app/validation.schema'
+import { localPhoneNumberSchema, optionalLocalPhoneNumberSchema } from '@/app/phoneNumber'
+import { emailSchema, optionalEmailSchema } from '@/app/validation.schema'
 
 const requiredField = (label: string) =>
   z.string().trim().min(1, `${label} is required`)
@@ -9,6 +9,8 @@ export const profileCreationSchema = z.object({
   fullName: requiredField('Full name'),
   email: emailSchema,
   phoneNumber: localPhoneNumberSchema,
+  alternateEmail: optionalEmailSchema,
+  alternatePhoneNumber: optionalLocalPhoneNumberSchema,
   residentialLocation: requiredField('Residential location'),
   preferredJobTitle: requiredField('Preferred job title'),
   targetedIndustries: requiredField('Targeted industries'),
@@ -35,6 +37,8 @@ export const profileCreationBasicDetailsSchema = profileCreationSchema.pick({
   fullName: true,
   email: true,
   phoneNumber: true,
+  alternateEmail: true,
+  alternatePhoneNumber: true,
   residentialLocation: true,
   preferredJobTitle: true,
   targetedIndustries: true,

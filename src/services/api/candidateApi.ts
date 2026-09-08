@@ -45,6 +45,7 @@ import type {
 import type { CandidateProfileUpdatePayload } from "@/modules/candidate/types";
 import { toSouthAfricaApiPhoneNumber } from "@/app/phoneNumber";
 import { formatEnumLabel } from "@/app/formatEnumLabel";
+import { resolveIndustryId } from "@/services/api/industryApi";
 
 const isUserSkill = (value: unknown): value is UserSkill => {
   if (!value || typeof value !== "object") {
@@ -572,6 +573,8 @@ type RawProfilePersonalDetails = Partial<PersonalDetails> & {
   last_name?: string;
   full_name?: string;
   phone_number?: string;
+  alternate_email_address?: string;
+  alternate_phone_number?: string;
   disability_status?: string;
   residential_location?: string;
   current_company?: string;
@@ -661,6 +664,8 @@ const mapProfileResponse = (
       lastName: personal.lastName ?? personal.last_name ?? personal.full_name?.split(" ").slice(1).join(" ") ?? "",
       email: personal.email ?? "",
       mobileNumber: personal.mobileNumber ?? personal.phone_number,
+      alternateEmail: personal.alternateEmail ?? personal.alternate_email_address,
+      alternateMobileNumber: personal.alternateMobileNumber ?? personal.alternate_phone_number,
       race: personal.race,
       gender: personal.gender,
       disabilityStatus: personal.disabilityStatus ?? personal.disability_status,
@@ -735,6 +740,7 @@ export const candidateApi = {
     payload: CandidateProfileUpdatePayload,
   ): Promise<CandidateProfile> {
     const personalDetails = payload.personalDetails ?? {};
+    const targetedIndustriesId = await resolveIndustryId(payload.desiredJob?.industry);
     await candidateApiClient.put(
       resolveEndpoint(apiEndpoints.candidate.profile, { candidateId }),
       {
@@ -744,10 +750,12 @@ export const candidateApi = {
           alternate_email: personalDetails.email,
           phone_number: personalDetails.mobileNumber,
           residential_location: personalDetails.location,
+          alternate_email_address: personalDetails.alternateEmail,
+          alternate_phone_number: personalDetails.alternateMobileNumber,
         },
         job_details: {
           role_title: payload.desiredJob?.jobTitle,
-          targeted_industries: payload.desiredJob?.industry,
+          targeted_industries_id: targetedIndustriesId,
           preferred_location: payload.desiredJob?.workType,
           employment_type: payload.desiredJob?.employmentType,
           availability: payload.desiredJob?.availableFrom,

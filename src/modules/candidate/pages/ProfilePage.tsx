@@ -155,6 +155,19 @@ const ProfilePage = () => {
               />
               <ProfileTextField
                 control={control}
+                name="alternateEmail"
+                label="Alternative email address"
+                disabled={!isPersonalEditing}
+              />
+              <ProfileTextField
+                control={control}
+                name="alternatePhoneNumber"
+                label="Alternative number"
+                disabled={!isPersonalEditing}
+                maxLength={10}
+              />
+              <ProfileTextField
+                control={control}
                 name="residentialLocation"
                 label="Residential location"
                 fullWidth
@@ -180,7 +193,6 @@ const ProfilePage = () => {
                 name="targetedIndustries"
                 label="Targeted industries"
                 options={industryOptions}
-                multiple
                 disabled={!isDesiredEditing}
               />
               <ProfileSelectField
@@ -188,7 +200,6 @@ const ProfilePage = () => {
                 name="preferredWorkType"
                 label="Preferred Work Type(s)"
                 options={[...PROFILE_SELECT_OPTIONS.preferredWorkType]}
-                multiple
                 disabled={!isDesiredEditing}
               />
               <ProfileSelectField

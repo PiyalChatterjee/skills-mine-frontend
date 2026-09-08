@@ -25,6 +25,8 @@ export interface PersonalDetails {
   lastName: string;
   email: string;
   mobileNumber?: string;
+  alternateEmail?: string;
+  alternateMobileNumber?: string;
   race?: string;
   gender?: string;
   disabilityStatus?: string;

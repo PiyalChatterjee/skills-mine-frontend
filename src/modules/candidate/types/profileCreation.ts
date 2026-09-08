@@ -38,6 +38,8 @@ export const EMPTY_PROFILE_CREATION_VALUES: ProfileCreationFormValues = {
   fullName: '',
   email: '',
   phoneNumber: '',
+  alternateEmail: '',
+  alternatePhoneNumber: '',
   residentialLocation: '',
   preferredJobTitle: '',
   targetedIndustries: '',
@@ -79,6 +81,10 @@ export const getProfileCreationDefaultValues = (
     email: profile.personalDetails?.email ?? '',
     phoneNumber: fromSouthAfricaApiPhoneNumber(
       profile.personalDetails?.mobileNumber ?? '',
+    ),
+    alternateEmail: profile.personalDetails?.alternateEmail ?? '',
+    alternatePhoneNumber: fromSouthAfricaApiPhoneNumber(
+      profile.personalDetails?.alternateMobileNumber ?? '',
     ),
     residentialLocation: profile.personalDetails?.location ?? '',
     preferredJobTitle: profile.desiredJob?.jobTitle ?? '',
@@ -125,6 +131,10 @@ export const getProfileCreationPayload = (
       lastName: lastName || currentProfile?.personalDetails?.lastName || '',
       email: values.email.trim(),
       mobileNumber: toSouthAfricaApiPhoneNumber(values.phoneNumber),
+      alternateEmail: values.alternateEmail.trim(),
+      alternateMobileNumber: values.alternatePhoneNumber
+        ? toSouthAfricaApiPhoneNumber(values.alternatePhoneNumber)
+        : '',
       location: values.residentialLocation.trim(),
       nationality: currentProfile?.personalDetails?.nationality ?? '',
       idNumber: currentProfile?.personalDetails?.idNumber ?? '',

@@ -2,9 +2,10 @@ import { z } from 'zod'
 import {
   fromSouthAfricaApiPhoneNumber,
   localPhoneNumberSchema,
+  optionalLocalPhoneNumberSchema,
   toSouthAfricaApiPhoneNumber,
 } from '@/app/phoneNumber'
-import { emailSchema } from '@/app/validation.schema'
+import { emailSchema, optionalEmailSchema } from '@/app/validation.schema'
 import { splitCandidateFullName } from '@/modules/candidate/utils/candidateName'
 import type { CandidateProfile, CandidateProfileUpdatePayload } from '@/modules/candidate/types'
 
@@ -15,6 +16,8 @@ export const profileFormSchema = z.object({
   fullName: requiredField('Full name'),
   email: emailSchema,
   phoneNumber: localPhoneNumberSchema,
+  alternateEmail: optionalEmailSchema,
+  alternatePhoneNumber: optionalLocalPhoneNumberSchema,
   residentialLocation: requiredField('Residential location'),
   preferredJobTitle: z.string(),
   targetedIndustries: z.string(),
@@ -67,6 +70,10 @@ export const getProfileFormValues = (
     phoneNumber: fromSouthAfricaApiPhoneNumber(
       profile?.personalDetails?.mobileNumber ?? '',
     ),
+    alternateEmail: profile?.personalDetails?.alternateEmail ?? '',
+    alternatePhoneNumber: fromSouthAfricaApiPhoneNumber(
+      profile?.personalDetails?.alternateMobileNumber ?? '',
+    ),
     residentialLocation: profile?.personalDetails?.location ?? '',
     preferredJobTitle: profile?.desiredJob?.jobTitle ?? '',
     targetedIndustries: profile?.desiredJob?.industry ?? '',
@@ -95,6 +102,10 @@ export const getCandidateProfileUpdatePayload = (
       lastName: lastName || currentProfile?.personalDetails?.lastName || '',
       email: values.email.trim(),
       mobileNumber: toSouthAfricaApiPhoneNumber(values.phoneNumber),
+      alternateEmail: values.alternateEmail.trim(),
+      alternateMobileNumber: values.alternatePhoneNumber
+        ? toSouthAfricaApiPhoneNumber(values.alternatePhoneNumber)
+        : '',
       location: values.residentialLocation.trim(),
       nationality: currentProfile?.personalDetails?.nationality ?? '',
       idNumber: currentProfile?.personalDetails?.idNumber ?? '',
