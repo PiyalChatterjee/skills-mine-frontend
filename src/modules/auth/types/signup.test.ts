@@ -6,7 +6,7 @@ const validPayload = {
   lastName: 'Doe',
   email: 'jane@example.com',
   staffNumber: 'SM-REC-001',
-  mobileNumber: '821234567',
+  mobileNumber: '0821234567',
   password: 'Password1!',
   confirmPassword: 'Password1!',
   acceptTerms: true,
@@ -43,7 +43,7 @@ describe('inviteSignupSchema', () => {
     }
   })
 
-  it('rejects phone number that is not 9 or 10 digits', () => {
+  it('rejects phone number that is not exactly 10 digits', () => {
     const result = inviteSignupSchema.safeParse({
       ...validPayload,
       mobileNumber: '0821234',
@@ -90,9 +90,9 @@ describe('inviteSignupSchema', () => {
     }
   })
 
-  it('accepts both 9- and 10-digit phone numbers', () => {
-    expect(inviteSignupSchema.safeParse({ ...validPayload, mobileNumber: '821234567' }).success).toBe(true)
+  it('accepts a 10-digit phone number and rejects a 9-digit one', () => {
     expect(inviteSignupSchema.safeParse({ ...validPayload, mobileNumber: '0821234567' }).success).toBe(true)
+    expect(inviteSignupSchema.safeParse({ ...validPayload, mobileNumber: '821234567' }).success).toBe(false)
   })
 
   it('rejects empty email', () => {

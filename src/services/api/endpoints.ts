@@ -140,7 +140,7 @@ export const apiEndpoints = {
     ),
   },
   jobs: {
-    list: withDefault(import.meta.env.VITE_JOBS_ENDPOINT, "/jobs"),
+    list: withDefault(import.meta.env.VITE_JOBS_ENDPOINT, "/view/jobs"),
     details: withDefault(
       import.meta.env.VITE_JOB_DETAILS_ENDPOINT,
       "/jobs/:jobProfileId",
@@ -258,7 +258,7 @@ export const apiEndpoints = {
     ),
     create: withDefault(
       import.meta.env.VITE_JOB_POST_CREATE_ENDPOINT,
-      "/job-posts",
+      "/jobs",
     ),
     detail: withDefault(
       import.meta.env.VITE_JOB_POST_DETAIL_ENDPOINT,

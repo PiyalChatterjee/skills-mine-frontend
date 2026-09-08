@@ -12,7 +12,6 @@ import { JobDescriptionSection } from '@/modules/recruiter/components/mandate/Jo
 import { BulletTextareaSection } from '@/modules/recruiter/components/mandate/BulletTextareaSection'
 import { SkillsInput } from '@/modules/recruiter/components/mandate/SkillsInput'
 import { IndustriesInput } from '@/modules/recruiter/components/mandate/IndustriesInput'
-import { JobBoardSelector } from '@/modules/recruiter/components/mandate/JobBoardSelector'
 import { StickyFooter } from '@/modules/recruiter/components/mandate/StickyFooter'
 import { pushNotification } from '@/store/slices/notificationSlice'
 import { ROUTE_PATHS } from '@/routes/routePaths'
@@ -44,7 +43,6 @@ const schema = z
     benefits:             z.string().min(1, 'Benefits are required'),
     skills:               z.array(z.string()).min(1, 'At least one skill is required'),
     industries:           z.array(z.string()).min(1, 'At least one industry is required'),
-    jobBoards:            z.array(z.string()).min(1, 'Select at least one job board'),
   })
   .refine(
     data => {
@@ -80,7 +78,6 @@ const defaultValues: MandateFormValues = {
   benefits: '',
   skills: [],
   industries: [],
-  jobBoards: [],
 }
 
 // ── Component ──────────────────────────────────────────────────────────
@@ -130,7 +127,7 @@ const NewMandatePage = () => {
         benefits: values.benefits,
         skills: values.skills,
         industries: values.industries,
-        jobBoards: values.jobBoards,
+        jobBoards: [],
       })
 
       dispatch(pushNotification({
@@ -230,7 +227,6 @@ const NewMandatePage = () => {
             />
             <SkillsInput control={control} errors={errors} />
             <IndustriesInput control={control} errors={errors} />
-            <JobBoardSelector control={control} errors={errors} />
           </Box>
 
           <StickyFooter onCancel={handleCancel} isSubmitting={isSubmitting} />

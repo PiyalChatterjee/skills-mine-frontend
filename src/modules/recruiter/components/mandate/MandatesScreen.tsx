@@ -397,7 +397,7 @@ export const MandatesScreen = ({ onNewJobPost, onEditJobPost }: MandatesScreenPr
 
                   <Box className={styles.gridBody}>
                     <Typography component="span" className={styles.gridValue}>{post.title}</Typography>
-                    <Typography component="span" className={styles.gridValue}>{post.clientRate ?? '—'}</Typography>
+                    <Typography component="span" className={styles.gridValue}>{post.clientRate || '—'}</Typography>
                     <Typography component="span" className={styles.gridValue}>{post.industry}</Typography>
                     <Typography component="span" className={styles.gridValue}>{post.location}</Typography>
                     <Typography component="span" className={styles.gridValue}>{timeline}</Typography>

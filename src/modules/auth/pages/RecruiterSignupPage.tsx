@@ -52,8 +52,8 @@ const RecruiterSignupPage = () => {
   const confirmPasswordValue = watch("confirmPassword");
   const phoneNumberRegistration = register("mobileNumber", {
     onChange: (event) => {
-      const digitsOnly = event.target.value.replace(/\D/g, "").slice(0, 15);
-      event.target.value = digitsOnly ? `+${digitsOnly}` : "";
+      const digitsOnly = event.target.value.replace(/\D/g, "").slice(0, 10);
+      event.target.value = digitsOnly;
     },
   });
 
@@ -148,8 +148,8 @@ const RecruiterSignupPage = () => {
               helperText={errors.mobileNumber?.message}
               slotProps={{
                 htmlInput: {
-                  inputMode: "tel",
-                  maxLength: 16,
+                  inputMode: "numeric",
+                  maxLength: 10,
                 },
               }}
               {...phoneNumberRegistration}
