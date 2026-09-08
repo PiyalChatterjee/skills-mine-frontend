@@ -151,11 +151,13 @@ const JobDetailsPage = () => {
           </Box>
 
           <Box className={styles.tagsRow}>
-            {[industry, locationName, workType, employmentType].map((tag) => (
-              <span key={tag} className={styles.heroTag}>
-                {tag}
-              </span>
-            ))}
+            {[industry, locationName, workType, employmentType]
+              .filter((tag): tag is string => Boolean(tag))
+              .map((tag) => (
+                <span key={tag} className={styles.heroTag}>
+                  {tag}
+                </span>
+              ))}
           </Box>
         </Box>
       </GradientPatternHero>

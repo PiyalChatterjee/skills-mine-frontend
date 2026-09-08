@@ -1,6 +1,7 @@
 ﻿import { Box } from "@mui/material";
 import { Controller, useFormContext } from "react-hook-form";
 import userIcon from "@/assets/public-layout/user-icon.svg";
+import { formatEnumLabel } from "@/app/formatEnumLabel";
 import styles from "../pages/CvBuilderPage.module.css";
 import {
   CvBuilderFormPanel,
@@ -122,6 +123,7 @@ const CvBuilderPersonalDetailsForm = () => {
               onChange={field.onChange}
               onBlur={field.onBlur}
               options={NOTICE_PERIOD_OPTIONS}
+              getOptionLabel={formatEnumLabel}
               span="one"
               error={Boolean(fieldState.error)}
               helperText={fieldState.error?.message}

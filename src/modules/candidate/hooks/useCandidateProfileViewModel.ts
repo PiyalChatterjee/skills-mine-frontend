@@ -17,7 +17,6 @@ import {
 import {
   useCandidateProfileQuery,
   useCandidateResourceId,
-  useUserProfile,
 } from "@/modules/candidate/hooks/useCandidateQueries";
 
 export const useCandidateProfileViewModel = () => {
@@ -33,7 +32,6 @@ export const useCandidateProfileViewModel = () => {
     isError,
     error,
   } = useCandidateProfileQuery(candidateId, userId, Boolean(candidateId));
-  const { data: userProfile } = useUserProfile(userId);
   const resolvedCandidateProfile = candidateProfile ?? null;
   const {
     control,
@@ -51,12 +49,8 @@ export const useCandidateProfileViewModel = () => {
   const industryOptions = useIndustryOptions(PROFILE_SELECT_OPTIONS.targetedIndustries);
 
   useEffect(() => {
-    const formValues = getProfileFormValues(resolvedCandidateProfile);
-    reset({
-      ...formValues,
-      password: userProfile?.authentication?.password ?? formValues.password,
-    });
-  }, [resolvedCandidateProfile, userProfile, reset]);
+    reset(getProfileFormValues(resolvedCandidateProfile));
+  }, [resolvedCandidateProfile, reset]);
 
   const handleEditPersonal = () => {
     setIsPersonalEditing(true);
@@ -127,6 +121,7 @@ export const useCandidateProfileViewModel = () => {
   };
 
   const activeProfilePhotoUrl =
+    // No backend endpoint for profile photos yet — preview is local-only, never uploaded.
     profilePhotoPreviewUrl ?? resolvedCandidateProfile?.personalDetails?.profileImageUrl ?? null;
 
   return {

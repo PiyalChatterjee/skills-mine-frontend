@@ -380,6 +380,12 @@ const mapRecommendedResponse = (
     "recommended_positions",
   );
 
+// The API now expects full YYYY-MM-DD dates; our stored "YYYY-MM" values default to the 1st of the month.
+const toFullDate = (value?: string | null): string | null => {
+  if (!value) return null;
+  return /^\d{4}-\d{2}$/.test(value) ? `${value}-01` : value;
+};
+
 // The CV builder accepts a partial update: only the sections present in the body
 // are overwritten, so undefined sections are stripped before sending.
 const toCvPayload = (payload: SaveBuildMyCvRequest) => {
@@ -412,21 +418,44 @@ const toCvPayload = (payload: SaveBuildMyCvRequest) => {
           notice_period: personalDetails.noticePeriod,
         }
       : undefined,
-    career_history: payload.careerHistory?.map((item) => ({
-      company_name: item.company,
-      position_held: item.jobTitle,
-      start_date: item.startDate,
-      end_date: item.endDate || null,
-      responsibilities: item.responsibilities ?? "",
-    })),
-    skills: payload.skills,
+    // career_history entries require an array of responsibilities and an explicit
+    // is_current flag — "Present" (set by the form when isCurrentRole is checked)
+    // maps to is_current: true with no end date.
+    career_history: payload.careerHistory?.map((item) => {
+      const isCurrent = !item.endDate || item.endDate === "Present";
+      return {
+        company_name: item.company,
+        position_held: item.jobTitle,
+        start_date: toFullDate(item.startDate),
+        end_date: isCurrent ? null : toFullDate(item.endDate),
+        is_current: isCurrent,
+        responsibilities: (item.responsibilities ?? "")
+          .split(";")
+          .map((task) => task.trim())
+          .filter(Boolean),
+      };
+    }),
+    // Skills are { skill_name } objects, not plain strings.
+    skills: payload.skills?.map((skillName) => ({ skill_name: skillName })),
+    // Education is a single flat array; level_code distinguishes tertiary from secondary.
     education: payload.education
-      ? {
-          secondary: payload.education.secondaryEducation,
-          tertiary: payload.education.tertiaryEducation,
-        }
+      ? [
+          ...payload.education.tertiaryEducation.map((entry) => ({
+            institution_name: entry.institution,
+            qualification: entry.qualification,
+            level_code: "TERTIARY",
+            year_completed: entry.yearCompleted,
+          })),
+          ...payload.education.secondaryEducation.map((entry) => ({
+            institution_name: entry.schoolName,
+            qualification: entry.qualification,
+            level_code: "SECONDARY",
+            year_completed: entry.yearCompleted,
+          })),
+        ]
       : undefined,
-    languages: payload.languages,
+    // Languages are plain names; the schema has no proficiency concept.
+    languages: payload.languages?.map((entry) => entry.language),
   };
 
   return Object.fromEntries(
@@ -939,20 +968,30 @@ export const candidateApi = {
     ).then(mapSavedJobsResponse);
   },
 
-  applyToJob(
+  async applyToJob(
     jobProfileId: string,
     payload: ApplyJobRequest = {},
   ): Promise<ApplyJobResponse> {
-    return unwrapResponseData(
-      candidateApiClient.post<ApplyJobResponse>(
+    const raw = await unwrapResponseData(
+      candidateApiClient.post<Record<string, any>>(
         apiEndpoints.candidate.applications,
-        {
-          jobProfileId,
-          cvId: payload.cvId,
-          sourceChannel: payload.sourceChannel ?? "job-details",
-        },
+        omitUndefined({
+          job_profile_id: jobProfileId,
+          match_score_latest: payload.matchScoreLatest,
+        }),
       ),
     );
+    return {
+      applicationId: raw.application_id,
+      candidateId: raw.candidate_id,
+      jobProfileId: raw.job_profile_id,
+      applicationPartyId: raw.application_party_id,
+      currentStageCode: raw.current_stage_code,
+      matchScoreLatest: raw.match_score_latest,
+      assignedRecruiterId: raw.assigned_recruiter_id,
+      createdAt: raw.created_at,
+      message: raw.message,
+    };
   },
 
   saveJob(payload: SaveJobRequest): Promise<unknown> {

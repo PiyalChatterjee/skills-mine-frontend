@@ -166,9 +166,14 @@ export const apiSlice = createApi({
         withMappedApiError(async () => (await jobsApi.getById(jobId)).data),
       providesTags: (_result, _error, jobId) => [{ type: "Jobs", id: jobId }],
     }),
-    applyToJob: build.mutation<ApplyJobResponse, { jobProfileId: string }>({
-      queryFn: ({ jobProfileId }) =>
-        withMappedApiError(() => candidateApi.applyToJob(jobProfileId)),
+    applyToJob: build.mutation<
+      ApplyJobResponse,
+      { jobProfileId: string; matchScoreLatest?: number }
+    >({
+      queryFn: ({ jobProfileId, matchScoreLatest }) =>
+        withMappedApiError(() =>
+          candidateApi.applyToJob(jobProfileId, { matchScoreLatest }),
+        ),
       invalidatesTags: [{ type: "CandidateDashboard", id: "SELF" }],
     }),
     getUserProfile: build.query<UserProfile, string>({

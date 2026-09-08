@@ -249,11 +249,14 @@ describe('candidateApi', () => {
     it('submits a canonical jobProfileId to the candidate application endpoint', async () => {
       mockPost.mockResolvedValue({
         data: {
-          applicationId: '70000000-0000-4000-8000-000000000001',
-          jobProfileId: '00000003-0000-4000-8000-000000000008',
-          matchScore: 82,
-          status: 'submitted',
-          nextStep: 'view_dashboard',
+          application_id: '70000000-0000-4000-8000-000000000001',
+          candidate_id: 'CAND100001',
+          job_profile_id: '00000003-0000-4000-8000-000000000008',
+          application_party_id: '80000000-0000-4000-8000-000000000001',
+          current_stage_code: 'INBOUND',
+          match_score_latest: 82,
+          created_at: '2026-08-31T10:30:00Z',
+          message: 'Application submitted successfully',
         },
       })
 
@@ -262,11 +265,9 @@ describe('candidateApi', () => {
       )
 
       expect(mockPost).toHaveBeenCalledWith('/candidates/applications', {
-        jobProfileId: '00000003-0000-4000-8000-000000000008',
-        cvId: undefined,
-        sourceChannel: 'job-details',
+        job_profile_id: '00000003-0000-4000-8000-000000000008',
       })
-      expect(result.status).toBe('submitted')
+      expect(result.currentStageCode).toBe('INBOUND')
     })
   })
 
