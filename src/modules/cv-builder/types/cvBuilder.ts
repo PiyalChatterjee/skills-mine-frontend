@@ -48,11 +48,20 @@ export const PERSONAL_DETAILS_INITIAL_VALUES: PersonalDetailsFormState = {
   noticePeriod: '',
 }
 
-export const RACE_OPTIONS = ['African', 'Coloured', 'Indian', 'White', 'Other']
+// Values match the candidate-service enums exactly (CandidatePersonalDetailsInput).
+export const RACE_OPTIONS = ['African', 'Coloured', 'Indian', 'White', 'Asian', 'Black']
 export const GENDER_OPTIONS = ['Male', 'Female', 'Non-binary', 'Prefer not to say']
-export const DISABILITY_OPTIONS = ['No', 'Yes', 'Prefer not to say']
+export const DISABILITY_OPTIONS = [
+  'None',
+  'Physical disability',
+  'Visual impairment',
+  'Hearing impairment',
+  'Intellectual disability',
+  'Mental health condition',
+  'Prefer not to say',
+]
 export const LOCATION_OPTIONS = ['Johannesburg', 'Cape Town', 'Durban', 'Pretoria', 'Remote']
-export const NOTICE_PERIOD_OPTIONS = ['Immediately', '2 weeks', '1 month', '2 months', '3 months']
+export const NOTICE_PERIOD_OPTIONS = ['IMMEDIATELY', '2_WEEKS', '1_MONTH', '2_MONTHS', '3_MONTHS', 'NOTICE_REQUIRED']
 
 // ─── Career History ───────────────────────────────────────────────────────────
 

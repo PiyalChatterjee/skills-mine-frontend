@@ -51,7 +51,7 @@ describe("Mandate Service v2 frontend adapters", () => {
 
     const result = await jobsApi.list("software", 1, 6, "POSTED");
 
-    expect(mockGet).toHaveBeenCalledWith("/jobs", {
+    expect(mockGet).toHaveBeenCalledWith("/view/jobs", {
       params: { status: "POSTED", search: "software", page: 0, size: 6 },
     });
     expect(result).toMatchObject({ total: 1, page: 0, pageSize: 6 });
@@ -122,7 +122,7 @@ describe("Mandate Service v2 frontend adapters", () => {
 
     const result = await mandateApi.getJobPosts();
 
-    expect(mockGet).toHaveBeenCalledWith("/jobs", {
+    expect(mockGet).toHaveBeenCalledWith("/view/jobs", {
       params: { search: undefined, status: undefined, page: 0, size: 100 },
     });
     expect(result.data[0]).toMatchObject({

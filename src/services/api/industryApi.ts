@@ -22,3 +22,19 @@ export const industryApi = {
       }));
   },
 };
+
+// Resolves an industry display name to its backend id; falls back to the
+// original name if no match is found so the caller still has a value to send.
+export const resolveIndustryId = async (
+  industryName?: string,
+): Promise<string | undefined> => {
+  if (!industryName) {
+    return undefined;
+  }
+
+  const { data: industries } = await industryApi.getIndustries();
+  const match = industries.find(
+    (industry) => industry.name.toLowerCase() === industryName.toLowerCase(),
+  );
+  return match?.industryId ?? industryName;
+};

@@ -37,6 +37,7 @@ export const mandateSchema = z
     benefits:             z.string().min(1, 'Benefits are required'),
     skills:               z.array(z.string()).min(1, 'At least one skill is required'),
     industries:           z.array(z.string()).min(1, 'At least one industry is required'),
+    jobBoards:            z.array(z.string()),
   })
   .refine(
     data => {
@@ -69,6 +70,7 @@ export const emptyMandateValues: MandateFormValues = {
   benefits: '',
   skills: [],
   industries: [],
+  jobBoards: [],
 }
 
 // ── Props ──────────────────────────────────────────────────────────────

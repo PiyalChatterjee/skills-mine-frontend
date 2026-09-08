@@ -4,7 +4,21 @@ import { strongPasswordSchema } from '@/app/passwordPolicy'
 
 export const idSchema = z.string().min(1)
 
-export const emailSchema = z.string().pipe(z.email())
+export const emailSchema = z
+	.string()
+	.trim()
+	.min(1, 'Email address is required')
+	.refine((value) => z.email().safeParse(value).success, {
+		message: 'Enter a valid email address',
+	})
+
+// Blank is allowed since this backs optional "alternate contact" fields.
+export const optionalEmailSchema = z
+	.string()
+	.trim()
+	.refine((value) => value === '' || z.email().safeParse(value).success, {
+		message: 'Enter a valid email address',
+	})
 
 export const candidateSignUpSchema = z
 	.object({

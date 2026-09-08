@@ -1,6 +1,7 @@
 ﻿import { Box } from "@mui/material";
 import { Controller, useFormContext } from "react-hook-form";
 import userIcon from "@/assets/public-layout/user-icon.svg";
+import { formatEnumLabel } from "@/app/formatEnumLabel";
 import styles from "../pages/CvBuilderPage.module.css";
 import {
   CvBuilderFormPanel,
@@ -39,6 +40,7 @@ const CvBuilderPersonalDetailsForm = () => {
               label="Race"
               value={field.value}
               onChange={field.onChange}
+              onBlur={field.onBlur}
               options={RACE_OPTIONS}
               error={Boolean(fieldState.error)}
               helperText={fieldState.error?.message}
@@ -54,6 +56,7 @@ const CvBuilderPersonalDetailsForm = () => {
               label="Gender"
               value={field.value}
               onChange={field.onChange}
+              onBlur={field.onBlur}
               options={GENDER_OPTIONS}
               error={Boolean(fieldState.error)}
               helperText={fieldState.error?.message}
@@ -69,6 +72,7 @@ const CvBuilderPersonalDetailsForm = () => {
               label="Disability status"
               value={field.value}
               onChange={field.onChange}
+              onBlur={field.onBlur}
               options={DISABILITY_OPTIONS}
               error={Boolean(fieldState.error)}
               helperText={fieldState.error?.message}
@@ -117,7 +121,9 @@ const CvBuilderPersonalDetailsForm = () => {
               label="Notice period"
               value={field.value}
               onChange={field.onChange}
+              onBlur={field.onBlur}
               options={NOTICE_PERIOD_OPTIONS}
+              getOptionLabel={formatEnumLabel}
               span="one"
               error={Boolean(fieldState.error)}
               helperText={fieldState.error?.message}

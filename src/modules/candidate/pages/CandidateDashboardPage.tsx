@@ -10,6 +10,7 @@ import {
   DASHBOARD_APPLICATION_STATUS_CONFIG,
   useCandidateDashboardViewModel,
 } from "@/modules/candidate/hooks/useCandidateDashboardViewModel";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import bardLineIcon from "@/assets/candidate-dashboard/bard-line.svg";
 import expandCirclePlusIcon from "@/assets/candidate-dashboard/expand-circle-plus.svg";
 import bookmarkLineIcon from "@/assets/candidate-dashboard/bookmark-line.svg";
@@ -30,6 +31,8 @@ const CandidateDashboardPage = () => {
     isNewUser,
     statistics,
   } = useCandidateDashboardViewModel();
+
+  usePageTitle(`${firstName} Dashboard`);
 
   const handleSkillsBuildClick = () => {
     window.open("https://skillsbuild.org/", "_blank");

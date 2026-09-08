@@ -45,6 +45,16 @@ export const ProfileCreationPersonalDetailsSection = ({
         />
         <ProfileTextField
           control={control}
+          name="alternateEmail"
+          label="Alternative email address"
+        />
+        <ProfileTextField
+          control={control}
+          name="alternatePhoneNumber"
+          label="Alternative number"
+        />
+        <ProfileTextField
+          control={control}
           name="residentialLocation"
           label="Residential location*"
           fullWidth
@@ -78,14 +88,12 @@ export const ProfileCreationJobDetailsSection = ({
           name="targetedIndustries"
           label="Targeted industries*"
           options={industryOptions}
-          multiple
         />
         <ProfileSelectField
           control={control}
           name="preferredLocations"
-          label="Preferred location(s)"
-          options={[...PROFILE_SELECT_OPTIONS.preferredLocations]}
-          multiple
+          label="Preferred Work Type(s)"
+          options={[...PROFILE_SELECT_OPTIONS.preferredWorkType]}
         />
         <ProfileSelectField
           control={control}

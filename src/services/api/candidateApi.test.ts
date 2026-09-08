@@ -10,6 +10,7 @@ const mockDelete = vi.hoisted(() => vi.fn())
 vi.mock('@/services/api/axios', () => ({
   apiClient: { get: mockGet, post: mockPost, put: mockPut, delete: mockDelete },
   candidateApiClient: { get: mockGet, post: mockPost, put: mockPut, delete: mockDelete },
+  documentApiClient: { get: mockGet, post: mockPost, put: mockPut, delete: mockDelete },
   unwrapResponseData: async (promise: Promise<unknown>) =>
     ((await promise) as { data: unknown }).data,
   unwrapEnvelopeData: async (promise: Promise<unknown>) =>
@@ -248,11 +249,14 @@ describe('candidateApi', () => {
     it('submits a canonical jobProfileId to the candidate application endpoint', async () => {
       mockPost.mockResolvedValue({
         data: {
-          applicationId: '70000000-0000-4000-8000-000000000001',
-          jobProfileId: '00000003-0000-4000-8000-000000000008',
-          matchScore: 82,
-          status: 'submitted',
-          nextStep: 'view_dashboard',
+          application_id: '70000000-0000-4000-8000-000000000001',
+          candidate_id: 'CAND100001',
+          job_profile_id: '00000003-0000-4000-8000-000000000008',
+          application_party_id: '80000000-0000-4000-8000-000000000001',
+          current_stage_code: 'INBOUND',
+          match_score_latest: 82,
+          created_at: '2026-08-31T10:30:00Z',
+          message: 'Application submitted successfully',
         },
       })
 
@@ -261,11 +265,9 @@ describe('candidateApi', () => {
       )
 
       expect(mockPost).toHaveBeenCalledWith('/candidates/applications', {
-        jobProfileId: '00000003-0000-4000-8000-000000000008',
-        cvId: undefined,
-        sourceChannel: 'job-details',
+        job_profile_id: '00000003-0000-4000-8000-000000000008',
       })
-      expect(result.status).toBe('submitted')
+      expect(result.currentStageCode).toBe('INBOUND')
     })
   })
 
@@ -491,11 +493,13 @@ describe('candidateApi', () => {
   })
 
   describe('updateById', () => {
-    it('PUTs the CV builder record then re-fetches the profile', async () => {
-      mockPut.mockResolvedValue({ data: { data: { userId: 'u-1', updatedAt: '2024-01-01' } } })
+    it('creates the profile then re-fetches it', async () => {
+      mockPut.mockResolvedValue({ data: {} })
       mockGet.mockResolvedValue(mockProfileResponse)
       const result = await candidateApi.updateById('u-1', { personalDetails: { firstName: 'Updated' } } as never)
-      expect(mockPut).toHaveBeenCalledWith('/candidates/cv-build/', expect.any(Object))
+      expect(mockPut).toHaveBeenCalledWith('/candidates/profile/', expect.any(Object))
+      expect(mockGet).toHaveBeenCalledWith('/candidates/profile/')
+      expect(mockPost).not.toHaveBeenCalled()
       expect(result.personalDetails.firstName).toBe('Jane')
     })
   })

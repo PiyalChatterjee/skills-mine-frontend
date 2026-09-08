@@ -1,5 +1,7 @@
 import { Box, ButtonBase, CircularProgress, Typography } from '@mui/material'
+import { useAuth } from '@/app/auth/AuthContext'
 import { OpportunitiesSearchInput, OpportunityJobCard } from '@/components/opportunities'
+import { usePageTitle } from '@/hooks/usePageTitle'
 import arrowRight from '@/assets/cv-builder/arrow-right.svg'
 import { useJobsFeedViewModel, type JobsFeedMode } from '../hooks/useJobsFeedViewModel'
 import styles from './LatestJobsPage.module.css'
@@ -29,6 +31,10 @@ export const JobsFeedPage = ({ mode }: JobsFeedPageProps) => {
     modeConfig,
     searchInputValue,
   } = useJobsFeedViewModel(mode)
+
+  const { user } = useAuth()
+  const firstName = user?.firstName ?? 'Your'
+  usePageTitle(isSavedOnlyMode || !isLatestMode ? `${firstName} ${modeConfig.title}` : modeConfig.title)
 
   return (
     <Box className={[styles.pageRoot, isSavedOnlyMode ? styles.savedPageRoot : ''].filter(Boolean).join(' ')}>

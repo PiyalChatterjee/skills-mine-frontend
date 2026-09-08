@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/app/auth/AuthContext'
-import { extractErrorMessage } from '@/app/errorUtils'
+import { extractErrorMessage, isNotFoundError } from '@/app/errorUtils'
 import {
   useCandidateProfileQuery,
   useUpdateCandidateProfileMutation,
@@ -32,6 +32,8 @@ const PROFILE_CREATION_STEP_FIELDS: Record<
     'fullName',
     'email',
     'phoneNumber',
+    'alternateEmail',
+    'alternatePhoneNumber',
     'residentialLocation',
     'preferredJobTitle',
     'targetedIndustries',
@@ -46,6 +48,8 @@ const isCurrentStepValid = (values: ProfileCreationFormValues) => {
     fullName: values.fullName,
     email: values.email,
     phoneNumber: values.phoneNumber,
+    alternateEmail: values.alternateEmail,
+    alternatePhoneNumber: values.alternatePhoneNumber,
     residentialLocation: values.residentialLocation,
     preferredJobTitle: values.preferredJobTitle,
     targetedIndustries: values.targetedIndustries,
@@ -74,6 +78,7 @@ export const useProfileCreationWizard = () => {
     Boolean(user?.candidateId || userId),
   )
   const updateProfileMutation = useUpdateCandidateProfileMutation()
+  const isNewCandidateProfile = isNotFoundError(error)
 
   const form = useForm<ProfileCreationFormValues>({
     resolver: zodResolver(profileCreationSchema) as never,
@@ -118,6 +123,7 @@ export const useProfileCreationWizard = () => {
 
     return updateProfileMutation.mutateAsync({
       userId,
+      candidateId: user?.candidateId,
       payload: getProfileCreationPayload(values, candidateProfile ?? null),
     })
   }
@@ -166,8 +172,10 @@ export const useProfileCreationWizard = () => {
     handleNext,
     isLoading,
     isFetching,
-    isError,
-    loadErrorMessage: extractErrorMessage(error, 'Failed to load your profile.'),
+    isError: isError && !isNewCandidateProfile,
+    loadErrorMessage: isNewCandidateProfile
+      ? ''
+      : extractErrorMessage(error, 'Failed to load your profile.'),
     submitError,
     isSubmitting: updateProfileMutation.isLoading,
     isMissingUser: !userId,

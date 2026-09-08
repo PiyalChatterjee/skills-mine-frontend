@@ -86,7 +86,9 @@ export const apiSlice = createApi({
       queryFn: () =>
         withMappedApiError(async () => {
           const envelope = await industryApi.getIndustries();
-          return envelope.data.map((industry) => industry.name).filter(Boolean);
+          const names = envelope.data.map((industry) => industry.name).filter(Boolean);
+          // Backend may return multiple records with the same name under different ids
+          return Array.from(new Set(names));
         }),
       providesTags: [{ type: "Industries", id: "LIST" }],
     }),
@@ -164,9 +166,14 @@ export const apiSlice = createApi({
         withMappedApiError(async () => (await jobsApi.getById(jobId)).data),
       providesTags: (_result, _error, jobId) => [{ type: "Jobs", id: jobId }],
     }),
-    applyToJob: build.mutation<ApplyJobResponse, { jobProfileId: string }>({
-      queryFn: ({ jobProfileId }) =>
-        withMappedApiError(() => candidateApi.applyToJob(jobProfileId)),
+    applyToJob: build.mutation<
+      ApplyJobResponse,
+      { jobProfileId: string; matchScoreLatest?: number }
+    >({
+      queryFn: ({ jobProfileId, matchScoreLatest }) =>
+        withMappedApiError(() =>
+          candidateApi.applyToJob(jobProfileId, { matchScoreLatest }),
+        ),
       invalidatesTags: [{ type: "CandidateDashboard", id: "SELF" }],
     }),
     getUserProfile: build.query<UserProfile, string>({

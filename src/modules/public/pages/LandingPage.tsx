@@ -24,11 +24,11 @@ import {
   OpportunityJobCard,
 } from "@/components/opportunities";
 import { useInfiniteScrollTrigger } from "@/hooks/useInfiniteScrollTrigger";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import { useJobsSearch } from "@/modules/public/hooks/useJobsSearch";
 import { useSearchQueryState } from "@/hooks/useSearchQueryState";
 import type { PublicLayoutOutletContext } from "@/layouts/PublicLayout";
 import { setLandingMode } from "@/store/slices/uiSlice";
-import { useGetCandidateLandingQuery } from "@/store/api/apiSlice";
 import { useOutletContext } from "react-router-dom";
 import styles from "./LandingPage.module.css";
 
@@ -79,9 +79,9 @@ const metrics: Metric[] = [
 ];
 
 const LandingPage = () => {
+  usePageTitle("Strategic Recruitment Solutions Home");
   const { openSignUpDrawer } = useOutletContext<PublicLayoutOutletContext>();
   const dispatch = useDispatch();
-  const { data: landingData, isLoading: isLandingLoading } = useGetCandidateLandingQuery();
   const [activeHeroMode] = useState<HeroMode>("findJob");
   const {
     inputValue: searchInputValue,
@@ -282,37 +282,19 @@ const LandingPage = () => {
           </Box>
 
           <Box className={styles.metricsGrid}>
-            {metrics.map((metric, index) => {
-              const statValues = landingData?.stats
-                ? [
-                    landingData.stats.totalJobs,
-                    landingData.stats.totalCandidates,
-                    landingData.stats.totalPlacements,
-                  ]
-                : metrics.map((item) => item.value);
-
-              return (
+            {metrics.map((metric) => (
               <Card
                 key={metric.id}
                 className={metric.cardClassName}
                 elevation={0}
               >
-                {isLandingLoading ? (
-                  <Skeleton
-                    variant="text"
-                    width={72}
-                    height={40}
-                    className={styles.metricValueSkeleton}
-                  />
-                ) : (
-                  <Typography
-                    component="p"
-                    className={styles.metricValue}
-                    sx={{ m: 0 }}
-                  >
-                    {statValues[index] ?? metric.value}
-                  </Typography>
-                )}
+                <Typography
+                  component="p"
+                  className={styles.metricValue}
+                  sx={{ m: 0 }}
+                >
+                  {metric.value}
+                </Typography>
                 <Typography
                   component="p"
                   className={styles.metricLabel}
@@ -321,8 +303,7 @@ const LandingPage = () => {
                   {metric.label}
                 </Typography>
               </Card>
-              );
-            })}
+            ))}
           </Box>
         </Box>
       </Box>

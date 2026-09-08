@@ -48,6 +48,7 @@ export type CreateMandateRequest = {
   jobBoards?: string[];
 };
 
+type IndustryItem = { industryId: string; industryName: string; normalizedKey?: string };
 /** Shape of the JSON body sent to POST /jobs */
 type CreateJobPostBody = {
   status: string;
@@ -77,14 +78,13 @@ type CreateJobPostBody = {
 /** Shape of the JSON body sent to PATCH /jobs/{jobProfileId} — all fields optional */
 type PatchJobPostBody = Partial<Omit<CreateJobPostBody, "status" | "currencyCode">>;
 
-type IndustryItem = { industryId: string; industryName: string };
 type CompanyItem = {
   clientId: string;
   clientName: string;
-  clientRate?: number | null;
   contactName: string;
   contactEmail: string;
   contactPhoneNumber: string;
+  clientRate?: number | null;
 };
 type JobProfileSummary = {
   jobProfileId: string;

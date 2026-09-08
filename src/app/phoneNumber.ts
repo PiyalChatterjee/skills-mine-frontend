@@ -25,6 +25,12 @@ export const localPhoneNumberSchema = z
   .min(1, "Phone number is required")
   .refine(isValidLocalPhoneNumber, PHONE_NUMBER_FORMAT_MESSAGE);
 
+// Blank is allowed since this backs optional "alternate contact" fields.
+export const optionalLocalPhoneNumberSchema = z
+  .string()
+  .trim()
+  .refine((value) => value === "" || isValidLocalPhoneNumber(value), PHONE_NUMBER_FORMAT_MESSAGE);
+
 export const toSouthAfricaApiPhoneNumber = (value: string) => {
   let digits = digitsOnly(value);
 
@@ -43,5 +49,14 @@ export const toSouthAfricaApiPhoneNumber = (value: string) => {
   return `+27${digits}`;
 };
 
-export const fromSouthAfricaApiPhoneNumber = (value: string) =>
-  normalizePhoneNumberInput(value);
+export const fromSouthAfricaApiPhoneNumber = (value: string) => {
+  let digits = digitsOnly(value);
+
+  // Convert a full +27 API number back to its 10-digit local format
+  // (e.g. "+27821234567" -> "0821234567"), restoring the leading 0.
+  if (digits.startsWith("27") && digits.length > 10) {
+    digits = `0${digits.slice(2)}`;
+  }
+
+  return digits.slice(0, 10);
+};

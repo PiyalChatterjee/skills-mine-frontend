@@ -1,6 +1,7 @@
 import {
   apiClient,
   candidateApiClient,
+  documentApiClient,
   unwrapEnvelopeData,
   unwrapResponseData,
 } from "@/services/api/axios";
@@ -45,6 +46,7 @@ import type {
 import type { CandidateProfileUpdatePayload } from "@/modules/candidate/types";
 import { toSouthAfricaApiPhoneNumber } from "@/app/phoneNumber";
 import { formatEnumLabel } from "@/app/formatEnumLabel";
+import { resolveIndustryId } from "@/services/api/industryApi";
 
 const isUserSkill = (value: unknown): value is UserSkill => {
   if (!value || typeof value !== "object") {
@@ -140,6 +142,15 @@ const responseData = <T>(payload: T | { data?: T }): T => {
   return payload as T;
 };
 
+// Drops keys with no meaningful value (undefined, null, or empty string) so
+// optional/untouched fields aren't sent to the API at all.
+const omitUndefined = <T extends object>(input: T): Partial<T> =>
+  Object.fromEntries(
+    Object.entries(input).filter(
+      ([, value]) => value !== undefined && value !== null && value !== "",
+    ),
+  ) as Partial<T>;
+
 type RawDashboardPipelineStage =
   | string
   | {
@@ -195,7 +206,9 @@ const mapDashboardResponse = (
   payload: RawCandidateDashboardResponse | RawCandidateDashboardEnvelope,
 ): CandidateDashboardData => {
   const data = responseData<RawCandidateDashboardResponse>(payload);
-  const applications = Array.isArray(data.applications) ? data.applications : [];
+  const applications = Array.isArray(data.applications)
+    ? data.applications
+    : [];
   const normalizedApplications = applications.map((item) => {
     const progress = Array.isArray(item.stage_progress)
       ? item.stage_progress
@@ -218,25 +231,34 @@ const mapDashboardResponse = (
         ? progress.map((stage) =>
             typeof stage === "string"
               ? stage
-              : stage.stage_code ??
+              : (stage.stage_code ??
                 stage.display_name ??
                 stage.to_stage_code ??
                 stage.from_stage_code ??
-                "",
+                ""),
           )
         : [],
     };
   });
   const summary = data.summary ?? {};
-  const statuses = applications.map((item) => String(item.application_status ?? ""));
+  const statuses = applications.map((item) =>
+    String(item.application_status ?? ""),
+  );
 
   return {
     id: String(data.id ?? data.candidate_id ?? ""),
     candidateId: data.candidateId ?? data.candidate_id,
     summary: {
-      totalApplications: summary.totalApplications ?? normalizedApplications.length,
-      submitted: summary.submitted ?? statuses.filter((status) => status === "SUBMITTED").length,
-      inProgress: summary.inProgress ?? statuses.filter((status) => ["ACTIVE", "SUBMITTED", "ON_HOLD"].includes(status)).length,
+      totalApplications:
+        summary.totalApplications ?? normalizedApplications.length,
+      submitted:
+        summary.submitted ??
+        statuses.filter((status) => status === "SUBMITTED").length,
+      inProgress:
+        summary.inProgress ??
+        statuses.filter((status) =>
+          ["ACTIVE", "SUBMITTED", "ON_HOLD"].includes(status),
+        ).length,
       successful: summary.successful ?? 0,
     },
     activity: (data.activity ?? {
@@ -245,7 +267,12 @@ const mapDashboardResponse = (
       coursesCompletedThisWeek: 0,
     }) as CandidateDashboardData["activity"],
     applications: normalizedApplications,
-    quickLinks: (data.quickLinks ?? ["CV_BUILDER", "SAVED_JOBS", "LATEST_JOBS", "RECOMMENDED_JOBS"]) as string[],
+    quickLinks: (data.quickLinks ?? [
+      "CV_BUILDER",
+      "SAVED_JOBS",
+      "LATEST_JOBS",
+      "RECOMMENDED_JOBS",
+    ]) as string[],
   };
 };
 
@@ -310,13 +337,15 @@ const mapJobRecord = (job: RawCandidateJobRecord) => ({
   location: job.location ?? job.location_text ?? "",
   workType: formatEnumLabel(job.workType ?? job.work_type),
   employmentType: formatEnumLabel(job.employmentType ?? job.employment_type),
-  salaryRange: job.salaryRange ?? `${job.salary_min ?? ""}-${job.salary_max ?? ""}`,
+  salaryRange:
+    job.salaryRange ?? `${job.salary_min ?? ""}-${job.salary_max ?? ""}`,
   matchScore: job.matchScore ?? job.match_score ?? 0,
   skills: job.skills ?? job.skills_required ?? [],
   requirements: job.requirements ?? job.requirements_list ?? [],
   responsibilities: job.responsibilities ?? job.responsibilities_list ?? [],
   postedDate: job.postedDate ?? job.published_at ?? "",
-  description: job.description ?? job.job_description ?? job.job_description_snippet ?? "",
+  description:
+    job.description ?? job.job_description ?? job.job_description_snippet ?? "",
   savedAt: job.savedAt ?? job.saved_at,
 });
 
@@ -351,6 +380,12 @@ const mapRecommendedResponse = (
     "recommended_positions",
   );
 
+// The API now expects full YYYY-MM-DD dates; our stored "YYYY-MM" values default to the 1st of the month.
+const toFullDate = (value?: string | null): string | null => {
+  if (!value) return null;
+  return /^\d{4}-\d{2}$/.test(value) ? `${value}-01` : value;
+};
+
 // The CV builder accepts a partial update: only the sections present in the body
 // are overwritten, so undefined sections are stripped before sending.
 const toCvPayload = (payload: SaveBuildMyCvRequest) => {
@@ -383,21 +418,44 @@ const toCvPayload = (payload: SaveBuildMyCvRequest) => {
           notice_period: personalDetails.noticePeriod,
         }
       : undefined,
-    career_history: payload.careerHistory?.map((item) => ({
-      company_name: item.company,
-      position_held: item.jobTitle,
-      start_date: item.startDate,
-      end_date: item.endDate || null,
-      responsibilities: item.responsibilities ?? "",
-    })),
-    skills: payload.skills,
+    // career_history entries require an array of responsibilities and an explicit
+    // is_current flag — "Present" (set by the form when isCurrentRole is checked)
+    // maps to is_current: true with no end date.
+    career_history: payload.careerHistory?.map((item) => {
+      const isCurrent = !item.endDate || item.endDate === "Present";
+      return {
+        company_name: item.company,
+        position_held: item.jobTitle,
+        start_date: toFullDate(item.startDate),
+        end_date: isCurrent ? null : toFullDate(item.endDate),
+        is_current: isCurrent,
+        responsibilities: (item.responsibilities ?? "")
+          .split(";")
+          .map((task) => task.trim())
+          .filter(Boolean),
+      };
+    }),
+    // Skills are { skill_name } objects, not plain strings.
+    skills: payload.skills?.map((skillName) => ({ skill_name: skillName })),
+    // Education is a single flat array; level_code distinguishes tertiary from secondary.
     education: payload.education
-      ? {
-          secondary: payload.education.secondaryEducation,
-          tertiary: payload.education.tertiaryEducation,
-        }
+      ? [
+          ...payload.education.tertiaryEducation.map((entry) => ({
+            institution_name: entry.institution,
+            qualification: entry.qualification,
+            level_code: "TERTIARY",
+            year_completed: entry.yearCompleted,
+          })),
+          ...payload.education.secondaryEducation.map((entry) => ({
+            institution_name: entry.schoolName,
+            qualification: entry.qualification,
+            level_code: "SECONDARY",
+            year_completed: entry.yearCompleted,
+          })),
+        ]
       : undefined,
-    languages: payload.languages,
+    // Languages are plain names; the schema has no proficiency concept.
+    languages: payload.languages?.map((entry) => entry.language),
   };
 
   return Object.fromEntries(
@@ -489,7 +547,8 @@ const mapBuildResponse = (
   const personal = data.personalDetails ?? data.personal_details ?? {};
   const education = data.education ?? {};
   const educationEntries = Array.isArray(education) ? education : [];
-  const careerHistory = data.careerHistory ?? data.career_history ?? data.experience ?? [];
+  const careerHistory =
+    data.careerHistory ?? data.career_history ?? data.experience ?? [];
   const normalizeEducationEntry = (entry: RawBuildMyCvEducationEntry) => ({
     institution:
       entry.institution ??
@@ -504,10 +563,10 @@ const mapBuildResponse = (
     ? educationEntries.filter((item) => item.level_code === "SECONDARY")
     : education.secondary
       ? [education.secondary]
-      : education.secondaryEducation ?? [];
+      : (education.secondaryEducation ?? []);
   const tertiaryEducation = Array.isArray(education)
     ? educationEntries.filter((item) => item.level_code !== "SECONDARY")
-    : education.tertiary ?? education.tertiaryEducation ?? [];
+    : (education.tertiary ?? education.tertiaryEducation ?? []);
   return {
     resumeId: data.resumeId ?? data.resume_id ?? "",
     currentStep: data.currentStep ?? "",
@@ -530,32 +589,40 @@ const mapBuildResponse = (
       company: item.company ?? item.company_name ?? item.employer_name ?? "",
       jobTitle: item.jobTitle ?? item.position_held ?? item.role_title ?? "",
       startDate: item.startDate ?? item.start_date ?? "",
-      endDate: item.endDate ?? item.end_date ?? (item.is_current ? "Present" : ""),
+      endDate:
+        item.endDate ?? item.end_date ?? (item.is_current ? "Present" : ""),
       responsibilities: Array.isArray(item.responsibilities)
         ? item.responsibilities.filter(Boolean).join("; ")
-        : item.responsibilities ?? item.responsibilities_text,
+        : (item.responsibilities ?? item.responsibilities_text),
     })),
     skills: data.skills ?? [],
     education: {
       secondaryEducation: secondaryEducation.map(normalizeEducationEntry),
       tertiaryEducation: tertiaryEducation.map(normalizeEducationEntry),
-      } as unknown as BuildMyCvEducationSection,
+    } as unknown as BuildMyCvEducationSection,
     languages: (data.languages ?? []).map((item) =>
       typeof item === "string" ? { language: item, proficiency: "" } : item,
     ),
     validation: data.validation ?? [],
     summary: data.summary ?? "",
-    extractionStatus: data.extractionStatus ?? data.extraction_status ?? "NOT_STARTED",
+    extractionStatus:
+      data.extractionStatus ?? data.extraction_status ?? "NOT_STARTED",
     createdAt: data.createdAt ?? data.created_at ?? null,
-    lastModified: data.lastModified ?? data.last_modified ?? data.updatedAt ?? data.updated_at ?? null,
-    desiredJob: data.desiredJob ?? data.desired_job ?? {
-      jobTitle: "",
-      industry: "",
-      workType: "",
-      employmentType: "",
-      salaryExpectation: 0,
-      availableFrom: "",
-    },
+    lastModified:
+      data.lastModified ??
+      data.last_modified ??
+      data.updatedAt ??
+      data.updated_at ??
+      null,
+    desiredJob: data.desiredJob ??
+      data.desired_job ?? {
+        jobTitle: "",
+        industry: "",
+        workType: "",
+        employmentType: "",
+        salaryExpectation: 0,
+        availableFrom: "",
+      },
   };
 };
 
@@ -572,6 +639,8 @@ type RawProfilePersonalDetails = Partial<PersonalDetails> & {
   last_name?: string;
   full_name?: string;
   phone_number?: string;
+  alternate_email_address?: string;
+  alternate_phone_number?: string;
   disability_status?: string;
   residential_location?: string;
   current_company?: string;
@@ -657,10 +726,22 @@ const mapProfileResponse = (
     accountStatus: data.accountStatus ?? data.profile_status,
     profileCompleted: data.profileCompleted,
     personalDetails: {
-      firstName: personal.firstName ?? personal.first_name ?? personal.full_name?.split(" ")[0] ?? "",
-      lastName: personal.lastName ?? personal.last_name ?? personal.full_name?.split(" ").slice(1).join(" ") ?? "",
+      firstName:
+        personal.firstName ??
+        personal.first_name ??
+        personal.full_name?.split(" ")[0] ??
+        "",
+      lastName:
+        personal.lastName ??
+        personal.last_name ??
+        personal.full_name?.split(" ").slice(1).join(" ") ??
+        "",
       email: personal.email ?? "",
       mobileNumber: personal.mobileNumber ?? personal.phone_number,
+      alternateEmail:
+        personal.alternateEmail ?? personal.alternate_email_address,
+      alternateMobileNumber:
+        personal.alternateMobileNumber ?? personal.alternate_phone_number,
       race: personal.race,
       gender: personal.gender,
       disabilityStatus: personal.disabilityStatus ?? personal.disability_status,
@@ -678,22 +759,40 @@ const mapProfileResponse = (
     },
     desiredJob: {
       jobTitle: desiredJob.jobTitle ?? desiredJob.role_title ?? "",
-      industry: desiredJob.industry ?? desiredJob.targeted_industry ?? desiredJob.industries?.join(", ") ?? "",
-      workType: desiredJob.workType ?? desiredJob.work_type ?? desiredJob.locations?.join(", ") ?? "",
-      employmentType: desiredJob.employmentType ?? desiredJob.employment_type ?? desiredJob.jobType ?? "",
+      industry:
+        desiredJob.industry ??
+        desiredJob.targeted_industry ??
+        desiredJob.industries?.join(", ") ??
+        "",
+      workType:
+        desiredJob.workType ??
+        desiredJob.work_type ??
+        desiredJob.locations?.join(", ") ??
+        "",
+      employmentType:
+        desiredJob.employmentType ??
+        desiredJob.employment_type ??
+        desiredJob.jobType ??
+        "",
       salaryExpectation: desiredJob.salaryExpectation ?? 0,
       currency: desiredJob.currency,
       industries: desiredJob.industries,
       locations: desiredJob.locations,
       jobType: desiredJob.jobType,
-      availableFrom: desiredJob.availableFrom ?? desiredJob.availability_code ?? "",
+      availableFrom:
+        desiredJob.availableFrom ?? desiredJob.availability_code ?? "",
     },
     education: data.education
       ? {
           certifications: (data.education.tertiary ?? [])
             .map((item) => item.qualification)
-            .filter((qualification): qualification is string => Boolean(qualification)),
-          highestEarned: data.education.secondary?.qualification ?? data.education.secondary?.highest_grade_passed ?? "",
+            .filter((qualification): qualification is string =>
+              Boolean(qualification),
+            ),
+          highestEarned:
+            data.education.secondary?.qualification ??
+            data.education.secondary?.highest_grade_passed ??
+            "",
           tertiary: data.education.tertiary,
           secondary: data.education.secondary,
         }
@@ -702,7 +801,8 @@ const mapProfileResponse = (
       company: item.company ?? item.company_name ?? item.employer_name ?? "",
       jobTitle: item.jobTitle ?? item.position_held ?? item.role_title ?? "",
       startDate: item.startDate ?? item.start_date ?? "",
-      endDate: item.endDate ?? item.end_date ?? (item.is_current ? "Present" : ""),
+      endDate:
+        item.endDate ?? item.end_date ?? (item.is_current ? "Present" : ""),
       responsibilities: item.responsibilities ?? item.responsibilities_text,
     })),
     skills: data.skills ?? [],
@@ -710,20 +810,25 @@ const mapProfileResponse = (
     authentication: data.authentication ?? null,
     applications: data.applications ?? [],
     savedJobs: Array.isArray(data.savedJobs)
-      ? data.savedJobs.map((job) =>
-          typeof job === "string" ? job : job.jobProfileId ?? job.jobId,
-        ).filter((jobId): jobId is string => Boolean(jobId))
+      ? data.savedJobs
+          .map((job) =>
+            typeof job === "string" ? job : (job.jobProfileId ?? job.jobId),
+          )
+          .filter((jobId): jobId is string => Boolean(jobId))
       : [],
     resume: data.resume ?? null,
   };
 };
 
 export const candidateApi = {
-  async getById(candidateId: string, userId?: string): Promise<CandidateProfile> {
+  async getById(
+    candidateId: string,
+    userId?: string,
+  ): Promise<CandidateProfile> {
     const payload = await unwrapResponseData(
-      candidateApiClient.get<RawCandidateProfileResponse | RawCandidateProfileEnvelope>(
-        resolveEndpoint(apiEndpoints.candidate.profile, { candidateId }),
-      ),
+      candidateApiClient.get<
+        RawCandidateProfileResponse | RawCandidateProfileEnvelope
+      >(resolveEndpoint(apiEndpoints.candidate.profile, { candidateId })),
     );
     const profile = mapProfileResponse(payload);
     // Prefer the caller's userId, but keep the one the response carries.
@@ -734,34 +839,33 @@ export const candidateApi = {
     candidateId: string,
     payload: CandidateProfileUpdatePayload,
   ): Promise<CandidateProfile> {
+    const personalDetails = payload.personalDetails ?? {};
+    const targetedIndustriesId = await resolveIndustryId(
+      payload.desiredJob?.industry,
+    );
     await candidateApiClient.put(
-      resolveEndpoint(apiEndpoints.candidate.buildMyCv, { candidateId }),
-      toCvPayload({
-        personalDetails: payload.personalDetails as SaveBuildMyCvRequest["personalDetails"],
-        careerHistory: payload.experience,
-        skills: payload.skills,
-        languages: payload.languages,
-      }),
+      resolveEndpoint(apiEndpoints.candidate.profile, { candidateId }),
+      {
+        personal_details: omitUndefined({
+          first_name: personalDetails.firstName,
+          last_name: personalDetails.lastName,
+          alternate_email: personalDetails.email,
+          phone_number: personalDetails.mobileNumber,
+          residential_location: personalDetails.location,
+          alternate_email_address: personalDetails.alternateEmail,
+          alternate_phone_number: personalDetails.alternateMobileNumber,
+        }),
+        job_details: omitUndefined({
+          role_title: payload.desiredJob?.jobTitle,
+          targeted_industry_id: targetedIndustriesId,
+          preferred_location: payload.desiredJob?.workType,
+          employment_type: payload.desiredJob?.employmentType,
+          availability: payload.desiredJob?.availableFrom,
+        }),
+      },
     );
 
-    try {
-      return await this.getById(candidateId);
-    } catch (error) {
-      const status = (error as { response?: { status?: number } }).response?.status;
-      if (status !== 404) {
-        throw error;
-      }
-
-      return mapProfileResponse({
-        userId: candidateId,
-        personalDetails: payload.personalDetails,
-        desiredJob: payload.desiredJob,
-        education: payload.education,
-        experience: payload.experience,
-        skills: payload.skills,
-        languages: payload.languages,
-      });
-    }
+    return this.getById(candidateId);
   },
 
   uploadProfilePhoto(
@@ -782,24 +886,37 @@ export const candidateApi = {
 
   deleteProfilePhoto(userId: string): Promise<SuccessEnvelope<null>> {
     return unwrapResponseData(
-      apiClient.delete(resolveEndpoint(apiEndpoints.users.profilePhoto, { userId })),
+      apiClient.delete(
+        resolveEndpoint(apiEndpoints.users.profilePhoto, { userId }),
+      ),
     );
   },
 
-  getDashboard(query: CandidateDashboardQuery = {}): Promise<CandidateDashboardData> {
+  getDashboard(
+    query: CandidateDashboardQuery = {},
+  ): Promise<CandidateDashboardData> {
     return unwrapResponseData(
-      candidateApiClient.get(apiEndpoints.candidate.dashboard, { params: query }),
+      candidateApiClient.get(apiEndpoints.candidate.dashboard, {
+        params: query,
+      }),
     ).then(mapDashboardResponse);
   },
 
   getLanding(): Promise<CandidateLandingData> {
-    return unwrapResponseData(candidateApiClient.get(apiEndpoints.candidate.landing)).then((payload) => {
-      const data = responseData(payload as Record<string, unknown>) as Record<string, any>;
+    return unwrapResponseData(
+      candidateApiClient.get(apiEndpoints.candidate.landing),
+    ).then((payload) => {
+      const data = responseData(payload as Record<string, unknown>) as Record<
+        string,
+        any
+      >;
       return {
         stats: {
           totalJobs: data.stats?.totalJobs ?? data.stats?.total_jobs ?? 0,
-          totalCandidates: data.stats?.totalCandidates ?? data.stats?.total_candidates ?? 0,
-          totalPlacements: data.stats?.totalPlacements ?? data.stats?.total_placements ?? 0,
+          totalCandidates:
+            data.stats?.totalCandidates ?? data.stats?.total_candidates ?? 0,
+          totalPlacements:
+            data.stats?.totalPlacements ?? data.stats?.total_placements ?? 0,
         },
         featuredJobs: data.featuredJobs ?? data.featured_jobs ?? [],
       };
@@ -807,23 +924,36 @@ export const candidateApi = {
   },
 
   getStatistics(): Promise<CandidateStatisticsData> {
-    return unwrapResponseData(candidateApiClient.get(apiEndpoints.candidate.statistics)).then((payload) => {
-      const data = responseData(payload as Record<string, unknown>) as Record<string, any>;
+    return unwrapResponseData(
+      candidateApiClient.get(apiEndpoints.candidate.statistics),
+    ).then((payload) => {
+      const data = responseData(payload as Record<string, unknown>) as Record<
+        string,
+        any
+      >;
       const stats = data.statistics ?? {};
       const profileSummary = data.profile_summary ?? data.profileSummary ?? {};
       return {
         candidateId: data.candidateId ?? data.candidate_id ?? null,
         statistics: {
-          totalApplications: stats.totalApplications ?? stats.total_applications ?? 0,
-          successfulApplications: stats.successfulApplications ?? stats.successful_applications ?? 0,
-          inProgressApplications: stats.inProgressApplications ?? stats.in_progress_applications ?? 0,
-          rejectedApplications: stats.rejectedApplications ?? stats.rejected_applications ?? 0,
+          totalApplications:
+            stats.totalApplications ?? stats.total_applications ?? 0,
+          successfulApplications:
+            stats.successfulApplications ?? stats.successful_applications ?? 0,
+          inProgressApplications:
+            stats.inProgressApplications ?? stats.in_progress_applications ?? 0,
+          rejectedApplications:
+            stats.rejectedApplications ?? stats.rejected_applications ?? 0,
         },
         profileSummary: {
-          firstName: profileSummary.firstName ?? profileSummary.first_name ?? "",
+          firstName:
+            profileSummary.firstName ?? profileSummary.first_name ?? "",
           lastName: profileSummary.lastName ?? profileSummary.last_name ?? "",
           email: profileSummary.email ?? "",
-          profileStatus: profileSummary.profileStatus ?? profileSummary.profile_status ?? "INCOMPLETE",
+          profileStatus:
+            profileSummary.profileStatus ??
+            profileSummary.profile_status ??
+            "INCOMPLETE",
         },
         createdAt: data.createdAt ?? data.created_at ?? null,
       };
@@ -832,20 +962,36 @@ export const candidateApi = {
 
   getSavedJobs(candidateId: string): Promise<SavedJobsData> {
     return unwrapResponseData(
-      candidateApiClient.get<RawCandidateJobCollection | RawCandidateJobCollectionEnvelope>(
-        resolveEndpoint(apiEndpoints.candidate.savedJobs, { candidateId }),
-      ),
+      candidateApiClient.get<
+        RawCandidateJobCollection | RawCandidateJobCollectionEnvelope
+      >(resolveEndpoint(apiEndpoints.candidate.savedJobs, { candidateId })),
     ).then(mapSavedJobsResponse);
   },
 
-  applyToJob(jobProfileId: string, payload: ApplyJobRequest = {}): Promise<ApplyJobResponse> {
-    return unwrapResponseData(
-      candidateApiClient.post<ApplyJobResponse>(apiEndpoints.candidate.applications, {
-        jobProfileId,
-        cvId: payload.cvId,
-        sourceChannel: payload.sourceChannel ?? "job-details",
-      }),
+  async applyToJob(
+    jobProfileId: string,
+    payload: ApplyJobRequest = {},
+  ): Promise<ApplyJobResponse> {
+    const raw = await unwrapResponseData(
+      candidateApiClient.post<Record<string, any>>(
+        apiEndpoints.candidate.applications,
+        omitUndefined({
+          job_profile_id: jobProfileId,
+          match_score_latest: payload.matchScoreLatest,
+        }),
+      ),
     );
+    return {
+      applicationId: raw.application_id,
+      candidateId: raw.candidate_id,
+      jobProfileId: raw.job_profile_id,
+      applicationPartyId: raw.application_party_id,
+      currentStageCode: raw.current_stage_code,
+      matchScoreLatest: raw.match_score_latest,
+      assignedRecruiterId: raw.assigned_recruiter_id,
+      createdAt: raw.created_at,
+      message: raw.message,
+    };
   },
 
   saveJob(payload: SaveJobRequest): Promise<unknown> {
@@ -863,43 +1009,76 @@ export const candidateApi = {
 
   removeSavedJob(candidateId: string, jobProfileId: string): Promise<unknown> {
     return unwrapResponseData(
-      candidateApiClient.delete(resolveEndpoint(apiEndpoints.candidate.savedJob, { candidateId, jobProfileId })),
+      candidateApiClient.delete(
+        resolveEndpoint(apiEndpoints.candidate.savedJob, {
+          candidateId,
+          jobProfileId,
+        }),
+      ),
     );
   },
 
   getRecommendedPositions(candidateId: string): Promise<RecommendedJobsData> {
     return unwrapResponseData(
-      candidateApiClient.get<RawCandidateJobCollection | RawCandidateJobCollectionEnvelope>(
-        resolveEndpoint(apiEndpoints.candidate.recommendedJobs, { candidateId }),
+      candidateApiClient.get<
+        RawCandidateJobCollection | RawCandidateJobCollectionEnvelope
+      >(
+        resolveEndpoint(apiEndpoints.candidate.recommendedJobs, {
+          candidateId,
+        }),
       ),
     ).then(mapRecommendedResponse);
   },
 
   getAiActions(candidateId: string): Promise<AiActionsData> {
-    return unwrapResponseData(candidateApiClient.get(resolveEndpoint(apiEndpoints.candidate.aiActions, { candidateId }))).then((payload) => {
-      const data = responseData(payload as Record<string, unknown>) as Record<string, any>;
+    return unwrapResponseData(
+      candidateApiClient.get(
+        resolveEndpoint(apiEndpoints.candidate.aiActions, { candidateId }),
+      ),
+    ).then((payload) => {
+      const data = responseData(payload as Record<string, unknown>) as Record<
+        string,
+        any
+      >;
       return {
         candidateId: data.candidateId ?? data.candidate_id ?? candidateId,
-        actions: (data.actions ?? []).map((action: string | Record<string, any>, index: number) => typeof action === "string" ? { actionId: `ai-${index}`, type: "CAREER_NUDGE" as const, label: action } : action),
+        actions: (data.actions ?? []).map(
+          (action: string | Record<string, any>, index: number) =>
+            typeof action === "string"
+              ? {
+                  actionId: `ai-${index}`,
+                  type: "CAREER_NUDGE" as const,
+                  label: action,
+                }
+              : action,
+        ),
       };
     });
   },
 
   buildMyCv(candidateId?: string): Promise<SuccessEnvelope<BuildMyCvData>> {
     return unwrapResponseData(
-      candidateApiClient.post(resolveEndpoint(apiEndpoints.candidate.buildMyCv, { candidateId: candidateId ?? "" })),
+      candidateApiClient.post(
+        resolveEndpoint(apiEndpoints.candidate.buildMyCv, {
+          candidateId: candidateId ?? "",
+        }),
+      ),
     );
   },
 
   previewResume(resumeId: string): Promise<SuccessEnvelope<CvPreviewData>> {
     return unwrapResponseData(
-      candidateApiClient.get(resolveEndpoint(apiEndpoints.candidate.resumePreview, { resumeId })),
+      candidateApiClient.get(
+        resolveEndpoint(apiEndpoints.candidate.resumePreview, { resumeId }),
+      ),
     );
   },
 
   downloadResume(resumeId: string): Promise<SuccessEnvelope<CvDownloadData>> {
     return unwrapResponseData(
-      candidateApiClient.get(resolveEndpoint(apiEndpoints.candidate.resumeDownload, { resumeId })),
+      candidateApiClient.get(
+        resolveEndpoint(apiEndpoints.candidate.resumeDownload, { resumeId }),
+      ),
     );
   },
 
@@ -925,9 +1104,11 @@ export const candidateApi = {
 
   getApplicationById(applicationId: string): Promise<CandidateApplication> {
     return unwrapResponseData(
-      apiClient.get<
-        SuccessEnvelope<unknown> | CandidateApplication
-      >(resolveEndpoint(apiEndpoints.applications.stageTransition, { applicationId })),
+      apiClient.get<SuccessEnvelope<unknown> | CandidateApplication>(
+        resolveEndpoint(apiEndpoints.applications.stageTransition, {
+          applicationId,
+        }),
+      ),
     ).then((payload) => {
       if (isCandidateApplication(payload)) {
         return payload;
@@ -963,12 +1144,15 @@ export const candidateApi = {
 
   async searchSkills(keyword: string, userId?: string): Promise<UserSkill[]> {
     const payload = await unwrapResponseData(
-      apiClient.get<SuccessEnvelope<unknown> | unknown>(apiEndpoints.skills.search, {
-        params: {
-          [apiEndpoints.skills.keywordParam]: keyword,
-          ...(userId ? { userId } : {}),
-        }
-      }),
+      apiClient.get<SuccessEnvelope<unknown> | unknown>(
+        apiEndpoints.skills.search,
+        {
+          params: {
+            [apiEndpoints.skills.keywordParam]: keyword,
+            ...(userId ? { userId } : {}),
+          },
+        },
+      ),
     );
     return normalizeSkillsResponse(payload);
   },
@@ -977,20 +1161,31 @@ export const candidateApi = {
   // caller is expected to overwrite the current skills list with the result.
   async generateSkills(payload: GenerateSkillsRequest): Promise<UserSkill[]> {
     const raw = await unwrapResponseData(
-      apiClient.post(apiEndpoints.skills.generate, {
-        subject_type: "CANDIDATE",
-        subject_id: payload.candidateId,
-        input_source: "PROFILE",
-        career_history: payload.careerHistory.map((entry) => ({
-          company_name: entry.companyName,
-          position_held: entry.positionHeld,
-          responsibilities: entry.responsibilities,
-          projects: entry.projects,
-        })),
-      }),
+      apiClient.post(
+        apiEndpoints.skills.generate,
+        {
+          subject_type: "CANDIDATE",
+          subject_id: payload.candidateId,
+          input_source: "PROFILE",
+          career_history: payload.careerHistory.map((entry) => ({
+            company_name: entry.companyName,
+            position_held: entry.positionHeld,
+            responsibilities: entry.responsibilities,
+            projects: entry.projects,
+          })),
+        },
+        // A failure here (including a 401) shouldn't end the user's session —
+        // the caller shows an error toast and keeps them on the current page.
+        { skipUnauthorizedRedirect: true },
+      ),
     );
-    const data = responseData(raw as Record<string, unknown>) as Record<string, any>;
-    const suggested = Array.isArray(data.suggested_skills) ? data.suggested_skills : [];
+    const data = responseData(raw as Record<string, unknown>) as Record<
+      string,
+      any
+    >;
+    const suggested = Array.isArray(data.suggested_skills)
+      ? data.suggested_skills
+      : [];
     return suggested.map((skill: Record<string, any>) => ({
       skillId: skill.skill_id ?? skill.skillId ?? "",
       skillName: skill.skill_name ?? skill.skillName ?? "",
@@ -1000,12 +1195,17 @@ export const candidateApi = {
 
   async getBuildMyCv(candidateId: string): Promise<BuildMyCvState> {
     const payload = await unwrapResponseData(
-      candidateApiClient.get(resolveEndpoint(apiEndpoints.candidate.buildMyCv, { candidateId })),
+      candidateApiClient.get(
+        resolveEndpoint(apiEndpoints.candidate.buildMyCv, { candidateId }),
+      ),
     );
     return mapBuildResponse(payload) as BuildMyCvState;
   },
 
-  async saveBuildMyCv(candidateId: string, payload: SaveBuildMyCvRequest): Promise<BuildMyCvData> {
+  async saveBuildMyCv(
+    candidateId: string,
+    payload: SaveBuildMyCvRequest,
+  ): Promise<BuildMyCvData> {
     return mapBuildMyCvRequest(
       candidateApiClient.post<RawBuildMyCvResponse | RawBuildMyCvEnvelope>(
         resolveEndpoint(apiEndpoints.candidate.buildMyCv, { candidateId }),
@@ -1014,7 +1214,10 @@ export const candidateApi = {
     );
   },
 
-  async updateBuildMyCv(candidateId: string, payload: UpdateBuildMyCvRequest): Promise<BuildMyCvData> {
+  async updateBuildMyCv(
+    candidateId: string,
+    payload: UpdateBuildMyCvRequest,
+  ): Promise<BuildMyCvData> {
     return mapBuildMyCvRequest(
       candidateApiClient.put<RawBuildMyCvResponse | RawBuildMyCvEnvelope>(
         resolveEndpoint(apiEndpoints.candidate.buildMyCv, { candidateId }),
@@ -1023,7 +1226,10 @@ export const candidateApi = {
     );
   },
 
-  async createSimpleProfile(candidateId: string, payload: SimpleCandidateProfileInput): Promise<SimpleCandidateProfileResponse> {
+  async createSimpleProfile(
+    candidateId: string,
+    payload: SimpleCandidateProfileInput,
+  ): Promise<SimpleCandidateProfileResponse> {
     const raw = await unwrapResponseData(
       candidateApiClient.post(
         resolveEndpoint(apiEndpoints.candidate.profile, { candidateId }),
@@ -1053,7 +1259,10 @@ export const candidateApi = {
         },
       ),
     );
-    const data = responseData(raw as Record<string, unknown>) as Record<string, any>;
+    const data = responseData(raw as Record<string, unknown>) as Record<
+      string,
+      any
+    >;
     return {
       candidateId: data.candidate_id ?? data.candidateId ?? candidateId,
       profileStatus: data.profile_status ?? data.profileStatus ?? "ACTIVE",
@@ -1063,34 +1272,13 @@ export const candidateApi = {
     };
   },
 
-  async uploadResumeDocument(
+  // Resume uploads go through the same generic document endpoint, just pinned to RESUME.
+  uploadResumeDocument(
     candidateId: string,
     file: Blob,
     fileName: string,
   ): Promise<ResumeDocumentUploadResult> {
-    const formData = new FormData();
-    formData.append("file", file, fileName);
-    formData.append("owner_type", "CANDIDATE");
-    formData.append("owner_id", candidateId);
-    formData.append("document_type", "RESUME");
-    formData.append("title", fileName);
-
-    const raw = await unwrapResponseData(
-      apiClient.post<Record<string, any>>(
-        apiEndpoints.documents.uploadResume,
-        formData,
-      ),
-    );
-    return {
-      ownerId: raw.owner_id_ref ?? candidateId,
-      documentId: raw.document?.document_id ?? "",
-      title: raw.document?.title ?? fileName,
-      fileName: raw.document?.file_name ?? fileName,
-      mediaType: raw.document?.media_type ?? file.type,
-      sizeBytes: raw.document?.size_bytes ?? file.size,
-      lifecycleStatus: raw.document?.lifecycle_status ?? "ACTIVE",
-      uploadedAt: raw.updated_at ?? new Date().toISOString(),
-    };
+    return this.uploadDocument(candidateId, file, fileName, "RESUME");
   },
 
   async uploadDocument(
@@ -1101,13 +1289,13 @@ export const candidateApi = {
   ): Promise<ResumeDocumentUploadResult> {
     const formData = new FormData();
     formData.append("file", file, fileName);
-    formData.append("owner_type", "CANDIDATE");
+    formData.append("owner_type", "CANDIDATE"); // can be visitor if the user has not logged in and applying for a job
     formData.append("owner_id", candidateId);
     formData.append("document_type", documentType);
     formData.append("title", fileName);
 
     const raw = await unwrapResponseData(
-      apiClient.post<Record<string, any>>(
+      documentApiClient.post<Record<string, any>>(
         apiEndpoints.documents.upload,
         formData,
       ),

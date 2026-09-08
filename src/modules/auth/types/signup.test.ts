@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { inviteSignupSchema } from './signup'
+import { inviteSignupSchema, recruiterInviteSignupSchema } from './signup'
 
 const validPayload = {
   firstName: 'Jane',
@@ -98,5 +98,19 @@ describe('inviteSignupSchema', () => {
   it('rejects empty email', () => {
     const result = inviteSignupSchema.safeParse({ ...validPayload, email: '' })
     expect(result.success).toBe(false)
+  })
+})
+
+describe('recruiterInviteSignupSchema', () => {
+  it('accepts a fully valid payload', () => {
+    expect(recruiterInviteSignupSchema.safeParse(validPayload).success).toBe(true)
+  })
+
+  it('rejects an empty staffNumber, unlike the self-service schema', () => {
+    const result = recruiterInviteSignupSchema.safeParse({ ...validPayload, staffNumber: '' })
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.issues.some((i) => i.path.includes('staffNumber'))).toBe(true)
+    }
   })
 })

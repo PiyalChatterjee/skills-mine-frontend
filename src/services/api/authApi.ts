@@ -2,6 +2,7 @@ import { decodeJwtPayload } from "@/app/auth/jwt";
 import { tokenStorage } from "@/app/auth/tokenStorage";
 import { authApiClient, unwrapResponseData } from "@/services/api/axios";
 import { apiEndpoints } from "@/services/api/endpoints";
+import { candidateApi } from "@/services/api/candidateApi";
 import {
   PERMISSIONS,
   type AuthUser,
@@ -100,29 +101,44 @@ const normalizePermissions = (roles: Role[]): Permission[] => {
   return Array.from(merged);
 };
 
-export const buildAuthUserFromCurrentUser = (
+export const buildAuthUserFromCurrentUser = async (
   currentUser: CurrentUserResponse,
   idToken: string,
-): AuthUser => {
+): Promise<AuthUser> => {
   const payload = decodeJwtPayload(idToken);
   const roles =
     currentUser.roles.length > 0
       ? currentUser.roles.map(normalizeRole)
       : [normalizeRole(payload?.roles?.[0])];
   const role = roles[0] ?? "JOB_SEEKER";
-  const firstName =
+  let firstName =
     payload?.firstName ?? payload?.name?.split(" ")?.[0] ?? "";
-  const lastName =
+  let lastName =
     payload?.lastName ??
     payload?.name?.split(" ")?.slice(1).join(" ") ??
     "";
-  const displayName =
-    payload?.name ?? (`${firstName} ${lastName}`.trim() || currentUser.email);
+
+  const candidateId = currentUser.candidateId ?? payload?.candidateId ?? payload?.candidate_id;
+
+  // The candidate profile's name (full name is required there, unlike the JWT
+  // claims) is the source of truth once the candidate has completed their profile.
+  if (candidateId) {
+    try {
+      const profile = await candidateApi.getById(candidateId);
+      firstName = profile.personalDetails?.firstName || firstName;
+      lastName = profile.personalDetails?.lastName || lastName;
+    } catch {
+      // Best-effort enrichment; fall back to JWT-derived name.
+    }
+  }
+
+  // First name is mandatory upstream; only fall back to email if it's genuinely missing.
+  const displayName = firstName ? `${firstName} ${lastName}`.trim() : currentUser.email;
 
   return {
     id: currentUser.userId,
     userId: currentUser.userId,
-    candidateId: currentUser.candidateId ?? payload?.candidateId ?? payload?.candidate_id,
+    candidateId,
     email: currentUser.email,
     firstName,
     lastName,
@@ -173,7 +189,7 @@ export const mapLoginResponseToSession = async (
 
   try {
     const currentUser = await authApi.getCurrentUser();
-    const user = buildAuthUserFromCurrentUser(currentUser, idToken);
+    const user = await buildAuthUserFromCurrentUser(currentUser, idToken);
     return { user, tokens, isFirstLogin };
   } catch {
     // Fall back to JWT claims only when the current-user request is unavailable.

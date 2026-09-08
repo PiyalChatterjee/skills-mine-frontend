@@ -25,6 +25,8 @@ export interface PersonalDetails {
   lastName: string;
   email: string;
   mobileNumber?: string;
+  alternateEmail?: string;
+  alternateMobileNumber?: string;
   race?: string;
   gender?: string;
   disabilityStatus?: string;
@@ -351,16 +353,19 @@ export interface BuildMyCvResponse {
 }
 
 export interface ApplyJobRequest {
-  candidateId?: string;
-  cvId?: string;
-  sourceChannel?: string;
+  matchScoreLatest?: number;
 }
 
 export interface ApplyJobResponse {
   applicationId: string;
-  matchScore: number;
-  status: string;
-  nextStep: "view_dashboard" | "account_prompt" | string;
+  candidateId: string;
+  jobProfileId: string;
+  applicationPartyId: string;
+  currentStageCode: string;
+  matchScoreLatest: number;
+  assignedRecruiterId?: string;
+  createdAt: string;
+  message: string;
 }
 
 export interface SaveJobRequest {

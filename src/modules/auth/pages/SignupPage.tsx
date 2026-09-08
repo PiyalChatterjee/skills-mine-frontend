@@ -18,11 +18,13 @@ import {
   type InviteSignupFormValues,
 } from "@/modules/auth/types";
 import { normalizePhoneNumberInput } from "@/app/phoneNumber";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import { authApi } from "@/services/api/authApi";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import styles from "./SignupPage.module.css";
 
 const SignupPage = () => {
+  usePageTitle("Sign Up");
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const invitationToken = searchParams.get("token") ?? undefined;

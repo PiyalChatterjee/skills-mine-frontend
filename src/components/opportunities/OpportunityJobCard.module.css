@@ -97,7 +97,8 @@
   background: #957dd2;
 }
 
-.applicationStatus[data-status='shortlisted'] {
+.applicationStatus[data-status='shortlisted'],
+.applicationStatus[data-status='shortlist'] {
   background: #e085c2;
 }
 
@@ -111,7 +112,8 @@
 }
 
 .applicationStatus[data-status='offer_declined'],
-.applicationStatus[data-status='rejected'] {
+.applicationStatus[data-status='rejected'],
+.applicationStatus[data-status='reject'] {
   background: #e07070;
 }
 

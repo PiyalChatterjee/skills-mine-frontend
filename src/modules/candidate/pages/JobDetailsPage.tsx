@@ -11,6 +11,7 @@ import patternHeroLeft from "@/assets/job-details/pattern-hero-left.svg";
 import patternHeroRight from "@/assets/job-details/pattern-hero-right.svg";
 import { BookmarkIcon } from "@/components/icons/BookmarkIcon";
 import { GradientPatternHero } from "@/components/hero";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import { useJobDetailsViewModel } from "@/modules/candidate/hooks/useJobDetailsViewModel";
 import styles from "./JobDetailsPage.module.css";
 
@@ -53,6 +54,8 @@ const JobDetailsPage = () => {
     title,
     workType,
   } = useJobDetailsViewModel();
+
+  usePageTitle(title ? `${title}${companyName ? ` at ${companyName}` : ""}` : "Job Details");
 
   if (isInitialLoading) {
     return (
@@ -148,11 +151,13 @@ const JobDetailsPage = () => {
           </Box>
 
           <Box className={styles.tagsRow}>
-            {[industry, locationName, workType, employmentType].map((tag) => (
-              <span key={tag} className={styles.heroTag}>
-                {tag}
-              </span>
-            ))}
+            {[industry, locationName, workType, employmentType]
+              .filter((tag): tag is string => Boolean(tag))
+              .map((tag) => (
+                <span key={tag} className={styles.heroTag}>
+                  {tag}
+                </span>
+              ))}
           </Box>
         </Box>
       </GradientPatternHero>

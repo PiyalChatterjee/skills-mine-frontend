@@ -30,7 +30,10 @@ type CvBuilderSelectFieldProps = {
   label: string;
   value: string;
   onChange: (event: ChangeEvent<HTMLInputElement>) => void;
+  onBlur?: () => void;
   options: string[];
+  // Formats an option's raw (submitted) value into a human-readable label.
+  getOptionLabel?: (option: string) => string;
   span?: FieldSpan;
   allowEmptyOption?: boolean;
   emptyLabel?: string;
@@ -54,9 +57,13 @@ const spanClassNameMap: Record<FieldSpan, string> = {
   one: styles.fieldGroupOne,
 };
 
-const renderSelectValue = (value: unknown, emptyLabel: string) =>
+const renderSelectValue = (
+  value: unknown,
+  emptyLabel: string,
+  getOptionLabel: (option: string) => string,
+) =>
   value ? (
-    String(value)
+    getOptionLabel(String(value))
   ) : (
     <span className={styles.placeholderText}>{emptyLabel}</span>
   );
@@ -110,7 +117,9 @@ export const CvBuilderSelectField = ({
   label,
   value,
   onChange,
+  onBlur,
   options,
+  getOptionLabel = (option) => option,
   span = "one",
   allowEmptyOption = true,
   emptyLabel = "Select",
@@ -123,6 +132,7 @@ export const CvBuilderSelectField = ({
       select
       value={value}
       onChange={onChange}
+      onBlur={onBlur}
       error={error}
       helperText={helperText}
       className={styles.fieldControl}
@@ -135,7 +145,7 @@ export const CvBuilderSelectField = ({
             ? {
                 displayEmpty: true,
                 renderValue: (selectedValue: unknown) =>
-                  renderSelectValue(selectedValue, emptyLabel),
+                  renderSelectValue(selectedValue, emptyLabel, getOptionLabel),
               }
             : {}),
         },
@@ -148,7 +158,7 @@ export const CvBuilderSelectField = ({
       ) : null}
       {options.map((option) => (
         <MenuItem key={option} value={option}>
-          {option}
+          {getOptionLabel(option)}
         </MenuItem>
       ))}
     </TextField>

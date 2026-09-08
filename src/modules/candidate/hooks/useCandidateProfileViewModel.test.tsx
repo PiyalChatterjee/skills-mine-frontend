@@ -15,7 +15,6 @@ const mocks = vi.hoisted(() => ({
   useCandidateProfileQuery: vi.fn(),
   useCandidateResourceId: vi.fn(),
   useIndustryOptions: vi.fn(),
-  useUserProfile: vi.fn(),
   useZodForm: vi.fn(),
 }));
 
@@ -55,7 +54,6 @@ vi.mock("@/modules/candidate/pages/profileForm.config", () => ({
 vi.mock("@/modules/candidate/hooks/useCandidateQueries", () => ({
   useCandidateProfileQuery: mocks.useCandidateProfileQuery,
   useCandidateResourceId: mocks.useCandidateResourceId,
-  useUserProfile: mocks.useUserProfile,
 }));
 
 const candidateProfile = {
@@ -75,9 +73,6 @@ describe("useCandidateProfileViewModel", () => {
       isFetching: false,
       isError: false,
       error: undefined,
-    });
-    mocks.useUserProfile.mockReturnValue({
-      data: { authentication: { password: "masked" } },
     });
     mocks.useIndustryOptions.mockReturnValue(["Technology"]);
     mocks.getProfileFormValues.mockReturnValue({
@@ -111,12 +106,11 @@ describe("useCandidateProfileViewModel", () => {
     const { result } = renderHook(() => useCandidateProfileViewModel());
 
     expect(mocks.useCandidateProfileQuery).toHaveBeenCalledWith("c-1", "u-1", true);
-    expect(mocks.useUserProfile).toHaveBeenCalledWith("u-1");
     expect(mocks.useIndustryOptions).toHaveBeenCalledWith(["Technology", "Finance"]);
     expect(mocks.reset).toHaveBeenCalledWith(
       expect.objectContaining({
         fullName: "Jane Doe",
-        password: "masked",
+        password: "",
       }),
     );
     expect(result.current).toMatchObject({

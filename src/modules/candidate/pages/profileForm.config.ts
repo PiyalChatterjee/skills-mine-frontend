@@ -2,9 +2,10 @@ import { z } from 'zod'
 import {
   fromSouthAfricaApiPhoneNumber,
   localPhoneNumberSchema,
+  optionalLocalPhoneNumberSchema,
   toSouthAfricaApiPhoneNumber,
 } from '@/app/phoneNumber'
-import { emailSchema } from '@/app/validation.schema'
+import { emailSchema, optionalEmailSchema } from '@/app/validation.schema'
 import { splitCandidateFullName } from '@/modules/candidate/utils/candidateName'
 import type { CandidateProfile, CandidateProfileUpdatePayload } from '@/modules/candidate/types'
 
@@ -15,10 +16,12 @@ export const profileFormSchema = z.object({
   fullName: requiredField('Full name'),
   email: emailSchema,
   phoneNumber: localPhoneNumberSchema,
+  alternateEmail: optionalEmailSchema,
+  alternatePhoneNumber: optionalLocalPhoneNumberSchema,
   residentialLocation: requiredField('Residential location'),
   preferredJobTitle: z.string(),
   targetedIndustries: z.string(),
-  preferredLocations: requiredField('Preferred location'),
+  preferredWorkType: requiredField('Preferred Work Type(s)'),
   employmentType: z.string(),
   availability: z.string(),
   password: z.string(),
@@ -39,7 +42,7 @@ export const PROFILE_SELECT_OPTIONS = {
     'Consulting',
     'Digital Marketing',
   ],
-  preferredLocations: ['Hybrid', 'Remote', 'On-site'],
+  preferredWorkType: ['Hybrid', 'Remote', 'On-site'],
   employmentType: [
     'FULL_TIME',
     'PART_TIME',
@@ -67,10 +70,14 @@ export const getProfileFormValues = (
     phoneNumber: fromSouthAfricaApiPhoneNumber(
       profile?.personalDetails?.mobileNumber ?? '',
     ),
+    alternateEmail: profile?.personalDetails?.alternateEmail ?? '',
+    alternatePhoneNumber: fromSouthAfricaApiPhoneNumber(
+      profile?.personalDetails?.alternateMobileNumber ?? '',
+    ),
     residentialLocation: profile?.personalDetails?.location ?? '',
     preferredJobTitle: profile?.desiredJob?.jobTitle ?? '',
     targetedIndustries: profile?.desiredJob?.industry ?? '',
-    preferredLocations: profile?.desiredJob?.workType ?? '',
+    preferredWorkType: profile?.desiredJob?.workType ?? '',
     employmentType: normalizeEmploymentType(profile?.desiredJob?.employmentType),
     availability: profile?.desiredJob?.availableFrom ?? '',
     password: profile?.authentication?.password ?? '',
@@ -95,6 +102,10 @@ export const getCandidateProfileUpdatePayload = (
       lastName: lastName || currentProfile?.personalDetails?.lastName || '',
       email: values.email.trim(),
       mobileNumber: toSouthAfricaApiPhoneNumber(values.phoneNumber),
+      alternateEmail: values.alternateEmail.trim(),
+      alternateMobileNumber: values.alternatePhoneNumber
+        ? toSouthAfricaApiPhoneNumber(values.alternatePhoneNumber)
+        : '',
       location: values.residentialLocation.trim(),
       nationality: currentProfile?.personalDetails?.nationality ?? '',
       idNumber: currentProfile?.personalDetails?.idNumber ?? '',
@@ -107,7 +118,7 @@ export const getCandidateProfileUpdatePayload = (
     desiredJob: {
       jobTitle: values.preferredJobTitle.trim(),
       industry: values.targetedIndustries.trim(),
-      workType: values.preferredLocations.trim(),
+      workType: values.preferredWorkType.trim(),
       employmentType: values.employmentType.trim(),
       salaryExpectation: currentProfile?.desiredJob?.salaryExpectation ?? 0,
       availableFrom: values.availability.trim(),

@@ -14,8 +14,8 @@ import { useZodForm } from "@/hooks/useZodForm";
 import AuthHero from "@/modules/auth/components/AuthHero";
 import AuthPasswordField from "@/modules/auth/components/AuthPasswordField";
 import {
-  inviteSignupSchema,
-  type InviteSignupFormValues,
+  recruiterInviteSignupSchema,
+  type RecruiterInviteSignupFormValues,
 } from "@/modules/auth/types";
 import { authApi } from "@/services/api/authApi";
 import { ROUTE_PATHS } from "@/routes/routePaths";
@@ -35,7 +35,7 @@ const RecruiterSignupPage = () => {
     handleSubmit,
     watch,
     formState: { errors, isSubmitting },
-  } = useZodForm(inviteSignupSchema, {
+  } = useZodForm(recruiterInviteSignupSchema, {
     defaultValues: {
       firstName: "",
       lastName: "",
@@ -57,11 +57,11 @@ const RecruiterSignupPage = () => {
     },
   });
 
-  const onSubmit = async (values: InviteSignupFormValues) => {
+  const onSubmit = async (values: RecruiterInviteSignupFormValues) => {
     setSubmitError(null);
     try {
-      if (!invitationToken || !values.staffNumber) {
-        setSubmitError("Recruiter registration requires an invitation link and staff number.");
+      if (!invitationToken) {
+        setSubmitError("Recruiter registration requires a valid invitation link.");
         return;
       }
 
