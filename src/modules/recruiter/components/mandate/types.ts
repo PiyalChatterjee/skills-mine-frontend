@@ -19,5 +19,4 @@ export interface MandateFormValues {
   benefits: string
   skills: string[]
   industries: string[]
-  jobBoards: string[]
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
 import { Box, CircularProgress, Typography } from '@mui/material'
@@ -6,7 +6,7 @@ import { RecruiterSidebar } from '@/modules/recruiter/components/RecruiterSideba
 import { MandateForm } from '@/modules/recruiter/components/mandate/MandateForm'
 import { pushNotification } from '@/store/slices/notificationSlice'
 import { ROUTE_PATHS } from '@/routes/routePaths'
-import { mandateApi } from '@/services/api/mandateApi'
+import { mandateApi, type CreateMandateRequest } from '@/services/api/mandateApi'
 import type { MandateFormValues } from '@/modules/recruiter/components/mandate/types'
 import type { JobPost } from '@/types/api'
 import styles from './NewMandatePage.module.css'
@@ -47,11 +47,39 @@ function toFormValues(post: JobPost): MandateFormValues {
     benefits:             toBulletLines(post.benefits),
     skills:               post.skills ?? [],
     industries:           post.industries ?? [],
-    jobBoards:            post.jobBoards ?? [],
   }
 }
 
 // ── Component ──────────────────────────────────────────────────────────
+
+/** Convert MandateFormValues to the CreateMandateRequest shape used by the API layer. */
+function toApiRequest(values: MandateFormValues): CreateMandateRequest {
+  return {
+    companyName:        values.companyName,
+    clientRate:         values.clientRate,
+    contactName:        values.contactPerson,
+    contactEmail:       values.contactPersonEmail,
+    contactPhoneNumber: values.contactPersonPhone,
+    positionTitle:      values.positionTitle,
+    location:           values.location,
+    fillByDate:         values.fillByDate,
+    workType:           values.workType,
+    employmentType:     values.employmentType,
+    experienceLevel:    values.experienceLevel,
+    priority:           values.priority,
+    salary: {
+      minimum: Number(values.salaryMin),
+      maximum: Number(values.salaryMax),
+    },
+    jobDescription:   values.jobDescription,
+    requirements:     values.requirements,
+    responsibilities: values.responsibilities,
+    benefits:         values.benefits,
+    skills:           values.skills,
+    industries:       values.industries,
+    jobBoards:        [],
+  }
+}
 
 const EditMandatePage = () => {
   const { mandateId } = useParams<{ mandateId: string }>()
@@ -61,13 +89,21 @@ const EditMandatePage = () => {
   const [initialValues, setInitialValues] = useState<MandateFormValues | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
 
+  // Stable ref so handleSubmit always has access to the original loaded values
+  // without being recreated on every render.
+  const originalRequestRef = useRef<CreateMandateRequest | null>(null)
+
   // ── Fetch post and convert to form values ────────────────────────────
 
   useEffect(() => {
     if (!mandateId) return
     mandateApi
       .getJobPostDetail(mandateId)
-      .then((envelope) => setInitialValues(toFormValues(envelope.data)))
+      .then((envelope) => {
+        const formValues = toFormValues(envelope.data)
+        originalRequestRef.current = toApiRequest(formValues)
+        setInitialValues(formValues)
+      })
       .catch(() => setLoadError('Failed to load job post. Please go back and try again.'))
   }, [mandateId])
 
@@ -75,31 +111,7 @@ const EditMandatePage = () => {
 
   const handleSubmit = async (values: MandateFormValues) => {
     try {
-      await mandateApi.updateJobPost(mandateId!, {
-        companyName:      values.companyName,
-        clientRate:       values.clientRate,
-        contactName:      values.contactPerson,
-        contactEmail:     values.contactPersonEmail,
-        contactPhoneNumber: values.contactPersonPhone,
-        positionTitle:    values.positionTitle,
-        location:         values.location,
-        fillByDate:       values.fillByDate,
-        workType:         values.workType,
-        employmentType:   values.employmentType,
-        experienceLevel:  values.experienceLevel,
-        priority:         values.priority,
-        salary: {
-          minimum: Number(values.salaryMin),
-          maximum: Number(values.salaryMax),
-        },
-        jobDescription:   values.jobDescription,
-        requirements:     values.requirements,
-        responsibilities: values.responsibilities,
-        benefits:         values.benefits,
-        skills:           values.skills,
-        industries:       values.industries,
-        jobBoards:        values.jobBoards,
-      })
+      await mandateApi.updateJobPost(mandateId!, toApiRequest(values), originalRequestRef.current!)
 
       dispatch(pushNotification({
         level: 'success',
