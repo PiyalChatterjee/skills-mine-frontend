@@ -83,8 +83,8 @@ export const ProfileCreationJobDetailsSection = ({
         <ProfileSelectField
           control={control}
           name="preferredLocations"
-          label="Preferred location(s)"
-          options={[...PROFILE_SELECT_OPTIONS.preferredLocations]}
+          label="Preferred Work Type(s)"
+          options={[...PROFILE_SELECT_OPTIONS.preferredWorkType]}
           multiple
         />
         <ProfileSelectField

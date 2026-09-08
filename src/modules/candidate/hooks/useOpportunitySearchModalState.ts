@@ -39,7 +39,7 @@ export const useOpportunitySearchModalState = (open: boolean) => {
   } = useCandidateFilters(filterKeys, open);
   const industryOptions = useIndustryOptions(PROFILE_SELECT_OPTIONS.targetedIndustries);
   const readableIndustryOptions = toFilterOptions(industryOptions);
-  const locationOptions = useLocationOptions(PROFILE_SELECT_OPTIONS.preferredLocations);
+  const locationOptions = useLocationOptions(PROFILE_SELECT_OPTIONS.preferredWorkType);
   const readableLocationOptions = toFilterOptions(locationOptions);
 
   const getDatePostedLabel = (value: string) =>
