@@ -16,6 +16,7 @@ import {
 	PROFILE_SELECT_OPTIONS,
 } from "@/modules/candidate/pages/profileForm.config";
 import { useCandidateProfileViewModel } from "@/modules/candidate/hooks/useCandidateProfileViewModel";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import cameraPlaceholderIconSrc from "@/assets/icons/camera-placeholder.svg";
 import pencilLineIconSrc from "@/assets/icons/pencil-line.svg";
 import iconPersonalSrc from "@/assets/profile/icon-personal.svg";
@@ -72,6 +73,7 @@ const SectionCard = ({
 );
 
 const ProfilePage = () => {
+	usePageTitle("Profile");
 	const {
 		activeProfilePhotoUrl,
 		control,

@@ -10,6 +10,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/app/auth/AuthContext";
 import { tokenStorage } from "@/app/auth/tokenStorage";
 import { isNotFoundError } from "@/app/errorUtils";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import { useZodForm } from "@/hooks/useZodForm";
 import AuthHero from "@/modules/auth/components/AuthHero";
 import AuthPasswordField from "@/modules/auth/components/AuthPasswordField";
@@ -24,6 +25,7 @@ import { redirectToGoogleLogin } from "@/app/auth/cognitoHostedUi";
 import googleLogoUrl from "@/assets/public-layout/google-logo.png";
 
 const LoginPage = () => {
+  usePageTitle("Login");
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { login, isAuthenticated, user } = useAuth();

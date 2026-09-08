@@ -1,5 +1,6 @@
 import { Box } from "@mui/material";
 import { FormProvider } from "react-hook-form";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import CvBuilderFooterActions from "../components/CvBuilderFooterActions";
 import CvBuilderHeroSection from "../components/CvBuilderHeroSection";
 import CvBuilderLauncher from "../components/CvBuilderLauncher";
@@ -31,6 +32,8 @@ const CvBuilderPage = () => {
     uploadModalOpen,
     guestJobTags,
   } = useCvBuilderPageViewModel();
+
+  usePageTitle("CV Builder");
 
   return (
     <FormProvider {...form}>

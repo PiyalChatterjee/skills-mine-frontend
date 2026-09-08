@@ -20,6 +20,7 @@ import {
 } from "@dnd-kit/core";
 import { RecruiterSidebar } from "@/modules/recruiter/components/RecruiterSidebar";
 import { RecruiterTour } from "@/modules/recruiter/components/RecruiterTour";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import { mandateApi } from "@/services/api/mandateApi";
 import { selectMandate } from "@/store/slices/recruiterPipelineSlice";
@@ -566,6 +567,7 @@ const PipelineColumnDrop = ({ label, children }: PipelineColumnDropProps) => {
 // ── Main Component ────────────────────────────────────────────────────
 
 const RecruiterPage = () => {
+  usePageTitle("Recruiter Dashboard");
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [dashboardData, setDashboardData] =

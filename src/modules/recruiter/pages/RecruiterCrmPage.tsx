@@ -1,5 +1,6 @@
 import { Box, ButtonBase, Typography } from '@mui/material'
 import { RecruiterSidebar } from '@/modules/recruiter/components/RecruiterSidebar'
+import { usePageTitle } from '@/hooks/usePageTitle'
 import styles from './RecruiterCrmPage.module.css'
 
 // ── Types ──────────────────────────────────────────────────────────────
@@ -284,6 +285,7 @@ const CrmCard = ({ contact, onUpdate }: CrmCardProps) => {
 // ── Page Component ────────────────────────────────────────────────────
 
 const RecruiterCrmPage = () => {
+  usePageTitle('CRM')
   const handleUpdate = (_id: string) => {
     // TODO: open update modal
   }

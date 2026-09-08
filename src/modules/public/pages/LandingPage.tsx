@@ -24,6 +24,7 @@ import {
   OpportunityJobCard,
 } from "@/components/opportunities";
 import { useInfiniteScrollTrigger } from "@/hooks/useInfiniteScrollTrigger";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import { useJobsSearch } from "@/modules/public/hooks/useJobsSearch";
 import { useSearchQueryState } from "@/hooks/useSearchQueryState";
 import type { PublicLayoutOutletContext } from "@/layouts/PublicLayout";
@@ -78,6 +79,7 @@ const metrics: Metric[] = [
 ];
 
 const LandingPage = () => {
+  usePageTitle("Strategic Recruitment Solutions Home");
   const { openSignUpDrawer } = useOutletContext<PublicLayoutOutletContext>();
   const dispatch = useDispatch();
   const [activeHeroMode] = useState<HeroMode>("findJob");

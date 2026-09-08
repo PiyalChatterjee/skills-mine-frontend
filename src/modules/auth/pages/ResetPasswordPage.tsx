@@ -15,6 +15,7 @@ import type { AppDispatch } from "@/store";
 import { useSearchParams } from "react-router-dom";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import { tokenStorage } from "@/app/auth/tokenStorage";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import { authApi } from "@/services/api/authApi";
 import { z } from "zod";
 import { strongPasswordSchema } from "@/app/passwordPolicy";
@@ -36,6 +37,7 @@ const changePasswordSchema = z
   });
 
 const ResetPasswordPage = () => {
+  usePageTitle("Reset Password");
   const navigate = useNavigate();
   const {
     register,

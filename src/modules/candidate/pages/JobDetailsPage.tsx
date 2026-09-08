@@ -11,6 +11,7 @@ import patternHeroLeft from "@/assets/job-details/pattern-hero-left.svg";
 import patternHeroRight from "@/assets/job-details/pattern-hero-right.svg";
 import { BookmarkIcon } from "@/components/icons/BookmarkIcon";
 import { GradientPatternHero } from "@/components/hero";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import { useJobDetailsViewModel } from "@/modules/candidate/hooks/useJobDetailsViewModel";
 import styles from "./JobDetailsPage.module.css";
 
@@ -53,6 +54,8 @@ const JobDetailsPage = () => {
     title,
     workType,
   } = useJobDetailsViewModel();
+
+  usePageTitle(title ? `${title}${companyName ? ` at ${companyName}` : ""}` : "Job Details");
 
   if (isInitialLoading) {
     return (
