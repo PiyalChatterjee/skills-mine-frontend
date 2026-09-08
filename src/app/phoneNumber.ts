@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const PHONE_NUMBER_FORMAT_MESSAGE =
-  "Phone number must be 9 or 10 digits";
+  "Phone number must be 10 digits";
 
 const digitsOnly = (value: string) => value.replace(/\D/g, "");
 
@@ -17,7 +17,7 @@ export const normalizePhoneNumberInput = (value: string) => {
 };
 
 export const isValidLocalPhoneNumber = (value: string) =>
-  /^\d{9,10}$/.test(value.trim());
+  /^\d{10}$/.test(value.trim());
 
 export const localPhoneNumberSchema = z
   .string()

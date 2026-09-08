@@ -9,7 +9,6 @@ import { JobDescriptionSection } from './JobDescriptionSection'
 import { BulletTextareaSection } from './BulletTextareaSection'
 import { SkillsInput } from './SkillsInput'
 import { IndustriesInput } from './IndustriesInput'
-import { JobBoardSelector } from './JobBoardSelector'
 import { StickyFooter } from './StickyFooter'
 import type { MandateFormValues } from './types'
 import styles from '@/modules/recruiter/pages/NewMandatePage.module.css'
@@ -38,7 +37,6 @@ export const mandateSchema = z
     benefits:             z.string().min(1, 'Benefits are required'),
     skills:               z.array(z.string()).min(1, 'At least one skill is required'),
     industries:           z.array(z.string()).min(1, 'At least one industry is required'),
-    jobBoards:            z.array(z.string()).min(1, 'Select at least one job board'),
   })
   .refine(
     data => {
@@ -71,7 +69,6 @@ export const emptyMandateValues: MandateFormValues = {
   benefits: '',
   skills: [],
   industries: [],
-  jobBoards: [],
 }
 
 // ── Props ──────────────────────────────────────────────────────────────
@@ -176,7 +173,6 @@ export const MandateForm = ({
           />
           <SkillsInput control={control} errors={errors} />
           <IndustriesInput control={control} errors={errors} />
-          <JobBoardSelector control={control} errors={errors} />
         </Box>
 
         <StickyFooter onCancel={handleCancel} isSubmitting={isSubmitting} submitLabel={submitLabel} />
