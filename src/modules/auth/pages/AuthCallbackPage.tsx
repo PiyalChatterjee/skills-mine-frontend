@@ -62,7 +62,7 @@ const AuthCallbackPage = () => {
         const currentUser = await authApi.getCurrentUser();
 
         // Step 4: build the AuthUser and log in
-        const user = buildAuthUserFromCurrentUser(currentUser, tokens.idToken);
+        const user = await buildAuthUserFromCurrentUser(currentUser, tokens.idToken);
         tokenStorage.setUser(user);
         login({ user, tokens });
 

@@ -141,6 +141,14 @@ const responseData = <T>(payload: T | { data?: T }): T => {
   return payload as T;
 };
 
+// Drops keys with no meaningful value (undefined, null, or empty string) so
+// optional/untouched fields aren't sent to the API at all.
+const omitUndefined = <T extends object>(input: T): Partial<T> =>
+  Object.fromEntries(
+    Object.entries(input).filter(([, value]) => value !== undefined && value !== null && value !== ""),
+  ) as Partial<T>;
+
+
 type RawDashboardPipelineStage =
   | string
   | {
@@ -744,7 +752,7 @@ export const candidateApi = {
     await candidateApiClient.put(
       resolveEndpoint(apiEndpoints.candidate.profile, { candidateId }),
       {
-        personal_details: {
+        personal_details: omitUndefined({
           first_name: personalDetails.firstName,
           last_name: personalDetails.lastName,
           alternate_email: personalDetails.email,
@@ -752,14 +760,14 @@ export const candidateApi = {
           residential_location: personalDetails.location,
           alternate_email_address: personalDetails.alternateEmail,
           alternate_phone_number: personalDetails.alternateMobileNumber,
-        },
-        job_details: {
+        }),
+        job_details: omitUndefined({
           role_title: payload.desiredJob?.jobTitle,
-          targeted_industries_id: targetedIndustriesId,
+          targeted_industry_id: targetedIndustriesId,
           preferred_location: payload.desiredJob?.workType,
           employment_type: payload.desiredJob?.employmentType,
           availability: payload.desiredJob?.availableFrom,
-        },
+        }),
       },
     );
 
