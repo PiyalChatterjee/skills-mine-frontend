@@ -17,10 +17,10 @@ import type { CandidateProfile } from '@/modules/candidate/types'
 // ─── isoToMonthName ───────────────────────────────────────────────────────────
 
 describe('isoToMonthName', () => {
-  it('converts a valid ISO YYYY-MM date to Month,YYYY', () => {
-    expect(isoToMonthName('2020-01')).toBe('January,2020')
-    expect(isoToMonthName('2022-12')).toBe('December,2022')
-    expect(isoToMonthName('2019-06')).toBe('June,2019')
+  it('converts a valid ISO date to MMM,YYYY', () => {
+    expect(isoToMonthName('2020-01-15')).toBe('Jan,2020')
+    expect(isoToMonthName('2022-12-01')).toBe('Dec,2022')
+    expect(isoToMonthName('2019-06')).toBe('Jun,2019')
   })
 
   it('returns the original value when format does not match', () => {
@@ -37,7 +37,7 @@ describe('isoToMonthName', () => {
     ]
     months.forEach((month, index) => {
       const mm = String(index + 1).padStart(2, '0')
-      expect(isoToMonthName(`2021-${mm}`)).toBe(`${month},2021`)
+      expect(isoToMonthName(`2021-${mm}-01`)).toBe(`${month.slice(0, 3)},2021`)
     })
   })
 })

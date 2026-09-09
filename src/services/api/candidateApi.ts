@@ -504,6 +504,14 @@ type RawBuildMyCvEducation =
       tertiaryEducation?: RawBuildMyCvEducationEntry[];
     };
 
+type RawBuildMyCvSkill =
+  | string
+  | {
+      name?: unknown;
+      skillName?: unknown;
+      skill_name?: unknown;
+    };
+
 type RawBuildMyCvResponse = {
   resumeId?: string;
   resume_id?: string;
@@ -515,7 +523,7 @@ type RawBuildMyCvResponse = {
   careerHistory?: RawBuildMyCvCareerHistoryEntry[];
   career_history?: RawBuildMyCvCareerHistoryEntry[];
   experience?: RawBuildMyCvCareerHistoryEntry[];
-  skills?: string[];
+  skills?: RawBuildMyCvSkill[];
   education?: RawBuildMyCvEducation;
   languages?: Array<string | CandidateLanguage>;
   validation?: string[];
@@ -595,7 +603,12 @@ const mapBuildResponse = (
         ? item.responsibilities.filter(Boolean).join("; ")
         : (item.responsibilities ?? item.responsibilities_text),
     })),
-    skills: data.skills ?? [],
+    skills: (data.skills ?? [])
+      .map((skill) => {
+        if (typeof skill === "string") return skill;
+        return skill.skillName ?? skill.skill_name ?? skill.name;
+      })
+      .filter((skill): skill is string => typeof skill === "string"),
     education: {
       secondaryEducation: secondaryEducation.map(normalizeEducationEntry),
       tertiaryEducation: tertiaryEducation.map(normalizeEducationEntry),

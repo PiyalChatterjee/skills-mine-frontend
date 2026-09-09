@@ -359,6 +359,26 @@ describe('candidateApi', () => {
       expect(result.education.secondaryEducation).toHaveLength(1)
       expect(result.education.tertiaryEducation).toHaveLength(1)
     })
+
+    it('normalizes object-shaped skills to names', async () => {
+      mockGet.mockResolvedValue({
+        data: {
+          personal_details: {},
+          career_history: [],
+          skills: [
+            { skill_name: 'React' },
+            { skillName: 'TypeScript' },
+            { name: 'CSS' },
+          ],
+          education: [],
+          languages: [],
+        },
+      })
+
+      const result = await candidateApi.getBuildMyCv('CAND100001')
+
+      expect(result.skills).toEqual(['React', 'TypeScript', 'CSS'])
+    })
   })
 
   describe('saveBuildMyCv', () => {

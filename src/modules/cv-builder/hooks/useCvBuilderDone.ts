@@ -74,7 +74,9 @@ const monthNames = [
 
 const monthNameToIso = (value: string): string => {
   const normalized = value.trim();
-  const [month, year] = normalized.split(",").map((part) => part.trim());
+  const match = normalized.match(/^([A-Za-z]+)(?:-|,\s?)(\d{4})$/);
+  const month = match?.[1];
+  const year = match?.[2];
   if (!month || !year || !/^\d{4}$/.test(year)) {
     return value;
   }
@@ -90,7 +92,7 @@ const monthNameToIso = (value: string): string => {
 };
 
 export const isoToMonthName = (value: string): string => {
-  const match = value.match(/^(19|20)\d{2}-(0[1-9]|1[0-2])$/);
+  const match = value.match(/^(19|20)\d{2}-(0[1-9]|1[0-2])(?:-\d{2})?$/);
   if (!match) {
     return value;
   }
@@ -98,7 +100,7 @@ export const isoToMonthName = (value: string): string => {
   const year = value.slice(0, 4);
   const monthIndex = Number(value.slice(5, 7)) - 1;
   const monthName = monthNames[monthIndex];
-  return monthName ? `${monthName},${year}` : value;
+  return monthName ? `${monthName.slice(0, 3)},${year}` : value;
 };
 
 export const buildCvBuilderPrefillData = (

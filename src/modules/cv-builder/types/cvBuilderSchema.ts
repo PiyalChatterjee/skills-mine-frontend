@@ -1,15 +1,15 @@
 import { z } from 'zod'
 
 const monthYearPattern =
-  /^(January|February|March|April|May|June|July|August|September|October|November|December),\s?(19|20)\d{2}$/i
+  /^(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)(?:-|,\s?)(19|20)\d{2}$/i
 const currentRolePattern = /^(present|current)$/i
 const monthNames = ['january','february','march','april','may','june','july','august','september','october','november','december']
 
 // Converts a "MonthName,YYYY" string into a comparable (year * 12 + monthIndex) number.
 function monthYearToComparable(value: string): number | null {
-  const match = value.trim().match(/^([A-Za-z]+),\s?(\d{4})$/)
+  const match = value.trim().match(/^([A-Za-z]+)(?:-|,\s?)(\d{4})$/)
   if (!match) return null
-  const monthIndex = monthNames.indexOf(match[1].toLowerCase())
+  const monthIndex = monthNames.findIndex((month) => month.startsWith(match[1].toLowerCase()))
   if (monthIndex < 0) return null
   return Number(match[2]) * 12 + monthIndex
 }
@@ -59,10 +59,10 @@ export const careerHistoryEntrySchema = z
     startDate: z
       .string()
       .min(1, 'Employment start date is required')
-      .regex(monthYearPattern, 'Use format like April,2020'),
+      .regex(monthYearPattern, 'Use format like Apr,2020'),
     endDate: z.string().refine(
       (val) => !val.trim() || monthYearPattern.test(val.trim()) || currentRolePattern.test(val.trim()),
-      { message: 'Use format like April,2020 or Present' },
+      { message: 'Use format like Apr,2020 or Present' },
     ),
     isCurrentRole: z.boolean(),
     tasks: z.array(z.string()),
