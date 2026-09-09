@@ -1,7 +1,7 @@
 export const ROUTE_PATHS = {
   landing: '/',
   login: '/login',
-  authCallback: '/callback',
+  authCallback: '/auth/callback',
   resetPassword: '/reset-password',
   signup: '/signup',
   recruiterSignup: '/recruiter/signup',
