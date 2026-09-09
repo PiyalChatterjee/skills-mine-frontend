@@ -15,7 +15,6 @@ const CvBuilderPage = () => {
     form,
     uploadInputRef,
     activeView,
-    canViewCv,
     reviewSource,
     selectedUploadFile,
     handleUploadFileSelect,
@@ -79,7 +78,7 @@ const CvBuilderPage = () => {
         {activeView === "review" && (
           <CvBuilderFooterActions
             onNext={handleDone}
-            isNextDisabled={!canViewCv || isSavingCandidateProfile}
+            isNextDisabled={isSavingCandidateProfile}
             nextLabel={isSavingCandidateProfile ? "Saving…" : "Save & Submit"}
             showNextIcon={false}
           />

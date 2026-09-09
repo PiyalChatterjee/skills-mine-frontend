@@ -160,6 +160,7 @@ export const useCvBuilderPageViewModel = () => {
     getFormValues: form.getValues,
     selectedLanguageEntries,
     buildMyCvExists,
+    validateForm: form.trigger,
     hasFormChanges,
     userRole: user?.role,
     guestApplicationDraft,

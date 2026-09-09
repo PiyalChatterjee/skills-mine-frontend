@@ -1257,7 +1257,7 @@ export const candidateApi = {
     payload: UpdateBuildMyCvRequest,
   ): Promise<BuildMyCvData> {
     return mapBuildMyCvRequest(
-      candidateApiClient.put<RawBuildMyCvResponse | RawBuildMyCvEnvelope>(
+      candidateApiClient.post<RawBuildMyCvResponse | RawBuildMyCvEnvelope>(
         resolveEndpoint(apiEndpoints.candidate.buildMyCv, { candidateId }),
         toCvPayload(payload),
       ),

@@ -97,7 +97,7 @@ export const PublicHeader = ({
       // Ignore API failures and still clear local session.
     } finally {
       logout();
-      navigate(ROUTE_PATHS.login, { replace: true });
+      navigate(ROUTE_PATHS.landing, { replace: true });
     }
   };
 

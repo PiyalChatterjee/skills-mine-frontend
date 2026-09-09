@@ -100,6 +100,46 @@ describe('personalDetailsSchema', () => {
     })
     expect(result.success).toBe(true)
   })
+
+  it('accepts the populated CV builder values used by the review screen', () => {
+    const result = cvBuilderSchema.safeParse({
+      personalDetails: {
+        fullName: 'John Doe',
+        race: 'African',
+        gender: 'Male',
+        disabilityStatus: 'None',
+        nationality: 'African',
+        residentialLocation: 'Johannesburg',
+        currentCompany: 'Accenture',
+        currentPosition: 'App developer',
+        noticePeriod: '1_MONTH',
+      },
+      careerHistory: [{
+        companyName: 'Accenture',
+        positionHeld: 'App Developer',
+        startDate: 'Jan,2022',
+        endDate: '',
+        isCurrentRole: true,
+        tasks: ['Lead frontend development for enterprise clients using React and Node.js.'],
+        projects: [''],
+      }],
+      skills: [{ name: 'Node.js' }],
+      tertiaryEducation: [{
+        institutionName: 'University of Whitesand',
+        degreeOrCertification: 'BE in Computer Science',
+        yearCompleted: '2025',
+      }],
+      secondaryEducation: [{
+        institutionName: 'Northcliff High School',
+        highestGradePassed: 'Grade 12',
+        yearCompleted: '2021',
+      }],
+      languages: ['English'],
+      otherLanguage: '',
+    })
+
+    expect(result.success).toBe(true)
+  })
 })
 
 // ─── careerHistoryEntrySchema ─────────────────────────────────────────────────

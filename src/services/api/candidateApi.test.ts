@@ -420,8 +420,8 @@ describe('candidateApi', () => {
   })
 
   describe('updateBuildMyCv', () => {
-    it('calls PUT /candidates/cv-build/', async () => {
-      mockPut.mockResolvedValue({ data: { success: true, data: { lastModified: '2024-06-01' } } })
+    it('calls POST /candidates/cv-build/', async () => {
+      mockPost.mockResolvedValue({ data: { success: true, data: { lastModified: '2024-06-01' } } })
       const result = await candidateApi.updateBuildMyCv('candidate-1', {
         personalDetails: {
           firstName: 'Jane',
@@ -440,7 +440,7 @@ describe('candidateApi', () => {
         education: { tertiaryEducation: [], secondaryEducation: [] },
         languages: [],
       })
-      expect(mockPut).toHaveBeenCalledWith('/candidates/cv-build/', expect.any(Object))
+      expect(mockPost).toHaveBeenCalledWith('/candidates/cv-build/', expect.any(Object))
       expect(result.lastModified).toBe('2024-06-01')
     })
   })

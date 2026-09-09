@@ -91,6 +91,15 @@ const monthNameToIso = (value: string): string => {
   return `${year}-${String(monthIndex + 1).padStart(2, "0")}`;
 };
 
+const normalizeTextEntry = (value: unknown): string => {
+  if (typeof value === "string") return value.trim();
+  if (!value || typeof value !== "object") return "";
+
+  const entry = value as Record<string, unknown>;
+  const nestedValue = entry.text ?? entry.description ?? entry.value ?? entry.name;
+  return typeof nestedValue === "string" ? nestedValue.trim() : "";
+};
+
 export const isoToMonthName = (value: string): string => {
   const match = value.match(/^(19|20)\d{2}-(0[1-9]|1[0-2])(?:-\d{2})?$/);
   if (!match) {
@@ -137,6 +146,7 @@ type UseCvBuilderDoneArgs = {
   getFormValues: () => CvBuilderFormValues;
   selectedLanguageEntries: string[];
   buildMyCvExists: boolean;
+  validateForm?: () => Promise<boolean>;
   hasFormChanges?: boolean;
   userRole?: Role;
   guestApplicationDraft?: GuestApplicationDraft;
@@ -178,8 +188,8 @@ export const buildBuildMyCvRequest = ({
         endDate: entry.isCurrentRole
           ? "Present"
           : monthNameToIso(entry.endDate.trim()),
-        responsibilities: entry.tasks
-          .map((task) => task.trim())
+        responsibilities: (entry.tasks as unknown[])
+          .map(normalizeTextEntry)
           .filter(Boolean)
           .join("; "),
       })),
@@ -215,6 +225,7 @@ export const useCvBuilderDone = ({
   getFormValues,
   selectedLanguageEntries,
   buildMyCvExists,
+  validateForm,
   hasFormChanges = true,
   userRole,
   guestApplicationDraft,
@@ -231,6 +242,8 @@ export const useCvBuilderDone = ({
   const isSavingCandidateProfile = isCreating || isUpdating;
 
   const handleDone = useCallback(async () => {
+    await validateForm?.();
+
     const payload = buildBuildMyCvRequest({
       formValues: getFormValues(),
       selectedLanguageEntries,
@@ -358,6 +371,7 @@ export const useCvBuilderDone = ({
     userId,
     userRole,
     navigate,
+    validateForm,
   ]);
 
   return {
