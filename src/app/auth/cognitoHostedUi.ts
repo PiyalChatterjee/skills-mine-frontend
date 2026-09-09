@@ -24,7 +24,7 @@ export const hasCognitoHostedUiConfig = Boolean(
 /**
  * Redirects the browser to the Cognito Hosted UI Google sign-in page.
  * The PKCE verifier is stored in sessionStorage; the challenge is sent to Cognito.
- * The browser will return to REDIRECT_URI (/auth/callback) with ?code=...
+ * The browser will return to REDIRECT_URI (/callback) with ?code=...
  */
 export const redirectToGoogleLogin = async (intent: 'login' | 'signup' = 'login'): Promise<void> => {
   const verifier  = generateVerifier();
@@ -33,7 +33,7 @@ export const redirectToGoogleLogin = async (intent: 'login' | 'signup' = 'login'
   const params = new URLSearchParams({
     client_id:             CLIENT_ID,
     response_type:         'code',
-    scope:                 'openid email profile',
+    scope:                 'openid email profile aws.cognito.signin.user.admin',
     redirect_uri:          REDIRECT_URI,
     identity_provider:     'Google',
     state:                 intent,

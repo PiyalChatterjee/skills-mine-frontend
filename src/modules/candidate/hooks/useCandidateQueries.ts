@@ -48,12 +48,18 @@ export const useCandidateProfileQuery = (
 }
 
 export const useCandidateDashboardQuery = (enabled = true) =>
-  useGetCandidateDashboardQuery({}, { skip: !enabled })
+  useGetCandidateDashboardQuery({}, {
+    skip: !enabled,
+    refetchOnMountOrArgChange: true,
+  })
 
 // Historical stats for the welcome banner (total/successful/in-progress applications).
 // No client-side calculation — values are mapped directly from the API response.
 export const useCandidateStatisticsQuery = (enabled = true) =>
-  useGetCandidateStatisticsQuery(undefined, { skip: !enabled })
+  useGetCandidateStatisticsQuery(undefined, {
+    skip: !enabled,
+    refetchOnMountOrArgChange: true,
+  })
 
 type UpdateCandidateProfileVariables = {
   userId: string

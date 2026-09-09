@@ -2,6 +2,7 @@ import { Box, ButtonBase, Typography } from '@mui/material'
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { ROUTE_PATHS } from '@/routes/routePaths'
 import { useAuth } from '@/app/auth/AuthContext'
+import { beginLogoutNavigation } from '@/app/auth/logoutNavigation'
 import { authApi } from '@/services/api/authApi'
 import styles from './RecruiterSidebar.module.css'
 
@@ -57,8 +58,9 @@ export const RecruiterSidebar = () => {
     } catch {
       // proceed with local session teardown even if the server call fails
     }
+    beginLogoutNavigation()
     logout()
-    navigate(ROUTE_PATHS.login)
+    window.location.replace(ROUTE_PATHS.landing)
   }
 
   const mainNavItems: NavItem[] = [

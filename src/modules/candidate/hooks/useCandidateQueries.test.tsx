@@ -8,6 +8,7 @@ import candidateReducer from '@/store/slices/candidateSlice'
 import {
   useCandidateProfileQuery,
   useCandidateDashboardQuery,
+  useCandidateStatisticsQuery,
   useUserProfile,
   useSkillsSearch,
   useBuildMyCvQuery,
@@ -20,6 +21,7 @@ import {
 // Mock underlying service calls
 const mockGetById = vi.fn()
 const mockGetDashboard = vi.fn()
+const mockGetStatistics = vi.fn()
 const mockGetUserProfile = vi.fn()
 const mockSearchSkills = vi.fn()
 const mockGetBuildMyCv = vi.fn()
@@ -36,6 +38,7 @@ vi.mock('@/services/api', () => ({
   candidateApi: {
     getById: (...args: unknown[]) => mockGetById(...args),
     getDashboard: (...args: unknown[]) => mockGetDashboard(...args),
+    getStatistics: (...args: unknown[]) => mockGetStatistics(...args),
     getUserProfile: (...args: unknown[]) => mockGetUserProfile(...args),
     searchSkills: (...args: unknown[]) => mockSearchSkills(...args),
     getBuildMyCv: (...args: unknown[]) => mockGetBuildMyCv(...args),
@@ -152,6 +155,10 @@ describe('useCandidateProfileQuery', () => {
 })
 
 describe('useCandidateDashboardQuery', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
   it('skips when the query is disabled', () => {
     const store = makeTestStore()
     const { result } = renderHook(() => useCandidateDashboardQuery(false), {
@@ -168,6 +175,72 @@ describe('useCandidateDashboardQuery', () => {
       wrapper: makeWrapper(store),
     })
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
+  })
+
+  it('shows cached dashboard data while refetching on remount', async () => {
+    const cachedDashboard = { summary: { totalApplications: 1 }, applications: [], activity: {} }
+    const refreshedDashboard = { summary: { totalApplications: 2 }, applications: [], activity: {} }
+    let resolveRefresh: (value: typeof refreshedDashboard) => void = () => undefined
+    const refreshRequest = new Promise<typeof refreshedDashboard>((resolve) => {
+      resolveRefresh = resolve
+    })
+    mockGetDashboard
+      .mockResolvedValueOnce(cachedDashboard)
+      .mockReturnValueOnce(refreshRequest)
+    const store = makeTestStore()
+    const firstMount = renderHook(() => useCandidateDashboardQuery(true), {
+      wrapper: makeWrapper(store),
+    })
+
+    await waitFor(() => expect(firstMount.result.current.data).toEqual(cachedDashboard))
+    firstMount.unmount()
+
+    const secondMount = renderHook(() => useCandidateDashboardQuery(true), {
+      wrapper: makeWrapper(store),
+    })
+
+    await waitFor(() => expect(mockGetDashboard).toHaveBeenCalledTimes(2))
+    expect(secondMount.result.current.data).toEqual(cachedDashboard)
+    expect(secondMount.result.current.isFetching).toBe(true)
+
+    await act(async () => resolveRefresh(refreshedDashboard))
+    await waitFor(() => expect(secondMount.result.current.data).toEqual(refreshedDashboard))
+  })
+})
+
+describe('useCandidateStatisticsQuery', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('shows cached landing data while refetching on remount', async () => {
+    const cachedStatistics = { statistics: { totalApplications: 1 } }
+    const refreshedStatistics = { statistics: { totalApplications: 2 } }
+    let resolveRefresh: (value: typeof refreshedStatistics) => void = () => undefined
+    const refreshRequest = new Promise<typeof refreshedStatistics>((resolve) => {
+      resolveRefresh = resolve
+    })
+    mockGetStatistics
+      .mockResolvedValueOnce(cachedStatistics)
+      .mockReturnValueOnce(refreshRequest)
+    const store = makeTestStore()
+    const firstMount = renderHook(() => useCandidateStatisticsQuery(true), {
+      wrapper: makeWrapper(store),
+    })
+
+    await waitFor(() => expect(firstMount.result.current.data).toEqual(cachedStatistics))
+    firstMount.unmount()
+
+    const secondMount = renderHook(() => useCandidateStatisticsQuery(true), {
+      wrapper: makeWrapper(store),
+    })
+
+    await waitFor(() => expect(mockGetStatistics).toHaveBeenCalledTimes(2))
+    expect(secondMount.result.current.data).toEqual(cachedStatistics)
+    expect(secondMount.result.current.isFetching).toBe(true)
+
+    await act(async () => resolveRefresh(refreshedStatistics))
+    await waitFor(() => expect(secondMount.result.current.data).toEqual(refreshedStatistics))
   })
 })
 

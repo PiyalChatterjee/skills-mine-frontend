@@ -4,7 +4,9 @@ import { Box, CircularProgress, Typography } from '@mui/material';
 import { useAuth } from '@/app/auth/AuthContext';
 import { exchangeCodeForTokens } from '@/app/auth/cognitoHostedUi';
 import { tokenStorage } from '@/app/auth/tokenStorage';
+import { isConflictError } from '@/app/errorUtils';
 import { authApi, buildAuthUserFromCurrentUser } from '@/services/api/authApi';
+import { PENDING_CANDIDATE_PROFILE_STORAGE_KEY } from '@/modules/candidate/types/profileCreation';
 import { roleToDefaultRoute } from '@/routes/roleDefaultRoutes';
 import { ROUTE_PATHS } from '@/routes/routePaths';
 import styles from './AuthCallbackPage.module.css';
@@ -13,15 +15,14 @@ import styles from './AuthCallbackPage.module.css';
  * AuthCallbackPage — handles the redirect from Cognito Hosted UI after Google sign-in.
  *
  * Cognito redirects here as:
- *   /auth/callback?code=<AUTH_CODE>&state=<OPAQUE>
+ *   /callback?code=<AUTH_CODE>&state=<login|signup>
  *
  * Steps:
  *   1. Extract ?code from URL.
  *   2. Exchange code + PKCE verifier for tokens via POST /oauth2/token.
  *   3. Temporarily store tokens so the Axios interceptor attaches the Bearer header.
- *   4. Fetch GET /api/auth-service/v1/users/me — triggers JIT provisioning on first
- *      Google login; returns roles/candidateId for existing users.
- *   5. Store the full session via AuthContext.login() and route to dashboard.
+ *   4. For sign-up, provision the candidate via POST /auth/candidates/register-google.
+ *   5. Fetch GET /users/me, store the session, and route to the appropriate page.
  *
  * On any failure: clear auth state and redirect to /login?error=google_callback
  * so LoginPage can surface an error message.
@@ -58,15 +59,28 @@ const AuthCallbackPage = () => {
         // Step 2: store tokens so authApi's Axios interceptor sends Authorization header
         tokenStorage.setTokens(tokens);
 
-        // Step 3: fetch the application profile (JIT provision on first login)
+        // Step 3: provision first-time Google candidates for sign-up callbacks
+        if (isSignup) {
+          sessionStorage.removeItem(PENDING_CANDIDATE_PROFILE_STORAGE_KEY);
+
+          try {
+            await authApi.exchangeGoogleToken({ idToken: tokens.idToken });
+          } catch (error) {
+            if (!isConflictError(error)) {
+              throw error;
+            }
+          }
+        }
+
+        // Step 4: fetch the application profile
         const currentUser = await authApi.getCurrentUser();
 
-        // Step 4: build the AuthUser and log in
+        // Step 5: build the AuthUser and log in
         const user = await buildAuthUserFromCurrentUser(currentUser, tokens.idToken);
         tokenStorage.setUser(user);
         login({ user, tokens });
 
-        // Step 5: route to the user's default page
+        // Step 6: route to the user's default page
         const destination =
           isSignup && user.role === 'JOB_SEEKER'
             ? ROUTE_PATHS.profileCreation

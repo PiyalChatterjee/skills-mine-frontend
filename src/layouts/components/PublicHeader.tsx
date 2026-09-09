@@ -14,6 +14,7 @@ import skillsMineLogo from "@/assets/skillsMine-logo.svg";
 import userIconWhite from "@/assets/public-layout/user-icon-white.svg";
 import { useAuth } from "@/app/auth/AuthContext";
 import { isJwtExpired } from "@/app/auth/jwt";
+import { beginLogoutNavigation } from "@/app/auth/logoutNavigation";
 import type { HeaderNavItem } from "@/layouts/headerNav";
 import { roleToDefaultRoute } from "@/routes/roleDefaultRoutes";
 import { ROUTE_PATHS } from "@/routes/routePaths";
@@ -96,8 +97,9 @@ export const PublicHeader = ({
     } catch {
       // Ignore API failures and still clear local session.
     } finally {
+      beginLogoutNavigation();
       logout();
-      navigate(ROUTE_PATHS.landing, { replace: true });
+      window.location.replace(ROUTE_PATHS.landing);
     }
   };
 

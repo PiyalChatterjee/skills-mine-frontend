@@ -4,6 +4,7 @@ import { useSelector } from "react-redux";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/app/auth/AuthContext";
 import { isJwtExpired } from "@/app/auth/jwt";
+import { completeLogoutNavigation } from "@/app/auth/logoutNavigation";
 import {
   PUBLIC_HEADER_NAV_PRESETS,
   buildHeaderNavItems,
@@ -47,6 +48,10 @@ export const PublicLayout = () => {
 
   useEffect(() => {
     setSignUpDrawerOpen(false);
+
+    if (location.pathname === ROUTE_PATHS.landing) {
+      completeLogoutNavigation();
+    }
   }, [location.pathname, location.search]);
 
   const handleHelpClick = () => {
