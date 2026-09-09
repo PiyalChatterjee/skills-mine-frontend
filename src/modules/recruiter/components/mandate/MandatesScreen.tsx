@@ -23,15 +23,6 @@ function formatDate(iso: string): string {
   return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
-/** Returns initials from the first two words of a string, e.g. "Standard Bank" → "SB" */
-function initials(name: string): string {
-  return name
-    .split(' ')
-    .slice(0, 2)
-    .map((w) => w[0]?.toUpperCase() ?? '')
-    .join('')
-}
-
 /** Capitalise first letter, lowercase rest e.g. "POSTED" → "Posted" */
 function toTitleCase(s: string): string {
   if (!s) return ''
@@ -377,7 +368,6 @@ export const MandatesScreen = ({ onNewJobPost, onEditJobPost }: MandatesScreenPr
               return (
                 <Box key={post.mandateId} className={styles.tableRow}>
                   <Box className={styles.companyStrip}>
-                    <Box className={styles.companyLogo}>{initials(post.client)}</Box>
                     <Typography component="span" className={styles.companyName}>
                       {post.client}
                     </Typography>
@@ -390,7 +380,10 @@ export const MandatesScreen = ({ onNewJobPost, onEditJobPost }: MandatesScreenPr
                     <Typography component="span" className={styles.gridLabel}>LOCATION</Typography>
                     <Box className={styles.timelineHeader}>
                       <Typography component="span" className={styles.gridLabel}>TIMELINE</Typography>
-                      <Box component="span" className={styles.timelineIcon} aria-hidden="true">⌃⌄</Box>
+                      <Box component="span" className={styles.timelineIcon} aria-hidden="true">
+                        <span>⌃</span>
+                        <span>⌄</span>
+                      </Box>
                     </Box>
                     <Typography component="span" className={styles.gridLabel}>STATUS</Typography>
                   </Box>

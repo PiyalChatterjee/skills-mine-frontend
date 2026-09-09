@@ -18,12 +18,18 @@ import styles from '@/modules/recruiter/pages/NewMandatePage.module.css'
 export const mandateSchema = z
   .object({
     companyName:          z.string().min(1, 'Company name is required'),
-    clientRate:           z.string(),
-    contactPerson:        z.string(),
-    contactPersonEmail:   z.string(),
-    contactPersonPhone:   z.string(),
+    clientRate:           z.string().min(1, 'Client rate is required'),
+    contactPerson:        z.string().min(1, 'Contact person is required'),
+    contactPersonEmail:   z
+      .string()
+      .min(1, 'Email is required')
+      .email('Please enter a valid email address'),
+    contactPersonPhone:   z
+      .string()
+      .min(1, 'Phone number is required')
+      .regex(/^\d{10}$/, 'Phone number must be exactly 10 digits'),
     positionTitle:        z.string().min(1, 'Position title is required'),
-    location:             z.string(),
+    location:             z.string().min(1, 'Location is required'),
     fillByDate:           z.string().min(1, 'Fill by date is required'),
     workType:             z.string().min(1, 'Work type is required'),
     employmentType:       z.string().min(1, 'Employment type is required'),
@@ -36,7 +42,7 @@ export const mandateSchema = z
     responsibilities:     z.string().min(1, 'Responsibilities are required'),
     benefits:             z.string().min(1, 'Benefits are required'),
     skills:               z.array(z.string()).min(1, 'At least one skill is required'),
-    industries:           z.array(z.string()).min(1, 'At least one industry is required'),
+    industries:           z.array(z.string()).min(1, 'At least one industry is required').max(1, 'Only one industry may be added'),
     jobBoards:            z.array(z.string()),
   })
   .refine(
@@ -104,11 +110,12 @@ export const MandateForm = ({
     control,
     handleSubmit,
     setValue,
-    formState: { errors, isDirty },
+    formState: { isDirty },
   } = useForm<MandateFormValues>({
     resolver: zodResolver(mandateSchema),
     defaultValues: initialValues,
     mode: 'onTouched',
+    reValidateMode: 'onChange',
   })
 
   const handleFormSubmit = async (values: MandateFormValues) => {
@@ -128,19 +135,10 @@ export const MandateForm = ({
     }
   }
 
-  const BackArrowIcon = () => (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M19 12H5M5 12l7-7M5 12l7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  )
-
   return (
     <>
       {/* ── Header ── */}
       <Box className={styles.pageHeader}>
-        <button type="button" className={styles.backBtn} onClick={handleCancel}>
-          <BackArrowIcon /> Back
-        </button>
         <Typography component="h1" className={styles.pageTitle}>
           {title}
         </Typography>
@@ -149,32 +147,29 @@ export const MandateForm = ({
       {/* ── Form ── */}
       <form onSubmit={handleSubmit(handleFormSubmit)} noValidate>
         <Box className={styles.card}>
-          <BasicInformationSection control={control} errors={errors} setValue={setValue} />
-          <SalarySection control={control} errors={errors} />
-          <JobDescriptionSection control={control} errors={errors} />
+          <BasicInformationSection control={control} setValue={setValue} />
+          <SalarySection control={control} />
+          <JobDescriptionSection control={control} />
           <BulletTextareaSection
             control={control}
-            errors={errors}
             name="requirements"
-            label="Requirements"
+            label="Requirements *"
             placeholder={"Bachelor's degree...\n2 years experience...\nKnowledge of..."}
           />
           <BulletTextareaSection
             control={control}
-            errors={errors}
             name="responsibilities"
-            label="Responsibilities"
+            label="Responsibilities *"
             placeholder="Oversee user research..."
           />
           <BulletTextareaSection
             control={control}
-            errors={errors}
             name="benefits"
-            label="Benefits"
+            label="Benefits *"
             placeholder="Generous annual leave..."
           />
-          <SkillsInput control={control} errors={errors} />
-          <IndustriesInput control={control} errors={errors} />
+          <SkillsInput control={control} />
+          <IndustriesInput control={control} />
         </Box>
 
         <StickyFooter onCancel={handleCancel} isSubmitting={isSubmitting} submitLabel={submitLabel} />

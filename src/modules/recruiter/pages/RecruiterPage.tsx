@@ -457,7 +457,7 @@ type KpiCardProps = {
   onView: () => void;
 };
 
-const KpiCard = ({ value, label, icon, colorClass, onView }: KpiCardProps) => (
+const KpiCard = ({ value, label, icon, colorClass }: KpiCardProps) => (
   <Box className={`${styles.kpiCard} ${colorClass}`}>
     <Box className={styles.kpiTop}>
       <Typography component="p" className={styles.kpiValue}>
@@ -471,10 +471,6 @@ const KpiCard = ({ value, label, icon, colorClass, onView }: KpiCardProps) => (
       {label}
     </Typography>
     <Box className={styles.kpiSpacer} />
-    <Box className={styles.kpiDivider} />
-    <ButtonBase className={styles.kpiViewBtn} onClick={onView} disableRipple>
-      View →
-    </ButtonBase>
   </Box>
 );
 
@@ -755,7 +751,7 @@ const RecruiterPage = () => {
         {/* ── Page Header ── */}
         <Box className={styles.pageHeader}>
           <Typography component="h1" className={styles.pageTitle}>
-            Recruiter Dashboard
+            Universal Job Pipeline
           </Typography>
           <Button
             variant="contained"
@@ -808,11 +804,8 @@ const RecruiterPage = () => {
 
         {/* ── Recruitment Pipeline ── */}
         <Box component="section" className={styles.pipelineSection}>
-          <Typography component="h2" className={styles.sectionTitle}>
-            Recruitment Pipeline
-          </Typography>
           <Typography component="p" className={styles.sectionSubtitle}>
-            {`${mandatesData?.pagination.total ?? 0} active mandates`}
+            {`${mandatesData?.pagination.total ?? 0} active Job Post${(mandatesData?.pagination.total ?? 0) !== 1 ? 's' : ''} across ${new Set(mandatesData?.mandates.map((m) => m.client) ?? []).size} ${new Set(mandatesData?.mandates.map((m) => m.client) ?? []).size !== 1 ? 'companies' : 'company'}`}
           </Typography>
 
           <Box className={styles.pipelineWrapper}>

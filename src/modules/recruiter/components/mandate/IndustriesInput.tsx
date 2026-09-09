@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
-import type { Control, FieldErrors } from 'react-hook-form'
-import { Controller } from 'react-hook-form'
+import type { Control } from 'react-hook-form'
+import { Controller, useFormState } from 'react-hook-form'
 import type { MandateFormValues } from './types'
 import type { Industry } from '@/types/api'
 import { industryApi } from '@/services/api/industryApi'
@@ -8,10 +8,10 @@ import styles from './form.module.css'
 
 interface Props {
   control: Control<MandateFormValues>
-  errors: FieldErrors<MandateFormValues>
 }
 
-export const IndustriesInput = ({ control, errors }: Props) => {
+export const IndustriesInput = ({ control }: Props) => {
+  const { errors } = useFormState({ control })
   const [allIndustries, setAllIndustries] = useState<Industry[]>([])
   const [inputValue, setInputValue] = useState('')
   const [isTyping, setIsTyping] = useState(false)
@@ -31,7 +31,7 @@ export const IndustriesInput = ({ control, errors }: Props) => {
 
   return (
     <section className={styles.section}>
-      <h2 className={styles.sectionTitle}>Industries</h2>
+      <h2 className={styles.sectionTitle}>Industries *</h2>
       <Controller
         name="industries"
         control={control}
@@ -176,7 +176,7 @@ export const IndustriesInput = ({ control, errors }: Props) => {
                       </ul>
                     )}
                   </span>
-                ) : (
+                ) : industries.length === 0 ? (
                   <button
                     type="button"
                     className={styles.addChipBtn}
@@ -184,7 +184,7 @@ export const IndustriesInput = ({ control, errors }: Props) => {
                   >
                     + Add Industry
                   </button>
-                )}
+                ) : null}
               </div>
 
               {errors.industries && (
