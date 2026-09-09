@@ -34,7 +34,7 @@
 }
 
 .label {
-  color: #1f2328;
+  color: #2A3132;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
   font-size: 16px;
   font-weight: 400;
@@ -52,7 +52,7 @@
   border-radius: 8px;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
   font-size: 16px;
-  color: #1f2328;
+  color: #2A3132;
   background: #ffffff;
   outline: none;
   transition: border-color 0.12s;

@@ -1,13 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
-import type { Control, FieldErrors, UseFormSetValue } from 'react-hook-form'
-import { Controller } from 'react-hook-form'
+import type { Control, UseFormSetValue } from 'react-hook-form'
+import { Controller, useFormState } from 'react-hook-form'
 import type { MandateFormValues } from './types'
 import { mandateApi } from '@/services/api/mandateApi'
 import styles from './form.module.css'
 
 interface Props {
   control: Control<MandateFormValues>
-  errors: FieldErrors<MandateFormValues>
   setValue: UseFormSetValue<MandateFormValues>
 }
 
@@ -21,7 +20,8 @@ const PRIORITIES = ['Low', 'Medium', 'High', 'Urgent'] as const
 
 const todayStr = new Date().toISOString().split('T')[0]
 
-export const BasicInformationSection = ({ control, errors, setValue }: Props) => {
+export const BasicInformationSection = ({ control, setValue }: Props) => {
+  const { errors } = useFormState({ control })
   const [companyOptions, setCompanyOptions] = useState<string[]>([])
   const [contactMap, setContactMap] = useState<Map<string, ContactInfo>>(new Map())
   const [showSuggestions, setShowSuggestions] = useState(false)
@@ -111,6 +111,7 @@ export const BasicInformationSection = ({ control, errors, setValue }: Props) =>
                     setActiveIndex(-1)
                   }
                 }, 150)
+                field.onBlur()
               }
 
               return (
@@ -182,11 +183,12 @@ export const BasicInformationSection = ({ control, errors, setValue }: Props) =>
             render={({ field }) => (
               <input
                 {...field}
-                className={styles.input}
+                className={`${styles.input} ${errors.clientRate ? styles.hasError : ''}`}
                 placeholder="R/h"
               />
             )}
           />
+          {errors.clientRate && <p className={styles.errorText}>{errors.clientRate.message}</p>}
         </div>
       </div>
 
@@ -199,11 +201,12 @@ export const BasicInformationSection = ({ control, errors, setValue }: Props) =>
           render={({ field }) => (
             <input
               {...field}
-              className={styles.input}
+              className={`${styles.input} ${errors.contactPerson ? styles.hasError : ''}`}
               placeholder="Contact Person"
             />
           )}
         />
+        {errors.contactPerson && <p className={styles.errorText}>{errors.contactPerson.message}</p>}
       </div>
 
       {/* Contact Person Email + Contact Person Phone Number */}
@@ -216,12 +219,17 @@ export const BasicInformationSection = ({ control, errors, setValue }: Props) =>
             render={({ field }) => (
               <input
                 {...field}
-                type="email"
-                className={styles.input}
+                type="text"
+                inputMode="email"
+                autoComplete="email"
+                className={`${styles.input} ${errors.contactPersonEmail ? styles.hasError : ''}`}
                 placeholder="Contact Person Email"
               />
             )}
           />
+          {errors.contactPersonEmail && (
+            <p className={styles.errorText}>{errors.contactPersonEmail.message}</p>
+          )}
         </div>
         <div className={styles.field}>
           <label className={styles.label}>Contact Person Phone Number *</label>
@@ -232,11 +240,21 @@ export const BasicInformationSection = ({ control, errors, setValue }: Props) =>
               <input
                 {...field}
                 type="tel"
-                className={styles.input}
+                inputMode="numeric"
+                maxLength={10}
+                className={`${styles.input} ${errors.contactPersonPhone ? styles.hasError : ''}`}
                 placeholder="Contact Person Phone Number"
+                onChange={(e) => {
+                  const digitsOnly = e.target.value.replace(/\D/g, '').slice(0, 10)
+                  field.onChange(digitsOnly)
+                }}
+                onBlur={field.onBlur}
               />
             )}
           />
+          {errors.contactPersonPhone && (
+            <p className={styles.errorText}>{errors.contactPersonPhone.message}</p>
+          )}
         </div>
       </div>
     </section>
@@ -265,18 +283,19 @@ export const BasicInformationSection = ({ control, errors, setValue }: Props) =>
       {/* Location + Fill By Date */}
       <div className={styles.row}>
         <div className={styles.field}>
-          <label className={styles.label}>Location</label>
+          <label className={styles.label}>Location *</label>
           <Controller
             name="location"
             control={control}
             render={({ field }) => (
               <input
                 {...field}
-                className={styles.input}
+                className={`${styles.input} ${errors.location ? styles.hasError : ''}`}
                 placeholder="Location"
               />
             )}
           />
+          {errors.location && <p className={styles.errorText}>{errors.location.message}</p>}
         </div>
         <div className={styles.field}>
           <label className={styles.label}>Fill By Date *</label>
@@ -299,7 +318,7 @@ export const BasicInformationSection = ({ control, errors, setValue }: Props) =>
       {/* Work Type + Employment Type */}
       <div className={styles.row}>
         <div className={styles.field}>
-          <label className={styles.label}>Work Type</label>
+          <label className={styles.label}>Work Type *</label>
           <div className={styles.selectWrap}>
             <Controller
               name="workType"
@@ -315,7 +334,7 @@ export const BasicInformationSection = ({ control, errors, setValue }: Props) =>
           {errors.workType && <p className={styles.errorText}>{errors.workType.message}</p>}
         </div>
         <div className={styles.field}>
-          <label className={styles.label}>Employment Type</label>
+          <label className={styles.label}>Employment Type *</label>
           <div className={styles.selectWrap}>
             <Controller
               name="employmentType"
@@ -335,7 +354,7 @@ export const BasicInformationSection = ({ control, errors, setValue }: Props) =>
       {/* Experience Level + Priority */}
       <div className={styles.row}>
         <div className={styles.field}>
-          <label className={styles.label}>Experience Level</label>
+          <label className={styles.label}>Experience Level *</label>
           <div className={styles.selectWrap}>
             <Controller
               name="experienceLevel"
@@ -351,7 +370,7 @@ export const BasicInformationSection = ({ control, errors, setValue }: Props) =>
           {errors.experienceLevel && <p className={styles.errorText}>{errors.experienceLevel.message}</p>}
         </div>
         <div className={styles.field}>
-          <label className={styles.label}>Priority</label>
+          <label className={styles.label}>Priority *</label>
           <div className={styles.selectWrap}>
             <Controller
               name="priority"

@@ -1,12 +1,11 @@
 import { useRef, useState, useCallback } from 'react'
-import type { Control, FieldErrors } from 'react-hook-form'
-import { Controller } from 'react-hook-form'
+import type { Control } from 'react-hook-form'
+import { Controller, useFormState } from 'react-hook-form'
 import type { MandateFormValues } from './types'
 import styles from './form.module.css'
 
 interface Props {
   control: Control<MandateFormValues>
-  errors: FieldErrors<MandateFormValues>
 }
 
 const CHIP_COLORS = [
@@ -19,14 +18,15 @@ const CHIP_COLORS = [
 
 const MAX_SKILLS = 30
 
-export const SkillsInput = ({ control, errors }: Props) => {
+export const SkillsInput = ({ control }: Props) => {
+  const { errors } = useFormState({ control })
   const [inputValue, setInputValue] = useState('')
   const [isTyping, setIsTyping] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
   return (
     <section className={styles.section}>
-      <h2 className={styles.sectionTitle}>Skills</h2>
+      <h2 className={styles.sectionTitle}>Skills *</h2>
       <Controller
         name="skills"
         control={control}

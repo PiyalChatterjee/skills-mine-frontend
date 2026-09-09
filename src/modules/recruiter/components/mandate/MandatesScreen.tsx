@@ -377,7 +377,6 @@ export const MandatesScreen = ({ onNewJobPost, onEditJobPost }: MandatesScreenPr
               return (
                 <Box key={post.mandateId} className={styles.tableRow}>
                   <Box className={styles.companyStrip}>
-                    <Box className={styles.companyLogo}>{initials(post.client)}</Box>
                     <Typography component="span" className={styles.companyName}>
                       {post.client}
                     </Typography>
@@ -390,7 +389,10 @@ export const MandatesScreen = ({ onNewJobPost, onEditJobPost }: MandatesScreenPr
                     <Typography component="span" className={styles.gridLabel}>LOCATION</Typography>
                     <Box className={styles.timelineHeader}>
                       <Typography component="span" className={styles.gridLabel}>TIMELINE</Typography>
-                      <Box component="span" className={styles.timelineIcon} aria-hidden="true">⌃⌄</Box>
+                      <Box component="span" className={styles.timelineIcon} aria-hidden="true">
+                        <span>⌃</span>
+                        <span>⌄</span>
+                      </Box>
                     </Box>
                     <Typography component="span" className={styles.gridLabel}>STATUS</Typography>
                   </Box>
