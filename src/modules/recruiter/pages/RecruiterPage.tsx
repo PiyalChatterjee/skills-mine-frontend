@@ -457,7 +457,7 @@ type KpiCardProps = {
   onView: () => void;
 };
 
-const KpiCard = ({ value, label, icon, colorClass, onView }: KpiCardProps) => (
+const KpiCard = ({ value, label, icon, colorClass }: KpiCardProps) => (
   <Box className={`${styles.kpiCard} ${colorClass}`}>
     <Box className={styles.kpiTop}>
       <Typography component="p" className={styles.kpiValue}>

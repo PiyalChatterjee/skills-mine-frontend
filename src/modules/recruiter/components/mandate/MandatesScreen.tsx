@@ -23,15 +23,6 @@ function formatDate(iso: string): string {
   return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
-/** Returns initials from the first two words of a string, e.g. "Standard Bank" → "SB" */
-function initials(name: string): string {
-  return name
-    .split(' ')
-    .slice(0, 2)
-    .map((w) => w[0]?.toUpperCase() ?? '')
-    .join('')
-}
-
 /** Capitalise first letter, lowercase rest e.g. "POSTED" → "Posted" */
 function toTitleCase(s: string): string {
   if (!s) return ''
