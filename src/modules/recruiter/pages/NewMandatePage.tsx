@@ -55,10 +55,9 @@ const NewMandatePage = () => {
       <Box className={styles.pageRoot}>
         <MandateForm
           title="New Job Post"
-          submitLabel="Post Mandate"
+          submitLabel="Create Job Post"
           initialValues={emptyMandateValues}
           onSubmit={handleSubmit}
-          onCancel={() => navigate(ROUTE_PATHS.recruiterDashboard)}
         />
       </Box>
     </Box>

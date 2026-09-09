@@ -40,7 +40,6 @@ type PipelineStageLabel =
   | "Interview"
   | "Shortlisted"
   | "Offer"
-  | "Placed"
   | "Closed";
 
 type CardTone =
@@ -324,11 +323,6 @@ const PIPELINE_COLUMNS: PipelineColumn[] = [
     ],
   },
   {
-    label: "Placed",
-    colorClass: styles.colOffer,
-    cards: [],
-  },
-  {
     label: "Closed",
     colorClass: styles.colClosed,
     cards: [
@@ -477,10 +471,9 @@ const KpiCard = ({ value, label, icon, colorClass }: KpiCardProps) => (
 type PipelineCardProps = {
   card: PipelineCard;
   onView: (id: string, stage: PipelineStageLabel) => void;
-  onExpand: () => void;
 };
 
-const PipelineCardItem = ({ card, onView, onExpand }: PipelineCardProps) => {
+const PipelineCardItem = ({ card, onView }: PipelineCardProps) => {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({ id: card.id });
 
@@ -509,34 +502,30 @@ const PipelineCardItem = ({ card, onView, onExpand }: PipelineCardProps) => {
       </Box>
       <Box className={styles.pipelineCardActions}>
         <ButtonBase
-          className={styles.pipelineCardActionBtn}
+          className={styles.pipelineCardViewBtn}
           onClick={() => onView(card.id, card.stage)}
           disableRipple
           aria-label="View"
         >
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 20 20"
-            fill="none"
-            aria-hidden="true"
-          >
-            <path
-              d="M9.99993 2.5C14.4933 2.5 18.2317 5.73313 19.0154 10C18.2317 14.2668 14.4933 17.5 9.99993 17.5C5.50644 17.5 1.76813 14.2668 0.984375 10C1.76813 5.73313 5.50644 2.5 9.99993 2.5ZM9.99993 15.8333C13.5296 15.8333 16.5499 13.3767 17.3144 10C16.5499 6.62336 13.5296 4.16667 9.99993 4.16667C6.47018 4.16667 3.44986 6.62336 2.68533 10C3.44986 13.3767 6.47018 15.8333 9.99993 15.8333ZM9.99993 13.75C7.92883 13.75 6.24989 12.0711 6.24989 10C6.24989 7.92893 7.92883 6.25 9.99993 6.25C12.0709 6.25 13.7499 7.92893 13.7499 10C13.7499 12.0711 12.0709 13.75 9.99993 13.75ZM9.99993 12.0833C11.1505 12.0833 12.0833 11.1506 12.0833 10C12.0833 8.84942 11.1505 7.91667 9.99993 7.91667C8.84934 7.91667 7.91656 8.84942 7.91656 10C7.91656 11.1506 8.84934 12.0833 9.99993 12.0833Z"
-              fill="currentColor"
-            />
-          </svg>
-        </ButtonBase>
-        <ButtonBase
-          className={styles.pipelineCardActionBtn}
-          onClick={onExpand}
-          disableRipple
-          aria-label="Expand"
-          data-tour="pipeline-expand"
-        >
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M14 4h6v6M20 4l-7 7M10 20H4v-6M4 20l7-7" />
-          </svg>
+          <span className={styles.pipelineCardViewBtnIcon}>
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 20 20"
+              fill="none"
+              aria-hidden="true"
+            >
+              <circle cx="10" cy="10" r="9" stroke="currentColor" strokeWidth="1.5" />
+              <path
+                d="M6.5 10H13.5M10.5 7L13.5 10L10.5 13"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
+          View
         </ButtonBase>
       </Box>
     </Box>
@@ -633,7 +622,6 @@ const RecruiterPage = () => {
       Interview: 0,
       Shortlisted: 0,
       Offer: 0,
-      Placed: 0,
       Closed: 0,
     };
 
@@ -645,7 +633,6 @@ const RecruiterPage = () => {
       if (normalized === "interview") counts.Interview = stage.count;
       if (normalized === "shortlisted") counts.Shortlisted = stage.count;
       if (normalized === "offer") counts.Offer = stage.count;
-      if (normalized === "placed") counts.Placed = stage.count;
       if (normalized === "closed") counts.Closed = stage.count;
     });
 
@@ -684,10 +671,6 @@ const RecruiterPage = () => {
       navigate(ROUTE_PATHS.recruiterMandate.replace(":cardId", cardId));
     }
     // Other stages: future implementation
-  };
-
-  const handleCardExpand = () => {
-    navigate(ROUTE_PATHS.recruiterDashboard);
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -817,9 +800,6 @@ const RecruiterPage = () => {
                     <Typography component="p" className={styles.colLabel}>
                       {col.label}
                     </Typography>
-                    <Typography component="p" className={styles.colCount}>
-                      {stageCounts[col.label]}
-                    </Typography>
                   </Box>
                 ))}
               </Box>
@@ -835,7 +815,6 @@ const RecruiterPage = () => {
                             key={card.id}
                             card={card}
                             onView={handleCardView}
-                            onExpand={handleCardExpand}
                           />
                         ))}
                       </Box>
