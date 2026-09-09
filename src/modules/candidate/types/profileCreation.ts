@@ -14,6 +14,7 @@ import {
   toAvailabilityLabel,
   toEmploymentTypeEnum,
   toEmploymentTypeLabel,
+  toPreferredLocationEnum,
   toPreferredLocationLabel,
 } from '@/modules/candidate/utils/profileEnums'
 
@@ -96,7 +97,7 @@ export const getProfileCreationDefaultValues = (
     residentialLocation: profile.personalDetails?.location ?? '',
     preferredJobTitle: profile.desiredJob?.jobTitle ?? '',
     targetedIndustries: profile.desiredJob?.industry ?? '',
-    preferredLocations: profile.desiredJob?.workType ?? '',
+    preferredLocations: toPreferredLocationLabel(profile.desiredJob?.workType),
     employmentType: toEmploymentTypeLabel(profile.desiredJob?.employmentType),
     availability: toAvailabilityLabel(profile.desiredJob?.availableFrom),
     certifications: ensureMinimumCertifications(
@@ -154,7 +155,7 @@ export const getProfileCreationPayload = (
     desiredJob: {
       jobTitle: values.preferredJobTitle.trim(),
       industry: values.targetedIndustries.trim(),
-      workType: toPreferredLocationLabel(values.preferredLocations),
+      workType: toPreferredLocationEnum(values.preferredLocations),
       employmentType: toEmploymentTypeEnum(values.employmentType),
       salaryExpectation: currentProfile?.desiredJob?.salaryExpectation ?? 0,
       availableFrom: toAvailabilityEnum(values.availability),
