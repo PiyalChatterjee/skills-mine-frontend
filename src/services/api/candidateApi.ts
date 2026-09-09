@@ -7,6 +7,14 @@ import {
 } from "@/services/api/axios";
 import type { AxiosResponse } from "axios";
 import { apiEndpoints, resolveEndpoint } from "@/services/api/endpoints";
+import {
+  toAvailabilityEnum,
+  toAvailabilityLabel,
+  toEmploymentTypeEnum,
+  toEmploymentTypeLabel,
+  toPreferredLocationEnum,
+  toPreferredLocationLabel,
+} from "@/modules/candidate/utils/profileEnums";
 import type {
   BuildMyCvData,
   BuildMyCvEducationSection,
@@ -46,7 +54,7 @@ import type {
 import type { CandidateProfileUpdatePayload } from "@/modules/candidate/types";
 import { toSouthAfricaApiPhoneNumber } from "@/app/phoneNumber";
 import { formatEnumLabel } from "@/app/formatEnumLabel";
-import { resolveIndustryId } from "@/services/api/industryApi";
+import { resolveIndustryId, resolveIndustryName } from "@/services/api/industryApi";
 
 const isUserSkill = (value: unknown): value is UserSkill => {
   if (!value || typeof value !== "object") {
@@ -676,6 +684,7 @@ type RawProfilePersonalDetails = Partial<PersonalDetails> & {
   first_name?: string;
   last_name?: string;
   full_name?: string;
+  alternate_email?: string;
   phone_number?: string;
   alternate_email_address?: string;
   alternate_phone_number?: string;
@@ -688,6 +697,8 @@ type RawProfilePersonalDetails = Partial<PersonalDetails> & {
 
 type RawProfileDesiredJob = Partial<DesiredJob> & {
   role_title?: string;
+  role_title_id?: string;
+  targeted_industry_id?: string;
   targeted_industry?: string;
   work_type?: string;
   employment_type?: string;
@@ -774,7 +785,11 @@ const mapProfileResponse = (
         personal.last_name ??
         personal.full_name?.split(" ").slice(1).join(" ") ??
         "",
-      email: personal.email ?? "",
+      email:
+        personal.email ??
+        personal.alternate_email ??
+        personal.alternate_email_address ??
+        "",
       mobileNumber: personal.mobileNumber ?? personal.phone_number,
       alternateEmail:
         personal.alternateEmail ?? personal.alternate_email_address,
@@ -799,26 +814,27 @@ const mapProfileResponse = (
       jobTitle: desiredJob.jobTitle ?? desiredJob.role_title ?? "",
       industry:
         desiredJob.industry ??
+        desiredJob.targeted_industry_id ??
         desiredJob.targeted_industry ??
         desiredJob.industries?.join(", ") ??
         "",
       workType:
-        desiredJob.workType ??
-        desiredJob.work_type ??
-        desiredJob.locations?.join(", ") ??
-        "",
+        toPreferredLocationLabel(
+          desiredJob.workType ?? desiredJob.work_type ?? desiredJob.locations?.join(", "),
+        ),
       employmentType:
-        desiredJob.employmentType ??
-        desiredJob.employment_type ??
-        desiredJob.jobType ??
-        "",
+        toEmploymentTypeLabel(
+          desiredJob.employmentType ?? desiredJob.employment_type ?? desiredJob.jobType,
+        ),
       salaryExpectation: desiredJob.salaryExpectation ?? 0,
       currency: desiredJob.currency,
       industries: desiredJob.industries,
       locations: desiredJob.locations,
       jobType: desiredJob.jobType,
       availableFrom:
-        desiredJob.availableFrom ?? desiredJob.availability_code ?? "",
+        toAvailabilityLabel(
+          desiredJob.availableFrom ?? desiredJob.availability_code,
+        ),
     },
     education: data.education
       ? {
@@ -869,6 +885,14 @@ export const candidateApi = {
       >(resolveEndpoint(apiEndpoints.candidate.profile, { candidateId })),
     );
     const profile = mapProfileResponse(payload);
+    if (/^[0-9a-f-]{36}$/i.test(profile.desiredJob.industry)) {
+      try {
+        profile.desiredJob.industry =
+          (await resolveIndustryName(profile.desiredJob.industry)) ?? "";
+      } catch {
+        profile.desiredJob.industry = "";
+      }
+    }
     // Prefer the caller's userId, but keep the one the response carries.
     return { ...profile, userId: userId ?? profile.userId ?? "" };
   },
@@ -896,9 +920,9 @@ export const candidateApi = {
         job_details: omitUndefined({
           role_title: payload.desiredJob?.jobTitle,
           targeted_industry_id: targetedIndustriesId,
-          preferred_location: payload.desiredJob?.workType,
-          employment_type: payload.desiredJob?.employmentType,
-          availability: payload.desiredJob?.availableFrom,
+          preferred_location: toPreferredLocationEnum(payload.desiredJob?.workType),
+          employment_type: toEmploymentTypeEnum(payload.desiredJob?.employmentType),
+          availability: toAvailabilityEnum(payload.desiredJob?.availableFrom),
         }),
       },
     );

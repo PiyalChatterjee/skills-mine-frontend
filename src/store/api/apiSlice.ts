@@ -140,6 +140,9 @@ export const apiSlice = createApi({
         ),
       invalidatesTags: (_result, _error, args) => [
         { type: "CandidateProfile", id: args.userId },
+        ...(args.candidateId && args.candidateId !== args.userId
+          ? [{ type: "CandidateProfile" as const, id: args.candidateId }]
+          : []),
         { type: "CandidateDashboard", id: "SELF" },
         { type: "UserProfile", id: args.userId },
       ],

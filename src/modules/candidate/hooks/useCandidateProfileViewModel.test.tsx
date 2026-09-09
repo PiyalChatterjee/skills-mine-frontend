@@ -172,6 +172,7 @@ describe("useCandidateProfileViewModel", () => {
     );
     expect(mocks.saveProfileThunk).toHaveBeenCalledWith({
       userId: "u-1",
+      candidateId: "c-1",
       payload: { personalDetails: { firstName: "Jane" } },
     });
     expect(mocks.dispatch).toHaveBeenCalled();

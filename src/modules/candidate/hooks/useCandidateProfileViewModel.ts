@@ -103,8 +103,10 @@ export const useCandidateProfileViewModel = () => {
       );
 
       try {
+        const profileCandidateId =
+          resolvedCandidateProfile?.candidateId ?? candidateId;
         const updatedProfile = await dispatch(
-          saveProfileThunk({ userId, payload }),
+          saveProfileThunk({ userId, candidateId: profileCandidateId, payload }),
         ).unwrap();
 
         reset(getProfileFormValues(updatedProfile));

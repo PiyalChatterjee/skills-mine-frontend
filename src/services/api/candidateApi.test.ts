@@ -10,6 +10,7 @@ const mockDelete = vi.hoisted(() => vi.fn())
 vi.mock('@/services/api/axios', () => ({
   apiClient: { get: mockGet, post: mockPost, put: mockPut, delete: mockDelete },
   candidateApiClient: { get: mockGet, post: mockPost, put: mockPut, delete: mockDelete },
+  mandateApiClient: { get: mockGet, post: mockPost, put: mockPut, delete: mockDelete },
   documentApiClient: { get: mockGet, post: mockPost, put: mockPut, delete: mockDelete },
   unwrapResponseData: async (promise: Promise<unknown>) =>
     ((await promise) as { data: unknown }).data,
@@ -37,6 +38,7 @@ vi.mock('@/services/api/endpoints', () => ({
       stageTransition: '/applications/:applicationId/stage-transition',
     },
     skills: { search: '/skills/search', keywordParam: 'keyword' },
+    industries: { list: '/industries' },
   },
   resolveEndpoint: (template: string, params: Record<string, string>) =>
     Object.entries(params).reduce(
@@ -125,7 +127,7 @@ describe('candidateApi', () => {
       mockGet.mockResolvedValue(nextResponse)
       const profile = await candidateApi.getById('u-1')
 
-      expect(profile.desiredJob.employmentType).toBe('Permanent')
+      expect(profile.desiredJob.employmentType).toBe('FULL_TIME')
       expect(profile.desiredJob.industry).toBe('Technology, Financial Services')
       expect(profile.desiredJob.workType).toBe('Hybrid')
       expect(profile.desiredJob.currency).toBe('ZAR')
@@ -558,6 +560,47 @@ describe('candidateApi', () => {
       expect(mockGet).toHaveBeenCalledWith('/candidates/profile/')
       expect(mockPost).not.toHaveBeenCalled()
       expect(result.personalDetails.firstName).toBe('Jane')
+    })
+
+    it('maps profile job details to the candidate profile contract', async () => {
+      mockPut.mockResolvedValue({ data: {} })
+      mockGet.mockImplementation((url: string) =>
+        url === '/industries'
+          ? Promise.resolve({ data: [] })
+          : Promise.resolve(mockProfileResponse),
+      )
+
+      await candidateApi.updateById('u-1', {
+        personalDetails: {
+          firstName: 'Piyal',
+          lastName: 'Chatterjee',
+          email: 'piyal.ibm0226@gmail.com',
+          mobileNumber: '+279007257812',
+          location: 'Cape Town',
+        },
+        desiredJob: {
+          jobTitle: 'Application developer',
+          industry: 'b44765ae-4107-4b2a-9339-2f6e42f2e9b2',
+          workType: '',
+          employmentType: '',
+          salaryExpectation: 0,
+          availableFrom: '',
+        },
+      } as never)
+
+      expect(mockPut).toHaveBeenCalledWith('/candidates/profile/', {
+        personal_details: expect.objectContaining({
+          first_name: 'Piyal',
+          last_name: 'Chatterjee',
+          alternate_email: 'piyal.ibm0226@gmail.com',
+          phone_number: '+279007257812',
+          residential_location: 'Cape Town',
+        }),
+        job_details: expect.objectContaining({
+          role_title: 'Application developer',
+          targeted_industry_id: 'b44765ae-4107-4b2a-9339-2f6e42f2e9b2',
+        }),
+      })
     })
   })
 

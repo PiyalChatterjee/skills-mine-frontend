@@ -38,3 +38,12 @@ export const resolveIndustryId = async (
   );
   return match?.industryId ?? industryName;
 };
+
+export const resolveIndustryName = async (
+  industryId?: string,
+): Promise<string | undefined> => {
+  if (!industryId) return undefined;
+
+  const { data: industries } = await industryApi.getIndustries();
+  return industries.find((industry) => industry.industryId === industryId)?.name;
+};

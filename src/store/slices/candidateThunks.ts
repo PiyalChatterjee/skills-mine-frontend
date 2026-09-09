@@ -7,6 +7,7 @@ import type { AppDispatch } from "@/store";
 
 type SaveProfileArgs = {
   userId: string;
+  candidateId?: string;
   payload: CandidateProfileUpdatePayload;
 };
 
