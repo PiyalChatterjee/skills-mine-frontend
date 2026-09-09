@@ -81,8 +81,8 @@ const monthNameToIso = (value: string): string => {
     return value;
   }
 
-  const monthIndex = monthNames.findIndex(
-    (name) => name.toLowerCase() === month.toLowerCase(),
+  const monthIndex = monthNames.findIndex((name) =>
+    name.toLowerCase().startsWith(month.toLowerCase()),
   );
   if (monthIndex < 0) {
     return value;

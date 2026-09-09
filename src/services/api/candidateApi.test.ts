@@ -382,6 +382,18 @@ describe('candidateApi', () => {
   })
 
   describe('saveBuildMyCv', () => {
+    it('converts abbreviated month-year dates to API dates', async () => {
+      mockPost.mockResolvedValue({ data: { success: true, data: { lastModified: '2024-01-01' } } })
+
+      await candidateApi.saveBuildMyCv('candidate-1', {
+        careerHistory: [{ company: 'Acme', jobTitle: 'Engineer', startDate: 'Jan,2022', endDate: 'Present', responsibilities: 'Built features' }],
+      })
+
+      expect(mockPost).toHaveBeenCalledWith('/candidates/cv-build/', expect.objectContaining({
+        career_history: [expect.objectContaining({ start_date: '2022-01-01', end_date: null })],
+      }))
+    })
+
     it('calls POST /candidates/cv-build/', async () => {
       mockPost.mockResolvedValue({ data: { success: true, data: { lastModified: '2024-01-01' } } })
       const result = await candidateApi.saveBuildMyCv('candidate-1', {

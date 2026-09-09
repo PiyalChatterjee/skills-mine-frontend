@@ -380,10 +380,35 @@ const mapRecommendedResponse = (
     "recommended_positions",
   );
 
-// The API now expects full YYYY-MM-DD dates; our stored "YYYY-MM" values default to the 1st of the month.
+// The API expects full YYYY-MM-DD dates; month-year form values default to the 1st.
 const toFullDate = (value?: string | null): string | null => {
   if (!value) return null;
-  return /^\d{4}-\d{2}$/.test(value) ? `${value}-01` : value;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+  if (/^\d{4}-\d{2}$/.test(value)) return `${value}-01`;
+
+  const match = value.trim().match(/^([A-Za-z]+),\s?(\d{4})$/);
+  if (!match) return value;
+
+  const monthNames = [
+    "january",
+    "february",
+    "march",
+    "april",
+    "may",
+    "june",
+    "july",
+    "august",
+    "september",
+    "october",
+    "november",
+    "december",
+  ];
+  const monthIndex = monthNames.findIndex((month) =>
+    month.startsWith(match[1].toLowerCase()),
+  );
+  return monthIndex < 0
+    ? value
+    : `${match[2]}-${String(monthIndex + 1).padStart(2, "0")}-01`;
 };
 
 // The CV builder accepts a partial update: only the sections present in the body
