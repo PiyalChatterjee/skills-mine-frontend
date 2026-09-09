@@ -261,9 +261,16 @@ const toPatchBody = async (
     const industries = await mandateApiClient
       .get<IndustryItem[]>(apiEndpoints.industries.list)
       .then((response) => response.data);
-    const selectedIndustry = industries.find((industry) =>
-      current.industries.some((name) => name.toLowerCase() === industry.industryName.toLowerCase()),
-    );
+    // Prefer the newly added industry (present in current but not in original);
+    // fall back to the last entry in the current list so a replacement is handled too.
+    const addedName =
+      current.industries.find((name) => !original.industries.includes(name)) ??
+      current.industries[current.industries.length - 1];
+    const selectedIndustry = addedName
+      ? industries.find(
+          (industry) => industry.industryName.toLowerCase() === addedName.toLowerCase(),
+        )
+      : undefined;
     patch.industryId = selectedIndustry?.industryId ?? null;
   }
 

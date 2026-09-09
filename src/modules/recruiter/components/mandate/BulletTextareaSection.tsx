@@ -1,5 +1,5 @@
-import type { Control, FieldErrors } from 'react-hook-form'
-import { Controller } from 'react-hook-form'
+import type { Control } from 'react-hook-form'
+import { Controller, useFormState } from 'react-hook-form'
 import type { MandateFormValues } from './types'
 import styles from './form.module.css'
 
@@ -18,14 +18,16 @@ function applyBullets(raw: string): string {
 
 interface Props {
   control: Control<MandateFormValues>
-  errors: FieldErrors<MandateFormValues>
   name: keyof Pick<MandateFormValues, 'requirements' | 'responsibilities' | 'benefits'>
   label: string
   placeholder?: string
 }
 
 /** Reusable bullet textarea — used for Requirements, Responsibilities, Benefits */
-export const BulletTextareaSection = ({ control, errors, name, label, placeholder }: Props) => (
+export const BulletTextareaSection = ({ control, name, label, placeholder }: Props) => {
+  const { errors } = useFormState({ control })
+
+  return (
   <section className={styles.section}>
     <h2 className={styles.sectionTitle}>{label}</h2>
     <div className={styles.field}>
@@ -99,4 +101,5 @@ export const BulletTextareaSection = ({ control, errors, name, label, placeholde
       {errors[name] && <p className={styles.errorText}>{(errors[name] as { message?: string })?.message}</p>}
     </div>
   </section>
-)
+  )
+}

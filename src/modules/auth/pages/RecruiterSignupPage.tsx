@@ -25,6 +25,7 @@ const RecruiterSignupPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const invitationToken = searchParams.get("token");
+  const staffNumberFromUrl = searchParams.get("staffNumber") ?? "";
 
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -40,7 +41,7 @@ const RecruiterSignupPage = () => {
       firstName: "",
       lastName: "",
       email: "",
-      staffNumber: "",
+      staffNumber: staffNumberFromUrl,
       mobileNumber: "",
       password: "",
       confirmPassword: "",
