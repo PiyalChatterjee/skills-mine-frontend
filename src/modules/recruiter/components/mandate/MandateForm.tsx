@@ -90,8 +90,8 @@ interface MandateFormProps {
   initialValues: MandateFormValues
   /** Called with validated form values when the user submits */
   onSubmit: (values: MandateFormValues) => Promise<void>
-  /** Called when the user clicks Back / Cancel without unsaved changes */
-  onCancel: () => void
+  /** Called when the user cancels — navigate away from the form */
+  onCancel?: () => void
 }
 
 // ── Component ──────────────────────────────────────────────────────────
@@ -101,7 +101,7 @@ export const MandateForm = ({
   submitLabel,
   initialValues,
   onSubmit,
-  onCancel,
+  onCancel = () => {},
 }: MandateFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showCancelDialog, setShowCancelDialog] = useState(false)
@@ -110,7 +110,7 @@ export const MandateForm = ({
     control,
     handleSubmit,
     setValue,
-    formState: { isDirty },
+    formState: {  isValid },
   } = useForm<MandateFormValues>({
     resolver: zodResolver(mandateSchema),
     defaultValues: initialValues,
@@ -124,14 +124,6 @@ export const MandateForm = ({
       await onSubmit(values)
     } finally {
       setIsSubmitting(false)
-    }
-  }
-
-  const handleCancel = () => {
-    if (isDirty) {
-      setShowCancelDialog(true)
-    } else {
-      onCancel()
     }
   }
 
@@ -172,7 +164,7 @@ export const MandateForm = ({
           <IndustriesInput control={control} />
         </Box>
 
-        <StickyFooter onCancel={handleCancel} isSubmitting={isSubmitting} submitLabel={submitLabel} />
+        <StickyFooter isSubmitting={isSubmitting} submitLabel={submitLabel} isValid={isValid} />
       </form>
 
       {/* ── Cancel confirmation dialog ── */}

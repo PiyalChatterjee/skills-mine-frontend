@@ -215,21 +215,19 @@
 .pipelineWrapper {
   width: 100%;
   border-radius: 8px;
-  overflow-x: auto;
-  overflow-y: hidden;
+  overflow: hidden;
   border: 1px solid #92c9e5;
 }
 
 /* Header and board share this track definition so columns stay aligned. */
 .pipelineScroll {
-  min-width: 100%;
-  width: max-content;
+  width: 100%;
 }
 
 /* ── Pipeline Header Bar ─────────────────────────────────────────────── */
 .pipelineHeader {
   display: grid;
-  grid-template-columns: repeat(8, minmax(170px, 1fr));
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   background: #AAD5F0;
   border-radius: 8px 8px 0 0;
 }
@@ -237,17 +235,13 @@
 .colHeader {
   padding: 12px;
   display: flex;
-  align-items: flex-start;
-  flex-direction: column;
-  justify-content: flex-start;
-  gap: 4px;
-  min-height: 69px;
+  align-items: center;
 }
 
 /* ── Pipeline Board ──────────────────────────────────────────────────── */
 .pipelineBoard {
   display: grid;
-  grid-template-columns: repeat(8, minmax(170px, 1fr));
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 0;
   background: #f0f4f8;
   border-radius: 0 0 8px 8px;
@@ -379,39 +373,40 @@
 .pipelineCardActions {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  width: 100%;
   margin-top: auto;
 }
 
 .pipelineCardViewBtn:global(.MuiButtonBase-root) {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 2px 10px 2px 2px;
-  border: 1.5px solid #8a7a6a;
-  border-radius: 999px;
-  color: #5a4a3a;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  padding: 4px 10px;
+  border: 1px solid #1a1a1a;
+  border-radius: 8px;
+  color: #1a1a1a;
   background: transparent;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
-  line-height: 1;
+  line-height: 1.2;
   min-width: 0;
   transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
 }
 
 .pipelineCardViewBtn:global(.MuiButtonBase-root):hover {
-  background: rgba(138, 122, 106, 0.12);
+  background: rgba(0, 0, 0, 0.06);
 }
 
 .pipelineCardViewBtnIcon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: #8a7a6a;
+  width: 18px;
+  height: 18px;
+  color: #1a1a1a;
   flex-shrink: 0;
 }
 
@@ -421,23 +416,18 @@
 
 .cardSuccess .pipelineCardViewBtn:global(.MuiButtonBase-root),
 .cardDanger .pipelineCardViewBtn:global(.MuiButtonBase-root) {
-  border-color: rgba(255,255,255,0.7);
-  color: #ffffff;
-}
-
-.cardSuccess .pipelineCardViewBtnIcon,
-.cardDanger .pipelineCardViewBtnIcon {
-  background: rgba(255,255,255,0.85);
+  border-color: #1a1a1a;
+  color: #1a1a1a;
 }
 
 .cardSuccess .pipelineCardViewBtnIcon svg path,
 .cardDanger .pipelineCardViewBtnIcon svg path {
-  stroke: #1a2b4a;
+  stroke: #1a1a1a;
 }
 
 .cardSuccess .pipelineCardViewBtn:global(.MuiButtonBase-root):hover,
 .cardDanger .pipelineCardViewBtn:global(.MuiButtonBase-root):hover {
-  background: rgba(255,255,255,0.15);
+  background: rgba(0,0,0,0.06);
 }
 
 /* ── View More Button ────────────────────────────────────────────────── */

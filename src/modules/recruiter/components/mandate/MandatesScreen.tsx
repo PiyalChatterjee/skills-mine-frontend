@@ -16,11 +16,13 @@ const LOCATION_OPTIONS = ['Johannesburg', 'Cape Town', 'Remote', 'Hybrid'] as co
 type LocationOption = (typeof LOCATION_OPTIONS)[number]
 
 /** Format ISO date string to "D Mon YYYY" e.g. "15 Oct 2024" */
-
 function formatDate(iso: string): string {
   if (!iso) return ''
   const d = new Date(iso)
-  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+  const day   = d.getDate()
+  const month = d.toLocaleString('en-GB', { month: 'short' }).slice(0, 3)
+  const year  = d.getFullYear()
+  return `${day} ${month} ${year}`
 }
 
 /** Capitalise first letter, lowercase rest e.g. "POSTED" → "Posted" */
@@ -174,7 +176,7 @@ export const MandatesScreen = ({ onNewJobPost, onEditJobPost }: MandatesScreenPr
     <Box className={styles.pageRoot}>
       <Box className={styles.pageHeader}>
         <Typography component="h1" className={styles.pageTitle}>
-          Job Posts
+          All Job Posts
         </Typography>
         <Button
           variant="contained"

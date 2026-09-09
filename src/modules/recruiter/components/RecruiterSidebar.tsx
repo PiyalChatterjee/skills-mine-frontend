@@ -6,7 +6,7 @@ import { beginLogoutNavigation } from '@/app/auth/logoutNavigation'
 import { authApi } from '@/services/api/authApi'
 import styles from './RecruiterSidebar.module.css'
 
-import dashboardIcon    from '@/assets/recruiter/speed-up-line.svg'
+import gridOnIcon       from '@/assets/recruiter/grid_on.svg'
 import mandatesIcon     from '@/assets/recruiter/Menu Icons-1.svg'
 import crmIcon          from '@/assets/recruiter/person.svg'
 import mancoIcon        from '@/assets/recruiter/settings_account_box.svg'
@@ -27,14 +27,14 @@ type NavItem = {
 
 /** Plain plus sign — New Job Post (no dedicated asset) */
 const PlusIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
     <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
   </svg>
 )
 
 /** Two overlapping person silhouettes — Candidates (no dedicated asset) */
 const CandidatesIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
     <circle cx="9" cy="7" r="3" stroke="currentColor" strokeWidth="1.8" />
     <path d="M2 19c0-3.314 3.134-6 7-6s7 2.686 7 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
     <circle cx="17" cy="7" r="2.5" stroke="currentColor" strokeWidth="1.6" />
@@ -64,16 +64,16 @@ export const RecruiterSidebar = () => {
   }
 
   const mainNavItems: NavItem[] = [
-    { id: 'pipeline',  label: 'Pipeline',   to: ROUTE_PATHS.recruiterDashboard, icon: <img src={dashboardIcon} width={20} height={20} alt="" aria-hidden="true" /> },
-    { id: 'jobPosts',   label: 'Job Posts',   to: ROUTE_PATHS.recruiterJobPosts, icon: <img src={mandatesIcon}  width={20} height={20} alt="" aria-hidden="true" /> },
+    { id: 'pipeline',  label: 'Pipeline',   to: ROUTE_PATHS.recruiterDashboard, icon: <img src={gridOnIcon} width={18} height={18} alt="" aria-hidden="true" /> },
+    { id: 'jobPosts',   label: 'Job Posts',   to: ROUTE_PATHS.recruiterJobPosts, icon: <img src={mandatesIcon}  width={18} height={18} alt="" aria-hidden="true" /> },
     { id: 'newJobPost', label: 'New Job Post', icon: <PlusIcon />,       onClick: handleNewJobPostClick },
     { id: 'candidates', label: 'Candidates',  to: ROUTE_PATHS.recruiterCandidates, icon: <CandidatesIcon /> },
-    { id: 'crm',        label: 'CRM',         to: ROUTE_PATHS.recruiterCrm, icon: <img src={crmIcon}      width={20} height={20} alt="" aria-hidden="true" /> },
-    { id: 'manco',      label: 'MANCO',       to: ROUTE_PATHS.recruiterManco, icon: <img src={mancoIcon} width={20} height={20} alt="" aria-hidden="true" /> },
+    { id: 'crm',        label: 'CRM',         to: ROUTE_PATHS.recruiterCrm, icon: <img src={crmIcon}      width={18} height={18} alt="" aria-hidden="true" /> },
+    { id: 'manco',      label: 'MANCO',       to: ROUTE_PATHS.recruiterManco, icon: <img src={mancoIcon} width={18} height={18} alt="" aria-hidden="true" /> },
   ]
 
   const adminNavItems: NavItem[] = [
-    { id: 'logout', label: 'Log out', icon: <img src={logoutIcon} width={20} height={20} alt="" aria-hidden="true" />, onClick: handleLogoutClick },
+    { id: 'logout', label: 'Log out', icon: <img src={logoutIcon} width={18} height={18} alt="" aria-hidden="true" />, onClick: handleLogoutClick },
   ]
 
   const renderNavItem = (item: NavItem) => {

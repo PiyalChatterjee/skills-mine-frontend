@@ -132,10 +132,10 @@ const CandidateCard = ({ name, title, company, stage, onView, onExpand, isOverla
       </Box>
     </Box>
     <Box className={styles.cardFooter}>
-      <ButtonBase className={styles.cardIconBtn} disableRipple onClick={onView} aria-label="View candidate">
+      <ButtonBase className={styles.cardIconBtn} style={{ background: STAGE_CARD_BG[stage] }} disableRipple onClick={onView} aria-label="View candidate">
         <EyeIcon />
       </ButtonBase>
-      <ButtonBase className={styles.cardIconBtn} disableRipple onClick={onExpand} aria-label="Expand stage details">
+      <ButtonBase className={styles.cardIconBtn} style={{ background: STAGE_CARD_BG[stage] }} disableRipple onClick={onExpand} aria-label="Expand stage details">
         <ExpandIcon />
       </ButtonBase>
     </Box>

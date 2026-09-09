@@ -157,7 +157,6 @@ const EditMandatePage = () => {
             submitLabel="Save Changes"
             initialValues={initialValues}
             onSubmit={handleSubmit}
-            onCancel={() => navigate(ROUTE_PATHS.recruiterJobPosts)}
           />
         )}
       </Box>
