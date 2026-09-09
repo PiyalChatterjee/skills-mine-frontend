@@ -394,6 +394,31 @@ describe('candidateApi', () => {
       }))
     })
 
+    it('wraps a current career entry in the cv-build request contract', async () => {
+      mockPost.mockResolvedValue({ data: { success: true, data: { lastModified: '2024-01-01' } } })
+
+      await candidateApi.saveBuildMyCv('candidate-1', {
+        careerHistory: [{
+          company: 'Accenture',
+          jobTitle: 'App Developer',
+          startDate: '2021-01-01',
+          endDate: '',
+          responsibilities: '',
+        }],
+      })
+
+      expect(mockPost).toHaveBeenCalledWith('/candidates/cv-build/', {
+        career_history: [{
+          company_name: 'Accenture',
+          position_held: 'App Developer',
+          start_date: '2021-01-01',
+          end_date: null,
+          is_current: true,
+          responsibilities: [],
+        }],
+      })
+    })
+
     it('calls POST /candidates/cv-build/', async () => {
       mockPost.mockResolvedValue({ data: { success: true, data: { lastModified: '2024-01-01' } } })
       const result = await candidateApi.saveBuildMyCv('candidate-1', {
