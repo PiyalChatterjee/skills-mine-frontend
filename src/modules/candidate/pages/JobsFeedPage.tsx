@@ -112,7 +112,10 @@ export const JobsFeedPage = ({ mode }: JobsFeedPageProps) => {
           ) : null}
         </>
       ) : (
-        <Typography component="p" className={styles.feedback}>
+        <Typography
+          component="p"
+          className={[styles.feedback, isSavedOnlyMode ? styles.savedFeedback : ''].filter(Boolean).join(' ')}
+        >
           {emptyMessage}
         </Typography>
       )}
