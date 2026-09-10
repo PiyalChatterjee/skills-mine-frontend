@@ -525,6 +525,58 @@ type RawBuildMyCvCareerHistoryEntry = Partial<CandidateExperience> & {
   responsibilities_text?: string | string[];
 };
 
+type CandidateDocument = {
+  documentId: string;
+  documentType?: string;
+  lifecycleStatus?: string;
+  viewUrl?: string;
+  downloadUrl?: string;
+};
+
+const resolveDocumentUrl = (value: unknown): string | undefined => {
+  if (typeof value === "string") return value;
+  if (!value || typeof value !== "object") return undefined;
+
+  const candidate = value as Record<string, unknown>;
+  for (const key of ["url", "href", "presigned_url", "signed_url", "view_url", "download_url"]) {
+    const resolved = resolveDocumentUrl(candidate[key]);
+    if (resolved) return resolved;
+  }
+  return undefined;
+};
+
+const mapDocument = (item: Record<string, any>): CandidateDocument => ({
+  documentId: item.document_id ?? item.documentId ?? "",
+  documentType:
+    item.document_type ?? item.documentType ?? item.type ?? item.document_type_code,
+  lifecycleStatus: item.lifecycle_status ?? item.lifecycleStatus ?? item.status,
+  viewUrl: resolveDocumentUrl(
+    item.view_url ??
+      item.viewUrl ??
+      item.document_view_url ??
+      item.url ??
+      item.view ??
+      item.cloud_details?.view_url ??
+      item.document_cloud_details?.view_url ??
+      item.documentCloudDetails?.viewUrl ??
+      item.presigned_urls?.find((entry: Record<string, any>) =>
+        String(entry.operation ?? entry.type ?? "").toUpperCase().includes("VIEW"),
+      ),
+  ),
+  downloadUrl: resolveDocumentUrl(
+    item.download_url ??
+      item.downloadUrl ??
+      item.document_download_url ??
+      item.download ??
+      item.cloud_details?.download_url ??
+      item.document_cloud_details?.download_url ??
+      item.documentCloudDetails?.downloadUrl ??
+      item.presigned_urls?.find((entry: Record<string, any>) =>
+        String(entry.operation ?? entry.type ?? "").toUpperCase().includes("DOWNLOAD"),
+      ),
+  ),
+});
+
 type RawBuildMyCvEducationEntry = {
   level_code?: string;
   institution?: string;
@@ -891,6 +943,39 @@ const mapProfileResponse = (
 };
 
 export const candidateApi = {
+  async listOwnerDocuments(ownerId: string): Promise<CandidateDocument[]> {
+    const payload = await unwrapResponseData(
+      documentApiClient.get<Record<string, any> | Record<string, any>[]>(
+        resolveEndpoint(apiEndpoints.documents.owner, {
+          ownerType: "CANDIDATE",
+          ownerId,
+        }),
+      ),
+    );
+    const data = Array.isArray(payload)
+      ? payload
+      : Array.isArray(payload.data)
+        ? payload.data
+        : Array.isArray(payload.data?.documents)
+          ? payload.data.documents
+        : Array.isArray(payload.documents)
+          ? payload.documents
+          : [];
+    return data.map(mapDocument);
+  },
+
+  async getDocument(documentId: string): Promise<CandidateDocument> {
+    const payload = await unwrapResponseData(
+      documentApiClient.get<Record<string, any>>(
+        resolveEndpoint(apiEndpoints.documents.detail, { documentId }),
+      ),
+    );
+    const data = payload.data && typeof payload.data === "object"
+      ? payload.data
+      : payload;
+    return mapDocument(data);
+  },
+
   async getById(
     candidateId: string,
     userId?: string,
