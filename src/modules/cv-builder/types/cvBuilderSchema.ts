@@ -68,6 +68,16 @@ export const careerHistoryEntrySchema = z
     tasks: z.array(z.string()),
     projects: z.array(z.string()),
   })
+
+const emptyCareerHistoryEntrySchema = z.object({
+  companyName: z.string(),
+  positionHeld: z.string(),
+  startDate: z.string(),
+  endDate: z.string(),
+  isCurrentRole: z.boolean(),
+  tasks: z.array(z.string()),
+  projects: z.array(z.string()),
+})
   .superRefine((data, ctx) => {
     const start = monthYearToComparable(data.startDate)
     const end = monthYearToComparable(data.endDate)
@@ -102,12 +112,52 @@ export const secondaryEntrySchema = z.object({
 
 export const cvBuilderSchema = z.object({
   personalDetails: personalDetailsSchema,
-  careerHistory: z.array(careerHistoryEntrySchema),
+  careerHistory: z.array(
+    z.union([careerHistoryEntrySchema, emptyCareerHistoryEntrySchema]),
+  ),
   skills: z.array(skillEntrySchema),
   tertiaryEducation: z.array(tertiaryEntrySchema),
   secondaryEducation: z.array(secondaryEntrySchema),
   languages: z.array(z.string()),
   otherLanguage: z.string(),
+}).superRefine((data, ctx) => {
+  if (
+    data.personalDetails.currentCompany.trim() &&
+    !data.careerHistory.some(
+      (entry) => entry.companyName.trim() || entry.positionHeld.trim(),
+    )
+  ) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'At least one career history position is required when current company is provided',
+      path: ['careerHistory'],
+    })
+
+    const firstEntry = data.careerHistory[0]
+    if (firstEntry) {
+      if (!firstEntry.companyName.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Company name is required',
+          path: ['careerHistory', 0, 'companyName'],
+        })
+      }
+      if (!firstEntry.positionHeld.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Position held is required',
+          path: ['careerHistory', 0, 'positionHeld'],
+        })
+      }
+      if (!firstEntry.startDate.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Employment start date is required',
+          path: ['careerHistory', 0, 'startDate'],
+        })
+      }
+    }
+  }
 })
 
 export type CvBuilderFormValues = z.infer<typeof cvBuilderSchema>

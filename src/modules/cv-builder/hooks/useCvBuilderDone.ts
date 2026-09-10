@@ -165,6 +165,20 @@ export const buildBuildMyCvRequest = ({
   const languages = selectedLanguageEntries
     .filter(Boolean)
     .map((language) => ({ language, proficiency: "Conversational" }));
+  const careerHistory = formValues.careerHistory
+    .filter((entry) => entry.companyName.trim() || entry.positionHeld.trim())
+    .map((entry) => ({
+      company: entry.companyName.trim(),
+      jobTitle: entry.positionHeld.trim(),
+      startDate: monthNameToIso(entry.startDate.trim()),
+      endDate: entry.isCurrentRole
+        ? "Present"
+        : monthNameToIso(entry.endDate.trim()),
+      responsibilities: (entry.tasks as unknown[])
+        .map(normalizeTextEntry)
+        .filter(Boolean)
+        .join("; "),
+    }));
 
   return {
     personalDetails: {
@@ -179,20 +193,7 @@ export const buildBuildMyCvRequest = ({
       currentPosition: formValues.personalDetails.currentPosition.trim(),
       noticePeriod: formValues.personalDetails.noticePeriod.trim(),
     },
-    careerHistory: formValues.careerHistory
-      .filter((entry) => entry.companyName.trim() || entry.positionHeld.trim())
-      .map((entry) => ({
-        company: entry.companyName.trim(),
-        jobTitle: entry.positionHeld.trim(),
-        startDate: monthNameToIso(entry.startDate.trim()),
-        endDate: entry.isCurrentRole
-          ? "Present"
-          : monthNameToIso(entry.endDate.trim()),
-        responsibilities: (entry.tasks as unknown[])
-          .map(normalizeTextEntry)
-          .filter(Boolean)
-          .join("; "),
-      })),
+    ...(careerHistory.length > 0 ? { careerHistory } : {}),
     skills: formValues.skills.map((skill) => skill.name.trim()).filter(Boolean),
     education: {
       tertiaryEducation: formValues.tertiaryEducation

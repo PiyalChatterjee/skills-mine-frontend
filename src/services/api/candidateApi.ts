@@ -435,6 +435,21 @@ const toCvPayload = (payload: SaveBuildMyCvRequest) => {
       }
     : undefined;
 
+  const careerHistory = payload.careerHistory?.map((item) => {
+    const isCurrent = !item.endDate || item.endDate === "Present";
+    return {
+      company_name: item.company,
+      position_held: item.jobTitle,
+      start_date: toFullDate(item.startDate),
+      end_date: isCurrent ? null : toFullDate(item.endDate),
+      is_current: isCurrent,
+      responsibilities: (item.responsibilities ?? "")
+        .split(";")
+        .map((task) => task.trim())
+        .filter(Boolean),
+    };
+  });
+
   const body: Record<string, unknown> = {
     personal_details: personalDetails
       ? {
@@ -454,20 +469,7 @@ const toCvPayload = (payload: SaveBuildMyCvRequest) => {
     // career_history entries require an array of responsibilities and an explicit
     // is_current flag — "Present" (set by the form when isCurrentRole is checked)
     // maps to is_current: true with no end date.
-    career_history: payload.careerHistory?.map((item) => {
-      const isCurrent = !item.endDate || item.endDate === "Present";
-      return {
-        company_name: item.company,
-        position_held: item.jobTitle,
-        start_date: toFullDate(item.startDate),
-        end_date: isCurrent ? null : toFullDate(item.endDate),
-        is_current: isCurrent,
-        responsibilities: (item.responsibilities ?? "")
-          .split(";")
-          .map((task) => task.trim())
-          .filter(Boolean),
-      };
-    }),
+    ...(careerHistory?.length ? { career_history: careerHistory } : {}),
     // Skills are { skill_name } objects, not plain strings.
     skills: payload.skills?.map((skillName) => ({ skill_name: skillName })),
     // Education is a single flat array; level_code distinguishes tertiary from secondary.
@@ -514,7 +516,7 @@ type RawBuildMyCvCareerHistoryEntry = Partial<CandidateExperience> & {
   start_date?: string;
   end_date?: string;
   is_current?: boolean;
-  responsibilities_text?: string;
+  responsibilities_text?: string | string[];
 };
 
 type RawBuildMyCvEducationEntry = {
@@ -590,6 +592,14 @@ const mapBuildResponse = (
   const educationEntries = Array.isArray(education) ? education : [];
   const careerHistory =
     data.careerHistory ?? data.career_history ?? data.experience ?? [];
+  const normalizeResponsibilities = (value: unknown): string | undefined => {
+    if (Array.isArray(value)) {
+      return value
+        .filter((item): item is string => typeof item === "string")
+        .join("; ");
+    }
+    return typeof value === "string" ? value : undefined;
+  };
   const normalizeEducationEntry = (entry: RawBuildMyCvEducationEntry) => ({
     institution:
       entry.institution ??
@@ -632,9 +642,9 @@ const mapBuildResponse = (
       startDate: item.startDate ?? item.start_date ?? "",
       endDate:
         item.endDate ?? item.end_date ?? (item.is_current ? "Present" : ""),
-      responsibilities: Array.isArray(item.responsibilities)
-        ? item.responsibilities.filter(Boolean).join("; ")
-        : (item.responsibilities ?? item.responsibilities_text),
+      responsibilities:
+        normalizeResponsibilities(item.responsibilities) ??
+        normalizeResponsibilities(item.responsibilities_text),
     })),
     skills: (data.skills ?? [])
       .map((skill) => {

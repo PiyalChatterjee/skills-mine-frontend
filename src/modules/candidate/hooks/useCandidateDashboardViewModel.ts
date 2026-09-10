@@ -157,17 +157,15 @@ const transformApplicationToDisplay = (
   app: DashboardApplication,
 ): DisplayApplication => {
   const status = mapStageToStatusKey(app.stage);
-  const pipeline = app.pipeline.length >= DEFAULT_PIPELINE.length
-    ? app.pipeline
-    : DEFAULT_PIPELINE;
+  const pipeline = app.pipeline.length > 0 ? app.pipeline : DEFAULT_PIPELINE;
 
   return {
     id: app.id,
     jobId: app.job.id,
     title: app.job.title,
     status,
-    pipelineStages: pipeline.map((stageKey, index) => ({
-      key: `${stageKey}-${index}`,
+    pipelineStages: pipeline.map((stageKey) => ({
+      key: stageKey,
       label: getApplicationStatusLabel(stageKey),
       isActive: stageKey.toLowerCase() === app.stage.toLowerCase(),
     })),
