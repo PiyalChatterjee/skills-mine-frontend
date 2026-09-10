@@ -335,7 +335,7 @@ export const useCvBuilderDone = ({
         pushNotification({
           title: buildMyCvExists ? "Changes saved" : "CV created",
           message: buildMyCvExists
-            ? "Changes saved successfully."
+            ? "Your CV has been updated successfully."
             : "CV information saved successfully.",
           level: "success",
         }),

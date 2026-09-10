@@ -3,6 +3,7 @@ import {
   Alert,
   Box,
   Button,
+  Divider,
   TextField,
   Typography,
 } from "@mui/material";
@@ -143,9 +144,7 @@ const LoginPage = () => {
       />
 
       <Box className={styles.formSection}>
-        <Typography className={styles.formHeading}>
-          Log in using your email and provided password.
-        </Typography>
+        <Typography className={styles.formHeading}>Log in</Typography>
 
         <Box component="form" className={styles.formFields} onSubmit={handleSubmit(onSubmit)}>
           {submitError ? <Alert severity="error">{submitError}</Alert> : null}
@@ -153,6 +152,37 @@ const LoginPage = () => {
           {isGoogleCallbackError ? (
             <Alert severity="error">Google sign-in failed. Please try again.</Alert>
           ) : null}
+
+          <Box className={styles.dividerRow}>
+            <Divider className={styles.dividerLine} />
+            <Typography className={styles.dividerText}>Log in with your google account</Typography>
+            <Divider className={styles.dividerLine} />
+          </Box>
+
+          <Button
+            type="button"
+            variant="outlined"
+            disabled={isGoogleRedirecting}
+            className={styles.googleButton}
+            startIcon={
+              <Box
+                component="img"
+                src={googleLogoUrl}
+                alt=""
+                aria-hidden="true"
+                className={styles.googleIcon}
+              />
+            }
+            onClick={() => void handleGoogleSignIn()}
+          >
+            {isGoogleRedirecting ? "Redirecting..." : "Sign in with Google"}
+          </Button>
+
+          <Box className={styles.dividerRow}>
+            <Divider className={styles.dividerLine} />
+            <Typography className={styles.dividerText}>Log in with your email address</Typography>
+            <Divider className={styles.dividerLine} />
+          </Box>
 
           <Box className={styles.fieldGroup}>
             <Typography className={styles.fieldLabel}>Email</Typography>
@@ -201,25 +231,6 @@ const LoginPage = () => {
               Forgot password?
             </Typography>
           </Box>
-
-          <Button
-            type="button"
-            variant="outlined"
-            disabled={isGoogleRedirecting}
-            className={styles.googleButton}
-            startIcon={
-              <Box
-                component="img"
-                src={googleLogoUrl}
-                alt=""
-                aria-hidden="true"
-                className={styles.googleIcon}
-              />
-            }
-            onClick={() => void handleGoogleSignIn()}
-          >
-            {isGoogleRedirecting ? "Redirecting..." : "Sign in with Google"}
-          </Button>
         </Box>
       </Box>
     </Box>
