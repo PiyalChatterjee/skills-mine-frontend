@@ -15,6 +15,7 @@ const CvBuilderPage = () => {
     form,
     uploadInputRef,
     activeView,
+    buildMyCvExists,
     reviewSource,
     selectedUploadFile,
     handleUploadFileSelect,
@@ -65,7 +66,7 @@ const CvBuilderPage = () => {
               cards={actionCards}
               heading={isGuestApplication ? "Upload your CV" : undefined}
             />
-          ) : reviewSource === "upload" ? (
+          ) : reviewSource === "upload" || buildMyCvExists ? (
             <CvBuilderReviewScreen
               title="Review your CV."
               description="Your CV has been uploaded, we have highlighted potential gaps in your CV."

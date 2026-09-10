@@ -1038,6 +1038,7 @@
 .languagesGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
   gap: 24px;
 }
 
@@ -1047,6 +1048,7 @@
   flex-direction: row;
   align-items: center;
   gap: 8px;
+  height: 40px;
   padding: 8px 16px;
   border-radius: 8px;
   background-color: #ffffff;
@@ -1085,9 +1087,9 @@
 
 .languageCheckbox {
   flex-shrink: 0;
-  width: 20px;
-  height: 20px;
-  border-radius: 4px;
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
   border: 1px solid #e1e3e6;
   background-color: #ffffff;
   display: grid;
@@ -1103,10 +1105,9 @@
 }
 
 .languageCheckmark {
-  color: #ffffff;
-  font-size: 12px;
-  line-height: 1;
-  font-style: normal;
+  width: 20px;
+  height: 20px;
+  display: block;
 }
 
 .languageCheckLabel,
@@ -1118,6 +1119,10 @@
   line-height: 1.5;
   letter-spacing: 0.1px;
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .languageCheckLabel:hover,
@@ -1165,16 +1170,13 @@
   border-top: 1px solid #e1e3e6;
 }
 
-.reviewSectionItem {
-  border-bottom: 1px solid #e1e3e6;
-}
-
 .reviewSectionToggle,
 .reviewSectionToggle:global(.MuiButton-root) {
   width: 100%;
   min-width: 0;
   padding: 24px 0;
   border: none;
+  border-bottom: 1px solid #e1e3e6;
   border-radius: 0;
   background: transparent;
   color: #03478c;
@@ -1225,7 +1227,7 @@
 }
 
 .reviewSectionContent {
-  padding: 0 0 24px;
+  padding: 24px 0;
 }
 
 .reviewEmbeddedSectionContent .formPanel {

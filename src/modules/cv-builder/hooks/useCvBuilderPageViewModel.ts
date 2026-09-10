@@ -265,6 +265,7 @@ export const useCvBuilderPageViewModel = () => {
   return {
     actionCards,
     activeView,
+    buildMyCvExists,
     canViewCv,
     form,
     handleDone,
