@@ -461,9 +461,15 @@ const toCvPayload = (payload: SaveBuildMyCvRequest) => {
           race: personalDetails.race,
           gender: personalDetails.gender,
           disability_status: personalDetails.disabilityStatus,
-          current_company: personalDetails.currentCompany,
-          current_position: personalDetails.currentPosition,
-          notice_period: personalDetails.noticePeriod,
+          ...(personalDetails.currentCompany?.trim()
+            ? { current_company: personalDetails.currentCompany.trim() }
+            : {}),
+          ...(personalDetails.currentPosition?.trim()
+            ? { current_position: personalDetails.currentPosition.trim() }
+            : {}),
+          ...(personalDetails.noticePeriod?.trim()
+            ? { notice_period: personalDetails.noticePeriod.trim() }
+            : {}),
         }
       : undefined,
     // career_history entries require an array of responsibilities and an explicit

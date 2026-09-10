@@ -444,6 +444,28 @@ describe('candidateApi', () => {
       expect(mockPost).toHaveBeenCalledWith('/candidates/cv-build/', expect.any(Object))
       expect(result.lastModified).toBe('2024-01-01')
     })
+
+    it('omits empty current employment fields from the payload', async () => {
+      mockPost.mockResolvedValue({ data: { success: true, data: {} } })
+
+      await candidateApi.saveBuildMyCv('candidate-1', {
+        personalDetails: {
+          firstName: 'Jane',
+          lastName: 'Doe',
+          currentCompany: '   ',
+          currentPosition: '',
+          noticePeriod: '  ',
+        },
+      })
+
+      const requestBody = mockPost.mock.calls.at(-1)?.[1] as {
+        personal_details: Record<string, unknown>
+      }
+
+      expect(requestBody.personal_details).not.toHaveProperty('current_company')
+      expect(requestBody.personal_details).not.toHaveProperty('current_position')
+      expect(requestBody.personal_details).not.toHaveProperty('notice_period')
+    })
   })
 
   describe('updateBuildMyCv', () => {
