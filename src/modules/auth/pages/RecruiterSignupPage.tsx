@@ -166,6 +166,7 @@ const RecruiterSignupPage = () => {
               helperText={errors.staffNumber?.message}
               {...register("staffNumber")}
               className={styles.inputField}
+              slotProps={{ htmlInput: { readOnly: true } }}
             />
           </Box>
 
