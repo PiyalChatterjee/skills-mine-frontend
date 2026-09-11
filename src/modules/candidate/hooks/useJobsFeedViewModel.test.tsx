@@ -124,7 +124,7 @@ describe("useJobsFeedViewModel", () => {
     const { result } = renderHook(() => useJobsFeedViewModel("latest"));
 
     expect(mocks.useJobsSearch).toHaveBeenCalledWith(expect.objectContaining({ enabled: true }));
-    expect(mocks.useSavedJobsQuery).toHaveBeenCalledWith(false);
+    expect(mocks.useSavedJobsQuery).toHaveBeenCalledWith(true);
     expect(mocks.useRecommendedPositionsQuery).toHaveBeenCalledWith(false);
     expect(result.current.modeConfig.title).toBe("Latest Opportunities");
     expect(result.current.isLatestMode).toBe(true);
