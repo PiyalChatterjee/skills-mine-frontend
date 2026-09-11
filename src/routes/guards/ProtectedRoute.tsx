@@ -2,6 +2,7 @@ import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '@/app/auth/AuthContext'
 import { isJwtExpired } from '@/app/auth/jwt'
 import { tokenStorage } from '@/app/auth/tokenStorage'
+import { isLogoutNavigationPending } from '@/app/auth/logoutNavigation'
 import { ROUTE_PATHS } from '@/routes/routePaths'
 
 export const ProtectedRoute = () => {
@@ -15,7 +16,7 @@ export const ProtectedRoute = () => {
   if (!hasAuthenticatedSession) {
     return (
       <Navigate
-        to={ROUTE_PATHS.login}
+        to={isLogoutNavigationPending() ? ROUTE_PATHS.landing : ROUTE_PATHS.login}
         replace
         state={{ from: location.pathname }}
       />

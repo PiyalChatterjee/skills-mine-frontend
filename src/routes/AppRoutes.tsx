@@ -97,6 +97,7 @@ export const AppRoutes = () => {
           <Route path={ROUTE_PATHS.landing} element={<LandingPage />} />
           <Route path={ROUTE_PATHS.login} element={<LoginPage />} />
           <Route path={ROUTE_PATHS.authCallback} element={<AuthCallbackPage />} />
+          <Route path="/callback" element={<AuthCallbackPage />} />
           <Route path={ROUTE_PATHS.signup} element={<SignupPage />} />
           <Route path={ROUTE_PATHS.recruiterSignup} element={<RecruiterSignupPage />} />
           <Route

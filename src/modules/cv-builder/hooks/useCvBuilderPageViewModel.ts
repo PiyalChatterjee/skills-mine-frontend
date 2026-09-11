@@ -28,59 +28,86 @@ import {
 import { LANGUAGES_LIST, type CvActionCard } from "../types/cvBuilder";
 import type { CvBuilderFormValues } from "../types/cvBuilderSchema";
 
+const EMPTY_CAREER_HISTORY = {
+  companyName: "",
+  positionHeld: "",
+  startDate: "",
+  endDate: "",
+  isCurrentRole: false,
+  tasks: [""],
+  projects: [""],
+};
+
 const buildPrefillFromSavedCv = (
   buildMyCvData: BuildMyCvState,
-): Partial<CvBuilderFormValues> => ({
-  personalDetails: {
-    fullName:
-      `${buildMyCvData.personalDetails.firstName ?? ""} ${buildMyCvData.personalDetails.lastName ?? ""}`.trim(),
-    residentialLocation: buildMyCvData.personalDetails.location ?? "",
-    nationality: buildMyCvData.personalDetails.nationality ?? "",
-    noticePeriod: buildMyCvData.personalDetails.noticePeriod ?? "",
-    currentCompany: buildMyCvData.personalDetails.currentCompany ?? "",
-    currentPosition: buildMyCvData.personalDetails.currentPosition ?? "",
-    race: buildMyCvData.personalDetails.race ?? "",
-    gender: buildMyCvData.personalDetails.gender ?? "",
-    disabilityStatus: buildMyCvData.personalDetails.disabilityStatus ?? "",
-  },
-  careerHistory: (Array.isArray(buildMyCvData.careerHistory)
-    ? buildMyCvData.careerHistory
-    : []
-  ).map((entry) => ({
-    companyName: entry.company ?? "",
-    positionHeld: entry.jobTitle ?? "",
-    startDate: isoToMonthName(entry.startDate ?? ""),
-    endDate:
-      entry.endDate == null || (entry.endDate ?? "").toLowerCase() === "present"
-        ? "Present"
-        : isoToMonthName(entry.endDate),
-    isCurrentRole:
-      entry.endDate == null || (entry.endDate ?? "").toLowerCase() === "present",
-    tasks: [entry.responsibilities ?? ""],
-    projects: [""],
-  })),
-  skills: (Array.isArray(buildMyCvData.skills) ? buildMyCvData.skills : []).map((name) => ({ name })),
-  tertiaryEducation: (buildMyCvData.education?.tertiaryEducation ?? []).map((entry) => ({
-    institutionName: entry.institution ?? "",
-    degreeOrCertification: entry.qualification ?? "",
-    yearCompleted: String(entry.yearCompleted ?? ""),
-  })),
-  secondaryEducation: (buildMyCvData.education?.secondaryEducation ?? []).map((entry) => ({
-    // mapBuildResponse (candidateApi.ts) normalizes both levels onto `institution`, not `schoolName`.
-    institutionName: entry.institution ?? entry.schoolName ?? "",
-    highestGradePassed: entry.qualification ?? "",
-    yearCompleted: String(entry.yearCompleted ?? ""),
-  })),
-  languages: (Array.isArray(buildMyCvData.languages) ? buildMyCvData.languages : [])
+): Partial<CvBuilderFormValues> => {
+  const currentCompany = buildMyCvData.personalDetails.currentCompany ?? "";
+
+  return {
+    personalDetails: {
+      fullName:
+        `${buildMyCvData.personalDetails.firstName ?? ""} ${buildMyCvData.personalDetails.lastName ?? ""}`.trim(),
+      residentialLocation: buildMyCvData.personalDetails.location ?? "",
+      nationality: buildMyCvData.personalDetails.nationality ?? "",
+      noticePeriod: buildMyCvData.personalDetails.noticePeriod ?? "",
+      currentCompany,
+      currentPosition: buildMyCvData.personalDetails.currentPosition ?? "",
+      race: buildMyCvData.personalDetails.race ?? "",
+      gender: buildMyCvData.personalDetails.gender ?? "",
+      disabilityStatus: buildMyCvData.personalDetails.disabilityStatus ?? "",
+    },
+    careerHistory: (() => {
+      const savedEntries = (Array.isArray(buildMyCvData.careerHistory)
+        ? buildMyCvData.careerHistory
+        : []
+      )
+        .filter(
+          (entry) =>
+            entry.company?.trim() ||
+            entry.jobTitle?.trim() ||
+            entry.startDate?.trim() ||
+            entry.endDate?.trim() ||
+            entry.responsibilities?.trim(),
+        )
+        .map((entry) => ({
+          companyName: entry.company ?? "",
+          positionHeld: entry.jobTitle ?? "",
+          startDate: isoToMonthName(entry.startDate ?? ""),
+          endDate:
+            entry.endDate == null || (entry.endDate ?? "").toLowerCase() === "present"
+              ? "Present"
+              : isoToMonthName(entry.endDate),
+          isCurrentRole:
+            entry.endDate == null || (entry.endDate ?? "").toLowerCase() === "present",
+          tasks: [entry.responsibilities ?? ""],
+          projects: [""],
+        }));
+
+      return savedEntries.length > 0 ? savedEntries : [EMPTY_CAREER_HISTORY];
+    })(),
+    skills: (Array.isArray(buildMyCvData.skills) ? buildMyCvData.skills : []).map((name) => ({ name })),
+    tertiaryEducation: (buildMyCvData.education?.tertiaryEducation ?? []).map((entry) => ({
+      institutionName: entry.institution ?? "",
+      degreeOrCertification: entry.qualification ?? "",
+      yearCompleted: String(entry.yearCompleted ?? ""),
+    })),
+    secondaryEducation: (buildMyCvData.education?.secondaryEducation ?? []).map((entry) => ({
+      // mapBuildResponse (candidateApi.ts) normalizes both levels onto `institution`, not `schoolName`.
+      institutionName: entry.institution ?? entry.schoolName ?? "",
+      highestGradePassed: entry.qualification ?? "",
+      yearCompleted: String(entry.yearCompleted ?? ""),
+    })),
+    languages: (Array.isArray(buildMyCvData.languages) ? buildMyCvData.languages : [])
     .map((language) => language.language)
     .filter((language): language is (typeof LANGUAGES_LIST)[number] =>
       LANGUAGES_LIST.includes(language as never),
     ),
-  otherLanguage:
-    (Array.isArray(buildMyCvData.languages) ? buildMyCvData.languages : [])
-      .map((language) => language.language)
-      .find((language) => !LANGUAGES_LIST.includes(language as never)) ?? "",
-});
+    otherLanguage:
+      (Array.isArray(buildMyCvData.languages) ? buildMyCvData.languages : [])
+        .map((language) => language.language)
+        .find((language) => !LANGUAGES_LIST.includes(language as never)) ?? "",
+  };
+};
 
 export const useCvBuilderPageViewModel = () => {
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
@@ -160,6 +187,7 @@ export const useCvBuilderPageViewModel = () => {
     getFormValues: form.getValues,
     selectedLanguageEntries,
     buildMyCvExists,
+    validateForm: form.trigger,
     hasFormChanges,
     userRole: user?.role,
     guestApplicationDraft,
@@ -237,6 +265,7 @@ export const useCvBuilderPageViewModel = () => {
   return {
     actionCards,
     activeView,
+    buildMyCvExists,
     canViewCv,
     form,
     handleDone,

@@ -81,14 +81,23 @@ const monthNameToIso = (value: string): string => {
     return value;
   }
 
-  const monthIndex = monthNames.findIndex(
-    (name) => name.toLowerCase() === month.toLowerCase(),
+  const monthIndex = monthNames.findIndex((name) =>
+    name.toLowerCase().startsWith(month.toLowerCase()),
   );
   if (monthIndex < 0) {
     return value;
   }
 
   return `${year}-${String(monthIndex + 1).padStart(2, "0")}`;
+};
+
+const normalizeTextEntry = (value: unknown): string => {
+  if (typeof value === "string") return value.trim();
+  if (!value || typeof value !== "object") return "";
+
+  const entry = value as Record<string, unknown>;
+  const nestedValue = entry.text ?? entry.description ?? entry.value ?? entry.name;
+  return typeof nestedValue === "string" ? nestedValue.trim() : "";
 };
 
 export const isoToMonthName = (value: string): string => {
@@ -137,6 +146,7 @@ type UseCvBuilderDoneArgs = {
   getFormValues: () => CvBuilderFormValues;
   selectedLanguageEntries: string[];
   buildMyCvExists: boolean;
+  validateForm?: () => Promise<boolean>;
   hasFormChanges?: boolean;
   userRole?: Role;
   guestApplicationDraft?: GuestApplicationDraft;
@@ -155,6 +165,20 @@ export const buildBuildMyCvRequest = ({
   const languages = selectedLanguageEntries
     .filter(Boolean)
     .map((language) => ({ language, proficiency: "Conversational" }));
+  const careerHistory = formValues.careerHistory
+    .filter((entry) => entry.companyName.trim() || entry.positionHeld.trim())
+    .map((entry) => ({
+      company: entry.companyName.trim(),
+      jobTitle: entry.positionHeld.trim(),
+      startDate: monthNameToIso(entry.startDate.trim()),
+      endDate: entry.isCurrentRole
+        ? "Present"
+        : monthNameToIso(entry.endDate.trim()),
+      responsibilities: (entry.tasks as unknown[])
+        .map(normalizeTextEntry)
+        .filter(Boolean)
+        .join("; "),
+    }));
 
   return {
     personalDetails: {
@@ -169,20 +193,7 @@ export const buildBuildMyCvRequest = ({
       currentPosition: formValues.personalDetails.currentPosition.trim(),
       noticePeriod: formValues.personalDetails.noticePeriod.trim(),
     },
-    careerHistory: formValues.careerHistory
-      .filter((entry) => entry.companyName.trim() || entry.positionHeld.trim())
-      .map((entry) => ({
-        company: entry.companyName.trim(),
-        jobTitle: entry.positionHeld.trim(),
-        startDate: monthNameToIso(entry.startDate.trim()),
-        endDate: entry.isCurrentRole
-          ? "Present"
-          : monthNameToIso(entry.endDate.trim()),
-        responsibilities: entry.tasks
-          .map((task) => task.trim())
-          .filter(Boolean)
-          .join("; "),
-      })),
+    ...(careerHistory.length > 0 ? { careerHistory } : {}),
     skills: formValues.skills.map((skill) => skill.name.trim()).filter(Boolean),
     education: {
       tertiaryEducation: formValues.tertiaryEducation
@@ -215,6 +226,7 @@ export const useCvBuilderDone = ({
   getFormValues,
   selectedLanguageEntries,
   buildMyCvExists,
+  validateForm,
   hasFormChanges = true,
   userRole,
   guestApplicationDraft,
@@ -231,6 +243,8 @@ export const useCvBuilderDone = ({
   const isSavingCandidateProfile = isCreating || isUpdating;
 
   const handleDone = useCallback(async () => {
+    await validateForm?.();
+
     const payload = buildBuildMyCvRequest({
       formValues: getFormValues(),
       selectedLanguageEntries,
@@ -321,7 +335,7 @@ export const useCvBuilderDone = ({
         pushNotification({
           title: buildMyCvExists ? "Changes saved" : "CV created",
           message: buildMyCvExists
-            ? "Changes saved successfully."
+            ? "Your CV has been updated successfully."
             : "CV information saved successfully.",
           level: "success",
         }),
@@ -358,6 +372,7 @@ export const useCvBuilderDone = ({
     userId,
     userRole,
     navigate,
+    validateForm,
   ]);
 
   return {

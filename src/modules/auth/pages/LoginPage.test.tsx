@@ -114,7 +114,11 @@ describe('LoginPage', () => {
   })
 
   it('calls authApi.login and navigates on success', async () => {
-    mockAuthApi.login.mockResolvedValue({ accessToken: 'abc', refreshToken: 'def' })
+    mockAuthApi.login.mockResolvedValue({
+      accessToken: 'abc',
+      refreshToken: 'def',
+      user: { userId: 'user-1', role: 'RECRUITER' },
+    })
     renderPage()
     await userEvent.type(screen.getByPlaceholderText('Email'), 'user@test.com')
     await userEvent.type(screen.getByPlaceholderText('Password'), 'mypassword')

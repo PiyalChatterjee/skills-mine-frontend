@@ -15,7 +15,7 @@ const CvBuilderPage = () => {
     form,
     uploadInputRef,
     activeView,
-    canViewCv,
+    buildMyCvExists,
     reviewSource,
     selectedUploadFile,
     handleUploadFileSelect,
@@ -66,7 +66,7 @@ const CvBuilderPage = () => {
               cards={actionCards}
               heading={isGuestApplication ? "Upload your CV" : undefined}
             />
-          ) : reviewSource === "upload" ? (
+          ) : reviewSource === "upload" || buildMyCvExists ? (
             <CvBuilderReviewScreen
               title="Review your CV."
               description="Your CV has been uploaded, we have highlighted potential gaps in your CV."
@@ -79,7 +79,7 @@ const CvBuilderPage = () => {
         {activeView === "review" && (
           <CvBuilderFooterActions
             onNext={handleDone}
-            isNextDisabled={!canViewCv || isSavingCandidateProfile}
+            isNextDisabled={isSavingCandidateProfile}
             nextLabel={isSavingCandidateProfile ? "Saving…" : "Save & Submit"}
             showNextIcon={false}
           />

@@ -122,15 +122,16 @@ const normalizePersonalDetailsFieldValue = (
 };
 
 const isCareerPristine = (entries: CvBuilderFormValues["careerHistory"]) =>
-  entries.length === 1 &&
-  !entries[0].companyName &&
-  !entries[0].positionHeld &&
-  !entries[0].startDate &&
-  !entries[0].endDate &&
-  entries[0].tasks.length === 1 &&
-  !entries[0].tasks[0] &&
-  entries[0].projects.length === 1 &&
-  !entries[0].projects[0];
+  entries.length === 0 ||
+  (entries.length === 1 &&
+    !entries[0].companyName &&
+    !entries[0].positionHeld &&
+    !entries[0].startDate &&
+    !entries[0].endDate &&
+    entries[0].tasks.length === 1 &&
+    !entries[0].tasks[0] &&
+    entries[0].projects.length === 1 &&
+    !entries[0].projects[0]);
 
 const isSkillsPristine = (entries: CvBuilderFormValues["skills"]) =>
   entries.length === 1 && !entries[0].name;
@@ -228,8 +229,12 @@ const useCvBuilder = (
         languages: languages ?? DEFAULT_FORM_VALUES.languages,
         otherLanguage: otherLanguage ?? DEFAULT_FORM_VALUES.otherLanguage,
       });
-      // Surface any prefilled-but-incomplete fields (e.g. missing institution name) right away.
-      void form.trigger();
+      // Surface incomplete prefilled fields, but do not validate optional career history.
+      void form.trigger().then(() => {
+        if (!form.getValues("personalDetails.currentCompany").trim()) {
+          form.clearErrors("careerHistory");
+        }
+      });
       return;
     }
 
@@ -289,8 +294,12 @@ const useCvBuilder = (
     ) {
       form.setValue("otherLanguage", otherLanguage);
     }
-    // Surface any prefilled-but-incomplete fields (e.g. missing institution name) right away.
-    void form.trigger();
+    // Surface incomplete prefilled fields, but do not validate optional career history.
+    void form.trigger().then(() => {
+      if (!form.getValues("personalDetails.currentCompany").trim()) {
+        form.clearErrors("careerHistory");
+      }
+    });
   }, [prefillData, forceApply]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const personalDetailsValues = useWatch({
@@ -319,12 +328,21 @@ const useCvBuilder = (
     name: "otherLanguage",
   });
 
+  useEffect(() => {
+    if (personalDetailsValues?.currentCompany?.trim()) {
+      void form.trigger("careerHistory");
+      return;
+    }
+
+    form.clearErrors("careerHistory");
+  }, [form, personalDetailsValues?.currentCompany]);
+
   const isPersonalDetailsValid = useMemo(
     () => personalDetailsSchema.safeParse(personalDetailsValues).success,
     [personalDetailsValues],
   );
   const isCareerHistoryValid = useMemo(() => {
-    if (!personalDetailsValues?.currentPosition?.trim()) return true;
+    if (!personalDetailsValues?.currentCompany?.trim()) return true;
     if (!careerHistoryValues?.length) return false;
     return careerHistoryValues.every(
       (entry) => careerHistoryEntrySchema.safeParse(entry).success,

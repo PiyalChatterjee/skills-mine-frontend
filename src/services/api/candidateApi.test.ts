@@ -10,6 +10,7 @@ const mockDelete = vi.hoisted(() => vi.fn())
 vi.mock('@/services/api/axios', () => ({
   apiClient: { get: mockGet, post: mockPost, put: mockPut, delete: mockDelete },
   candidateApiClient: { get: mockGet, post: mockPost, put: mockPut, delete: mockDelete },
+  mandateApiClient: { get: mockGet, post: mockPost, put: mockPut, delete: mockDelete },
   documentApiClient: { get: mockGet, post: mockPost, put: mockPut, delete: mockDelete },
   unwrapResponseData: async (promise: Promise<unknown>) =>
     ((await promise) as { data: unknown }).data,
@@ -37,6 +38,7 @@ vi.mock('@/services/api/endpoints', () => ({
       stageTransition: '/applications/:applicationId/stage-transition',
     },
     skills: { search: '/skills/search', keywordParam: 'keyword' },
+    industries: { list: '/industries' },
   },
   resolveEndpoint: (template: string, params: Record<string, string>) =>
     Object.entries(params).reduce(
@@ -125,7 +127,7 @@ describe('candidateApi', () => {
       mockGet.mockResolvedValue(nextResponse)
       const profile = await candidateApi.getById('u-1')
 
-      expect(profile.desiredJob.employmentType).toBe('Permanent')
+      expect(profile.desiredJob.employmentType).toBe('FULL_TIME')
       expect(profile.desiredJob.industry).toBe('Technology, Financial Services')
       expect(profile.desiredJob.workType).toBe('Hybrid')
       expect(profile.desiredJob.currency).toBe('ZAR')
@@ -382,6 +384,43 @@ describe('candidateApi', () => {
   })
 
   describe('saveBuildMyCv', () => {
+    it('converts abbreviated month-year dates to API dates', async () => {
+      mockPost.mockResolvedValue({ data: { success: true, data: { lastModified: '2024-01-01' } } })
+
+      await candidateApi.saveBuildMyCv('candidate-1', {
+        careerHistory: [{ company: 'Acme', jobTitle: 'Engineer', startDate: 'Jan,2022', endDate: 'Present', responsibilities: 'Built features' }],
+      })
+
+      expect(mockPost).toHaveBeenCalledWith('/candidates/cv-build/', expect.objectContaining({
+        career_history: [expect.objectContaining({ start_date: '2022-01-01', end_date: null })],
+      }))
+    })
+
+    it('wraps a current career entry in the cv-build request contract', async () => {
+      mockPost.mockResolvedValue({ data: { success: true, data: { lastModified: '2024-01-01' } } })
+
+      await candidateApi.saveBuildMyCv('candidate-1', {
+        careerHistory: [{
+          company: 'Accenture',
+          jobTitle: 'App Developer',
+          startDate: '2021-01-01',
+          endDate: '',
+          responsibilities: '',
+        }],
+      })
+
+      expect(mockPost).toHaveBeenCalledWith('/candidates/cv-build/', {
+        career_history: [{
+          company_name: 'Accenture',
+          position_held: 'App Developer',
+          start_date: '2021-01-01',
+          end_date: null,
+          is_current: true,
+          responsibilities: [],
+        }],
+      })
+    })
+
     it('calls POST /candidates/cv-build/', async () => {
       mockPost.mockResolvedValue({ data: { success: true, data: { lastModified: '2024-01-01' } } })
       const result = await candidateApi.saveBuildMyCv('candidate-1', {
@@ -405,11 +444,33 @@ describe('candidateApi', () => {
       expect(mockPost).toHaveBeenCalledWith('/candidates/cv-build/', expect.any(Object))
       expect(result.lastModified).toBe('2024-01-01')
     })
+
+    it('omits empty current employment fields from the payload', async () => {
+      mockPost.mockResolvedValue({ data: { success: true, data: {} } })
+
+      await candidateApi.saveBuildMyCv('candidate-1', {
+        personalDetails: {
+          firstName: 'Jane',
+          lastName: 'Doe',
+          currentCompany: '   ',
+          currentPosition: '',
+          noticePeriod: '  ',
+        },
+      })
+
+      const requestBody = mockPost.mock.calls.at(-1)?.[1] as {
+        personal_details: Record<string, unknown>
+      }
+
+      expect(requestBody.personal_details).not.toHaveProperty('current_company')
+      expect(requestBody.personal_details).not.toHaveProperty('current_position')
+      expect(requestBody.personal_details).not.toHaveProperty('notice_period')
+    })
   })
 
   describe('updateBuildMyCv', () => {
-    it('calls PUT /candidates/cv-build/', async () => {
-      mockPut.mockResolvedValue({ data: { success: true, data: { lastModified: '2024-06-01' } } })
+    it('calls POST /candidates/cv-build/', async () => {
+      mockPost.mockResolvedValue({ data: { success: true, data: { lastModified: '2024-06-01' } } })
       const result = await candidateApi.updateBuildMyCv('candidate-1', {
         personalDetails: {
           firstName: 'Jane',
@@ -428,7 +489,7 @@ describe('candidateApi', () => {
         education: { tertiaryEducation: [], secondaryEducation: [] },
         languages: [],
       })
-      expect(mockPut).toHaveBeenCalledWith('/candidates/cv-build/', expect.any(Object))
+      expect(mockPost).toHaveBeenCalledWith('/candidates/cv-build/', expect.any(Object))
       expect(result.lastModified).toBe('2024-06-01')
     })
   })
@@ -521,6 +582,47 @@ describe('candidateApi', () => {
       expect(mockGet).toHaveBeenCalledWith('/candidates/profile/')
       expect(mockPost).not.toHaveBeenCalled()
       expect(result.personalDetails.firstName).toBe('Jane')
+    })
+
+    it('maps profile job details to the candidate profile contract', async () => {
+      mockPut.mockResolvedValue({ data: {} })
+      mockGet.mockImplementation((url: string) =>
+        url === '/industries'
+          ? Promise.resolve({ data: [] })
+          : Promise.resolve(mockProfileResponse),
+      )
+
+      await candidateApi.updateById('u-1', {
+        personalDetails: {
+          firstName: 'Piyal',
+          lastName: 'Chatterjee',
+          email: 'piyal.ibm0226@gmail.com',
+          mobileNumber: '+279007257812',
+          location: 'Cape Town',
+        },
+        desiredJob: {
+          jobTitle: 'Application developer',
+          industry: 'b44765ae-4107-4b2a-9339-2f6e42f2e9b2',
+          workType: '',
+          employmentType: '',
+          salaryExpectation: 0,
+          availableFrom: '',
+        },
+      } as never)
+
+      expect(mockPut).toHaveBeenCalledWith('/candidates/profile/', {
+        personal_details: expect.objectContaining({
+          first_name: 'Piyal',
+          last_name: 'Chatterjee',
+          alternate_email: 'piyal.ibm0226@gmail.com',
+          phone_number: '+279007257812',
+          residential_location: 'Cape Town',
+        }),
+        job_details: expect.objectContaining({
+          role_title: 'Application developer',
+          targeted_industry_id: 'b44765ae-4107-4b2a-9339-2f6e42f2e9b2',
+        }),
+      })
     })
   })
 

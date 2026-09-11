@@ -47,6 +47,14 @@ export const apiEndpoints = {
     staffInvitationsSend: withDefault(import.meta.env.VITE_ADMIN_STAFF_INVITATIONS_SEND_ENDPOINT, "/api/auth-service/v1/admin/staff-invitations/send"),
   },
   documents: {
+    owner: withDefault(
+      import.meta.env.VITE_DOCUMENTS_OWNER_ENDPOINT,
+      "/documents/owner/:ownerType/:ownerId",
+    ),
+    detail: withDefault(
+      import.meta.env.VITE_DOCUMENT_DETAIL_ENDPOINT,
+      "/documents/:documentId",
+    ),
     upload: withDefault(
       import.meta.env.VITE_DOCUMENTS_UPLOAD_ENDPOINT,
       "/documents",

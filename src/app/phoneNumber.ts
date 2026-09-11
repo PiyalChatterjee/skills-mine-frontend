@@ -42,6 +42,8 @@ export const toSouthAfricaApiPhoneNumber = (value: string) => {
     digits = digits.slice(2);
   }
 
+  digits = digits.slice(0, 10);
+
   if (digits.length === 10 && digits.startsWith("0")) {
     digits = digits.slice(1);
   }
@@ -52,10 +54,9 @@ export const toSouthAfricaApiPhoneNumber = (value: string) => {
 export const fromSouthAfricaApiPhoneNumber = (value: string) => {
   let digits = digitsOnly(value);
 
-  // Convert a full +27 API number back to its 10-digit local format
-  // (e.g. "+27821234567" -> "0821234567"), restoring the leading 0.
+  // Remove the country code without adding a local prefix to the field value.
   if (digits.startsWith("27") && digits.length > 10) {
-    digits = `0${digits.slice(2)}`;
+    digits = digits.slice(2);
   }
 
   return digits.slice(0, 10);

@@ -1,6 +1,7 @@
 import { Box, ButtonBase, TextField, Typography } from "@mui/material";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import languagesIcon from "@/assets/cv-builder/languages-line.svg";
+import checkLineIcon from "@/assets/icons/check-line.svg";
 import styles from "../pages/CvBuilderPage.module.css";
 import {
   CvBuilderFormPanel,
@@ -66,9 +67,12 @@ const CvBuilderLanguagesForm = () => {
                 aria-hidden="true"
               >
                 {isSelected && (
-                  <Box component="span" className={styles.languageCheckmark}>
-                    ✓
-                  </Box>
+                  <Box
+                    component="img"
+                    src={checkLineIcon}
+                    alt=""
+                    className={styles.languageCheckmark}
+                  />
                 )}
               </Box>
               <Typography

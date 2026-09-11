@@ -1,14 +1,21 @@
 import { z } from 'zod'
-import { localPhoneNumberSchema, optionalLocalPhoneNumberSchema } from '@/app/phoneNumber'
+import { optionalLocalPhoneNumberSchema } from '@/app/phoneNumber'
 import { emailSchema, optionalEmailSchema } from '@/app/validation.schema'
 
 const requiredField = (label: string) =>
   z.string().trim().min(1, `${label} is required`)
 
+const profilePhoneNumberSchema = z
+  .string()
+  .trim()
+  .min(1, 'Phone number is required')
+  .max(10, 'Phone number must be at most 10 digits')
+  .regex(/^\d+$/, 'Phone number must contain digits only')
+
 export const profileCreationSchema = z.object({
   fullName: requiredField('Full name'),
   email: emailSchema,
-  phoneNumber: localPhoneNumberSchema,
+  phoneNumber: profilePhoneNumberSchema,
   alternateEmail: optionalEmailSchema,
   alternatePhoneNumber: optionalLocalPhoneNumberSchema,
   residentialLocation: requiredField('Residential location'),

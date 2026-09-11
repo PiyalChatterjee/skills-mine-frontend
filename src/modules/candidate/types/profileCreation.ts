@@ -9,6 +9,14 @@ import type {
   CandidateProfile,
   CandidateProfileUpdatePayload,
 } from '@/modules/candidate/types'
+import {
+  toAvailabilityEnum,
+  toAvailabilityLabel,
+  toEmploymentTypeEnum,
+  toEmploymentTypeLabel,
+  toPreferredLocationEnum,
+  toPreferredLocationLabel,
+} from '@/modules/candidate/utils/profileEnums'
 
 export type ProfileCreationFormValues = z.infer<typeof profileCreationSchema>
 
@@ -89,9 +97,9 @@ export const getProfileCreationDefaultValues = (
     residentialLocation: profile.personalDetails?.location ?? '',
     preferredJobTitle: profile.desiredJob?.jobTitle ?? '',
     targetedIndustries: profile.desiredJob?.industry ?? '',
-    preferredLocations: profile.desiredJob?.workType ?? '',
-    employmentType: profile.desiredJob?.employmentType ?? '',
-    availability: profile.desiredJob?.availableFrom ?? '',
+    preferredLocations: toPreferredLocationLabel(profile.desiredJob?.workType),
+    employmentType: toEmploymentTypeLabel(profile.desiredJob?.employmentType),
+    availability: toAvailabilityLabel(profile.desiredJob?.availableFrom),
     certifications: ensureMinimumCertifications(
       profile.education?.certifications ?? [],
     ),
@@ -147,10 +155,10 @@ export const getProfileCreationPayload = (
     desiredJob: {
       jobTitle: values.preferredJobTitle.trim(),
       industry: values.targetedIndustries.trim(),
-      workType: values.preferredLocations.trim(),
-      employmentType: values.employmentType.trim(),
+      workType: toPreferredLocationEnum(values.preferredLocations),
+      employmentType: toEmploymentTypeEnum(values.employmentType),
       salaryExpectation: currentProfile?.desiredJob?.salaryExpectation ?? 0,
-      availableFrom: values.availability.trim(),
+      availableFrom: toAvailabilityEnum(values.availability),
     },
     education: {
       certifications: values.certifications

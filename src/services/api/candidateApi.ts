@@ -7,6 +7,14 @@ import {
 } from "@/services/api/axios";
 import type { AxiosResponse } from "axios";
 import { apiEndpoints, resolveEndpoint } from "@/services/api/endpoints";
+import {
+  toAvailabilityEnum,
+  toAvailabilityLabel,
+  toEmploymentTypeEnum,
+  toEmploymentTypeLabel,
+  toPreferredLocationEnum,
+  toPreferredLocationLabel,
+} from "@/modules/candidate/utils/profileEnums";
 import type {
   BuildMyCvData,
   BuildMyCvEducationSection,
@@ -46,7 +54,7 @@ import type {
 import type { CandidateProfileUpdatePayload } from "@/modules/candidate/types";
 import { toSouthAfricaApiPhoneNumber } from "@/app/phoneNumber";
 import { formatEnumLabel } from "@/app/formatEnumLabel";
-import { resolveIndustryId } from "@/services/api/industryApi";
+import { resolveIndustryId, resolveIndustryName } from "@/services/api/industryApi";
 
 const isUserSkill = (value: unknown): value is UserSkill => {
   if (!value || typeof value !== "object") {
@@ -380,10 +388,35 @@ const mapRecommendedResponse = (
     "recommended_positions",
   );
 
-// The API now expects full YYYY-MM-DD dates; our stored "YYYY-MM" values default to the 1st of the month.
+// The API expects full YYYY-MM-DD dates; month-year form values default to the 1st.
 const toFullDate = (value?: string | null): string | null => {
   if (!value) return null;
-  return /^\d{4}-\d{2}$/.test(value) ? `${value}-01` : value;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+  if (/^\d{4}-\d{2}$/.test(value)) return `${value}-01`;
+
+  const match = value.trim().match(/^([A-Za-z]+),\s?(\d{4})$/);
+  if (!match) return value;
+
+  const monthNames = [
+    "january",
+    "february",
+    "march",
+    "april",
+    "may",
+    "june",
+    "july",
+    "august",
+    "september",
+    "october",
+    "november",
+    "december",
+  ];
+  const monthIndex = monthNames.findIndex((month) =>
+    month.startsWith(match[1].toLowerCase()),
+  );
+  return monthIndex < 0
+    ? value
+    : `${match[2]}-${String(monthIndex + 1).padStart(2, "0")}-01`;
 };
 
 // The CV builder accepts a partial update: only the sections present in the body
@@ -402,6 +435,21 @@ const toCvPayload = (payload: SaveBuildMyCvRequest) => {
       }
     : undefined;
 
+  const careerHistory = payload.careerHistory?.map((item) => {
+    const isCurrent = !item.endDate || item.endDate === "Present";
+    return {
+      company_name: item.company,
+      position_held: item.jobTitle,
+      start_date: toFullDate(item.startDate),
+      end_date: isCurrent ? null : toFullDate(item.endDate),
+      is_current: isCurrent,
+      responsibilities: (item.responsibilities ?? "")
+        .split(";")
+        .map((task) => task.trim())
+        .filter(Boolean),
+    };
+  });
+
   const body: Record<string, unknown> = {
     personal_details: personalDetails
       ? {
@@ -413,28 +461,21 @@ const toCvPayload = (payload: SaveBuildMyCvRequest) => {
           race: personalDetails.race,
           gender: personalDetails.gender,
           disability_status: personalDetails.disabilityStatus,
-          current_company: personalDetails.currentCompany,
-          current_position: personalDetails.currentPosition,
-          notice_period: personalDetails.noticePeriod,
+          ...(personalDetails.currentCompany?.trim()
+            ? { current_company: personalDetails.currentCompany.trim() }
+            : {}),
+          ...(personalDetails.currentPosition?.trim()
+            ? { current_position: personalDetails.currentPosition.trim() }
+            : {}),
+          ...(personalDetails.noticePeriod?.trim()
+            ? { notice_period: personalDetails.noticePeriod.trim() }
+            : {}),
         }
       : undefined,
     // career_history entries require an array of responsibilities and an explicit
     // is_current flag — "Present" (set by the form when isCurrentRole is checked)
     // maps to is_current: true with no end date.
-    career_history: payload.careerHistory?.map((item) => {
-      const isCurrent = !item.endDate || item.endDate === "Present";
-      return {
-        company_name: item.company,
-        position_held: item.jobTitle,
-        start_date: toFullDate(item.startDate),
-        end_date: isCurrent ? null : toFullDate(item.endDate),
-        is_current: isCurrent,
-        responsibilities: (item.responsibilities ?? "")
-          .split(";")
-          .map((task) => task.trim())
-          .filter(Boolean),
-      };
-    }),
+    ...(careerHistory?.length ? { career_history: careerHistory } : {}),
     // Skills are { skill_name } objects, not plain strings.
     skills: payload.skills?.map((skillName) => ({ skill_name: skillName })),
     // Education is a single flat array; level_code distinguishes tertiary from secondary.
@@ -481,8 +522,60 @@ type RawBuildMyCvCareerHistoryEntry = Partial<CandidateExperience> & {
   start_date?: string;
   end_date?: string;
   is_current?: boolean;
-  responsibilities_text?: string;
+  responsibilities_text?: string | string[];
 };
+
+type CandidateDocument = {
+  documentId: string;
+  documentType?: string;
+  lifecycleStatus?: string;
+  viewUrl?: string;
+  downloadUrl?: string;
+};
+
+const resolveDocumentUrl = (value: unknown): string | undefined => {
+  if (typeof value === "string") return value;
+  if (!value || typeof value !== "object") return undefined;
+
+  const candidate = value as Record<string, unknown>;
+  for (const key of ["url", "href", "presigned_url", "signed_url", "view_url", "download_url"]) {
+    const resolved = resolveDocumentUrl(candidate[key]);
+    if (resolved) return resolved;
+  }
+  return undefined;
+};
+
+const mapDocument = (item: Record<string, any>): CandidateDocument => ({
+  documentId: item.document_id ?? item.documentId ?? "",
+  documentType:
+    item.document_type ?? item.documentType ?? item.type ?? item.document_type_code,
+  lifecycleStatus: item.lifecycle_status ?? item.lifecycleStatus ?? item.status,
+  viewUrl: resolveDocumentUrl(
+    item.view_url ??
+      item.viewUrl ??
+      item.document_view_url ??
+      item.url ??
+      item.view ??
+      item.cloud_details?.view_url ??
+      item.document_cloud_details?.view_url ??
+      item.documentCloudDetails?.viewUrl ??
+      item.presigned_urls?.find((entry: Record<string, any>) =>
+        String(entry.operation ?? entry.type ?? "").toUpperCase().includes("VIEW"),
+      ),
+  ),
+  downloadUrl: resolveDocumentUrl(
+    item.download_url ??
+      item.downloadUrl ??
+      item.document_download_url ??
+      item.download ??
+      item.cloud_details?.download_url ??
+      item.document_cloud_details?.download_url ??
+      item.documentCloudDetails?.downloadUrl ??
+      item.presigned_urls?.find((entry: Record<string, any>) =>
+        String(entry.operation ?? entry.type ?? "").toUpperCase().includes("DOWNLOAD"),
+      ),
+  ),
+});
 
 type RawBuildMyCvEducationEntry = {
   level_code?: string;
@@ -557,6 +650,14 @@ const mapBuildResponse = (
   const educationEntries = Array.isArray(education) ? education : [];
   const careerHistory =
     data.careerHistory ?? data.career_history ?? data.experience ?? [];
+  const normalizeResponsibilities = (value: unknown): string | undefined => {
+    if (Array.isArray(value)) {
+      return value
+        .filter((item): item is string => typeof item === "string")
+        .join("; ");
+    }
+    return typeof value === "string" ? value : undefined;
+  };
   const normalizeEducationEntry = (entry: RawBuildMyCvEducationEntry) => ({
     institution:
       entry.institution ??
@@ -599,9 +700,9 @@ const mapBuildResponse = (
       startDate: item.startDate ?? item.start_date ?? "",
       endDate:
         item.endDate ?? item.end_date ?? (item.is_current ? "Present" : ""),
-      responsibilities: Array.isArray(item.responsibilities)
-        ? item.responsibilities.filter(Boolean).join("; ")
-        : (item.responsibilities ?? item.responsibilities_text),
+      responsibilities:
+        normalizeResponsibilities(item.responsibilities) ??
+        normalizeResponsibilities(item.responsibilities_text),
     })),
     skills: (data.skills ?? [])
       .map((skill) => {
@@ -651,6 +752,7 @@ type RawProfilePersonalDetails = Partial<PersonalDetails> & {
   first_name?: string;
   last_name?: string;
   full_name?: string;
+  alternate_email?: string;
   phone_number?: string;
   alternate_email_address?: string;
   alternate_phone_number?: string;
@@ -663,6 +765,8 @@ type RawProfilePersonalDetails = Partial<PersonalDetails> & {
 
 type RawProfileDesiredJob = Partial<DesiredJob> & {
   role_title?: string;
+  role_title_id?: string;
+  targeted_industry_id?: string;
   targeted_industry?: string;
   work_type?: string;
   employment_type?: string;
@@ -749,7 +853,11 @@ const mapProfileResponse = (
         personal.last_name ??
         personal.full_name?.split(" ").slice(1).join(" ") ??
         "",
-      email: personal.email ?? "",
+      email:
+        personal.email ??
+        personal.alternate_email ??
+        personal.alternate_email_address ??
+        "",
       mobileNumber: personal.mobileNumber ?? personal.phone_number,
       alternateEmail:
         personal.alternateEmail ?? personal.alternate_email_address,
@@ -774,26 +882,27 @@ const mapProfileResponse = (
       jobTitle: desiredJob.jobTitle ?? desiredJob.role_title ?? "",
       industry:
         desiredJob.industry ??
+        desiredJob.targeted_industry_id ??
         desiredJob.targeted_industry ??
         desiredJob.industries?.join(", ") ??
         "",
       workType:
-        desiredJob.workType ??
-        desiredJob.work_type ??
-        desiredJob.locations?.join(", ") ??
-        "",
+        toPreferredLocationLabel(
+          desiredJob.workType ?? desiredJob.work_type ?? desiredJob.locations?.join(", "),
+        ),
       employmentType:
-        desiredJob.employmentType ??
-        desiredJob.employment_type ??
-        desiredJob.jobType ??
-        "",
+        toEmploymentTypeLabel(
+          desiredJob.employmentType ?? desiredJob.employment_type ?? desiredJob.jobType,
+        ),
       salaryExpectation: desiredJob.salaryExpectation ?? 0,
       currency: desiredJob.currency,
       industries: desiredJob.industries,
       locations: desiredJob.locations,
       jobType: desiredJob.jobType,
       availableFrom:
-        desiredJob.availableFrom ?? desiredJob.availability_code ?? "",
+        toAvailabilityLabel(
+          desiredJob.availableFrom ?? desiredJob.availability_code,
+        ),
     },
     education: data.education
       ? {
@@ -834,6 +943,39 @@ const mapProfileResponse = (
 };
 
 export const candidateApi = {
+  async listOwnerDocuments(ownerId: string): Promise<CandidateDocument[]> {
+    const payload = await unwrapResponseData(
+      documentApiClient.get<Record<string, any> | Record<string, any>[]>(
+        resolveEndpoint(apiEndpoints.documents.owner, {
+          ownerType: "CANDIDATE",
+          ownerId,
+        }),
+      ),
+    );
+    const data = Array.isArray(payload)
+      ? payload
+      : Array.isArray(payload.data)
+        ? payload.data
+        : Array.isArray(payload.data?.documents)
+          ? payload.data.documents
+        : Array.isArray(payload.documents)
+          ? payload.documents
+          : [];
+    return data.map(mapDocument);
+  },
+
+  async getDocument(documentId: string): Promise<CandidateDocument> {
+    const payload = await unwrapResponseData(
+      documentApiClient.get<Record<string, any>>(
+        resolveEndpoint(apiEndpoints.documents.detail, { documentId }),
+      ),
+    );
+    const data = payload.data && typeof payload.data === "object"
+      ? payload.data
+      : payload;
+    return mapDocument(data);
+  },
+
   async getById(
     candidateId: string,
     userId?: string,
@@ -844,6 +986,14 @@ export const candidateApi = {
       >(resolveEndpoint(apiEndpoints.candidate.profile, { candidateId })),
     );
     const profile = mapProfileResponse(payload);
+    if (/^[0-9a-f-]{36}$/i.test(profile.desiredJob.industry)) {
+      try {
+        profile.desiredJob.industry =
+          (await resolveIndustryName(profile.desiredJob.industry)) ?? "";
+      } catch {
+        profile.desiredJob.industry = "";
+      }
+    }
     // Prefer the caller's userId, but keep the one the response carries.
     return { ...profile, userId: userId ?? profile.userId ?? "" };
   },
@@ -871,9 +1021,9 @@ export const candidateApi = {
         job_details: omitUndefined({
           role_title: payload.desiredJob?.jobTitle,
           targeted_industry_id: targetedIndustriesId,
-          preferred_location: payload.desiredJob?.workType,
-          employment_type: payload.desiredJob?.employmentType,
-          availability: payload.desiredJob?.availableFrom,
+          preferred_location: toPreferredLocationEnum(payload.desiredJob?.workType),
+          employment_type: toEmploymentTypeEnum(payload.desiredJob?.employmentType),
+          availability: toAvailabilityEnum(payload.desiredJob?.availableFrom),
         }),
       },
     );
@@ -1232,7 +1382,7 @@ export const candidateApi = {
     payload: UpdateBuildMyCvRequest,
   ): Promise<BuildMyCvData> {
     return mapBuildMyCvRequest(
-      candidateApiClient.put<RawBuildMyCvResponse | RawBuildMyCvEnvelope>(
+      candidateApiClient.post<RawBuildMyCvResponse | RawBuildMyCvEnvelope>(
         resolveEndpoint(apiEndpoints.candidate.buildMyCv, { candidateId }),
         toCvPayload(payload),
       ),

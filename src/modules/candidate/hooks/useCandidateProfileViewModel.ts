@@ -18,6 +18,11 @@ import {
   useCandidateProfileQuery,
   useCandidateResourceId,
 } from "@/modules/candidate/hooks/useCandidateQueries";
+import { candidateApi } from "@/services/api/candidateApi";
+import {
+  formatProfilePhotoTimestamp,
+  sanitizeProfilePhotoFileNamePart,
+} from "@/modules/candidate/utils/profilePhoto";
 
 export const useCandidateProfileViewModel = () => {
   const navigate = useNavigate();
@@ -45,12 +50,37 @@ export const useCandidateProfileViewModel = () => {
   const [isPersonalEditing, setIsPersonalEditing] = useState(false);
   const [isDesiredEditing, setIsDesiredEditing] = useState(false);
   const [profilePhotoPreviewUrl, setProfilePhotoPreviewUrl] = useState<string | null>(null);
+  const [profilePhotoDocumentUrl, setProfilePhotoDocumentUrl] = useState<string | null>(null);
   const profilePhotoInputRef = useRef<HTMLInputElement | null>(null);
   const industryOptions = useIndustryOptions(PROFILE_SELECT_OPTIONS.targetedIndustries);
 
   useEffect(() => {
     reset(getProfileFormValues(resolvedCandidateProfile));
   }, [resolvedCandidateProfile, reset]);
+
+  useEffect(() => {
+    if (!candidateId) return;
+    let active = true;
+
+    void candidateApi.listOwnerDocuments(candidateId).then(async (documents) => {
+      const identityDocument = documents.find(
+        (document) =>
+          document.documentType?.toUpperCase() === "IDENTITY_DOCUMENT" &&
+          document.lifecycleStatus?.toUpperCase() !== "DELETED",
+      );
+      if (!identityDocument?.documentId) return;
+
+      const detail = await candidateApi.getDocument(identityDocument.documentId);
+      const documentUrl = detail.viewUrl ?? detail.downloadUrl;
+      if (active && documentUrl) {
+        setProfilePhotoDocumentUrl(documentUrl);
+      }
+    }).catch(() => undefined);
+
+    return () => {
+      active = false;
+    };
+  }, [candidateId]);
 
   const handleEditPersonal = () => {
     setIsPersonalEditing(true);
@@ -68,6 +98,11 @@ export const useCandidateProfileViewModel = () => {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    if (!file.type.startsWith("image/")) {
+      event.target.value = "";
+      return;
+    }
+
     const nextPreviewUrl = URL.createObjectURL(file);
     setProfilePhotoPreviewUrl((previousUrl) => {
       if (previousUrl) {
@@ -75,6 +110,14 @@ export const useCandidateProfileViewModel = () => {
       }
       return nextPreviewUrl;
     });
+    const fullName = getValues("fullName");
+    const extension = file.name.split(".").pop()?.toLowerCase() || "jpg";
+    const fileName = `${candidateId ?? userId ?? "candidate"}_${sanitizeProfilePhotoFileNamePart(fullName)}_GTMT${formatProfilePhotoTimestamp(new Date())}.${extension}`;
+    if (candidateId) {
+      void candidateApi
+        .uploadDocument(candidateId, file, fileName, "IDENTITY_DOCUMENT")
+        .catch(() => undefined);
+    }
     event.target.value = "";
   };
 
@@ -103,8 +146,10 @@ export const useCandidateProfileViewModel = () => {
       );
 
       try {
+        const profileCandidateId =
+          resolvedCandidateProfile?.candidateId ?? candidateId;
         const updatedProfile = await dispatch(
-          saveProfileThunk({ userId, payload }),
+          saveProfileThunk({ userId, candidateId: profileCandidateId, payload }),
         ).unwrap();
 
         reset(getProfileFormValues(updatedProfile));
@@ -121,8 +166,10 @@ export const useCandidateProfileViewModel = () => {
   };
 
   const activeProfilePhotoUrl =
-    // No backend endpoint for profile photos yet — preview is local-only, never uploaded.
-    profilePhotoPreviewUrl ?? resolvedCandidateProfile?.personalDetails?.profileImageUrl ?? null;
+    profilePhotoPreviewUrl ??
+    profilePhotoDocumentUrl ??
+    resolvedCandidateProfile?.personalDetails?.profileImageUrl ??
+    null;
 
   return {
     activeProfilePhotoUrl,

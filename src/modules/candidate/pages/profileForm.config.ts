@@ -8,6 +8,14 @@ import {
 import { emailSchema, optionalEmailSchema } from '@/app/validation.schema'
 import { splitCandidateFullName } from '@/modules/candidate/utils/candidateName'
 import type { CandidateProfile, CandidateProfileUpdatePayload } from '@/modules/candidate/types'
+import {
+  toAvailabilityEnum,
+  toAvailabilityLabel,
+  toEmploymentTypeEnum,
+  toEmploymentTypeLabel,
+  toPreferredLocationEnum,
+  toPreferredLocationLabel,
+} from '@/modules/candidate/utils/profileEnums'
 
 const requiredField = (label: string) =>
   z.string().trim().min(1, `${label} is required`)
@@ -77,17 +85,11 @@ export const getProfileFormValues = (
     residentialLocation: profile?.personalDetails?.location ?? '',
     preferredJobTitle: profile?.desiredJob?.jobTitle ?? '',
     targetedIndustries: profile?.desiredJob?.industry ?? '',
-    preferredWorkType: profile?.desiredJob?.workType ?? '',
-    employmentType: normalizeEmploymentType(profile?.desiredJob?.employmentType),
-    availability: profile?.desiredJob?.availableFrom ?? '',
+    preferredWorkType: toPreferredLocationLabel(profile?.desiredJob?.workType),
+    employmentType: toEmploymentTypeLabel(profile?.desiredJob?.employmentType),
+    availability: toAvailabilityLabel(profile?.desiredJob?.availableFrom),
     password: profile?.authentication?.password ?? '',
   }
-}
-
-const normalizeEmploymentType = (value?: string) => {
-  if (!value) return ''
-  if (value === 'Permanent') return 'FULL_TIME'
-  return value.toUpperCase().replaceAll(' ', '_')
 }
 
 export const getCandidateProfileUpdatePayload = (
@@ -118,10 +120,10 @@ export const getCandidateProfileUpdatePayload = (
     desiredJob: {
       jobTitle: values.preferredJobTitle.trim(),
       industry: values.targetedIndustries.trim(),
-      workType: values.preferredWorkType.trim(),
-      employmentType: values.employmentType.trim(),
+      workType: toPreferredLocationEnum(values.preferredWorkType),
+      employmentType: toEmploymentTypeEnum(values.employmentType),
       salaryExpectation: currentProfile?.desiredJob?.salaryExpectation ?? 0,
-      availableFrom: values.availability.trim(),
+      availableFrom: toAvailabilityEnum(values.availability),
     },
     experience: currentProfile?.experience ?? [],
     skills: currentProfile?.skills ?? [],

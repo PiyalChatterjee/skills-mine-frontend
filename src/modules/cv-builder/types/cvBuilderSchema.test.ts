@@ -100,6 +100,125 @@ describe('personalDetailsSchema', () => {
     })
     expect(result.success).toBe(true)
   })
+
+  it('allows empty career history when current company is blank', () => {
+    const result = cvBuilderSchema.safeParse({
+      personalDetails: validPersonal,
+      careerHistory: [],
+      skills: [{ name: 'React' }],
+      tertiaryEducation: [{
+        institutionName: 'University',
+        degreeOrCertification: 'BSc',
+        yearCompleted: '2020',
+      }],
+      secondaryEducation: [{
+        institutionName: 'School',
+        highestGradePassed: 'Grade 12',
+        yearCompleted: '2016',
+      }],
+      languages: ['English'],
+      otherLanguage: '',
+    })
+
+    expect(result.success).toBe(true)
+  })
+
+  it('allows the untouched blank position placeholder when current company is blank', () => {
+    const result = cvBuilderSchema.safeParse({
+      personalDetails: validPersonal,
+      careerHistory: [{
+        companyName: '',
+        positionHeld: '',
+        startDate: '',
+        endDate: '',
+        isCurrentRole: false,
+        tasks: [''],
+        projects: [''],
+      }],
+      skills: [{ name: 'React' }],
+      tertiaryEducation: [{
+        institutionName: 'University',
+        degreeOrCertification: 'BSc',
+        yearCompleted: '2020',
+      }],
+      secondaryEducation: [{
+        institutionName: 'School',
+        highestGradePassed: 'Grade 12',
+        yearCompleted: '2016',
+      }],
+      languages: ['English'],
+      otherLanguage: '',
+    })
+
+    expect(result.success).toBe(true)
+  })
+
+  it('requires career history when current company is provided', () => {
+    const result = cvBuilderSchema.safeParse({
+      personalDetails: {
+        ...validPersonal,
+        currentCompany: 'Acme Corp',
+        currentPosition: 'Engineer',
+        noticePeriod: '1 Month',
+      },
+      careerHistory: [],
+      skills: [{ name: 'React' }],
+      tertiaryEducation: [{
+        institutionName: 'University',
+        degreeOrCertification: 'BSc',
+        yearCompleted: '2020',
+      }],
+      secondaryEducation: [{
+        institutionName: 'School',
+        highestGradePassed: 'Grade 12',
+        yearCompleted: '2016',
+      }],
+      languages: ['English'],
+      otherLanguage: '',
+    })
+
+    expect(result.success).toBe(false)
+  })
+
+  it('accepts the populated CV builder values used by the review screen', () => {
+    const result = cvBuilderSchema.safeParse({
+      personalDetails: {
+        fullName: 'John Doe',
+        race: 'African',
+        gender: 'Male',
+        disabilityStatus: 'None',
+        nationality: 'African',
+        residentialLocation: 'Johannesburg',
+        currentCompany: 'Accenture',
+        currentPosition: 'App developer',
+        noticePeriod: '1_MONTH',
+      },
+      careerHistory: [{
+        companyName: 'Accenture',
+        positionHeld: 'App Developer',
+        startDate: 'Jan,2022',
+        endDate: '',
+        isCurrentRole: true,
+        tasks: ['Lead frontend development for enterprise clients using React and Node.js.'],
+        projects: [''],
+      }],
+      skills: [{ name: 'Node.js' }],
+      tertiaryEducation: [{
+        institutionName: 'University of Whitesand',
+        degreeOrCertification: 'BE in Computer Science',
+        yearCompleted: '2025',
+      }],
+      secondaryEducation: [{
+        institutionName: 'Northcliff High School',
+        highestGradePassed: 'Grade 12',
+        yearCompleted: '2021',
+      }],
+      languages: ['English'],
+      otherLanguage: '',
+    })
+
+    expect(result.success).toBe(true)
+  })
 })
 
 // ─── careerHistoryEntrySchema ─────────────────────────────────────────────────
