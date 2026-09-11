@@ -1,6 +1,9 @@
 import { Box, Button, ButtonBase, CircularProgress, Popover, Typography } from '@mui/material'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useDispatch } from 'react-redux'
 import { mandateApi } from '@/services/api/mandateApi'
+import { pushNotification } from '@/store/slices/notificationSlice'
+import type { AppDispatch } from '@/store'
 import type { JobPost } from '@/types/api'
 import styles from './MandatesScreen.module.css'
 
@@ -32,6 +35,8 @@ function toTitleCase(s: string): string {
 }
 
 export const MandatesScreen = ({ onNewJobPost, onEditJobPost }: MandatesScreenProps) => {
+  const dispatch = useDispatch<AppDispatch>()
+
   const [jobPosts, setJobPosts] = useState<JobPost[]>([])
   const [loading, setLoading]   = useState(true)
   const [error, setError]       = useState<string | null>(null)
@@ -82,6 +87,8 @@ export const MandatesScreen = ({ onNewJobPost, onEditJobPost }: MandatesScreenPr
 
   // ── Client-side filtering ─────────────────────────────────────────────────
   const filteredRows = jobPosts.filter((post) => {
+    if (post.status.toUpperCase() === 'CANCELLED') return false
+
     const q = searchQuery.trim().toLowerCase()
     const searchMatch =
       q === '' ||
@@ -159,15 +166,30 @@ export const MandatesScreen = ({ onNewJobPost, onEditJobPost }: MandatesScreenPr
     handleClose()
     if (!idToDelete) return
 
+    const deletedPost = jobPosts.find((p) => p.mandateId === idToDelete)
+
     // Optimistic removal
     setJobPosts((prev) => prev.filter((p) => p.mandateId !== idToDelete))
 
-    mandateApi.deleteJobPost(idToDelete).catch(() => {
-      // Restore the row if the request fails
-      mandateApi.getJobPosts().then((envelope) => {
-        setJobPosts(envelope.data ?? [])
+    mandateApi.deleteJobPost(idToDelete)
+      .then(() => {
+        dispatch(pushNotification({
+          level: 'success',
+          title: 'Job post deleted',
+          message: deletedPost ? `"${deletedPost.title}" has been deleted.` : undefined,
+        }))
       })
-    })
+      .catch(() => {
+        // Restore the row if the request fails
+        mandateApi.getJobPosts().then((envelope) => {
+          setJobPosts(envelope.data ?? [])
+        })
+        dispatch(pushNotification({
+          level: 'error',
+          title: 'Delete failed',
+          message: 'Could not delete the job post. Please try again.',
+        }))
+      })
   }
 
   const open = Boolean(anchorEl)
