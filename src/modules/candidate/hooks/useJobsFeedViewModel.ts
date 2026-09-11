@@ -86,7 +86,8 @@ export const useJobsFeedViewModel = (mode: JobsFeedMode) => {
   const isLatestMode = !isSavedOnlyMode && !isRecommendedOnlyMode;
   const modeConfig = JOBS_FEED_MODE_CONFIG[mode];
   const recommendedJobIds = useSelector(selectRecommendedJobIds);
-  const savedJobsQuery = useSavedJobsQuery(isSavedOnlyMode);
+  // Always fetched (not gated to the Saved Jobs page) so isJobSaved is accurate on every feed page.
+  const savedJobsQuery = useSavedJobsQuery(true);
   const recommendedPositionsQuery = useRecommendedPositionsQuery(isRecommendedOnlyMode);
 
   const {
@@ -231,10 +232,10 @@ export const useJobsFeedViewModel = (mode: JobsFeedMode) => {
     handleViewJob,
     hasJobs: jobCards.length > 0,
     hasNextPage,
-    isError: isJobsError || savedJobsQuery.isError || recommendedPositionsQuery.isError,
+    isError: isJobsError || (isSavedOnlyMode && savedJobsQuery.isError) || recommendedPositionsQuery.isError,
     isFetchingNextPage,
     isLatestMode,
-    isLoading: isJobsLoading || savedJobsQuery.isLoading || recommendedPositionsQuery.isLoading,
+    isLoading: isJobsLoading || (isSavedOnlyMode && savedJobsQuery.isLoading) || recommendedPositionsQuery.isLoading,
     isRecommendedOnlyMode,
     isSavedOnlyMode,
     jobCards,
