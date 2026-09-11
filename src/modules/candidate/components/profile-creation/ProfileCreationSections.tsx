@@ -42,6 +42,7 @@ export const ProfileCreationPersonalDetailsSection = ({
           control={control}
           name="phoneNumber"
           label="Phone number*"
+          maxLength={10}
         />
         <ProfileTextField
           control={control}
@@ -52,6 +53,7 @@ export const ProfileCreationPersonalDetailsSection = ({
           control={control}
           name="alternatePhoneNumber"
           label="Alternative number"
+          maxLength={10}
         />
         <ProfileTextField
           control={control}

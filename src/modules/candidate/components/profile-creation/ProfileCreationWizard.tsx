@@ -13,7 +13,6 @@ const ProfileCreationWizard = () => {
     totalSteps,
     activeStepId,
     canGoNext,
-    handleBack,
     handleNext,
     isLoading,
     isFetching,
@@ -90,27 +89,8 @@ const ProfileCreationWizard = () => {
             noValidate
           >
             {stepContent}
-          </Box>
-        </Box>
 
-        <Box className={styles.footerBar}>
-          <Box className={styles.footerInner}>
-            <Button
-              type="button"
-              onClick={handleBack}
-              className={`${styles.backButton} wizard-back-button`}
-              disableRipple
-            >
-              <img
-                src={arrowRightIconSrc}
-                alt=""
-                aria-hidden="true"
-                className={styles.buttonArrowBack}
-              />
-              Back
-            </Button>
-
-            <Box className={styles.footerRight}>
+            <Box className={styles.formFooterActions}>
               <Button
                 type="button"
                 onClick={handleNext}
@@ -118,7 +98,7 @@ const ProfileCreationWizard = () => {
                 disabled={!canGoNext || isSubmitting}
                 disableRipple
               >
-                {isSubmitting ? 'Saving…' : isFinalStep ? 'Done' : 'Next'}
+                {isSubmitting ? 'Saving…' : isFinalStep ? 'Submit' : 'Next'}
                 {isFinalStep ? null : (
                   <img
                     src={arrowRightIconSrc}

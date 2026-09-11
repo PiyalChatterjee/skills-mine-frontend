@@ -74,16 +74,16 @@ const CvBuilderPage = () => {
           ) : (
             <CvBuilderReviewScreen />
           )}
-        </Box>
 
-        {activeView === "review" && (
-          <CvBuilderFooterActions
-            onNext={handleDone}
-            isNextDisabled={isSavingCandidateProfile}
-            nextLabel={isSavingCandidateProfile ? "Saving…" : "Save & Submit"}
-            showNextIcon={false}
-          />
-        )}
+          {activeView === "review" && (
+            <CvBuilderFooterActions
+              onNext={handleDone}
+              isNextDisabled={isSavingCandidateProfile}
+              nextLabel={isSavingCandidateProfile ? "Saving…" : "Save & Submit"}
+              showNextIcon={false}
+            />
+          )}
+        </Box>
 
         {uploadModalOpen && (
           <CvBuilderUploadModal
