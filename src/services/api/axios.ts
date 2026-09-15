@@ -30,13 +30,18 @@ const serviceBaseUrls = {
   mandate:   `${gateway}/api/mandate-service`,
   document:  `${gateway}/api/document-service`,
   crm:       `${gateway}/api/crm-service`,
+  ai:        `${gateway}/api/ai-service`,
 } as const;
 
 // Tune here — no .env variable needed.
 const REQUEST_TIMEOUT_MS = 5000;
+const AI_REQUEST_TIMEOUT_MS = 60000;
 
-const createApiClient = (baseURL: string) => {
-  const client = axios.create({ baseURL, timeout: REQUEST_TIMEOUT_MS });
+const createApiClient = (
+  baseURL: string,
+  timeout = REQUEST_TIMEOUT_MS,
+) => {
+  const client = axios.create({ baseURL, timeout });
 
   client.interceptors.request.use((config: InternalAxiosRequestConfig) => {
     const tokens = tokenStorage.getTokens();
@@ -73,6 +78,10 @@ export const candidateApiClient = createApiClient(serviceBaseUrls.candidate);
 export const mandateApiClient   = createApiClient(serviceBaseUrls.mandate);
 export const documentApiClient  = createApiClient(serviceBaseUrls.document);
 export const crmApiClient       = createApiClient(serviceBaseUrls.crm);
+export const aiApiClient        = createApiClient(
+  serviceBaseUrls.ai,
+  AI_REQUEST_TIMEOUT_MS,
+);
 
 export const unwrapResponseData = async <T>(
   responsePromise: Promise<AxiosResponse<T>>,

@@ -26,6 +26,8 @@
     "dayjs": "^1.11.21",
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.1",
+    "mammoth": "^1.12.3",
+    "pdfjs-dist": "^6.3.289",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "react-dropzone": "^19.1.1",
