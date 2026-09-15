@@ -1,90 +1,16 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
-  readonly VITE_GOOGLE_CLIENT_ID: string
+  // ── Gateway host (single source of truth for all service base URLs) ────────
   readonly VITE_API_BASE_URL: string
-  readonly VITE_AUTH_API_BASE_URL?: string
-  readonly VITE_CANDIDATE_API_BASE_URL?: string
-  readonly VITE_MANDATE_API_BASE_URL?: string
-  readonly VITE_DOCUMENT_API_BASE_URL?: string
-  readonly VITE_REQUEST_TIMEOUT_MS: string
-  readonly VITE_MOCK_ERROR_RATE: string
-  readonly VITE_MOCK_DELAY_MIN_MS: string
-  readonly VITE_MOCK_DELAY_MAX_MS: string
 
-  readonly VITE_AUTH_CANDIDATE_REGISTER_ENDPOINT: string
-  readonly VITE_AUTH_STAFF_REGISTER_ENDPOINT: string
-  readonly VITE_AUTH_CANDIDATE_VISITOR_CONVERSION_ENDPOINT: string
-  readonly VITE_AUTH_GOOGLE_REGISTER_ENDPOINT: string
-  readonly VITE_AUTH_LOGIN_ENDPOINT: string
-  readonly VITE_AUTH_FORGOT_PASSWORD_ENDPOINT: string
-  readonly VITE_AUTH_RESET_PASSWORD_ENDPOINT: string
-  readonly VITE_AUTH_LOGOUT_ENDPOINT: string
-  readonly VITE_AUTH_ME_ENDPOINT: string
-  readonly VITE_AUTH_VALIDATE_ENDPOINT: string
-  readonly VITE_STAFF_PROFILES_ENDPOINT: string
-  readonly VITE_ADMIN_STAFF_INVITATIONS_SEND_ENDPOINT: string
+  // ── Third-party credentials ────────────────────────────────────────────────
+  readonly VITE_GOOGLE_CLIENT_ID: string
 
-  readonly VITE_USERS_PROFILE_ENDPOINT: string
-  readonly VITE_USERS_PROFILE_PHOTO_ENDPOINT: string
-
-  readonly VITE_CANDIDATE_LANDING_ENDPOINT: string
-  readonly VITE_CANDIDATE_STATISTICS_ENDPOINT: string
-  readonly VITE_CANDIDATE_DASHBOARD_ENDPOINT: string
-  readonly VITE_CANDIDATE_PROFILE_ENDPOINT: string
-  readonly VITE_CANDIDATE_BUILDMYCV_ENDPOINT: string
-  readonly VITE_CANDIDATE_RESUME_PREVIEW_ENDPOINT: string
-  readonly VITE_CANDIDATE_RESUME_DOWNLOAD_ENDPOINT: string
-  readonly VITE_CANDIDATE_RECOMMENDED_JOBS_ENDPOINT: string
-  readonly VITE_CANDIDATE_SAVED_JOBS_ENDPOINT: string
-  readonly VITE_CANDIDATE_BY_EMAIL_ENDPOINT: string
-  readonly VITE_CANDIDATE_SAVED_JOB_ENDPOINT: string
-  readonly VITE_CANDIDATE_AI_ACTIONS_ENDPOINT: string
-  readonly VITE_APPLICATION_CV_UPLOAD_ENDPOINT: string
-
-  readonly VITE_DOCUMENTS_UPLOAD_ENDPOINT: string
-  readonly VITE_DOCUMENTS_UPLOAD_RESUME_ENDPOINT: string
-
-  readonly VITE_JOBS_ENDPOINT: string
-  readonly VITE_JOB_DETAILS_ENDPOINT: string
-  readonly VITE_JOB_PROFILE_DETAILS_ENDPOINT: string
-  readonly VITE_JOB_SAVE_ENDPOINT: string
-  readonly VITE_JOB_APPLY_ENDPOINT: string
-  readonly VITE_JOBS_QUERY_PARAM: string
-  readonly VITE_JOBS_PAGE_PARAM: string
-  readonly VITE_JOBS_LIMIT_PARAM: string
-
-  readonly VITE_INDUSTRIES_LIST_ENDPOINT: string
-
-  readonly VITE_SKILLS_SEARCH_ENDPOINT: string
-  readonly VITE_SKILLS_SEARCH_KEYWORD_PARAM: string
-  readonly VITE_SKILLS_SEARCH_LIMIT_PARAM: string
-  readonly VITE_SKILLS_GENERATE_ENDPOINT: string
-
-  readonly VITE_CANDIDATES_LIST_ENDPOINT: string
-
-  readonly VITE_RECRUITER_DASHBOARD_ENDPOINT: string
-  readonly VITE_RECRUITER_MANDATES_ENDPOINT: string
-  readonly VITE_RECRUITER_APPLICATION_STAGE_ENDPOINT: string
-  readonly VITE_RECRUITER_CANDIDATES_SEARCH_ENDPOINT: string
-  readonly VITE_MANDATE_DETAIL_ENDPOINT: string
-  readonly VITE_APPLICATION_STAGE_TRANSITION_ENDPOINT: string
-  readonly VITE_RECRUITER_CANDIDATE_PROFILE_ENDPOINT: string
-
-  readonly VITE_PIPELINE_STAGE_UPDATE_ENDPOINT: string
-
-  readonly VITE_MANCO_DASHBOARD_ENDPOINT: string
-  readonly VITE_MANCO_RECRUITER_PERFORMANCE_ENDPOINT: string
-
-  readonly VITE_JOB_POSTS_ENDPOINT: string
-  readonly VITE_JOB_POST_CREATE_ENDPOINT: string
-  readonly VITE_JOB_POST_DETAIL_ENDPOINT: string
-  readonly VITE_JOB_POST_UPDATE_ENDPOINT: string
-  readonly VITE_JOB_POST_DELETE_ENDPOINT: string
-
-  readonly VITE_CRM_CLIENTS_ENDPOINT: string
-  readonly VITE_CRM_CLIENT_NOTES_ENDPOINT: string
-  readonly VITE_CRM_STATUS_PARAM: string
+  // ── Cognito Hosted UI ──────────────────────────────────────────────────────
+  readonly VITE_COGNITO_DOMAIN: string
+  readonly VITE_COGNITO_CLIENT_ID: string
+  readonly VITE_COGNITO_REDIRECT_URI: string
 }
 
 interface ImportMeta {

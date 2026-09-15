@@ -1,4 +1,4 @@
-import { apiClient } from "@/services/api/axios";
+import { crmApiClient } from "@/services/api/axios";
 import { apiEndpoints, resolveEndpoint } from "@/services/api/endpoints";
 import type {
   AddCrmNoteData,
@@ -16,7 +16,7 @@ export const crmApi = {
       ...(typeof params?.limit === "number" ? { limit: params.limit } : {}),
     };
 
-    return apiClient
+    return crmApiClient
       .get<
         SuccessEnvelope<CrmClientsData>
       >(apiEndpoints.crm.clients, { params: requestParams })
@@ -24,7 +24,7 @@ export const crmApi = {
   },
 
   addClientNote(clientId: string, payload: AddCrmNoteRequest) {
-    return apiClient
+    return crmApiClient
       .post<
         SuccessEnvelope<AddCrmNoteData>
       >(resolveEndpoint(apiEndpoints.crm.clientNotes, { clientId }), payload)

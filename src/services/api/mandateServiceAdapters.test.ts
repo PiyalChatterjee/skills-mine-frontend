@@ -113,7 +113,9 @@ describe("Mandate Service v2 frontend adapters", () => {
 
     const result = await mandateApi.getRecruiterDashboard();
 
-    expect(mockGet).toHaveBeenCalledWith("/recruiter/dashboard");
+    expect(mockGet).toHaveBeenCalledWith(
+      "https://13-245-120-61.nip.io/recruiter/dashboard",
+    );
     expect(result.data.pipeline).toEqual([{ stage: "Inbound", count: 4 }]);
   });
 

@@ -16,16 +16,24 @@ declare module "axios" {
   }
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api";
-// Individual backend services can be pointed at their real deployed URLs
-// independently of the general API base, which stays on the mock server.
-const AUTH_API_BASE_URL = import.meta.env.VITE_AUTH_API_BASE_URL || API_BASE_URL;
-const CANDIDATE_API_BASE_URL = import.meta.env.VITE_CANDIDATE_API_BASE_URL || API_BASE_URL;
-const MANDATE_API_BASE_URL = import.meta.env.VITE_MANDATE_API_BASE_URL || API_BASE_URL;
-const DOCUMENT_API_BASE_URL = import.meta.env.VITE_DOCUMENT_API_BASE_URL || API_BASE_URL;
-const REQUEST_TIMEOUT_MS = Number(
-  import.meta.env.VITE_REQUEST_TIMEOUT_MS ?? 5000,
-);
+// ---------------------------------------------------------------------------
+// Base URLs — derived from a single gateway host.
+// Only VITE_API_BASE_URL needs to be set in .env.
+// To add a new microservice, append its path suffix here — no .env change needed.
+// ---------------------------------------------------------------------------
+const gateway = import.meta.env.VITE_API_BASE_URL ?? "/api";
+
+const serviceBaseUrls = {
+  default:   gateway,                                    // recruiter / pipeline / manco
+  auth:      `${gateway}/api/auth-service/v1`,                                    // auth paths carry /api/auth-service/v1/... themselves
+  candidate: `${gateway}/api/candidate-service`,
+  mandate:   `${gateway}/api/mandate-service`,
+  document:  `${gateway}/api/document-service`,
+  crm:       `${gateway}/api/crm-service`,
+} as const;
+
+// Tune here — no .env variable needed.
+const REQUEST_TIMEOUT_MS = 5000;
 
 const createApiClient = (baseURL: string) => {
   const client = axios.create({ baseURL, timeout: REQUEST_TIMEOUT_MS });
@@ -59,11 +67,12 @@ const createApiClient = (baseURL: string) => {
   return client;
 };
 
-export const apiClient = createApiClient(API_BASE_URL);
-export const authApiClient = createApiClient(AUTH_API_BASE_URL);
-export const candidateApiClient = createApiClient(CANDIDATE_API_BASE_URL);
-export const mandateApiClient = createApiClient(MANDATE_API_BASE_URL);
-export const documentApiClient = createApiClient(DOCUMENT_API_BASE_URL);
+export const apiClient       = createApiClient(serviceBaseUrls.default);
+export const authApiClient   = createApiClient(serviceBaseUrls.auth);
+export const candidateApiClient = createApiClient(serviceBaseUrls.candidate);
+export const mandateApiClient   = createApiClient(serviceBaseUrls.mandate);
+export const documentApiClient  = createApiClient(serviceBaseUrls.document);
+export const crmApiClient       = createApiClient(serviceBaseUrls.crm);
 
 export const unwrapResponseData = async <T>(
   responsePromise: Promise<AxiosResponse<T>>,

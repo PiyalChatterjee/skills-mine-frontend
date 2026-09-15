@@ -1,292 +1,116 @@
 type PathParams = Record<string, string | number>;
 
-const withDefault = (value: string | undefined, fallback: string): string =>
-  (value && value.trim()) || fallback;
+// ---------------------------------------------------------------------------
+// All API path constants live here. Base URLs (per microservice) are managed
+// in axios.ts via VITE_*_API_BASE_URL environment variables.
+// To change a path for a specific environment, update it here — not in .env.
+// ---------------------------------------------------------------------------
 
 export const apiEndpoints = {
   auth: {
-    candidateRegister: withDefault(
-      import.meta.env.VITE_AUTH_CANDIDATE_REGISTER_ENDPOINT,
-      "/api/auth-service/v1/auth/candidates/register",
-    ),
-    staffRegister: withDefault(
-      import.meta.env.VITE_AUTH_STAFF_REGISTER_ENDPOINT,
-      "/api/auth-service/v1/auth/staff/register",
-    ),
-    candidateVisitorConversion: withDefault(
-      import.meta.env.VITE_AUTH_CANDIDATE_VISITOR_CONVERSION_ENDPOINT,
-      "/api/auth-service/v1/auth/candidates/register/visitor/conversion",
-    ),
-    googleRegister: withDefault(
-      import.meta.env.VITE_AUTH_GOOGLE_REGISTER_ENDPOINT,
-      "/api/auth-service/v1/auth/candidates/register-google",
-    ),
-    login: withDefault(import.meta.env.VITE_AUTH_LOGIN_ENDPOINT, "/api/auth-service/v1/auth/login"),
-    forgotPassword: withDefault(
-      import.meta.env.VITE_AUTH_FORGOT_PASSWORD_ENDPOINT,
-      "/api/auth-service/v1/auth/forgot-password",
-    ),
-    resetPassword: withDefault(
-      import.meta.env.VITE_AUTH_RESET_PASSWORD_ENDPOINT,
-      "/api/auth-service/v1/auth/reset-password",
-    ),
-    logout: withDefault(
-      import.meta.env.VITE_AUTH_LOGOUT_ENDPOINT,
-      "/api/auth-service/v1/auth/logout",
-    ),
-    me: withDefault(
-      import.meta.env.VITE_AUTH_ME_ENDPOINT,
-      "/api/auth-service/v1/users/me",
-    ),
-    validate: withDefault(import.meta.env.VITE_AUTH_VALIDATE_ENDPOINT, "/api/auth-service/v1/users/validate"),
+    candidateRegister: "/auth/candidates/register",
+    candidateVisitorConversion: "/auth/candidates/register/visitor/conversion",
+    staffRegister: "/auth/staff/register",
+    googleRegister: "/auth/candidates/register-google",
+    login: "/auth/login",
+    forgotPassword: "/auth/forgot-password",
+    resetPassword: "/auth/reset-password",
+    logout: "/auth/logout",
+    me: "/users/me",
+    validate: "/users/validate",
   },
   staff: {
-    profiles: withDefault(import.meta.env.VITE_STAFF_PROFILES_ENDPOINT, "/api/auth-service/v1/staff/profiles"),
+    profiles: "/staff/profiles",
   },
   admin: {
-    staffInvitationsSend: withDefault(import.meta.env.VITE_ADMIN_STAFF_INVITATIONS_SEND_ENDPOINT, "/api/auth-service/v1/admin/staff-invitations/send"),
-  },
-  documents: {
-    owner: withDefault(
-      import.meta.env.VITE_DOCUMENTS_OWNER_ENDPOINT,
-      "/documents/owner/:ownerType/:ownerId",
-    ),
-    detail: withDefault(
-      import.meta.env.VITE_DOCUMENT_DETAIL_ENDPOINT,
-      "/documents/:documentId",
-    ),
-    upload: withDefault(
-      import.meta.env.VITE_DOCUMENTS_UPLOAD_ENDPOINT,
-      "/documents",
-    ),
-    uploadResume: withDefault(
-      import.meta.env.VITE_DOCUMENTS_UPLOAD_RESUME_ENDPOINT,
-      "/documents/resume",
-    ),
+    staffInvitationsSend: "/admin/staff-invitations/send",
   },
   users: {
-    profile: withDefault(
-      import.meta.env.VITE_USERS_PROFILE_ENDPOINT,
-      "/users/:userId",
-    ),
-    profilePhoto: withDefault(
-      import.meta.env.VITE_USERS_PROFILE_PHOTO_ENDPOINT,
-      "/users/:userId/profile-photo",
-    ),
+    profile: "/users/:userId",
+    profilePhoto: "/users/:userId/profile-photo",
   },
-  // Candidate resources are resolved from the bearer token by the backend, so the
-  // default templates carry no :candidateId segment. Deployments that expose the
-  // candidate-scoped variant can opt in through the matching VITE_* override
-  // (e.g. VITE_CANDIDATE_PROFILE_ENDPOINT=/candidates/profile/:candidateId) —
-  // resolveEndpoint only substitutes placeholders that the template declares.
+  documents: {
+    owner: "/documents/owner/:ownerType/:ownerId",
+    detail: "/documents/:documentId",
+    upload: "/documents",
+    uploadResume: "/documents/resume",
+  },
   candidate: {
-    landing: withDefault(
-      import.meta.env.VITE_CANDIDATE_LANDING_ENDPOINT,
-      "/candidates/landing",
-    ),
-    statistics: withDefault(
-      import.meta.env.VITE_CANDIDATE_STATISTICS_ENDPOINT,
-      "/candidates/landing",
-    ),
-    dashboard: withDefault(
-      import.meta.env.VITE_CANDIDATE_DASHBOARD_ENDPOINT,
-      "/candidates/dashboard",
-    ),
-    buildMyCv: withDefault(
-      import.meta.env.VITE_CANDIDATE_BUILDMYCV_ENDPOINT,
-      "/candidates/cv-build/:candidateId",
-    ),
-    profile: withDefault(
-      import.meta.env.VITE_CANDIDATE_PROFILE_ENDPOINT,
-      "/candidates/profile/:candidateId",
-    ),
-    resumePreview: withDefault(
-      import.meta.env.VITE_CANDIDATE_RESUME_PREVIEW_ENDPOINT,
-      "/candidate/:resumeId/preview",
-    ),
-    resumeDownload: withDefault(
-      import.meta.env.VITE_CANDIDATE_RESUME_DOWNLOAD_ENDPOINT,
-      "/candidate/:resumeId/download",
-    ),
-    recommendedJobs: withDefault(
-      import.meta.env.VITE_CANDIDATE_RECOMMENDED_JOBS_ENDPOINT,
-      "/candidates/:candidateId/recommended-positions",
-    ),
-    savedJobs: withDefault(
-      import.meta.env.VITE_CANDIDATE_SAVED_JOBS_ENDPOINT,
-      "/candidates/:candidateId/saved-jobs",
-    ),
-    savedJob: withDefault(
-      import.meta.env.VITE_CANDIDATE_SAVED_JOB_ENDPOINT,
-      "/candidates/:candidateId/saved-jobs/:jobProfileId",
-    ),
-    aiActions: withDefault(
-      import.meta.env.VITE_CANDIDATE_AI_ACTIONS_ENDPOINT,
-      "/candidates/ai-actions/",
-    ),
-    applications: withDefault(
-      import.meta.env.VITE_CANDIDATE_APPLICATIONS_ENDPOINT,
-      "/candidates/apply",
-    ),
-    byEmail: withDefault(
-      import.meta.env.VITE_CANDIDATE_BY_EMAIL_ENDPOINT,
-      "/candidates/by-email",
-    ),
-  },
-  applications: {
-    cvUpload: withDefault(
-      import.meta.env.VITE_APPLICATION_CV_UPLOAD_ENDPOINT,
-      "/applications/:applicationId/cv/upload",
-    ),
-    stageTransition: withDefault(
-      import.meta.env.VITE_APPLICATION_STAGE_TRANSITION_ENDPOINT,
-      "/applications/:applicationId/stage-transition",
-    ),
-    recruiterStageUpdate: withDefault(
-      import.meta.env.VITE_RECRUITER_APPLICATION_STAGE_ENDPOINT,
-      "/recruiter/applications/:applicationId/stage",
-    ),
-  },
-  jobs: {
-    list: withDefault(import.meta.env.VITE_JOBS_ENDPOINT, "/view/jobs"),
-    details: withDefault(
-      import.meta.env.VITE_JOB_DETAILS_ENDPOINT,
-      "/jobs/:jobProfileId",
-    ),
-    profileDetails: withDefault(
-      import.meta.env.VITE_JOB_PROFILE_DETAILS_ENDPOINT,
-      "/jobs/:jobProfileId",
-    ),
-    listQueryParam: withDefault(import.meta.env.VITE_JOBS_QUERY_PARAM, "search"),
-    listPageParam: withDefault(import.meta.env.VITE_JOBS_PAGE_PARAM, "page"),
-    listLimitParam: withDefault(import.meta.env.VITE_JOBS_LIMIT_PARAM, "size"),
-  },
-  dashboard: {
-    summary: withDefault(
-      import.meta.env.VITE_DASHBOARD_SUMMARY_ENDPOINT,
-      "/dashboard/summary",
-    ),
-  },
-  companies: {
-    list: withDefault(
-      import.meta.env.VITE_COMPANIES_LIST_ENDPOINT,
-      "/companies",
-    ),
-  },
-  industries: {
-    list: withDefault(
-      import.meta.env.VITE_INDUSTRIES_LIST_ENDPOINT,
-      "/industries",
-    ),
-  },
-  locations: {
-    list: withDefault(
-      import.meta.env.VITE_LOCATIONS_LIST_ENDPOINT,
-      "/locations",
-    ),
-  },
-  skills: {
-    search: withDefault(
-      import.meta.env.VITE_SKILLS_SEARCH_ENDPOINT,
-      "/skills/search",
-    ),
-    generate: withDefault(
-      import.meta.env.VITE_SKILLS_GENERATE_ENDPOINT,
-      "/skills/generate",
-    ),
-    keywordParam: withDefault(
-      import.meta.env.VITE_SKILLS_SEARCH_KEYWORD_PARAM,
-      "keyword",
-    ),
-    limitParam: withDefault(
-      import.meta.env.VITE_SKILLS_SEARCH_LIMIT_PARAM,
-      "limit",
-    ),
+    landing: "/candidates/landing",
+    statistics: "/candidates/landing",
+    dashboard: "/candidates/dashboard",
+    profile: "/candidates/profile/:candidateId",
+    buildMyCv: "/candidates/cv-build/:candidateId",
+    resumePreview: "/candidate/:resumeId/preview",
+    resumeDownload: "/candidate/:resumeId/download",
+    recommendedJobs: "/candidates/:candidateId/recommended-positions",
+    savedJobs: "/candidates/:candidateId/saved-jobs",
+    savedJob: "/candidates/:candidateId/saved-jobs/:jobProfileId",
+    aiActions: "/candidates/ai-actions/",
+    applications: "/candidates/apply",
+    byEmail: "/candidates/by-email",
   },
   candidates: {
-    list: withDefault(
-      import.meta.env.VITE_CANDIDATES_LIST_ENDPOINT,
-      "/candidates",
-    ),
+    list: "/candidates",
+  },
+  applications: {
+    cvUpload: "/applications/:applicationId/cv/upload",
+    stageTransition: "/applications/:applicationId/stage-transition",
+    recruiterStageUpdate: "/recruiter/applications/:applicationId/stage",
+  },
+  jobs: {
+    list: "/view/jobs",
+    details: "/jobs/:jobProfileId",
+    profileDetails: "/jobs/:jobProfileId",
+    listQueryParam: "search",
+    listPageParam: "page",
+    listLimitParam: "size",
+  },
+  dashboard: {
+    summary: "/dashboard/summary",
+  },
+  companies: {
+    list: "/companies",
+  },
+  industries: {
+    list: "/industries",
+  },
+  locations: {
+    list: "/locations",
+  },
+  skills: {
+    search: "/skills/search",
+    generate: "/skills/generate",
+    keywordParam: "keyword",
+    limitParam: "limit",
   },
   recruiter: {
-    dashboard: withDefault(
-      import.meta.env.VITE_RECRUITER_DASHBOARD_ENDPOINT,
-      "/recruiter/dashboard",
-    ),
-    mandates: withDefault(
-      import.meta.env.VITE_RECRUITER_MANDATES_ENDPOINT,
-      "/recruiter/mandates",
-    ),
-    pipeline: withDefault(
-      import.meta.env.VITE_RECRUITER_PIPELINE_ENDPOINT,
-      "/recruiter/pipeline",
-    ),
-    candidatesSearch: withDefault(
-      import.meta.env.VITE_RECRUITER_CANDIDATES_SEARCH_ENDPOINT,
-      "/recruiter/candidates/search",
-    ),
-    mandateDetail: withDefault(
-      import.meta.env.VITE_MANDATE_DETAIL_ENDPOINT,
-      "/mandates/:mandateId",
-    ),
-    candidateProfile: withDefault(
-      import.meta.env.VITE_RECRUITER_CANDIDATE_PROFILE_ENDPOINT,
-      "/v1/candidates/:candidateId/profile",
-    ),
+    dashboard: "https://13-245-120-61.nip.io/recruiter/dashboard",
+    mandates: "https://13-245-120-61.nip.io/recruiter/mandates",
+    pipeline: "https://13-245-120-61.nip.io/recruiter/pipeline",
+    candidatesSearch: "https://13-245-120-61.nip.io/recruiter/candidates/search",
+    mandateDetail: "https://13-245-120-61.nip.io/mandates/:mandateId",
+    candidateProfile: "https://13-245-120-61.nip.io/candidates/:candidateId/profile",
   },
   pipeline: {
-    stageUpdate: withDefault(
-      import.meta.env.VITE_PIPELINE_STAGE_UPDATE_ENDPOINT,
-      "/v1/pipeline/:pipelineId/stage",
-    ),
-    jobStageAdvance: withDefault(
-      import.meta.env.VITE_PIPELINE_JOB_STAGE_ADVANCE_ENDPOINT,
-      "/pipelines/jobs/:jobId/stage",
-    ),
+    stageUpdate: "https://13-245-120-61.nip.io/pipeline/:pipelineId/stage",
+    jobStageAdvance: "https://13-245-120-61.nip.io/pipelines/jobs/:jobId/stage",
   },
   manco: {
-    dashboard: withDefault(
-      import.meta.env.VITE_MANCO_DASHBOARD_ENDPOINT,
-      "/v1/manco/:mancoId/dashboard",
-    ),
-    recruiterPerformance: withDefault(
-      import.meta.env.VITE_MANCO_RECRUITER_PERFORMANCE_ENDPOINT,
-      "/v1/manco/recruiters/:id/performance",
-    ),
+    dashboard: "/manco/:mancoId/dashboard",
+    recruiterPerformance: "/manco/recruiters/:id/performance",
   },
   jobPosts: {
-    list: withDefault(
-      import.meta.env.VITE_JOB_POSTS_ENDPOINT,
-      "/job-posts",
-    ),
-    create: withDefault(
-      import.meta.env.VITE_JOB_POST_CREATE_ENDPOINT,
-      "/jobs",
-    ),
-    detail: withDefault(
-      import.meta.env.VITE_JOB_POST_DETAIL_ENDPOINT,
-      "/job-posts/:mandateId",
-    ),
-    update: withDefault(
-      import.meta.env.VITE_JOB_POST_UPDATE_ENDPOINT,
-      "/job-posts/:mandateId",
-    ),
-    delete: withDefault(
-      import.meta.env.VITE_JOB_POST_DELETE_ENDPOINT,
-      "/job-posts/:mandateId",
-    ),
+    list: "/job-posts",
+    create: "/jobs",
+    detail: "/job-posts/:mandateId",
+    update: "/job-posts/:mandateId",
+    delete: "/job-posts/:mandateId",
   },
   crm: {
-    clients: withDefault(
-      import.meta.env.VITE_CRM_CLIENTS_ENDPOINT,
-      "/v1/crm/clients",
-    ),
-    clientNotes: withDefault(
-      import.meta.env.VITE_CRM_CLIENT_NOTES_ENDPOINT,
-      "/v1/crm/clients/:clientId/notes",
-    ),
-    statusParam: withDefault(import.meta.env.VITE_CRM_STATUS_PARAM, "status"),
+    clients: "/crm/clients",
+    clientNotes: "/crm/clients/:clientId/notes",
+    statusParam: "status",
   },
 } as const;
 
