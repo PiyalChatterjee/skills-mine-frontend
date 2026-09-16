@@ -639,7 +639,9 @@
 }
 
 /* ── Responsive ──────────────────────────────────────────────────────── */
-@media (max-width: 1100px) {
+
+/* Narrow desktop (1200px) */
+@media (max-width: 1200px) {
   .pageRoot {
     width: 100%;
     padding: 32px 20px 60px;
@@ -650,9 +652,14 @@
   }
 }
 
+/* Tablet (900px) */
 @media (max-width: 900px) {
+  .pageRoot {
+    padding: 28px 16px 48px;
+  }
+
   .statsRow {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .statCard {
@@ -666,11 +673,20 @@
   .pipelineLabels {
     display: none;
   }
+
+  .welcomeBannerInner {
+    padding: 20px 20px;
+  }
 }
 
+/* Mobile (600px) */
 @media (max-width: 600px) {
   .pageRoot {
     padding: 24px 12px 48px;
+  }
+
+  .statsRow {
+    grid-template-columns: 1fr;
   }
 
   .applicationsList {
@@ -681,11 +697,15 @@
     grid-template-columns: 1fr;
   }
 
-  .statValue {
+  .statValue,
+  :global(.MuiTypography-root).statValue,
+  :global(.MuiTypography-root).statValue.statValue {
     font-size: 48px;
   }
 
-  .applicationTitle {
+  .applicationTitle,
+  :global(.MuiTypography-root).applicationTitle,
+  :global(.MuiTypography-root).applicationTitle.applicationTitle {
     font-size: 17px;
   }
 
@@ -697,5 +717,11 @@
   .applicationDivider::after {
     left: 16px;
     right: 16px;
+  }
+
+  .welcomeGreeting,
+  :global(.MuiTypography-root).welcomeGreeting,
+  :global(.MuiTypography-root).welcomeGreeting.welcomeGreeting {
+    font-size: 22px;
   }
 }

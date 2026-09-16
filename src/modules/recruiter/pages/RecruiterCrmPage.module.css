@@ -339,7 +339,12 @@
 }
 
 /* ── Responsive ──────────────────────────────────────────────────────── */
+
+/* Tablet (900px) — sidebar off-canvas, remove shell offset */
 @media (max-width: 900px) {
+  .shell {
+    margin-left: 0;
+  }
   .statTilesPanel {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -348,11 +353,19 @@
   }
 }
 
+/* Mobile (600px) */
 @media (max-width: 600px) {
+  .shell {
+    margin-left: 0;
+  }
   .statTilesPanel {
     grid-template-columns: 1fr;
   }
   .pageRoot {
     padding: 16px 12px 32px;
+  }
+  .statTileValue,
+  :global(.MuiTypography-root).statTileValue {
+    font-size: 32px;
   }
 }

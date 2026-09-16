@@ -5,6 +5,7 @@
   min-height: 100vh;
   /* offset for the fixed sidebar */
   margin-left: 240px;
+  transition: margin-left 0.25s ease;
 }
 
 /* ── Page Root ───────────────────────────────────────────────────────── */
@@ -448,7 +449,13 @@
 }
 
 /* ── Responsive ──────────────────────────────────────────────────────── */
+
+/* Tablet (900px) — sidebar off-canvas, shell offset removed */
 @media (max-width: 900px) {
+  .shell {
+    margin-left: 0;
+  }
+
   .pageRoot {
     padding: 20px 20px 40px;
   }
@@ -467,6 +474,7 @@
   }
 }
 
+/* Mobile (600px) */
 @media (max-width: 600px) {
   .pageRoot {
     padding: 16px 12px 32px;
@@ -478,5 +486,11 @@
 
   .kpiValue {
     font-size: 40px;
+  }
+
+  .welcomeSubtitle,
+  :global(.MuiTypography-root).welcomeSubtitle,
+  :global(.MuiTypography-root).welcomeSubtitle.welcomeSubtitle {
+    font-size: 20px;
   }
 }

@@ -2,4 +2,19 @@
   display: flex;
   min-height: 100vh;
   margin-left: 240px;
+  transition: margin-left 0.25s ease;
+}
+
+/* ── Tablet (900px) — sidebar off-canvas ─────────────────────────────── */
+@media (max-width: 900px) {
+  .shell {
+    margin-left: 0;
+  }
+}
+
+/* ── Mobile (600px) ───────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .shell {
+    margin-left: 0;
+  }
 }

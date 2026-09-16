@@ -121,6 +121,28 @@
     background-color: #03478c;
 }
 
+/* ── Mobile (600px) ───────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+    .formSection {
+        margin-top: 28px;
+        padding: 0 16px 48px;
+    }
+
+    .formHeading,
+    .formHeading:global(.MuiTypography-root) {
+        font-size: 18px;
+        margin-bottom: 24px;
+    }
+
+    .submitButton,
+    .submitButton:global(.MuiButton-root) {
+        width: 100%;
+        min-height: 52px;
+        justify-content: center;
+    }
+}
+
+/* ── Tablet+ (900px) ─────────────────────────────────────────────────── */
 @media (min-width: 900px) {
     .formSection {
         margin-top: 52px;

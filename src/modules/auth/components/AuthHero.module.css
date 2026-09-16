@@ -58,6 +58,19 @@
     max-width: 824px;
 }
 
+/* ── Mobile (600px) — compact hero height ─────────────────────────────── */
+@media (max-width: 600px) {
+    .heroSection {
+        height: 180px;
+    }
+
+    .heroHeadline,
+    .heroHeadline:global(.MuiTypography-root) {
+        font-size: 22px;
+    }
+}
+
+/* ── Tablet+ (900px) ─────────────────────────────────────────────────── */
 @media (min-width: 900px) {
     .heroSection {
         height: 260px;

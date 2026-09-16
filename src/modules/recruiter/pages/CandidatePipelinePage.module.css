@@ -310,6 +310,8 @@
 }
 
 /* ── Responsive ──────────────────────────────────────────────────────── */
+
+/* Tablet (900px) */
 @media (max-width: 900px) {
   .shell { margin-left: 0; height: 100vh; }
   .pageRoot { padding: 0; }
@@ -319,4 +321,18 @@
   .kanbanCol { min-width: 145px; }
   .breadcrumbSection,
   .breadcrumbCurrent { font-size: 18px; }
+  .stageLabel { font-size: 14px; }
+}
+
+/* Mobile (600px) */
+@media (max-width: 600px) {
+  .shell { margin-left: 0; }
+  .breadcrumbBar { padding: 10px 12px; gap: 6px; }
+  .contactStrip { padding: 0 12px 12px; }
+  .kanbanCol { min-width: 120px; padding: 6px 4px 0; }
+  .breadcrumbSection,
+  .breadcrumbCurrent { font-size: 15px; }
+  .stageLabel { font-size: 12px; }
+  .stageBadge { font-size: 9px; min-width: 18px; height: 18px; }
+  .stageTab { padding: 8px 6px; gap: 4px; }
 }

@@ -11,6 +11,7 @@
   top: 0;
   left: 0;
   z-index: 100;
+  transition: transform 0.25s ease;
 }
 
 /* ── Logo ─────────────────────────────────────────────────────────────── */
@@ -122,3 +123,38 @@ a.navItemActive {
   white-space: nowrap;
 }
 
+
+/* ── Responsive: Tablet & Mobile ──────────────────────────────────────── */
+
+/* Tablet (900px) — sidebar slides off-canvas; toggled by .sidebarOpen */
+@media (max-width: 900px) {
+  .sidebar {
+    transform: translateX(-100%);
+    z-index: 200;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.18);
+  }
+
+  .sidebarOpen {
+    transform: translateX(0);
+  }
+}
+
+/* Mobile (600px) — tighten sidebar internals */
+@media (max-width: 600px) {
+  .sidebar {
+    width: 220px;
+    min-width: 220px;
+  }
+
+  .navItem,
+  a.navItem,
+  :global(.MuiButtonBase-root).navItem {
+    padding: 13px 16px;
+    min-height: 48px;
+  }
+
+  .navItemLabel,
+  :global(.MuiTypography-root).navItemLabel {
+    font-size: 15px;
+  }
+}
