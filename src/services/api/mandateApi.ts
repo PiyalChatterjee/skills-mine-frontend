@@ -474,6 +474,8 @@ export const mandateApi = {
         params: {
           search: params?.search,
           status: params?.status,
+          locationText: params?.locationText,
+          clientId: params?.clientId,
           page: 0,
           size: 100,
         },

@@ -1,5 +1,5 @@
 import { Box, Button, ButtonBase, CircularProgress, Popover, Typography } from '@mui/material'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import { useDispatch } from 'react-redux'
 import { mandateApi } from '@/services/api/mandateApi'
 import { pushNotification } from '@/store/slices/notificationSlice'
@@ -12,11 +12,12 @@ type MandatesScreenProps = {
   onEditJobPost: (mandateId: string) => void
 }
 
+const PAGE_SIZE = 10
+
 const STATUS_OPTIONS = ['Posted', 'Closed'] as const
 type StatusOption = (typeof STATUS_OPTIONS)[number]
 
-const LOCATION_OPTIONS = ['Johannesburg', 'Cape Town', 'Remote', 'Hybrid'] as const
-type LocationOption = (typeof LOCATION_OPTIONS)[number]
+type CompanyOption = { name: string; clientId: string }
 
 /** Format ISO date string to "D Mon YYYY" e.g. "15 Oct 2024" */
 function formatDate(iso: string): string {
@@ -49,27 +50,58 @@ export const MandatesScreen = ({ onNewJobPost, onEditJobPost }: MandatesScreenPr
   const [statusAnchorEl, setStatusAnchorEl]     = useState<HTMLButtonElement | null>(null)
   const [selectedStatuses, setSelectedStatuses] = useState<StatusOption[]>([])
 
-  // Company filter dropdown
+  // Company filter dropdown — stores the selected clientId (single selection)
   const companyBtnRef = useRef<HTMLButtonElement | null>(null)
-  const [companyAnchorEl, setCompanyAnchorEl]     = useState<HTMLButtonElement | null>(null)
-  const [selectedCompanies, setSelectedCompanies] = useState<string[]>([])
+  const [companyAnchorEl, setCompanyAnchorEl]   = useState<HTMLButtonElement | null>(null)
+  const [selectedClientId, setSelectedClientId] = useState<string | null>(null)
+
+  // Stable company list seeded from the initial unfiltered load
+  const [companyOptions, setCompanyOptions] = useState<CompanyOption[]>([])
 
   // Search query
   const [searchQuery, setSearchQuery] = useState('')
 
+  // Timeline sort: 'asc' | 'desc' | null
+  const [timelineSortDir, setTimelineSortDir] = useState<'asc' | 'desc' | null>(null)
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1)
+
   // Location filter dropdown
   const locationBtnRef = useRef<HTMLButtonElement | null>(null)
   const [locationAnchorEl, setLocationAnchorEl]   = useState<HTMLButtonElement | null>(null)
-  const [selectedLocations, setSelectedLocations] = useState<LocationOption[]>([])
+  const [selectedLocations, setSelectedLocations] = useState<string[]>([])
 
-  // ── Fetch all job posts on mount ──────────────────────────────────────────
+  // Stable location list seeded from the initial unfiltered load
+  const [locationOptions, setLocationOptions] = useState<string[]>([])
+
+  // ── Fetch job posts whenever filters change ───────────────────────────────
   useEffect(() => {
     setLoading(true)
     setError(null)
     mandateApi
-      .getJobPosts()
+      .getJobPosts({
+        search:       searchQuery.trim() || undefined,
+        status:       selectedStatuses.length === 1 ? selectedStatuses[0].toUpperCase() : undefined,
+        locationText: selectedLocations.length > 0 ? [...selectedLocations] : undefined,
+        clientId:     selectedClientId ?? undefined,
+      })
       .then((envelope) => {
-        setJobPosts(envelope.data ?? [])
+        const posts = envelope.data ?? []
+        setJobPosts(posts)
+        // Populate company and location options from the first (unfiltered) load only
+        if (!selectedClientId && selectedLocations.length === 0 && selectedStatuses.length === 0 && !searchQuery.trim()) {
+          const seen = new Map<string, string>()
+          posts.forEach((p) => { if (p.clientId && p.client) seen.set(p.clientId, p.client) })
+          setCompanyOptions(
+            [...seen.entries()]
+              .map(([clientId, name]) => ({ clientId, name }))
+              .sort((a, b) => a.name.localeCompare(b.name)),
+          )
+          const locationsSeen = new Set<string>(['Remote', 'Hybrid'])
+          posts.forEach((p) => { if (p.location) locationsSeen.add(p.location) })
+          setLocationOptions([...locationsSeen].sort((a, b) => a.localeCompare(b)))
+        }
       })
       .catch(() => {
         setError('Failed to load job posts. Please try again.')
@@ -77,49 +109,35 @@ export const MandatesScreen = ({ onNewJobPost, onEditJobPost }: MandatesScreenPr
       .finally(() => {
         setLoading(false)
       })
+  }, [searchQuery, selectedStatuses, selectedLocations, selectedClientId])
+
+  // ── Reset page when filters change ───────────────────────────────────────
+  useEffect(() => { setCurrentPage(1) }, [searchQuery, selectedStatuses, selectedLocations, selectedClientId])
+
+  // ── Strip CANCELLED rows, then optionally sort by fill-by date ───────────
+  const filteredRows = useMemo(() => {
+    const rows = jobPosts.filter((post) => post.status.toUpperCase() !== 'CANCELLED')
+    if (!timelineSortDir) return rows
+    return [...rows].sort((a, b) => {
+      const aTime = a.targetCloseDate ? new Date(a.targetCloseDate).getTime() : 0
+      const bTime = b.targetCloseDate ? new Date(b.targetCloseDate).getTime() : 0
+      return timelineSortDir === 'asc' ? aTime - bTime : bTime - aTime
+    })
+  }, [jobPosts, timelineSortDir])
+
+  const totalPages    = Math.max(1, Math.ceil(filteredRows.length / PAGE_SIZE))
+  const paginatedRows = filteredRows.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
+
+  const goToPage = useCallback((page: number) => {
+    setCurrentPage(page)
   }, [])
-
-  // ── Derived company options from loaded data ──────────────────────────────
-  const companyOptions = useMemo(
-    () => [...new Set(jobPosts.map((p) => p.client).filter(Boolean))].sort(),
-    [jobPosts],
-  )
-
-  // ── Client-side filtering ─────────────────────────────────────────────────
-  const filteredRows = jobPosts.filter((post) => {
-    if (post.status.toUpperCase() === 'CANCELLED') return false
-
-    const q = searchQuery.trim().toLowerCase()
-    const searchMatch =
-      q === '' ||
-      post.title.toLowerCase().includes(q) ||
-      post.client.toLowerCase().includes(q) ||
-      post.location?.toLowerCase().includes(q) ||
-      post.industry?.toLowerCase().includes(q)
-    const statusMatch =
-      selectedStatuses.length === 0 ||
-      selectedStatuses.some(
-        (s) => s.toUpperCase() === post.status.toUpperCase(),
-      )
-    const locationMatch =
-      selectedLocations.length === 0 ||
-      selectedLocations.some((l) =>
-        post.location?.toLowerCase().includes(l.toLowerCase()),
-      )
-    const companyMatch =
-      selectedCompanies.length === 0 ||
-      selectedCompanies.includes(post.client)
-    return searchMatch && statusMatch && locationMatch && companyMatch
-  })
 
   // ── Handlers ──────────────────────────────────────────────────────────────
   const handleCompanyChipClick = () => setCompanyAnchorEl(companyBtnRef.current)
   const handleCompanyClose     = () => setCompanyAnchorEl(null)
 
-  const toggleCompany = (option: string) => {
-    setSelectedCompanies((prev) =>
-      prev.includes(option) ? prev.filter((c) => c !== option) : [...prev, option],
-    )
+  const toggleCompany = (clientId: string) => {
+    setSelectedClientId((prev) => (prev === clientId ? null : clientId))
   }
 
   const handleStatusChipClick = () => setStatusAnchorEl(statusBtnRef.current)
@@ -134,13 +152,14 @@ export const MandatesScreen = ({ onNewJobPost, onEditJobPost }: MandatesScreenPr
   const handleLocationChipClick = () => setLocationAnchorEl(locationBtnRef.current)
   const handleLocationClose     = () => setLocationAnchorEl(null)
 
-  const toggleLocation = (option: LocationOption) => {
+  const toggleLocation = (option: string) => {
     setSelectedLocations((prev) =>
       prev.includes(option) ? prev.filter((l) => l !== option) : [...prev, option],
     )
   }
 
   const companyOpen  = Boolean(companyAnchorEl)
+  const selectedCompanyName = companyOptions.find((c) => c.clientId === selectedClientId)?.name ?? null
   const statusOpen   = Boolean(statusAnchorEl)
   const locationOpen = Boolean(locationAnchorEl)
 
@@ -215,7 +234,7 @@ export const MandatesScreen = ({ onNewJobPost, onEditJobPost }: MandatesScreenPr
         <ButtonBase
           ref={companyBtnRef}
           component="button"
-          className={`${styles.filterChip} ${selectedCompanies.length > 0 || companyOpen ? styles.filterChipActive : ''}`}
+          className={`${styles.filterChip} ${selectedClientId !== null || companyOpen ? styles.filterChipActive : ''}`}
           disableRipple
           onClick={handleCompanyChipClick}
           aria-haspopup="true"
@@ -228,7 +247,7 @@ export const MandatesScreen = ({ onNewJobPost, onEditJobPost }: MandatesScreenPr
             <path d="M4.5 8.5h1M7.5 8.5h1M4.5 11h1M7.5 11h1" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
             <path d="M5.5 14v-2.5h3V14" stroke="currentColor" strokeWidth="1.3" />
           </svg>
-          Company
+          {selectedCompanyName ?? 'Company'}
         </ButtonBase>
 
         {/* Location dropdown chip */}
@@ -298,16 +317,16 @@ export const MandatesScreen = ({ onNewJobPost, onEditJobPost }: MandatesScreenPr
       >
         {companyOptions.map((option) => (
           <div
-            key={option}
-            role="menuitemcheckbox"
-            aria-checked={selectedCompanies.includes(option)}
+            key={option.clientId}
+            role="menuitemradio"
+            aria-checked={selectedClientId === option.clientId}
             tabIndex={0}
             className={styles.filterDropdownItem}
-            onClick={() => toggleCompany(option)}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleCompany(option) } }}
+            onClick={() => toggleCompany(option.clientId)}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleCompany(option.clientId) } }}
           >
-            <span className={`${styles.filterCheckboxIcon} ${selectedCompanies.includes(option) ? styles.filterCheckboxIconChecked : ''}`} aria-hidden="true" />
-            <span className={styles.filterDropdownLabel}>{option}</span>
+            <span className={`${styles.filterCheckboxIcon} ${selectedClientId === option.clientId ? styles.filterCheckboxIconChecked : ''}`} aria-hidden="true" />
+            <span className={styles.filterDropdownLabel}>{option.name}</span>
           </div>
         ))}
       </Popover>
@@ -346,7 +365,7 @@ export const MandatesScreen = ({ onNewJobPost, onEditJobPost }: MandatesScreenPr
         transformOrigin={{ vertical: 'top', horizontal: 'left' }}
         slotProps={{ paper: { className: styles.filterDropdownPaper } }}
       >
-        {LOCATION_OPTIONS.map((option) => (
+        {locationOptions.map((option) => (
           <div
             key={option}
             role="menuitemcheckbox"
@@ -384,7 +403,7 @@ export const MandatesScreen = ({ onNewJobPost, onEditJobPost }: MandatesScreenPr
 
         {!loading && !error && filteredRows.length > 0 && (
           <Box className={styles.table}>
-            {filteredRows.map((post) => {
+            {paginatedRows.map((post) => {
               const displayStatus = toTitleCase(post.status)
               const isDraft       = post.status.toUpperCase() === 'DRAFT'
               const timeline      = `${formatDate(post.openDate)} – ${formatDate(post.targetCloseDate)}`
@@ -404,9 +423,27 @@ export const MandatesScreen = ({ onNewJobPost, onEditJobPost }: MandatesScreenPr
                     <Typography component="span" className={styles.gridLabel}>LOCATION</Typography>
                     <Box className={styles.timelineHeader}>
                       <Typography component="span" className={styles.gridLabel}>TIMELINE</Typography>
-                      <Box component="span" className={styles.timelineIcon} aria-hidden="true">
-                        <span>⌃</span>
-                        <span>⌄</span>
+                      <Box component="span" className={styles.timelineSortBtns} aria-label="Sort by timeline">
+                        <button
+                          type="button"
+                          className={`${styles.timelineSortBtn} ${timelineSortDir === 'asc' ? styles.timelineSortBtnActive : ''}`}
+                          aria-label="Sort ascending"
+                          onClick={() => setTimelineSortDir((prev) => (prev === 'asc' ? null : 'asc'))}
+                        >
+                          <svg viewBox="0 0 10 6" fill="none" aria-hidden="true" width="10" height="6">
+                            <path d="M1 5L5 1L9 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </button>
+                        <button
+                          type="button"
+                          className={`${styles.timelineSortBtn} ${timelineSortDir === 'desc' ? styles.timelineSortBtnActive : ''}`}
+                          aria-label="Sort descending"
+                          onClick={() => setTimelineSortDir((prev) => (prev === 'desc' ? null : 'desc'))}
+                        >
+                          <svg viewBox="0 0 10 6" fill="none" aria-hidden="true" width="10" height="6">
+                            <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </button>
                       </Box>
                     </Box>
                     <Typography component="span" className={styles.gridLabel}>STATUS</Typography>
@@ -443,6 +480,51 @@ export const MandatesScreen = ({ onNewJobPost, onEditJobPost }: MandatesScreenPr
           </Box>
         )}
       </Box>
+
+      {/* Pagination */}
+      {!loading && !error && filteredRows.length > 0 && (
+        <Box className={styles.pagination}>
+          <ButtonBase
+            component="button"
+            className={styles.pageBtn}
+            disableRipple
+            disabled={currentPage === 1}
+            onClick={() => goToPage(currentPage - 1)}
+            aria-label="Previous page"
+          >
+            <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" width="14" height="14">
+              <path d="M10 12L6 8l4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </ButtonBase>
+
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+            <ButtonBase
+              key={page}
+              component="button"
+              className={`${styles.pageBtn} ${page === currentPage ? styles.pageBtnActive : ''}`}
+              disableRipple
+              onClick={() => goToPage(page)}
+              aria-label={`Page ${page}`}
+              aria-current={page === currentPage ? 'page' : undefined}
+            >
+              {page}
+            </ButtonBase>
+          ))}
+
+          <ButtonBase
+            component="button"
+            className={styles.pageBtn}
+            disableRipple
+            disabled={currentPage === totalPages}
+            onClick={() => goToPage(currentPage + 1)}
+            aria-label="Next page"
+          >
+            <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" width="14" height="14">
+              <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </ButtonBase>
+        </Box>
+      )}
 
       <Popover
         open={open}

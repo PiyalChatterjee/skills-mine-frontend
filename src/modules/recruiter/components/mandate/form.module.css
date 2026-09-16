@@ -119,6 +119,26 @@
   line-height: 1.6;
 }
 
+/* ── Checkbox ─────────────────────────────────────────────────────────── */
+.checkboxLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #2A3132;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 16px;
+  line-height: 150%;
+  cursor: pointer;
+}
+
+.checkbox {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: #2B96D9;
+  cursor: pointer;
+}
+
 /* ── Error text ───────────────────────────────────────────────────────── */
 .errorText {
   color: #dc2626;
