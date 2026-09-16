@@ -4,6 +4,7 @@ import { useCvBuilderPageViewModel } from "./useCvBuilderPageViewModel";
 
 const mocks = vi.hoisted(() => ({
   getGuestApplicationDrafts: vi.fn(),
+  parseResume: vi.fn(),
   handleDone: vi.fn(),
   handleUploadFileSelect: vi.fn(),
   navigate: vi.fn(),
@@ -37,6 +38,16 @@ vi.mock("react-router-dom", () => ({
 
 vi.mock("@/app/auth/AuthContext", () => ({
   useAuth: mocks.useAuth,
+}));
+
+vi.mock("@/services/api/aiApi", () => ({
+  aiApi: {
+    parseResume: mocks.parseResume,
+  },
+}));
+
+vi.mock("../utils/extractResumeText", () => ({
+  extractResumeText: vi.fn().mockResolvedValue("cv"),
 }));
 
 vi.mock("@/app/formatEnumLabel", () => ({
@@ -134,6 +145,7 @@ describe("useCvBuilderPageViewModel", () => {
     mocks.useLocation.mockReturnValue({ search: "", state: null });
     mocks.useCandidateResourceId.mockReturnValue("c-1");
     mocks.getGuestApplicationDrafts.mockReturnValue([]);
+    mocks.parseResume.mockResolvedValue({});
     mocks.useBuildMyCvQuery.mockReturnValue({ isLoading: false });
     mocks.useCandidateProfileQuery.mockReturnValue({ data: candidateProfile });
     mocks.useSelector.mockImplementation((selector: unknown) => {
@@ -195,7 +207,7 @@ describe("useCvBuilderPageViewModel", () => {
     expect(result.current.heroHeading).toBe("CV Builder");
     expect(result.current.actionCards[0]).toMatchObject({
       id: "upload",
-      description: "Selected file: jane-cv.pdf",
+      description: "Upload your CV directly from your computer.",
       tone: "coral",
     });
   });
@@ -256,6 +268,13 @@ describe("useCvBuilderPageViewModel", () => {
   });
 
   it("uploads a selected resume for authenticated candidates before opening blank review", async () => {
+    mocks.parseResume.mockResolvedValue({
+      personal_details: {
+        first_name: "Ben",
+        last_name: "Hur",
+      },
+    });
+
     const { result } = renderHook(() => useCvBuilderPageViewModel());
 
     await act(async () => {
@@ -268,7 +287,21 @@ describe("useCvBuilderPageViewModel", () => {
       fileName: "jane-cv.pdf",
       documentType: "RESUME",
     });
+    expect(mocks.parseResume).toHaveBeenCalledWith({
+      extracted_text: "cv",
+      owner_type: "CANDIDATE",
+    });
     expect(mocks.openReviewFlowBlank).toHaveBeenCalled();
+    expect(mocks.openReviewFlowBlank).toHaveBeenCalledWith(
+      expect.objectContaining({
+        personalDetails: expect.objectContaining({
+          fullName: "Ben Hur",
+          currentCompany: "Acme",
+          currentPosition: "Engineer",
+          noticePeriod: "1 month",
+        }),
+      }),
+    );
     expect(result.current.uploadModalOpen).toBe(false);
   });
 
@@ -291,6 +324,10 @@ describe("useCvBuilderPageViewModel", () => {
     });
 
     expect(mocks.uploadDocument).not.toHaveBeenCalled();
+    expect(mocks.parseResume).toHaveBeenCalledWith({
+      extracted_text: "cv",
+      owner_type: "VISITOR",
+    });
     expect(mocks.openReviewFlowBlank).toHaveBeenCalled();
   });
 });

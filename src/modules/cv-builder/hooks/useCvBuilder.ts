@@ -163,7 +163,12 @@ const buildLanguageEntries = (
   return entries;
 };
 
-export type CvBuilderPrefillData = Partial<CvBuilderFormValues>;
+export type CvBuilderPrefillData = Omit<
+  Partial<CvBuilderFormValues>,
+  "personalDetails"
+> & {
+  personalDetails?: Partial<CvBuilderFormValues["personalDetails"]>;
+};
 
 const useCvBuilder = (
   prefillData?: CvBuilderPrefillData,
@@ -393,8 +398,15 @@ const useCvBuilder = (
   const goBack = () => setActiveView("launcher");
   // Resume extraction isn't wired up to the mock API yet, so the uploaded-CV
   // flow shows a blank form instead of stale/unrelated profile data.
-  const openReviewFlowBlank = () => {
-    form.reset(DEFAULT_FORM_VALUES);
+  const openReviewFlowBlank = (prefillData?: CvBuilderPrefillData) => {
+    form.reset({
+      ...DEFAULT_FORM_VALUES,
+      ...prefillData,
+      personalDetails: {
+        ...DEFAULT_FORM_VALUES.personalDetails,
+        ...prefillData?.personalDetails,
+      },
+    });
     setReviewSource("upload");
     setActiveView("review");
   };

@@ -12,6 +12,7 @@ import {
 } from "@/modules/candidate/hooks/useCandidateQueries";
 import { getGuestApplicationDrafts } from "@/modules/candidate/utils/guestApplicationDraft";
 import { ROUTE_PATHS } from "@/routes/routePaths";
+import { aiApi } from "@/services/api/aiApi";
 import { useUploadDocumentMutation } from "@/store/api/apiSlice";
 import {
   selectBuildMyCv,
@@ -25,6 +26,8 @@ import {
   isoToMonthName,
   useCvBuilderDone,
 } from "./useCvBuilderDone";
+import { extractResumeText } from "../utils/extractResumeText";
+import { buildResumePrefillData } from "../utils/resumePrefill";
 import { LANGUAGES_LIST, type CvActionCard } from "../types/cvBuilder";
 import type { CvBuilderFormValues } from "../types/cvBuilderSchema";
 
@@ -196,25 +199,44 @@ export const useCvBuilderPageViewModel = () => {
   const handleUploadDone = async () => {
     if (!selectedUploadFile) return;
 
-    if (isGuestApplication) {
-      setUploadModalOpen(false);
-      openReviewFlowBlank();
-      return;
-    }
-
-    if (!candidateId) return;
-
     try {
+      const extractedText = await extractResumeText(selectedUploadFile);
+      const parsedResume = await aiApi.parseResume({
+        extracted_text: extractedText,
+        ...(isGuestApplication
+          ? { owner_type: "VISITOR" as const }
+          : { owner_type: "CANDIDATE" as const }),
+      });
+      const prefillData = buildResumePrefillData(parsedResume, extractedText);
+      const mergedPrefillData = {
+        ...cvBuilderPrefillData,
+        ...prefillData,
+        personalDetails: {
+          ...cvBuilderPrefillData?.personalDetails,
+          ...prefillData.personalDetails,
+        },
+      };
+
+      if (isGuestApplication) {
+        setUploadModalOpen(false);
+        openReviewFlowBlank(mergedPrefillData);
+        return;
+      }
+
+      if (!candidateId) return;
+
       await uploadDocument({
         candidateId,
         file: selectedUploadFile,
         fileName: selectedUploadFile.name,
         documentType: "RESUME",
       }).unwrap();
+
       setUploadModalOpen(false);
-      openReviewFlowBlank();
+      openReviewFlowBlank(mergedPrefillData);
+      return;
     } catch {
-      // Keep the modal open so the user can retry the upload.
+      // Keep the modal open when extraction, parsing, or upload fails.
     }
   };
 
@@ -223,9 +245,7 @@ export const useCvBuilderPageViewModel = () => {
       {
         id: "upload",
         title: "Upload my CV",
-        description: selectedUploadFile
-          ? `Selected file: ${selectedUploadFile.name}`
-          : "Upload your CV directly from your computer.",
+        description: "Upload your CV directly from your computer.",
         icon: uploadIcon,
         tone: "coral",
         onClick: () => setUploadModalOpen(true),
@@ -241,7 +261,7 @@ export const useCvBuilderPageViewModel = () => {
         onClick: openBuildFlow,
       },
     ],
-    [selectedUploadFile, openBuildFlow, isBuildMyCvLoading],
+    [openBuildFlow, isBuildMyCvLoading],
   );
 
   const heroBackHandler = isGuestApplication

@@ -15,6 +15,7 @@ import {
   toPreferredLocationEnum,
   toPreferredLocationLabel,
 } from "@/modules/candidate/utils/profileEnums";
+import { aiApi } from "@/services/api/aiApi";
 import type {
   BuildMyCvData,
   BuildMyCvEducationSection,
@@ -1194,27 +1195,24 @@ export const candidateApi = {
   },
 
   getAiActions(candidateId: string): Promise<AiActionsData> {
-    return unwrapResponseData(
-      candidateApiClient.get(
-        resolveEndpoint(apiEndpoints.candidate.aiActions, { candidateId }),
-      ),
-    ).then((payload) => {
-      const data = responseData(payload as Record<string, unknown>) as Record<
-        string,
-        any
-      >;
+    return aiApi.getCandidateAiActions(candidateId).then((payload) => {
       return {
-        candidateId: data.candidateId ?? data.candidate_id ?? candidateId,
-        actions: (data.actions ?? []).map(
-          (action: string | Record<string, any>, index: number) =>
-            typeof action === "string"
-              ? {
-                  actionId: `ai-${index}`,
-                  type: "CAREER_NUDGE" as const,
-                  label: action,
-                }
-              : action,
-        ),
+        candidateId: payload.candidate_id ?? candidateId,
+        actions: payload.actions.map((action, index) => ({
+          actionId: `ai-${index}`,
+          type: "CAREER_NUDGE" as const,
+          label: action.title,
+          description: action.description,
+          payload: {
+            actionType: action.action_type,
+            priority: action.priority,
+            jobProfileId: action.job_profile_id,
+            jobTitle: action.job_title,
+            companyName: action.company_name,
+            ctaLabel: action.cta_label,
+            ctaAction: action.cta_action,
+          },
+        })),
       };
     });
   },
@@ -1323,32 +1321,17 @@ export const candidateApi = {
   // AI-generated skill suggestions from the candidate's career history — the
   // caller is expected to overwrite the current skills list with the result.
   async generateSkills(payload: GenerateSkillsRequest): Promise<UserSkill[]> {
-    const raw = await unwrapResponseData(
-      apiClient.post(
-        apiEndpoints.skills.generate,
-        {
-          subject_type: "CANDIDATE",
-          subject_id: payload.candidateId,
-          input_source: "PROFILE",
-          career_history: payload.careerHistory.map((entry) => ({
-            company_name: entry.companyName,
-            position_held: entry.positionHeld,
-            responsibilities: entry.responsibilities,
-            projects: entry.projects,
-          })),
-        },
-        // A failure here (including a 401) shouldn't end the user's session —
-        // the caller shows an error toast and keeps them on the current page.
-        { skipUnauthorizedRedirect: true },
-      ),
-    );
-    const data = responseData(raw as Record<string, unknown>) as Record<
-      string,
-      any
-    >;
-    const suggested = Array.isArray(data.suggested_skills)
-      ? data.suggested_skills
-      : [];
+    const response = await aiApi.generateCandidateSkills({
+      subject_type: "CANDIDATE",
+      subject_id: payload.candidateId,
+      career_history: payload.careerHistory.map((entry) => ({
+        company_name: entry.companyName,
+        position_held: entry.positionHeld,
+        responsibilities: entry.responsibilities,
+        ...(entry.projects ? { projects: entry.projects } : {}),
+      })),
+    });
+    const suggested = response.suggested_skills;
     return suggested.map((skill: Record<string, any>) => ({
       skillId: skill.skill_id ?? skill.skillId ?? "",
       skillName: skill.skill_name ?? skill.skillName ?? "",

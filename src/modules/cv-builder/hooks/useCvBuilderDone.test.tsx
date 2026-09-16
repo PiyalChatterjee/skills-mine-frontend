@@ -224,6 +224,12 @@ vi.mock('@/app/auth/AuthContext', async () => {
   }
 })
 
+vi.mock('../utils/downloadCvPdf', () => ({
+  generateCvPdfBlobFromText: vi.fn().mockResolvedValue(
+    new Blob(['test-pdf'], { type: 'application/pdf' }),
+  ),
+}))
+
 const makeTestStore = () =>
   configureStore({
     reducer: {

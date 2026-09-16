@@ -29,7 +29,7 @@ export const profileFormSchema = z.object({
   residentialLocation: requiredField('Residential location'),
   preferredJobTitle: z.string(),
   targetedIndustries: z.string(),
-  preferredWorkType: requiredField('Preferred Work Type(s)'),
+  preferredWorkType: z.string(),
   employmentType: z.string(),
   availability: z.string(),
   password: z.string(),

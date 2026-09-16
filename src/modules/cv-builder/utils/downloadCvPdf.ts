@@ -1,5 +1,7 @@
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
+import { formatEnumLabel } from "@/app/formatEnumLabel";
+import skillsMineCVHeroImg from "@/assets/cv-builder/skills-mine-cv-hero-img.png";
 import type { SaveBuildMyCvRequest } from "@/types";
 
 type DownloadCvPdfOptions = {
@@ -14,6 +16,17 @@ const DEFAULT_OPTIONS: Required<DownloadCvPdfOptions> = {
   footerBottomLine:
     "PLEASE NOTE By receiving this Curriculum Vitae, you automatically agree to our Standard Terms and Conditions",
 };
+
+const pxToMm = (pixels: number) => (pixels * 25.4) / 96;
+
+const loadImageElement = (src: string): Promise<HTMLImageElement> =>
+  new Promise((resolve, reject) => {
+    const image = new Image();
+    image.crossOrigin = "anonymous";
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error("Unable to load CV header image"));
+    image.src = src;
+  });
 
 export const generateCvPdfBlob = async (
   documentNode: HTMLElement,
@@ -168,7 +181,7 @@ export const generateCvPdfBlob = async (
   }
 };
 
-export const generateCvPdfBlobFromText = (text: string): Blob => {
+export const generateCvPdfBlobFromText = async (text: string): Promise<Blob> => {
   const payload = JSON.parse(text) as SaveBuildMyCvRequest;
   const pdf = new jsPDF({
     orientation: "p",
@@ -184,6 +197,10 @@ export const generateCvPdfBlobFromText = (text: string): Blob => {
   const contentRight = pageWidth - 24;
   const valueLeft = 76;
   const contentWidth = contentRight - contentLeft;
+  const sectionTitleTopPadding = pxToMm(16);
+  const sectionTitleBottomPadding = pxToMm(8);
+  const sectionTitleLineHeight = 7;
+  const cvHeaderImage = await loadImageElement(skillsMineCVHeroImg);
   let yPosition = 34;
 
   const drawPage = () => {
@@ -208,33 +225,48 @@ export const generateCvPdfBlobFromText = (text: string): Blob => {
     drawPage();
   };
 
+  const formatValue = (value: unknown) =>
+    typeof value === "string" ? formatEnumLabel(value) : value;
+
+  const formatJoinedValues = (
+    values: Array<string | null | undefined>,
+    separator: string,
+  ) => values.map(formatEnumLabel).filter(Boolean).join(separator);
+
   const addSectionTitle = (title: string) => {
-    addPageIfNeeded(18);
+    addPageIfNeeded(
+      sectionTitleTopPadding + sectionTitleLineHeight + sectionTitleBottomPadding,
+    );
+    yPosition += sectionTitleTopPadding;
     pdf.setFont("helvetica", "bold");
     pdf.setFontSize(17);
     pdf.setTextColor(45, 151, 211);
     pdf.text(title, contentLeft, yPosition);
-    yPosition += 12;
+    yPosition += sectionTitleLineHeight + sectionTitleBottomPadding;
   };
 
   const addRow = (label: string, value: unknown) => {
-    const displayValue = String(value ?? "").trim();
+    const displayValue = String(formatValue(value) ?? "").trim();
     if (!displayValue) return;
-    const lines = pdf.splitTextToSize(displayValue, contentRight - valueLeft);
+    const valueX = label ? valueLeft : contentLeft;
+    const lines = pdf.splitTextToSize(displayValue, contentRight - valueX);
     addPageIfNeeded(Math.max(8, lines.length * 5));
-    pdf.setFont("helvetica", "bold");
-    pdf.setFontSize(10.5);
-    pdf.setTextColor(35, 42, 48);
-    pdf.text(label, contentLeft, yPosition);
+    if (label) {
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(10.5);
+      pdf.setTextColor(35, 42, 48);
+      pdf.text(label, contentLeft, yPosition);
+    }
     pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(10.5);
     pdf.setTextColor(72, 78, 84);
-    pdf.text(lines, valueLeft, yPosition);
+    pdf.text(lines, valueX, yPosition);
     yPosition += Math.max(8, lines.length * 5);
   };
 
   const addList = (values: string[]) => {
     for (const value of values) {
-      const lines = pdf.splitTextToSize(value, contentWidth - 6);
+      const lines = pdf.splitTextToSize(formatEnumLabel(value), contentWidth - 6);
       addPageIfNeeded(Math.max(6, lines.length * 5));
       pdf.setFont("helvetica", "normal");
       pdf.setFontSize(10.5);
@@ -261,6 +293,17 @@ export const generateCvPdfBlobFromText = (text: string): Blob => {
   };
 
   drawPage();
+  const headerWidth = pageWidth - outerPadding * 2;
+  const headerHeight = (cvHeaderImage.height * headerWidth) / cvHeaderImage.width;
+  pdf.addImage(
+    cvHeaderImage,
+    "PNG",
+    outerPadding,
+    outerPadding,
+    headerWidth,
+    headerHeight,
+  );
+  yPosition = outerPadding + headerHeight + 14;
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(25);
   pdf.setTextColor(45, 151, 211);
@@ -276,76 +319,122 @@ export const generateCvPdfBlobFromText = (text: string): Blob => {
   );
   yPosition += 20;
 
-  addSectionTitle("Personal Profile");
-  addRow("Job Application", payload.personalDetails?.currentPosition);
-  addRow(
-    "Full Name",
-    `${payload.personalDetails?.firstName ?? ""} ${payload.personalDetails?.lastName ?? ""}`,
-  );
-  addRow(
-    "Employment Equity Status",
-    [payload.personalDetails?.race, payload.personalDetails?.gender]
-      .filter(Boolean)
-      .join(" "),
-  );
-  addRow("Disability", payload.personalDetails?.disabilityStatus);
-  addRow("Nationality", payload.personalDetails?.nationality);
-  addRow("Residential Location", payload.personalDetails?.location);
-  addRow("Current Company", payload.personalDetails?.currentCompany);
-  addRow("Current Position", payload.personalDetails?.currentPosition);
-  addRow("Notice Period", payload.personalDetails?.noticePeriod);
+  const personalDetails = payload.personalDetails;
+  const tertiaryEducation = payload.education?.tertiaryEducation ?? [];
+  const secondaryEducation = payload.education?.secondaryEducation ?? [];
+  const careerHistory = payload.careerHistory ?? [];
+  const skills = payload.skills ?? [];
+  const languages = payload.languages ?? [];
 
-  addSectionTitle("Candidate Overview");
-  addRow("Highest Qualification", payload.education?.tertiaryEducation?.[0]?.qualification);
-  addRow(
-    "Languages",
-    payload.languages?.map((entry) => entry.language).filter(Boolean).join(", "),
+  const hasPersonalProfile = Boolean(
+    personalDetails?.currentPosition ||
+      personalDetails?.firstName ||
+      personalDetails?.lastName ||
+      personalDetails?.race ||
+      personalDetails?.gender ||
+      personalDetails?.disabilityStatus ||
+      personalDetails?.nationality ||
+      personalDetails?.location ||
+      personalDetails?.currentCompany ||
+      personalDetails?.noticePeriod,
   );
 
-  addSectionTitle("Tertiary Education");
-  for (const entry of payload.education?.tertiaryEducation ?? []) {
-    addRow("Institution", entry.institution);
-    addRow("Year Completed", entry.yearCompleted);
-    addRow("Degree / Certificate Name", entry.qualification);
-  }
-
-  addSectionTitle("Secondary Education");
-  for (const entry of payload.education?.secondaryEducation ?? []) {
-    addRow("Institution", entry.schoolName || entry.institution);
-    addRow("Year Completed", entry.yearCompleted);
-    addRow("Highest grade passed", entry.qualification || entry.highestGradePassed);
-  }
-
-  addSectionTitle("Career Overview");
-  for (const entry of payload.careerHistory ?? []) {
-    addRow("Company", entry.company);
+  if (hasPersonalProfile) {
+    addSectionTitle("Personal Profile");
+    addRow("Job Application", personalDetails?.currentPosition);
     addRow(
-      "Period",
-      `${entry.startDate}${entry.endDate ? ` - ${entry.endDate}` : " - Current"}`,
+      "Full Name",
+      `${personalDetails?.firstName ?? ""} ${personalDetails?.lastName ?? ""}`,
     );
-    addRow("Position Held", entry.jobTitle);
+    addRow(
+      "Employment Equity Status",
+      formatJoinedValues([personalDetails?.race, personalDetails?.gender], " "),
+    );
+    addRow("Disability", personalDetails?.disabilityStatus);
+    addRow("Nationality", personalDetails?.nationality);
+    addRow("Residential Location", personalDetails?.location);
+    addRow("Current Company", personalDetails?.currentCompany);
+    addRow("Current Position", personalDetails?.currentPosition);
+    addRow("Notice Period", personalDetails?.noticePeriod);
   }
 
-  addSectionTitle("Key Skills");
-  addList(payload.skills ?? []);
-
-  addSectionTitle("Languages");
-  addRow(
-    "",
-    payload.languages
-      ?.map((entry) => `${entry.language} (${entry.proficiency})`)
-      .join(", "),
-  );
-
-  addSectionTitle("Work Experience");
-  for (const entry of payload.careerHistory ?? []) {
-    addRow("Company Name", entry.company);
-    addRow("Position Held", entry.jobTitle);
+  if (tertiaryEducation[0]?.qualification || languages.length > 0) {
+    addSectionTitle("Candidate Overview");
+    addRow("Highest Qualification", tertiaryEducation[0]?.qualification);
     addRow(
-      "Period",
-      `${entry.startDate}${entry.endDate ? ` - ${entry.endDate}` : " - Current"}`,
+      "Languages",
+      formatJoinedValues(
+        languages.map((entry) => entry.language),
+        ", ",
+      ),
     );
-    addRow("Description", entry.responsibilities);
+  }
+
+  if (tertiaryEducation.length > 0) {
+    addSectionTitle("Tertiary Education");
+    for (const entry of tertiaryEducation) {
+      addRow("Institution", entry.institution);
+      addRow("Year Completed", entry.yearCompleted);
+      addRow("Degree / Certificate Name", entry.qualification);
+    }
+  }
+
+  if (secondaryEducation.length > 0) {
+    addSectionTitle("Secondary Education");
+    for (const entry of secondaryEducation) {
+      addRow("Institution", entry.schoolName || entry.institution);
+      addRow("Year Completed", entry.yearCompleted);
+      addRow("Highest grade passed", entry.qualification || entry.highestGradePassed);
+    }
+  }
+
+  if (careerHistory.length > 0) {
+    addSectionTitle("Career Overview");
+    for (const entry of careerHistory) {
+      addRow("Company", entry.company);
+      addRow(
+        "Period",
+        `${entry.startDate}${entry.endDate ? ` - ${entry.endDate}` : " - Current"}`,
+      );
+      addRow("Position Held", entry.jobTitle);
+    }
+  }
+
+  if (skills.length > 0) {
+    addSectionTitle("Key Skills");
+    addList(skills);
+  }
+
+  if (languages.length > 0) {
+    addSectionTitle("Languages");
+    addRow(
+      "",
+      languages
+        .map((entry) =>
+          [
+            formatEnumLabel(entry.language),
+            formatEnumLabel(entry.proficiency),
+          ].filter(Boolean),
+        )
+        .filter((entry) => entry.length > 0)
+        .map(([language, proficiency]) =>
+          proficiency ? `${language} (${proficiency})` : language,
+        )
+        .join(", "),
+    );
+  }
+
+  if (careerHistory.length > 0) {
+    addSectionTitle("Work Experience");
+    for (const entry of careerHistory) {
+      addRow("Company Name", entry.company);
+      addRow("Position Held", entry.jobTitle);
+      addRow(
+        "Period",
+        `${entry.startDate}${entry.endDate ? ` - ${entry.endDate}` : " - Current"}`,
+      );
+      addRow("Description", entry.responsibilities);
+    }
   }
 
   for (let pageIndex = 1; pageIndex <= pdf.getNumberOfPages(); pageIndex += 1) {

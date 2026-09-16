@@ -285,7 +285,7 @@ export const useCvBuilderDone = ({
       const { generateCvPdfBlobFromText } = await import(
         "../utils/downloadCvPdf"
       );
-      pdfBlob = generateCvPdfBlobFromText(JSON.stringify(payload, null, 2));
+      pdfBlob = await generateCvPdfBlobFromText(JSON.stringify(payload, null, 2));
       fileName = buildResumeFileName(
         payload.personalDetails?.firstName ?? "",
         payload.personalDetails?.lastName ?? "",
