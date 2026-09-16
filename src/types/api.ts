@@ -944,6 +944,8 @@ export interface JobPostsParams {
   priority?: string
   recruiterId?: string
   search?: string
+  locationText?: string[]
+  clientId?: string
 }
 
 export interface Industry {
