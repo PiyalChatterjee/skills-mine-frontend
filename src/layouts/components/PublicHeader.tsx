@@ -426,6 +426,36 @@ export const PublicHeader = ({
                   </Box>
                 );
               })}
+              {showSignUp || showSearchButton ? (
+                <Box className={styles.mobileNavActions}>
+                  {showSignUp ? (
+                    <Button
+                      variant="contained"
+                      onClick={onSignUpClick}
+                      className={styles.signUpButton}
+                    >
+                      Sign up
+                    </Button>
+                  ) : null}
+                  {showSearchButton ? (
+                    <IconButton
+                      aria-label="Search site"
+                      onClick={onSearchClick}
+                      className={`${styles.searchButton} ${styles.mobileSearchButton}`}
+                    >
+                      <Box
+                        component="img"
+                        src={searchIcon}
+                        alt=""
+                        className={styles.searchButtonIcon}
+                      />
+                      <Box component="span" className={styles.mobileSearchLabel}>
+                        Search
+                      </Box>
+                    </IconButton>
+                  ) : null}
+                </Box>
+              ) : null}
             </Box>
           </>
         )}

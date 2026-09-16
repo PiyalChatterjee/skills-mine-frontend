@@ -52,6 +52,8 @@ const SectionCard = ({
           variant="outlined"
           className={styles.editButton}
           onClick={onEdit}
+          aria-label={`Edit ${title}`}
+          title={`Edit ${title}`}
           startIcon={
             <img
               src={pencilLineIconSrc}
