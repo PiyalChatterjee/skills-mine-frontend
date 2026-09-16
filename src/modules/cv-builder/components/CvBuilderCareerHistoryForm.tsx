@@ -179,7 +179,7 @@ const CvBuilderCareerHistoryForm = () => {
 
   return (
     <CvBuilderFormPanel>
-      <CvBuilderSectionHeader iconSrc={buildingIcon} title="Career history" />
+      <CvBuilderSectionHeader iconSrc={buildingIcon} title="Career History" />
 
       {formError && (
         <Typography component="p" sx={{ color: '#d32f2f', marginBottom: 2 }}>{formError}</Typography>

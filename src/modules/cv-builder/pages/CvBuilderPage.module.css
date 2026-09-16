@@ -988,6 +988,10 @@
   gap: 24px;
 }
 
+.educationSection + .educationSection {
+  padding-top: 24px;
+}
+
 .educationSubHeading,
 .educationSubHeading:global(.MuiTypography-root) {
   color: #2b96d9;
