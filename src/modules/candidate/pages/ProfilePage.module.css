@@ -528,8 +528,8 @@
   box-shadow: none;
 }
 
-/* ── Narrow desktop (1200px) ─────────────────────────────────────────── */
-@media (max-width: 1200px) {
+/* ── Stacked layout (1023px) ──────────────────────────────────────────── */
+@media (max-width: 1023px) {
   .pageRoot {
     padding: 32px 32px 48px;
   }
@@ -551,6 +551,7 @@
   }
 
   .sidebar {
+    order: -1;
     width: 100%;
   }
 
@@ -624,5 +625,11 @@
   .editButtonIcon {
     width: 22px;
     height: 22px;
+  }
+
+  .dashboardButton,
+  .dashboardButton:global(.MuiButton-root):global(.MuiButton-contained) {
+    width: 100%;
+    align-self: stretch;
   }
 }

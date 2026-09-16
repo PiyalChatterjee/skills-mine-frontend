@@ -60,6 +60,11 @@ type ProfileFieldBlockProps = {
   children: ReactNode;
 };
 
+export const formatProfileLabel = (label: string) =>
+  label.replace(/(^|[\s-])([a-z])/g, (_, prefix: string, character: string) =>
+    `${prefix}${character.toUpperCase()}`,
+  );
+
 const ProfileFieldBlock = ({
   label,
   fullWidth,
@@ -70,7 +75,7 @@ const ProfileFieldBlock = ({
     className={`${styles.fieldBlock} ${fullWidth ? styles.fieldBlockFull : ""}`}
   >
     <Typography component="label" htmlFor={htmlFor} className={styles.fieldLabel}>
-      {label}
+      {formatProfileLabel(label)}
     </Typography>
     {children}
   </Box>

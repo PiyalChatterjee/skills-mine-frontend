@@ -3,13 +3,11 @@ import {
   Button,
   ButtonBase,
   CircularProgress,
-  IconButton,
   Typography,
 } from "@mui/material";
 import arrowLeftFill from "@/assets/job-details/arrow-left-fill.svg";
 import patternHeroLeft from "@/assets/job-details/pattern-hero-left.svg";
 import patternHeroRight from "@/assets/job-details/pattern-hero-right.svg";
-import { BookmarkIcon } from "@/components/icons/BookmarkIcon";
 import { GradientPatternHero } from "@/components/hero";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { useJobDetailsViewModel } from "@/modules/candidate/hooks/useJobDetailsViewModel";
@@ -41,15 +39,12 @@ const JobDetailsPage = () => {
     isAuthenticated,
     isInitialLoading,
     isNotFound,
-    isSaved,
-    isSaving,
     jobReferenceNumber,
     locationName,
     postedDate,
     requirements,
     responsibilities,
     salaryRange,
-    saveAriaLabel,
     skills,
     title,
     workType,
@@ -123,31 +118,6 @@ const JobDetailsPage = () => {
               {title}
             </Typography>
 
-            {isAuthenticated && (
-              <Box className={styles.heroActions}>
-                <IconButton
-                  type="button"
-                  className={styles.heroSaveButton}
-                  aria-label={saveAriaLabel}
-                  onClick={handleToggleSave}
-                  disabled={isSaving}
-                >
-                  <BookmarkIcon
-                    filled={isSaved}
-                    className={styles.heroSaveIcon}
-                  />
-                </IconButton>
-
-                <Button
-                  variant="contained"
-                  className={styles.applyButton}
-                  disabled={isApplying || isApplied}
-                  onClick={() => void handleApply()}
-                >
-                  {applyButtonLabel}
-                </Button>
-              </Box>
-            )}
           </Box>
 
           <Box className={styles.tagsRow}>

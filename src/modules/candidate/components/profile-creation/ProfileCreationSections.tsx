@@ -5,6 +5,7 @@ import iconEducationSrc from '@/assets/profile/icon-education.svg'
 import iconExperienceSrc from '@/assets/profile/icon-experience.svg'
 import iconPersonalSrc from '@/assets/profile/icon-personal.svg'
 import {
+  formatProfileLabel,
   ProfileSelectField,
   ProfileTextField,
 } from '@/modules/candidate/components/ProfileFormFields'
@@ -130,7 +131,7 @@ export const ProfileCreationEducationSection = () => {
     <ProfileCreationStepSection iconSrc={iconEducationSrc} title="Education">
       <div className={creationStyles.educationFieldsStack}>
         <label className={profileFieldStyles.fieldLabel}>
-          Relevant certifications
+          {formatProfileLabel('Relevant certifications')}
         </label>
 
         {fields.map((field, index) => (

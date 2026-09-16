@@ -57,6 +57,9 @@ const spanClassNameMap: Record<FieldSpan, string> = {
   one: styles.fieldGroupOne,
 };
 
+const toTitleCase = (label: string) =>
+  label.replace(/\b\w/g, (character) => character.toUpperCase());
+
 const renderSelectValue = (
   value: unknown,
   emptyLabel: string,
@@ -107,7 +110,7 @@ export const CvBuilderLabeledField = ({
 }: CvBuilderLabeledFieldProps) => (
   <Box className={`${styles.fieldGroup} ${spanClassNameMap[span]}`}>
     <Typography component="label" className={styles.fieldLabel}>
-      {label}
+        {toTitleCase(label)}
     </Typography>
     {children}
   </Box>
