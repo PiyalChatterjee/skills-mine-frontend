@@ -145,6 +145,26 @@
 }
 
 
+/* ── Mobile (600px) ───────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .formSection {
+    margin-top: 32px;
+    padding: 0 16px 48px;
+  }
+
+  .formHeading,
+  .formHeading:global(.MuiTypography-root) {
+    font-size: 18px;
+    margin-bottom: 24px;
+  }
+
+  .submitButton,
+  .submitButton:global(.MuiButton-root) {
+    min-height: 52px;
+  }
+}
+
+/* ── Tablet+ (900px) ─────────────────────────────────────────────────── */
 @media (min-width: 900px) {
   .heroHeadlineOverride,
   .heroHeadlineOverride:global(.MuiTypography-root) {

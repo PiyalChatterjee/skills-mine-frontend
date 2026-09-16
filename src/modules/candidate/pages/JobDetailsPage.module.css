@@ -344,8 +344,8 @@
     letter-spacing: 0.1px;
 }
 
-@media (max-width: 1100px) {
-
+/* ── Narrow desktop (1200px) ─────────────────────────────────────────── */
+@media (max-width: 1200px) {
     .heroInner,
     .contentSection {
         padding-left: 32px;
@@ -379,18 +379,8 @@
     }
 }
 
-@media (max-width: 560px) {
-    .headerRow {
-        grid-template-columns: auto minmax(0, 1fr);
-        grid-template-areas:
-            'back back'
-            'title actions';
-        align-items: flex-start;
-    }
-}
-
-@media (max-width: 768px) {
-
+/* ── Tablet (900px) ───────────────────────────────────────────────────── */
+@media (max-width: 900px) {
     .heroInner,
     .contentSection {
         padding-left: 20px;
@@ -411,5 +401,49 @@
         flex-direction: column;
         align-items: stretch;
         gap: 12px;
+    }
+}
+
+/* ── Mobile (600px) ───────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+    .heroInner,
+    .contentSection {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .heroInner {
+        padding-top: 100px;
+    }
+
+    .jobTitle,
+    .jobTitle:global(.MuiTypography-root) {
+        font-size: 22px;
+    }
+
+    .sectionTitle,
+    .sectionTitle:global(.MuiTypography-root) {
+        font-size: 20px;
+    }
+
+    .headerRow {
+        grid-template-columns: auto minmax(0, 1fr);
+        grid-template-areas:
+            'back back'
+            'title actions';
+        align-items: flex-start;
+    }
+
+    .applyButton,
+    .applyButton:global(.MuiButton-root):global(.MuiButton-contained),
+    .footerApply,
+    .footerApply:global(.MuiButton-root):global(.MuiButton-contained) {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .heroTag {
+        padding: 4px 14px;
+        font-size: 13px;
     }
 }

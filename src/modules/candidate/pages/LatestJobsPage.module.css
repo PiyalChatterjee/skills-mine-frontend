@@ -144,14 +144,22 @@
   margin-right: auto;
 }
 
-@media (max-width: 1320px) {
+/* ── Narrow desktop (1200px) ─────────────────────────────────────────── */
+@media (max-width: 1200px) {
   .pageRoot {
     padding-left: 32px;
     padding-right: 32px;
   }
 }
 
-@media (max-width: 1100px) {
+/* ── Tablet (900px) ───────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .pageRoot {
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-top: 20px;
+  }
+
   .headerRow {
     flex-direction: column;
     align-items: flex-start;
@@ -163,14 +171,6 @@
 
   .cardGrid {
     grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 768px) {
-  .pageRoot {
-    padding-left: 20px;
-    padding-right: 20px;
-    padding-top: 20px;
   }
 
   .pageTitle,
@@ -185,5 +185,30 @@
   .savedPageTitle,
   .savedPageTitle:global(.MuiTypography-root) {
     font-size: 28px;
+  }
+}
+
+/* ── Mobile (600px) ───────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .pageRoot {
+    padding-left: 16px;
+    padding-right: 16px;
+    padding-top: 16px;
+    padding-bottom: 40px;
+  }
+
+  .pageTitle,
+  .pageTitle:global(.MuiTypography-root) {
+    font-size: 22px;
+  }
+
+  .savedPageTitle,
+  .savedPageTitle:global(.MuiTypography-root) {
+    font-size: 24px;
+  }
+
+  .headingWrap {
+    min-width: 0;
+    flex: 1;
   }
 }

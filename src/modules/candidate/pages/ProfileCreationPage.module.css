@@ -299,7 +299,8 @@
     filter: brightness(0) invert(1);
 }
 
-@media (max-width: 768px) {
+/* ── Tablet (900px) ───────────────────────────────────────────────────── */
+@media (max-width: 900px) {
 
     .heroHeading,
     .heroHeading:global(.MuiTypography-root) {
@@ -341,7 +342,8 @@
     }
 }
 
-@media (max-width: 480px) {
+/* ── Mobile (600px) ───────────────────────────────────────────────────── */
+@media (max-width: 600px) {
 
     .heroHeading,
     .heroHeading:global(.MuiTypography-root) {

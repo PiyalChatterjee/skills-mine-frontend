@@ -896,12 +896,10 @@
 .noteSendBtn:global(.MuiButtonBase-root):hover { background: #023d78; }
 
 /* ── Responsive ──────────────────────────────────────────────────────── */
-@media (max-width: 1100px) {
-  .rightCol { flex: 0 0 300px; }
-}
-
+/* ── Tablet (900px) — sidebar off-canvas, remove shell offset ────────── */
 @media (max-width: 900px) {
   .shell { margin-left: 0; }
+  .rightCol { flex: 0 0 300px; }
   .pageRoot { padding: 0 0 40px; }
   .layout { flex-direction: column; padding: 16px 16px 0; }
   .rightCol { flex: none; width: 100%; }
@@ -912,4 +910,19 @@
   .breadcrumbCurrent { font-size: 18px; }
   .avatarCircle { width: 80px; height: 80px; }
   .avatarInitials { font-size: 26px; }
+}
+
+/* ── Mobile (600px) ──────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .shell { margin-left: 0; }
+  .pageRoot { padding: 0 0 32px; }
+  .layout { padding: 12px 12px 0; }
+  .breadcrumbBar { padding: 10px 12px; gap: 4px; }
+  .breadcrumbLink:global(.MuiButtonBase-root) { font-size: 15px; }
+  .breadcrumbCurrent { font-size: 15px; }
+  .avatarCircle { width: 64px; height: 64px; }
+  .avatarInitials { font-size: 22px; }
+  .skillChip { padding: 4px 10px; }
+  .aiActionBtns { flex-direction: column; gap: 8px; }
+  .aiBtn:global(.MuiButtonBase-root) { width: 100%; justify-content: center; }
 }

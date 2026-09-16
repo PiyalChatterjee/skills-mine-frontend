@@ -1981,6 +1981,7 @@
   filter: brightness(0) saturate(100%) invert(76%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(100%);
 }
 
+/* ── Tablet (900px) ───────────────────────────────────────────────────── */
 @media (max-width: 900px) {
   .contentSection {
     padding-top: 40px;
@@ -2051,23 +2052,24 @@
   }
 }
 
-@media (max-width: 640px) {
+/* ── Mobile (600px) ───────────────────────────────────────────────────── */
+@media (max-width: 600px) {
   .heroSection {
     height: 180px;
   }
 
   .heroHeading.heroHeading {
-    top: 52px;
-    font-size: 24px;
+    top: 50px;
+    font-size: 20px;
   }
 
   .stepsIndicator {
-    top: 108px;
+    top: 106px;
   }
 
   .welcomeHeading.welcomeHeading {
-    margin-bottom: 40px;
-    font-size: 28px;
+    margin-bottom: 32px;
+    font-size: 24px;
   }
 
   .formHeader {
@@ -2116,9 +2118,7 @@
   .previewModalBody {
     padding: 16px;
   }
-}
 
-@media (max-width: 480px) {
   .heroPattern1 {
     top: -146px;
     left: 72%;
@@ -2131,20 +2131,6 @@
     left: -690px;
     width: 900px;
     height: auto;
-  }
-
-  .heroHeading.heroHeading {
-    top: 50px;
-    font-size: 20px;
-  }
-
-  .stepsIndicator {
-    top: 106px;
-  }
-
-  .welcomeHeading.welcomeHeading {
-    margin-bottom: 32px;
-    font-size: 24px;
   }
 
   .cardButton,
