@@ -423,6 +423,7 @@
   gap: 32px;
   flex-wrap: wrap;
   justify-content: flex-end;
+  margin-left: auto;
 }
 
 .footerLinkText {
@@ -552,7 +553,9 @@
   }
 
   .navGroup > .signUpButton,
-  .navGroup > .searchButton {
+  .navGroup > .signUpButton:global(.MuiButton-root):global(.MuiButton-contained),
+  .navGroup > .searchButton,
+  .navGroup > .searchButton:global(.MuiIconButton-root) {
     display: none;
   }
 

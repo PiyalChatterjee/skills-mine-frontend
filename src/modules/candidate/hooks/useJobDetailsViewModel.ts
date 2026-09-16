@@ -12,6 +12,7 @@ import {
 } from "@/store/api/apiSlice";
 import type { Job } from "@/types";
 import { createGuestApplicationDraft } from "../utils/guestApplicationDraft";
+import { useSavedJobsQuery } from "./useCandidateQueries";
 import { useAppliedJobIds } from "./useAppliedJobIds";
 import { useOptimisticSaveJob } from "./useOptimisticSaveJob";
 
@@ -64,6 +65,7 @@ export const useJobDetailsViewModel = () => {
   const { jobId } = useParams<{ jobId: string }>();
   const location = useLocation();
   const { isAuthenticated, user } = useAuth();
+  const savedJobsQuery = useSavedJobsQuery(true);
   const { isJobSaved, isJobSaving, toggleJobSaved } = useOptimisticSaveJob();
   const { isJobApplied } = useAppliedJobIds();
   const [applyToJob, { isLoading: isApplying }] = useApplyToJobMutation();
@@ -114,8 +116,18 @@ export const useJobDetailsViewModel = () => {
   }, [jobById, jobProfile, resolvedJob, stateJob]);
 
   const effectiveJob = resolvedJob ?? jobById;
-  const isSaved = effectiveJob ? isJobSaved(effectiveJob.jobId) : false;
-  const isSaving = effectiveJob ? isJobSaving(effectiveJob.jobId) : false;
+  const savedJobKey = effectiveJob?.jobProfileId ?? effectiveJob?.jobId ?? "";
+  const savedJobKeysFromCollection = useMemo(
+    () =>
+      new Set(
+        (savedJobsQuery.data?.jobs ?? []).map((job) => job.jobProfileId || job.jobId),
+      ),
+    [savedJobsQuery.data],
+  );
+  const isSaved = savedJobKey
+    ? isJobSaved(savedJobKey) || savedJobKeysFromCollection.has(savedJobKey)
+    : false;
+  const isSaving = savedJobKey ? isJobSaving(savedJobKey) : false;
   const isApplied = effectiveJob
     ? hasJustApplied || isJobApplied(effectiveJob.jobId)
     : false;
@@ -147,7 +159,8 @@ export const useJobDetailsViewModel = () => {
 
   const handleToggleSave = () => {
     if (!effectiveJob) return;
-    void toggleJobSaved(effectiveJob.jobId);
+    const saveTargetId = effectiveJob.jobProfileId ?? effectiveJob.jobId;
+    void toggleJobSaved(saveTargetId);
   };
 
   const title = toDisplayTitle(displayJob?.title, "");

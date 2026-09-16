@@ -162,7 +162,8 @@ export const useJobsFeedViewModel = (mode: JobsFeedMode) => {
   const jobCards = useMemo(
     () =>
       feedJobs.map((job) => {
-        const isSaved = isJobSaved(job.jobId);
+        const savedJobKey = job.jobProfileId ?? job.jobId;
+        const isSaved = isJobSaved(savedJobKey);
         const applicationStage = applicationStages.get(job.jobId);
 
         return {
