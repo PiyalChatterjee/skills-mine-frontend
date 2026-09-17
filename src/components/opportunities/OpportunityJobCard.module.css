@@ -354,7 +354,12 @@
 }
 
 @media (max-width: 560px) {
+  .card {
+    padding-bottom: 12px;
+  }
+
   .header {
+    min-height: 50px;
     grid-template-columns: auto 1fr auto;
     grid-template-areas: none;
     gap: 10px;

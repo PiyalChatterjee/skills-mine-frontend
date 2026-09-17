@@ -9,6 +9,7 @@ import {
   Typography,
 } from "@mui/material";
 import {
+  formatProfileLabel,
   ProfileSelectField,
   ProfileTextField,
 } from "@/modules/candidate/components/ProfileFormFields";
@@ -45,13 +46,17 @@ const SectionCard = ({
           aria-hidden="true"
           className={styles.sectionIcon}
         />
-        <Typography className={styles.sectionCardTitle}>{title}</Typography>
+          <Typography className={styles.sectionCardTitle}>
+            {formatProfileLabel(title)}
+          </Typography>
       </Box>
       {showEdit && (
         <Button
           variant="outlined"
           className={styles.editButton}
           onClick={onEdit}
+          aria-label={`Edit ${title}`}
+          title={`Edit ${title}`}
           startIcon={
             <img
               src={pencilLineIconSrc}

@@ -29,8 +29,8 @@ export type CvActionCard = {
 }
 
 export const CV_BUILDER_STEPS: StepItem[] = [
-  { id: 1, label: 'Personal details' },
-  { id: 2, label: 'Career history' },
+  { id: 1, label: 'Personal Details' },
+  { id: 2, label: 'Career History' },
   { id: 3, label: 'Skills' },
   { id: 4, label: 'Education' },
   { id: 5, label: 'Languages' },

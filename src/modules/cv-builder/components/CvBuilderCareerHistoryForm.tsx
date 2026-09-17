@@ -161,8 +161,8 @@ const CvBuilderPositionCard = ({ entryIndex }: { entryIndex: number }) => {
         </CvBuilderLabeledField>
       </Box>
 
-      <DynamicListSection entryIndex={entryIndex} sectionKey="tasks" label="List the tasks that you were responsible for" itemLabel="Task" addButtonLabel="+ Add a task" />
-      <DynamicListSection entryIndex={entryIndex} sectionKey="projects" label="List some of the projects you were involved in" itemLabel="Project" addButtonLabel="+ Add a project" />
+      <DynamicListSection entryIndex={entryIndex} sectionKey="tasks" label="List The Tasks That You Were Responsible For" itemLabel="Task" addButtonLabel="+ Add a task" />
+      <DynamicListSection entryIndex={entryIndex} sectionKey="projects" label="List Some Of The Projects You Were Involved In" itemLabel="Project" addButtonLabel="+ Add a project" />
     </Box>
   )
 }
@@ -179,7 +179,7 @@ const CvBuilderCareerHistoryForm = () => {
 
   return (
     <CvBuilderFormPanel>
-      <CvBuilderSectionHeader iconSrc={buildingIcon} title="Career history" />
+      <CvBuilderSectionHeader iconSrc={buildingIcon} title="Career History" />
 
       {formError && (
         <Typography component="p" sx={{ color: '#d32f2f', marginBottom: 2 }}>{formError}</Typography>

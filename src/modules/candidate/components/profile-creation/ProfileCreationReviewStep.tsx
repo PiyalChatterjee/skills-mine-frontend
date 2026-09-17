@@ -1,6 +1,7 @@
 import { Box, Button, Typography } from '@mui/material'
 import type { ReactNode } from 'react'
 import { useState } from 'react'
+import { formatProfileLabel } from '@/modules/candidate/components/ProfileFormFields'
 import minusIcon from '@/assets/cv-builder/minus-line.svg'
 import plusIcon from '@/assets/cv-builder/plus-line.svg'
 import iconDesiredSrc from '@/assets/profile/icon-desired.svg'
@@ -88,7 +89,7 @@ const ProfileCreationReviewStep = () => {
                 />
               </Box>
               <Typography className={styles.reviewSectionLabel}>
-                {section.label}
+                {formatProfileLabel(section.label)}
               </Typography>
               <Box
                 component="img"

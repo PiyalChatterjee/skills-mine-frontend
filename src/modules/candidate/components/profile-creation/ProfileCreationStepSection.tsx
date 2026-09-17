@@ -1,4 +1,5 @@
 import { Box, Typography } from '@mui/material'
+import { formatProfileLabel } from '@/modules/candidate/components/ProfileFormFields'
 import type { ReactNode } from 'react'
 import styles from '@/modules/candidate/pages/ProfileCreationPage.module.css'
 
@@ -19,7 +20,7 @@ const ProfileCreationStepSection = ({
         <img src={iconSrc} alt="" className={styles.sectionIcon} />
       </Box>
       <Typography component="h2" className={styles.sectionTitle}>
-        {title}
+        {formatProfileLabel(title)}
       </Typography>
     </Box>
 

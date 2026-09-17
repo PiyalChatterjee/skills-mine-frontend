@@ -988,6 +988,10 @@
   gap: 24px;
 }
 
+.educationSection + .educationSection {
+  padding-top: 24px;
+}
+
 .educationSubHeading,
 .educationSubHeading:global(.MuiTypography-root) {
   color: #2b96d9;
@@ -2058,9 +2062,20 @@
     height: 180px;
   }
 
+  .heroBackButton,
+  .heroBackButton:global(.MuiButtonBase-root) {
+    top: 65px;
+    left: 16px;
+  }
+
+  .heroJobBackButton,
+  .heroJobBackButton:global(.MuiButtonBase-root) {
+    left: 16px;
+  }
+
   .heroHeading.heroHeading {
     top: 50px;
-    font-size: 20px;
+    font-size: 32px;
   }
 
   .stepsIndicator {

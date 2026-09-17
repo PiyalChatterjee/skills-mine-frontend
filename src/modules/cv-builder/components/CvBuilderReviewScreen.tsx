@@ -46,13 +46,13 @@ const CvBuilderReviewScreen = ({
   const REVIEW_SECTIONS: ReviewSectionConfig[] = [
     {
       id: "personal",
-      label: "Personal details",
+      label: "Personal Details",
       icon: userIcon,
       renderContent: () => <CvBuilderPersonalDetailsForm />,
     },
     {
       id: "career",
-      label: "Career history",
+      label: "Career History",
       icon: buildingIcon,
       renderContent: () => <CvBuilderCareerHistoryForm />,
     },

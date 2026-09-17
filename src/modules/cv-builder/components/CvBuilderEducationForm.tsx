@@ -123,7 +123,7 @@ const CvBuilderEducationForm = () => {
 
       <EducationSection
         sectionName="tertiaryEducation"
-        sectionTitle="Tertiary education"
+        sectionTitle="Tertiary Education"
         entryLabelPrefix="Tertiary entry"
         middleFieldLabel="Degree or certification"
         middleFieldPlaceholder="Degree or certification"
@@ -134,7 +134,7 @@ const CvBuilderEducationForm = () => {
 
       <EducationSection
         sectionName="secondaryEducation"
-        sectionTitle="Secondary education"
+        sectionTitle="Secondary Education"
         entryLabelPrefix="Secondary entry"
         middleFieldLabel="Highest grade passed"
         middleFieldPlaceholder="e.g. Grade 12"

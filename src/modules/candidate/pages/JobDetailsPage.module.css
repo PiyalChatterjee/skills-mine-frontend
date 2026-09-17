@@ -96,51 +96,6 @@
     margin: 0;
 }
 
-.heroActions {
-    grid-area: actions;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    justify-self: end;
-}
-
-.heroSaveButton,
-.heroSaveButton:global(.MuiIconButton-root) {
-    width: 48px;
-    height: 48px;
-    border: 1px solid #ffffff;
-    border-radius: 100px;
-    background: transparent;
-    padding: 0;
-    color: #ffffff;
-}
-
-.heroSaveButton:global(.MuiIconButton-root):hover {
-    background: rgba(255, 255, 255, 0.08);
-}
-
-.heroSaveIcon {
-    width: 12px;
-    height: 16px;
-    display: block;
-}
-
-.applyButton,
-.applyButton:global(.MuiButton-root):global(.MuiButton-contained) {
-    min-height: 48px;
-    border-radius: 100px;
-    padding: 12px 30px;
-    background: #ffffff;
-    color: #03478c;
-    text-transform: none;
-    box-shadow: none;
-    font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-    font-size: 16px;
-    font-weight: 400;
-    line-height: 1.5;
-    letter-spacing: 0.1px;
-}
-
 .tagsRow {
     margin-top: 22px;
     display: flex;
@@ -362,12 +317,6 @@
         min-height: 380px;
     }
 
-    .heroActions {
-        width: auto;
-        justify-content: flex-start;
-        justify-self: end;
-    }
-
     .headerRow {
         grid-template-columns: auto minmax(0, 1fr);
         grid-template-areas:
@@ -434,8 +383,6 @@
         align-items: flex-start;
     }
 
-    .applyButton,
-    .applyButton:global(.MuiButton-root):global(.MuiButton-contained),
     .footerApply,
     .footerApply:global(.MuiButton-root):global(.MuiButton-contained) {
         width: 100%;

@@ -22,7 +22,7 @@ const CvBuilderPersonalDetailsForm = () => {
 
   return (
     <CvBuilderFormPanel>
-      <CvBuilderSectionHeader iconSrc={userIcon} title="Personal details" />
+      <CvBuilderSectionHeader iconSrc={userIcon} title="Personal Details" />
 
       <Box className={styles.formGrid}>
         <CvBuilderControlledTextField
