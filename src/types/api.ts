@@ -427,6 +427,7 @@ export interface ResumeDocumentUploadResult {
 
 export interface RecommendedJob {
   jobId: string;
+  jobProfileId?: string;
   title: string;
   company: string;
   location: string;
