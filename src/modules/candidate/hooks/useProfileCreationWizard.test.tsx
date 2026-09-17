@@ -1,5 +1,6 @@
 import { act, renderHook } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { PENDING_CANDIDATE_PROFILE_STORAGE_KEY } from '@/modules/candidate/types/profileCreation'
 import { useProfileCreationWizard } from './useProfileCreationWizard'
 
 type CandidateProfileQueryMock = {
@@ -13,6 +14,7 @@ type CandidateProfileQueryMock = {
 const mocks = vi.hoisted(() => ({
   navigate: vi.fn(),
   mutateAsync: vi.fn(),
+  useCandidateProfileQuery: vi.fn(),
   candidateProfileQuery: {
     data: null,
     isLoading: false,
@@ -27,11 +29,20 @@ vi.mock('react-router-dom', () => ({
 }))
 
 vi.mock('@/app/auth/AuthContext', () => ({
-  useAuth: () => ({ user: { userId: 'candidate-1', candidateId: 'candidate-1' } }),
+  useAuth: () => ({
+    user: {
+      userId: 'candidate-1',
+      candidateId: 'candidate-1',
+      email: 'jane@example.com',
+    },
+  }),
 }))
 
 vi.mock('@/modules/candidate/hooks/useCandidateQueries', () => ({
-  useCandidateProfileQuery: () => mocks.candidateProfileQuery,
+  useCandidateProfileQuery: (...args: unknown[]) => {
+    mocks.useCandidateProfileQuery(...args)
+    return mocks.candidateProfileQuery
+  },
   useUpdateCandidateProfileMutation: () => ({
     mutateAsync: mocks.mutateAsync,
     isLoading: false,
@@ -65,6 +76,50 @@ describe('useProfileCreationWizard', () => {
 
     expect(result.current.isError).toBe(false)
     expect(result.current.loadErrorMessage).toBe('')
+  })
+
+  it('uses pending signup values without waiting for a profile request', () => {
+    sessionStorage.setItem(
+      PENDING_CANDIDATE_PROFILE_STORAGE_KEY,
+      JSON.stringify({
+        fullName: 'Jane Doe',
+        email: 'jane@example.com',
+        phoneNumber: '0821234567',
+      }),
+    )
+
+    const { result } = renderHook(() => useProfileCreationWizard())
+
+    expect(mocks.useCandidateProfileQuery).toHaveBeenLastCalledWith(
+      'candidate-1',
+      'candidate-1',
+      false,
+    )
+    expect(result.current.form.getValues()).toEqual(expect.objectContaining({
+      fullName: 'Jane Doe',
+      email: 'jane@example.com',
+      phoneNumber: '0821234567',
+    }))
+  })
+
+  it('ignores pending signup values from another account', () => {
+    sessionStorage.setItem(
+      PENDING_CANDIDATE_PROFILE_STORAGE_KEY,
+      JSON.stringify({
+        fullName: 'Another Candidate',
+        email: 'another@example.com',
+        phoneNumber: '0831234567',
+      }),
+    )
+
+    const { result } = renderHook(() => useProfileCreationWizard())
+
+    expect(mocks.useCandidateProfileQuery).toHaveBeenLastCalledWith(
+      'candidate-1',
+      'candidate-1',
+      true,
+    )
+    expect(result.current.form.getValues().email).toBe('')
   })
 
   it('routes to CV building after saving a valid profile', async () => {
