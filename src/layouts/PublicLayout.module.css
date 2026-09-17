@@ -502,7 +502,7 @@
     display: none;
     width: 100%;
     margin-top: 10px;
-    padding: 12px;
+    padding: 12px 4px;
     border-radius: 12px;
     background: #ffffff;
     flex-direction: column;
@@ -519,7 +519,7 @@
     align-items: stretch;
     gap: 10px;
     width: 100%;
-    padding: 8px 10px 2px;
+    padding: 8px 4px 2px;
     border-top: 1px solid #e5edf6;
   }
 
@@ -563,7 +563,7 @@
   .mobileNavItem.navButton {
     font-size: 15px;
     line-height: 1.4;
-    padding: 8px 10px;
+    padding: 8px 4px;
   }
 
   .mobileNavItem:hover {

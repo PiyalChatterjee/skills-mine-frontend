@@ -336,6 +336,15 @@
         padding-right: 20px;
     }
 
+    .heroSection {
+        height: 220px !important;
+        min-height: 220px;
+    }
+
+    .heroInner {
+        padding-top: 32px;
+    }
+
     .jobTitle,
     .jobTitle:global(.MuiTypography-root) {
         font-size: 28px;
@@ -361,8 +370,12 @@
         padding-right: 16px;
     }
 
+    .contentSection {
+        padding-top: 16px;
+    }
+
     .heroInner {
-        padding-top: 100px;
+        padding-top: 32px;
     }
 
     .jobTitle,
