@@ -22,12 +22,12 @@ import {
 import {
   OpportunitiesSearchInput,
   OpportunityJobCard,
-} from "@/components/opportunities";
+} from "@/components/jobs";
 import { useInfiniteScrollTrigger } from "@/hooks/useInfiniteScrollTrigger";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { useJobsSearch } from "@/modules/public/hooks/useJobsSearch";
 import { useSearchQueryState } from "@/hooks/useSearchQueryState";
-import { getJobTags } from "@/components/opportunities/jobPresentation";
+import { getJobTags } from "@/components/jobs/jobPresentation";
 import type { PublicLayoutOutletContext } from "@/layouts/PublicLayout";
 import { setLandingMode } from "@/store/slices/uiSlice";
 import { useOutletContext } from "react-router-dom";

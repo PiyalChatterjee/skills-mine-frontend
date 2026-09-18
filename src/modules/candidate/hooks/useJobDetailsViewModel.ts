@@ -13,7 +13,7 @@ import {
 import type { Job } from "@/types";
 import { createGuestApplicationDraft } from "../utils/guestApplicationDraft";
 import { getJobOperationId } from "../utils/jobIdentifier";
-import { getJobCity } from "@/components/opportunities/jobPresentation";
+import { getJobCity } from "@/components/jobs/jobPresentation";
 import { useSavedJobsQuery } from "./useCandidateQueries";
 import { useAppliedJobIds } from "./useAppliedJobIds";
 import { useOptimisticSaveJob } from "./useOptimisticSaveJob";

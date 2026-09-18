@@ -9,7 +9,7 @@ import { selectRecommendedJobIds } from "@/store/selectors";
 import type { Job, RecommendedJob } from "@/types";
 import { getApplicationStatusLabel } from "../utils/applicationStatus";
 import { getJobOperationId } from "../utils/jobIdentifier";
-import { getJobTags } from "@/components/opportunities/jobPresentation";
+import { getJobTags } from "@/components/jobs/jobPresentation";
 import { useAppliedJobIds } from "./useAppliedJobIds";
 import {
   useRecommendedPositionsQuery,
