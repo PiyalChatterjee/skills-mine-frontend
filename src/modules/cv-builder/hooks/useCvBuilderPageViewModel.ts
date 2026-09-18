@@ -44,7 +44,36 @@ const EMPTY_CAREER_HISTORY = {
 const buildPrefillFromSavedCv = (
   buildMyCvData: BuildMyCvState,
 ): Partial<CvBuilderFormValues> => {
-  const currentCompany = buildMyCvData.personalDetails.currentCompany ?? "";
+  const savedEntries = (Array.isArray(buildMyCvData.careerHistory)
+    ? buildMyCvData.careerHistory
+    : []
+  )
+    .filter(
+      (entry) =>
+        entry.company?.trim() ||
+        entry.jobTitle?.trim() ||
+        entry.startDate?.trim() ||
+        entry.endDate?.trim() ||
+        entry.responsibilities?.trim(),
+    )
+    .map((entry) => ({
+      companyName: entry.company ?? "",
+      positionHeld: entry.jobTitle ?? "",
+      startDate: isoToMonthName(entry.startDate ?? ""),
+      endDate:
+        entry.endDate == null || (entry.endDate ?? "").toLowerCase() === "present"
+          ? "Present"
+          : isoToMonthName(entry.endDate),
+      isCurrentRole:
+        entry.endDate == null || (entry.endDate ?? "").toLowerCase() === "present",
+      tasks: [entry.responsibilities ?? ""],
+      projects: [""],
+    }));
+  const currentEntry = savedEntries.find((entry) => entry.isCurrentRole);
+  const currentCompany =
+    buildMyCvData.personalDetails.currentCompany ?? currentEntry?.companyName ?? "";
+  const currentPosition =
+    buildMyCvData.personalDetails.currentPosition ?? currentEntry?.positionHeld ?? "";
 
   return {
     personalDetails: {
@@ -54,40 +83,13 @@ const buildPrefillFromSavedCv = (
       nationality: buildMyCvData.personalDetails.nationality ?? "",
       noticePeriod: buildMyCvData.personalDetails.noticePeriod ?? "",
       currentCompany,
-      currentPosition: buildMyCvData.personalDetails.currentPosition ?? "",
+      currentPosition,
       race: buildMyCvData.personalDetails.race ?? "",
       gender: buildMyCvData.personalDetails.gender ?? "",
       disabilityStatus: buildMyCvData.personalDetails.disabilityStatus ?? "",
     },
-    careerHistory: (() => {
-      const savedEntries = (Array.isArray(buildMyCvData.careerHistory)
-        ? buildMyCvData.careerHistory
-        : []
-      )
-        .filter(
-          (entry) =>
-            entry.company?.trim() ||
-            entry.jobTitle?.trim() ||
-            entry.startDate?.trim() ||
-            entry.endDate?.trim() ||
-            entry.responsibilities?.trim(),
-        )
-        .map((entry) => ({
-          companyName: entry.company ?? "",
-          positionHeld: entry.jobTitle ?? "",
-          startDate: isoToMonthName(entry.startDate ?? ""),
-          endDate:
-            entry.endDate == null || (entry.endDate ?? "").toLowerCase() === "present"
-              ? "Present"
-              : isoToMonthName(entry.endDate),
-          isCurrentRole:
-            entry.endDate == null || (entry.endDate ?? "").toLowerCase() === "present",
-          tasks: [entry.responsibilities ?? ""],
-          projects: [""],
-        }));
-
-      return savedEntries.length > 0 ? savedEntries : [EMPTY_CAREER_HISTORY];
-    })(),
+    careerHistory:
+      savedEntries.length > 0 ? savedEntries : [EMPTY_CAREER_HISTORY],
     skills: (Array.isArray(buildMyCvData.skills) ? buildMyCvData.skills : []).map((name) => ({ name })),
     tertiaryEducation: (buildMyCvData.education?.tertiaryEducation ?? []).map((entry) => ({
       institutionName: entry.institution ?? "",

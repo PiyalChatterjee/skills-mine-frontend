@@ -212,6 +212,44 @@ describe("useCvBuilderPageViewModel", () => {
     });
   });
 
+  it("derives current employment fields from the current saved CV experience", () => {
+    const savedCvWithoutCurrentEmploymentFields = {
+      ...savedCv,
+      personalDetails: {
+        ...savedCv.personalDetails,
+        currentCompany: undefined,
+        currentPosition: undefined,
+      },
+      careerHistory: [
+        {
+          company: "Accenture",
+          jobTitle: "App Developer",
+          startDate: "2021-01-01",
+          endDate: "Present",
+          responsibilities: "Built applications",
+        },
+      ],
+    };
+    mocks.useSelector.mockImplementation((selector: unknown) => {
+      if (selector === mocks.selectBuildMyCv) return savedCvWithoutCurrentEmploymentFields;
+      if (selector === mocks.selectBuildMyCvLoaded) return true;
+      if (selector === mocks.selectBuildMyCvExists) return true;
+      return undefined;
+    });
+
+    renderHook(() => useCvBuilderPageViewModel());
+
+    expect(mocks.useCvBuilder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        personalDetails: expect.objectContaining({
+          currentCompany: "Accenture",
+          currentPosition: "App Developer",
+        }),
+      }),
+      true,
+    );
+  });
+
   it("falls back to candidate profile prefill when saved CV data is not loaded", () => {
     mocks.useSelector.mockImplementation((selector: unknown) => {
       if (selector === mocks.selectBuildMyCv) return undefined;

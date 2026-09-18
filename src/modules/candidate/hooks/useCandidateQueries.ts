@@ -178,7 +178,7 @@ export const useBuildMyCvQuery = (enabled = true, candidateId?: string) => {
   const resolvedId = candidateId || fallbackId
   const result = useGetBuildMyCvQuery(
     { candidateId: resolvedId },
-    { skip: !enabled || !resolvedId, refetchOnMountOrArgChange: true },
+    { skip: !enabled || !resolvedId },
   )
 
   useEffect(() => {
