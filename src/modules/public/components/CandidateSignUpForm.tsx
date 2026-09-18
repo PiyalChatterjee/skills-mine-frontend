@@ -124,7 +124,7 @@ export const CandidateSignUpForm = ({
         <TextField
           id="password"
           className={styles.fieldInput}
-          placeholder="At least 8 characters"
+          placeholder="8+ characters, uppercase, number & special character"
           variant="outlined"
           type={hasPasswordValue && isPasswordVisible ? "text" : "password"}
           fullWidth

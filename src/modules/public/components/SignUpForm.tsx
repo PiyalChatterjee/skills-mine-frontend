@@ -3,6 +3,7 @@ import { Controller, useWatch, type Control, type FieldErrors, type UseFormRegis
 import { useState } from "react";
 import { PasswordVisibilityAdornment } from "@/components/PasswordVisibilityAdornment";
 import { normalizePhoneNumberInput } from "@/app/phoneNumber";
+import { PASSWORD_PLACEHOLDER } from "@/app/passwordPolicy";
 import type { SignUpFormValues } from "@/modules/public/components/SignUpDrawer.types";
 import styles from "./CandidateSignUpDrawer.module.css";
 
@@ -126,7 +127,7 @@ export const SignUpForm = ({
         <TextField
           id="password"
           className={styles.fieldInput}
-          placeholder="At least 8 characters"
+          placeholder={PASSWORD_PLACEHOLDER}
           variant="outlined"
           type={hasPasswordValue && isPasswordVisible ? "text" : "password"}
           fullWidth

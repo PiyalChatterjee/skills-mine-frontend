@@ -35,6 +35,8 @@ const LoginPage = () => {
   const [isGoogleRedirecting, setIsGoogleRedirecting] = useState(false);
   // Check for error redirected back from AuthCallbackPage (?error=google_callback)
   const isGoogleCallbackError = searchParams.get('error') === 'google_callback';
+  const googleCallbackErrorMessage =
+    searchParams.get("message") ?? "Google sign-in failed. Please try again.";
   const {
     register,
     handleSubmit,
@@ -95,9 +97,11 @@ const LoginPage = () => {
       setGoogleAuthError(null);
       setIsGoogleRedirecting(true);
       await redirectToGoogleLogin();
-    } catch {
+    } catch (error) {
       setIsGoogleRedirecting(false);
-      setGoogleAuthError("Google sign-in failed. Please try again.");
+      setGoogleAuthError(
+        extractErrorMessage(error, "Google sign-in failed. Please try again."),
+      );
     }
   };
 
@@ -155,7 +159,7 @@ const LoginPage = () => {
           {submitError ? <Alert severity="error">{submitError}</Alert> : null}
           {googleAuthError ? <Alert severity="error">{googleAuthError}</Alert> : null}
           {isGoogleCallbackError ? (
-            <Alert severity="error">Google sign-in failed. Please try again.</Alert>
+            <Alert severity="error">{googleCallbackErrorMessage}</Alert>
           ) : null}
 
           <Box className={styles.dividerRow}>

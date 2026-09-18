@@ -172,7 +172,7 @@ const RecruiterSignupPage = () => {
 
           <AuthPasswordField
             label="Password"
-            placeholder="At least 8 characters"
+            placeholder="8+ characters, uppercase, number & special character"
             value={passwordValue}
             error={Boolean(errors.password)}
             helperText={errors.password?.message}

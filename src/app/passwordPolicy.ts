@@ -3,6 +3,9 @@ import { z } from "zod";
 export const PASSWORD_POLICY_MESSAGE =
   "Password must be at least 8 characters and include at least 1 uppercase letter, 1 number, and 1 special character.";
 
+export const PASSWORD_PLACEHOLDER =
+  "8+ characters, uppercase, number & special character";
+
 export const strongPasswordSchema = z
   .string()
   .min(8, PASSWORD_POLICY_MESSAGE)
