@@ -138,7 +138,7 @@ describe('LoginPage', () => {
     await userEvent.type(screen.getByPlaceholderText('Password'), 'wrongpass')
     fireEvent.submit(screen.getByRole('button', { name: /sign in/i }).closest('form')!)
     await waitFor(() => {
-      expect(screen.getByText(/login failed/i)).toBeInTheDocument()
+      expect(screen.getByText('Unauthorized')).toBeInTheDocument()
     })
   })
 

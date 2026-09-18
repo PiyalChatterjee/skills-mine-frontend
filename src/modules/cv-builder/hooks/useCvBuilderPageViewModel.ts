@@ -41,6 +41,19 @@ const EMPTY_CAREER_HISTORY = {
   projects: [""],
 };
 
+const RESUME_TEXT_EXTRACTION_TIMEOUT_MS = 30_000;
+
+const extractResumeTextWithTimeout = (file: File) =>
+  Promise.race([
+    extractResumeText(file),
+    new Promise<never>((_, reject) => {
+      setTimeout(
+        () => reject(new Error("Resume text extraction timed out.")),
+        RESUME_TEXT_EXTRACTION_TIMEOUT_MS,
+      );
+    }),
+  ]);
+
 const buildPrefillFromSavedCv = (
   buildMyCvData: BuildMyCvState,
 ): Partial<CvBuilderFormValues> => {
@@ -116,13 +129,16 @@ const buildPrefillFromSavedCv = (
 
 export const useCvBuilderPageViewModel = () => {
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [isReadingResume, setIsReadingResume] = useState(false);
+  const [isParsingResume, setIsParsingResume] = useState(false);
   const [uploadDocument, { isLoading: isUploadingResume }] =
     useUploadDocumentMutation();
   const { user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const userId = user?.userId;
-  const candidateId = useCandidateResourceId();
+  const candidateResourceId = useCandidateResourceId();
   const guestApplicationJobIdFromState = (
     location.state as { guestApplicationJobId?: string } | null
   )?.guestApplicationJobId;
@@ -152,11 +168,16 @@ export const useCvBuilderPageViewModel = () => {
     ].filter((tag): tag is string => Boolean(tag));
   }, [guestApplicationDraft]);
 
+  const { data: candidateProfile } = useCandidateProfileQuery(
+    candidateResourceId,
+    userId,
+    Boolean(candidateResourceId),
+  );
+  const candidateId = candidateProfile?.candidateId ?? candidateResourceId;
   const { isLoading: isBuildMyCvLoading } = useBuildMyCvQuery(Boolean(candidateId), candidateId);
   const buildMyCvData = useSelector(selectBuildMyCv);
   const buildMyCvLoaded = useSelector(selectBuildMyCvLoaded);
   const buildMyCvExists = useSelector(selectBuildMyCvExists);
-  const { data: candidateProfile } = useCandidateProfileQuery(candidateId, userId, Boolean(candidateId));
 
   const cvBuilderPrefillData = useMemo(() => {
     if (buildMyCvLoaded && buildMyCvData) {
@@ -187,6 +208,7 @@ export const useCvBuilderPageViewModel = () => {
   const hasFormChanges = form.formState.isDirty;
 
   const { handleDone, isSavingCandidateProfile } = useCvBuilderDone({
+    candidateId,
     userId,
     candidateProfile,
     getFormValues: form.getValues,
@@ -200,15 +222,22 @@ export const useCvBuilderPageViewModel = () => {
 
   const handleUploadDone = async () => {
     if (!selectedUploadFile) return;
+    setUploadError(null);
+    setIsReadingResume(true);
+    let hasStartedParsing = false;
 
     try {
-      const extractedText = await extractResumeText(selectedUploadFile);
+      const extractedText = await extractResumeTextWithTimeout(selectedUploadFile);
+      setIsReadingResume(false);
+      setIsParsingResume(true);
+      hasStartedParsing = true;
       const parsedResume = await aiApi.parseResume({
         extracted_text: extractedText,
         ...(isGuestApplication
           ? { owner_type: "VISITOR" as const }
           : { owner_type: "CANDIDATE" as const }),
       });
+          setIsParsingResume(false);
       const prefillData = buildResumePrefillData(parsedResume, extractedText);
       const mergedPrefillData = {
         ...cvBuilderPrefillData,
@@ -225,7 +254,10 @@ export const useCvBuilderPageViewModel = () => {
         return;
       }
 
-      if (!candidateId) return;
+      if (!candidateId) {
+        setUploadError("Your candidate profile is still loading. Please try again shortly.");
+        return;
+      }
 
       await uploadDocument({
         candidateId,
@@ -238,7 +270,14 @@ export const useCvBuilderPageViewModel = () => {
       openReviewFlowBlank(mergedPrefillData);
       return;
     } catch {
-      // Keep the modal open when extraction, parsing, or upload fails.
+      setUploadError(
+        hasStartedParsing
+          ? "We could not process your CV. Please try again."
+          : "We could not read your CV. Please use a text-based PDF or DOCX file and try again.",
+      );
+    } finally {
+      setIsReadingResume(false);
+      setIsParsingResume(false);
     }
   };
 
@@ -250,7 +289,10 @@ export const useCvBuilderPageViewModel = () => {
         description: "Upload your CV directly from your computer.",
         icon: uploadIcon,
         tone: "coral",
-        onClick: () => setUploadModalOpen(true),
+        onClick: () => {
+          setUploadError(null);
+          setUploadModalOpen(true);
+        },
       },
       {
         id: "build",
@@ -296,6 +338,8 @@ export const useCvBuilderPageViewModel = () => {
     heroBackHandler,
     heroHeading,
     isGuestApplication,
+    isParsingResume,
+    isReadingResume,
     isSavingCandidateProfile,
     isUploadingResume,
     openUploadPicker,
@@ -304,6 +348,7 @@ export const useCvBuilderPageViewModel = () => {
     selectedUploadFile,
     setUploadModalOpen,
     uploadInputRef,
+    uploadError,
     uploadModalOpen,
     guestJobTags: isGuestApplication ? guestJobTags : undefined,
   };

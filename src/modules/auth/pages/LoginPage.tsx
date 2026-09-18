@@ -10,7 +10,7 @@ import {
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/app/auth/AuthContext";
 import { tokenStorage } from "@/app/auth/tokenStorage";
-import { isNotFoundError } from "@/app/errorUtils";
+import { extractErrorMessage, isNotFoundError } from "@/app/errorUtils";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { useZodForm } from "@/hooks/useZodForm";
 import AuthHero from "@/modules/auth/components/AuthHero";
@@ -125,8 +125,13 @@ const LoginPage = () => {
       }
 
       login(session);
-    } catch {
-      setSubmitError("Login failed. Check your credentials and try again.");
+    } catch (error) {
+      setSubmitError(
+        extractErrorMessage(
+          error,
+          "Login failed. Check your credentials and try again.",
+        ),
+      );
     }
   };
 

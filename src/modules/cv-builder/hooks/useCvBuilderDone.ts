@@ -143,6 +143,7 @@ export const buildCvBuilderPrefillData = (
 };
 
 type UseCvBuilderDoneArgs = {
+  candidateId?: string;
   userId?: string;
   candidateProfile?: CandidateProfile;
   getFormValues: () => CvBuilderFormValues;
@@ -224,6 +225,7 @@ export const buildBuildMyCvRequest = ({
 };
 
 export const useCvBuilderDone = ({
+  candidateId: suppliedCandidateId,
   userId,
   getFormValues,
   selectedLanguageEntries,
@@ -236,7 +238,8 @@ export const useCvBuilderDone = ({
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
   // Must match the id used by the getBuildMyCv query so its cache tag is invalidated.
-  const candidateId = useCandidateResourceId();
+  const authenticatedCandidateId = useCandidateResourceId();
+  const candidateId = suppliedCandidateId ?? authenticatedCandidateId;
   const [triggerCreate, { isLoading: isCreating }] = useSaveBuildMyCvMutation();
   const [triggerUpdate, { isLoading: isUpdating }] =
     useUpdateBuildMyCvMutation();

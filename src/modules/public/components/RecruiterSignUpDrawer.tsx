@@ -12,6 +12,7 @@ import { SignUpGoogleButton } from "@/modules/public/components/SignUpGoogleButt
 import { SignUpSuccess } from "@/modules/public/components/SignUpSuccess";
 import { useRecruiterSignUpForm } from "@/modules/public/hooks/useRecruiterSignUpForm";
 import { hasCognitoHostedUiConfig } from "@/app/auth/cognitoHostedUi";
+import { extractErrorMessage } from "@/app/errorUtils";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import type { AppDispatch } from "@/store";
 import { pushNotification } from "@/store/slices/notificationSlice";
@@ -67,10 +68,10 @@ export const RecruiterSignUpDrawer = ({
       const message =
         typeof error === "string"
           ? error
-          : "Sign up failed. Please try again.";
+          : extractErrorMessage(error, "Sign up failed. Please try again.");
       dispatch(
         pushNotification({
-          title: "Sign up failed",
+          title: "Sign up",
           message,
           level: "error",
         }),

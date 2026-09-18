@@ -182,6 +182,9 @@ describe("useCvBuilderPageViewModel", () => {
 
     expect(mocks.useBuildMyCvQuery).toHaveBeenCalledWith(true, "c-1");
     expect(mocks.useCandidateProfileQuery).toHaveBeenCalledWith("c-1", "u-1", true);
+    expect(mocks.useCvBuilderDone).toHaveBeenCalledWith(
+      expect.objectContaining({ candidateId: "c-1" }),
+    );
     expect(mocks.useCvBuilder).toHaveBeenCalledWith(
       expect.objectContaining({
         personalDetails: expect.objectContaining({
@@ -272,6 +275,21 @@ describe("useCvBuilderPageViewModel", () => {
     );
   });
 
+  it("uses the profile response candidate ID for newly created candidate resources", () => {
+    mocks.useCandidateResourceId.mockReturnValue("u-1");
+    mocks.useCandidateProfileQuery.mockReturnValue({
+      data: { ...candidateProfile, candidateId: "c-created" },
+    });
+
+    renderHook(() => useCvBuilderPageViewModel());
+
+    expect(mocks.useCandidateProfileQuery).toHaveBeenCalledWith("u-1", "u-1", true);
+    expect(mocks.useBuildMyCvQuery).toHaveBeenCalledWith(true, "c-created");
+    expect(mocks.useCvBuilderDone).toHaveBeenCalledWith(
+      expect.objectContaining({ candidateId: "c-created" }),
+    );
+  });
+
   it("derives guest application hero state and back navigation", () => {
     mocks.useAuth.mockReturnValue({ user: undefined });
     mocks.useLocation.mockReturnValue({ search: "?job=job-1", state: null });
@@ -341,6 +359,33 @@ describe("useCvBuilderPageViewModel", () => {
       }),
     );
     expect(result.current.uploadModalOpen).toBe(false);
+  });
+
+  it("reports when a new candidate identity is not ready for upload", async () => {
+    mocks.useCandidateResourceId.mockReturnValue("");
+    const { result } = renderHook(() => useCvBuilderPageViewModel());
+
+    await act(async () => {
+      await result.current.handleUploadDone();
+    });
+
+    expect(mocks.uploadDocument).not.toHaveBeenCalled();
+    expect(result.current.uploadError).toBe(
+      "Your candidate profile is still loading. Please try again shortly.",
+    );
+  });
+
+  it("reports upload pipeline failures", async () => {
+    mocks.parseResume.mockRejectedValue(new Error("Parsing failed"));
+    const { result } = renderHook(() => useCvBuilderPageViewModel());
+
+    await act(async () => {
+      await result.current.handleUploadDone();
+    });
+
+    expect(result.current.uploadError).toBe(
+      "We could not process your CV. Please try again.",
+    );
   });
 
   it("skips upload API for guest applications and opens blank review", async () => {
