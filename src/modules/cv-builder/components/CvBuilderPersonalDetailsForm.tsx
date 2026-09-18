@@ -30,6 +30,7 @@ const CvBuilderPersonalDetailsForm = () => {
           control={control}
           label="Full name"
           span="full"
+          placeholder="Full name"
         />
 
         <Controller
