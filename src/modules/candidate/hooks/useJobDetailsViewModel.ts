@@ -13,6 +13,7 @@ import {
 import type { Job } from "@/types";
 import { createGuestApplicationDraft } from "../utils/guestApplicationDraft";
 import { getJobOperationId } from "../utils/jobIdentifier";
+import { getJobCity } from "@/components/opportunities/jobPresentation";
 import { useSavedJobsQuery } from "./useCandidateQueries";
 import { useAppliedJobIds } from "./useAppliedJobIds";
 import { useOptimisticSaveJob } from "./useOptimisticSaveJob";
@@ -36,12 +37,6 @@ const fallbackSkills = [
   "Interaction Design",
   "User Research",
 ];
-
-const toCityFromLocation = (location?: string) => {
-  if (!location) return "Johannesburg";
-  const [city] = location.split(",");
-  return city?.trim() || "Johannesburg";
-};
 
 const toDisplayTitle = (value: string | undefined, fallback: string) => {
   if (!value || value.trim().length === 0) return fallback;
@@ -167,7 +162,7 @@ export const useJobDetailsViewModel = () => {
   const title = toDisplayTitle(displayJob?.title, "");
   const companyName = toDisplayTitle(displayJob?.company, "");
   const industry = toDisplayTitle(displayJob?.industry, "");
-  const locationName = toCityFromLocation(displayJob?.location);
+  const locationName = getJobCity(displayJob?.location, "Johannesburg");
   const workType = formatEnumLabel(toDisplayTitle(displayJob?.workType, ""));
   const employmentType = formatEnumLabel(toDisplayTitle(displayJob?.employmentType, ""));
   const requirements =

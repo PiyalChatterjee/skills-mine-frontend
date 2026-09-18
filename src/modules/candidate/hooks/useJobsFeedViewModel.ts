@@ -9,6 +9,7 @@ import { selectRecommendedJobIds } from "@/store/selectors";
 import type { Job, RecommendedJob } from "@/types";
 import { getApplicationStatusLabel } from "../utils/applicationStatus";
 import { getJobOperationId } from "../utils/jobIdentifier";
+import { getJobTags } from "@/components/opportunities/jobPresentation";
 import { useAppliedJobIds } from "./useAppliedJobIds";
 import {
   useRecommendedPositionsQuery,
@@ -61,11 +62,6 @@ export type JobsFeedCard = {
   isSaved: boolean;
   isSaving: boolean;
   saveLabel: string;
-};
-
-const toCityFromLocation = (location: string) => {
-  const [city] = location.split(",");
-  return city?.trim() || "Unknown";
 };
 
 const toContractJob = (job: JobsFeedCandidateJob): JobsFeedJob => ({
@@ -172,7 +168,7 @@ export const useJobsFeedViewModel = (mode: JobsFeedMode) => {
           jobId: job.jobId,
           title: job.title,
           description: job.description ?? "",
-          tags: [job.industry, toCityFromLocation(job.location ?? ""), job.employmentType].filter(Boolean) as string[],
+          tags: getJobTags(job),
           matchScore: isRecommendedOnlyMode ? job.matchScore : undefined,
           applicationStatus: getApplicationStatusLabel(applicationStage),
           applicationStatusKey: applicationStage?.trim().toLowerCase(),
