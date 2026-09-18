@@ -44,19 +44,7 @@ const PROFILE_CREATION_STEP_FIELDS: Record<
 }
 
 const isCurrentStepValid = (values: ProfileCreationFormValues) => {
-  return profileCreationBasicDetailsSchema.safeParse({
-    fullName: values.fullName,
-    email: values.email,
-    phoneNumber: values.phoneNumber,
-    alternateEmail: values.alternateEmail,
-    alternatePhoneNumber: values.alternatePhoneNumber,
-    residentialLocation: values.residentialLocation,
-    preferredJobTitle: values.preferredJobTitle,
-    targetedIndustries: values.targetedIndustries,
-    preferredLocations: values.preferredLocations,
-    employmentType: values.employmentType,
-    availability: values.availability,
-  }).success
+  return profileCreationBasicDetailsSchema.safeParse(values).success
 }
 
 export const useProfileCreationWizard = () => {

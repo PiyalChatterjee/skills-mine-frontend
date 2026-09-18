@@ -1,22 +1,15 @@
 import { useMemo } from "react";
 import { useAuth } from "@/app/auth/AuthContext";
-import { getApplicationStatusLabel } from "@/modules/candidate/utils/applicationStatus";
+import {
+  getApplicationStatusKey,
+  getApplicationStatusLabel,
+  type ApplicationStatusKey,
+} from "@/modules/candidate/utils/applicationStatus";
 import {
   useCandidateDashboardQuery,
   useCandidateStatisticsQuery,
 } from "@/modules/candidate/hooks/useCandidateQueries";
 import type { DashboardApplication } from "@/types/api";
-
-export type ApplicationStatusKey =
-  | "applied"
-  | "screening"
-  | "assessment"
-  | "interview"
-  | "shortlisted"
-  | "offer_extended"
-  | "offer_accepted"
-  | "offer_declined"
-  | "unknown";
 
 export const DASHBOARD_APPLICATION_STATUS_CONFIG: Record<
   ApplicationStatusKey,
@@ -65,19 +58,6 @@ export const DASHBOARD_APPLICATION_STATUS_CONFIG: Record<
   unknown: { label: "Unknown stage", color: "#7a8694" },
 };
 
-const STAGE_STATUS_MAP: Record<string, ApplicationStatusKey> = {
-  inbound: "applied",
-  applied: "applied",
-  screening: "screening",
-  assessment: "assessment",
-  interview: "interview",
-  shortlisted: "shortlisted",
-  offer: "offer_extended",
-  offer_extended: "offer_extended",
-  offer_accepted: "offer_accepted",
-  offer_declined: "offer_declined",
-};
-
 const CLOSED_STAGES = new Set(["closed", "offer_accepted", "offer_declined"]);
 const DEFAULT_PIPELINE = [
   "APPLIED",
@@ -122,20 +102,6 @@ const reportUnknownStage = (stage: string) => {
   }
 };
 
-const mapStageToStatusKey = (
-  stage: string | undefined | null,
-): ApplicationStatusKey => {
-  if (!stage) return "unknown";
-  const normalized = stage.trim().toLowerCase();
-  const mapped = STAGE_STATUS_MAP[normalized];
-  if (mapped) {
-    return mapped;
-  }
-
-  reportUnknownStage(stage);
-  return "unknown";
-};
-
 type DisplayPipelineStage = {
   key: string;
   label: string | undefined;
@@ -156,7 +122,10 @@ export type DisplayApplication = {
 const transformApplicationToDisplay = (
   app: DashboardApplication,
 ): DisplayApplication => {
-  const status = mapStageToStatusKey(app.stage);
+  const status = getApplicationStatusKey(app.stage);
+  if (status === "unknown" && app.stage) {
+    reportUnknownStage(app.stage);
+  }
   const pipeline = app.pipeline.length > 0 ? app.pipeline : DEFAULT_PIPELINE;
 
   return {

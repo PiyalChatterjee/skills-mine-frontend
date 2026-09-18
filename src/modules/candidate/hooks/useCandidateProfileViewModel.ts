@@ -1,12 +1,9 @@
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
-import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/app/auth/AuthContext";
 import { extractErrorMessage } from "@/app/errorUtils";
 import { useZodForm } from "@/hooks/useZodForm";
 import { ROUTE_PATHS } from "@/routes/routePaths";
-import type { AppDispatch } from "@/store";
-import { saveProfileThunk } from "@/store/slices/candidateThunks";
 import { useIndustryOptions } from "@/modules/candidate/hooks/useIndustryOptions";
 import {
   getCandidateProfileUpdatePayload,
@@ -17,6 +14,7 @@ import {
 import {
   useCandidateProfileQuery,
   useCandidateResourceId,
+  useUpdateCandidateProfileMutation,
 } from "@/modules/candidate/hooks/useCandidateQueries";
 import { candidateApi } from "@/services/api/candidateApi";
 import {
@@ -26,7 +24,6 @@ import {
 
 export const useCandidateProfileViewModel = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch<AppDispatch>();
   const { user } = useAuth();
   const userId = user?.userId;
   const candidateId = useCandidateResourceId();
@@ -37,6 +34,7 @@ export const useCandidateProfileViewModel = () => {
     isError,
     error,
   } = useCandidateProfileQuery(candidateId, userId, Boolean(candidateId));
+  const updateProfileMutation = useUpdateCandidateProfileMutation();
   const resolvedCandidateProfile = candidateProfile ?? null;
   const {
     control,
@@ -148,9 +146,11 @@ export const useCandidateProfileViewModel = () => {
       try {
         const profileCandidateId =
           resolvedCandidateProfile?.candidateId ?? candidateId;
-        const updatedProfile = await dispatch(
-          saveProfileThunk({ userId, candidateId: profileCandidateId, payload }),
-        ).unwrap();
+        const updatedProfile = await updateProfileMutation.mutateAsync({
+          userId,
+          candidateId: profileCandidateId,
+          payload,
+        });
 
         reset(getProfileFormValues(updatedProfile));
         setIsPersonalEditing(false);

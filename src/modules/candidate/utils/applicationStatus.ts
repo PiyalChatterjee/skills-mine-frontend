@@ -19,9 +19,34 @@ const APPLICATION_STATUS_LABELS: Record<string, string> = {
   closed: 'Closed',
 }
 
+const APPLICATION_STATUS_KEYS = {
+  inbound: 'applied',
+  applied: 'applied',
+  screening: 'screening',
+  assessment: 'assessment',
+  interview: 'interview',
+  shortlist: 'shortlisted',
+  shortlisted: 'shortlisted',
+  offer: 'offer_extended',
+  offer_extended: 'offer_extended',
+  offer_accepted: 'offer_accepted',
+  offer_declined: 'offer_declined',
+} as const
+
+export type ApplicationStatusKey =
+  | (typeof APPLICATION_STATUS_KEYS)[keyof typeof APPLICATION_STATUS_KEYS]
+  | 'unknown'
+
 export const getApplicationStatusLabel = (stage: string | undefined) => {
   if (!stage) return undefined
 
   const normalizedStage = stage.trim().toLowerCase()
   return APPLICATION_STATUS_LABELS[normalizedStage] ?? stage
+}
+
+export const getApplicationStatusKey = (
+  stage: string | undefined | null,
+): ApplicationStatusKey => {
+  if (!stage) return 'unknown'
+  return APPLICATION_STATUS_KEYS[stage.trim().toLowerCase() as keyof typeof APPLICATION_STATUS_KEYS] ?? 'unknown'
 }

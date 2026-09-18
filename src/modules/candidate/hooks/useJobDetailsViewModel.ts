@@ -12,6 +12,7 @@ import {
 } from "@/store/api/apiSlice";
 import type { Job } from "@/types";
 import { createGuestApplicationDraft } from "../utils/guestApplicationDraft";
+import { getJobOperationId } from "../utils/jobIdentifier";
 import { useSavedJobsQuery } from "./useCandidateQueries";
 import { useAppliedJobIds } from "./useAppliedJobIds";
 import { useOptimisticSaveJob } from "./useOptimisticSaveJob";
@@ -116,11 +117,11 @@ export const useJobDetailsViewModel = () => {
   }, [jobById, jobProfile, resolvedJob, stateJob]);
 
   const effectiveJob = resolvedJob ?? jobById;
-  const savedJobKey = effectiveJob?.jobProfileId ?? effectiveJob?.jobId ?? "";
+  const savedJobKey = effectiveJob ? getJobOperationId(effectiveJob) : "";
   const savedJobKeysFromCollection = useMemo(
     () =>
       new Set(
-        (savedJobsQuery.data?.jobs ?? []).map((job) => job.jobProfileId || job.jobId),
+        (savedJobsQuery.data?.jobs ?? []).map(getJobOperationId),
       ),
     [savedJobsQuery.data],
   );
@@ -159,7 +160,7 @@ export const useJobDetailsViewModel = () => {
 
   const handleToggleSave = () => {
     if (!effectiveJob) return;
-    const saveTargetId = effectiveJob.jobProfileId ?? effectiveJob.jobId;
+    const saveTargetId = getJobOperationId(effectiveJob);
     void toggleJobSaved(saveTargetId);
   };
 

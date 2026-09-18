@@ -95,7 +95,7 @@ export const JobsFeedPage = ({ mode }: JobsFeedPageProps) => {
                   showSaveButton
                   isSaved={card.isSaved}
                   isSaving={card.isSaving}
-                  onToggleSave={() => handleToggleSave(card.jobId)}
+                  onToggleSave={() => handleToggleSave(card.job)}
                   saveLabel={card.saveLabel}
                 />
               ))}

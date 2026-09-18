@@ -8,6 +8,7 @@ import { ROUTE_PATHS } from "@/routes/routePaths";
 import { selectRecommendedJobIds } from "@/store/selectors";
 import type { Job, RecommendedJob } from "@/types";
 import { getApplicationStatusLabel } from "../utils/applicationStatus";
+import { getJobOperationId } from "../utils/jobIdentifier";
 import { useAppliedJobIds } from "./useAppliedJobIds";
 import {
   useRecommendedPositionsQuery,
@@ -162,7 +163,7 @@ export const useJobsFeedViewModel = (mode: JobsFeedMode) => {
   const jobCards = useMemo(
     () =>
       feedJobs.map((job) => {
-        const savedJobKey = job.jobProfileId ?? job.jobId;
+        const savedJobKey = getJobOperationId(job);
         const isSaved = isJobSaved(savedJobKey);
         const applicationStage = applicationStages.get(job.jobId);
 
@@ -176,7 +177,7 @@ export const useJobsFeedViewModel = (mode: JobsFeedMode) => {
           applicationStatus: getApplicationStatusLabel(applicationStage),
           applicationStatusKey: applicationStage?.trim().toLowerCase(),
           isSaved,
-          isSaving: isJobSaving(job.jobId),
+          isSaving: isJobSaving(savedJobKey),
           saveLabel: isSaved ? `Unsave ${job.title}` : `Save ${job.title}`,
         };
       }),
@@ -220,8 +221,8 @@ export const useJobsFeedViewModel = (mode: JobsFeedMode) => {
     });
   };
 
-  const handleToggleSave = (jobId: string) => {
-    void toggleJobSaved(jobId);
+  const handleToggleSave = (job: JobsFeedJob) => {
+    void toggleJobSaved(getJobOperationId(job));
   };
 
   return {

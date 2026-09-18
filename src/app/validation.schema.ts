@@ -129,13 +129,21 @@ const profilePhoneNumberSchema = z
 	.max(10, 'Phone number must be at most 10 digits')
 	.regex(/^\d+$/, 'Phone number must contain digits only')
 
-export const profileCreationSchema = z.object({
+const profileCommonShape = {
 	fullName: requiredField('Full name'),
 	email: emailSchema,
-	phoneNumber: profilePhoneNumberSchema,
 	alternateEmail: optionalEmailSchema,
 	alternatePhoneNumber: optionalLocalPhoneNumberSchema,
 	residentialLocation: requiredField('Residential location'),
+	preferredJobTitle: z.string(),
+	targetedIndustries: z.string(),
+	employmentType: z.string().trim(),
+	availability: z.string().trim(),
+}
+
+export const profileCreationSchema = z.object({
+	...profileCommonShape,
+	phoneNumber: profilePhoneNumberSchema,
 	preferredJobTitle: requiredField('Preferred job title'),
 	targetedIndustries: requiredField('Targeted industries'),
 	preferredLocations: z.string().trim(),
@@ -183,17 +191,9 @@ export const profileCreationEducationExperienceSchema =
 	})
 
 export const profileFormSchema = z.object({
-	fullName: requiredField('Full name'),
-	email: emailSchema,
+	...profileCommonShape,
 	phoneNumber: localPhoneNumberSchema,
-	alternateEmail: optionalEmailSchema,
-	alternatePhoneNumber: optionalLocalPhoneNumberSchema,
-	residentialLocation: requiredField('Residential location'),
-	preferredJobTitle: z.string(),
-	targetedIndustries: z.string(),
 	preferredWorkType: z.string(),
-	employmentType: z.string(),
-	availability: z.string(),
 	password: z.string(),
 })
 
