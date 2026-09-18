@@ -5,13 +5,13 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/app/auth/AuthContext'
 import { extractErrorMessage, isNotFoundError } from '@/app/errorUtils'
 import {
+  profileCreationBasicDetailsSchema,
+  profileCreationSchema,
+} from '@/app/validation.schema'
+import {
   useCandidateProfileQuery,
   useUpdateCandidateProfileMutation,
 } from '@/modules/candidate/hooks/useCandidateQueries'
-import {
-  profileCreationBasicDetailsSchema,
-  profileCreationSchema,
-} from '@/modules/candidate/schemas/profileCreationSchema'
 import {
   EMPTY_PROFILE_CREATION_VALUES,
   getProfileCreationDefaultValues,

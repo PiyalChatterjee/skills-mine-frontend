@@ -29,7 +29,7 @@ import {
 import { extractResumeText } from "../utils/extractResumeText";
 import { buildResumePrefillData } from "../utils/resumePrefill";
 import { LANGUAGES_LIST, type CvActionCard } from "../types/cvBuilder";
-import type { CvBuilderFormValues } from "../types/cvBuilderSchema";
+import type { CvBuilderFormValues } from "@/app/validation.schema";
 
 const EMPTY_CAREER_HISTORY = {
   companyName: "",

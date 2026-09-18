@@ -1,5 +1,5 @@
 import type { CandidateProfile } from "@/types/api";
-import { profileCreationSchema } from "@/modules/candidate/schemas/profileCreationSchema";
+import { profileCreationSchema } from "@/app/validation.schema";
 import { getProfileCreationDefaultValues } from "@/modules/candidate/types/profileCreation";
 
 export const isCandidateProfileCompleteForOnboarding = (

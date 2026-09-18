@@ -16,7 +16,7 @@ import {
 } from "@/store/slices/candidateSlice";
 import type { SaveBuildMyCvRequest } from "@/types";
 import type { Role } from "@/types/auth";
-import type { CvBuilderFormValues } from "../types/cvBuilderSchema";
+import type { CvBuilderFormValues } from "@/app/validation.schema";
 import {
   saveGuestApplicationCv,
   type GuestApplicationDraft,

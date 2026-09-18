@@ -1,5 +1,5 @@
 import type { ResumeParseResponse } from "@/types";
-import type { CvBuilderFormValues } from "../types/cvBuilderSchema";
+import type { CvBuilderFormValues } from "@/app/validation.schema";
 
 type CvBuilderPrefillData = Omit<
   Partial<CvBuilderFormValues>,

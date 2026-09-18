@@ -8,7 +8,7 @@ import {
   CvBuilderSectionHeader,
 } from "./CvBuilderFormPrimitives";
 import { LANGUAGES_LIST } from "../types/cvBuilder";
-import type { CvBuilderFormValues } from "../types/cvBuilderSchema";
+import type { CvBuilderFormValues } from "@/app/validation.schema";
 
 const CvBuilderLanguagesForm = () => {
   const {

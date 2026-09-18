@@ -16,7 +16,7 @@ import AuthPasswordField from "@/modules/auth/components/AuthPasswordField";
 import {
   recruiterInviteSignupSchema,
   type RecruiterInviteSignupFormValues,
-} from "@/modules/auth/types";
+} from "@/app/validation.schema";
 import { authApi } from "@/services/api/authApi";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import styles from "./SignupPage.module.css";

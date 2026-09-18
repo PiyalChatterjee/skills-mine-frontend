@@ -16,7 +16,7 @@ import AuthPasswordField from "@/modules/auth/components/AuthPasswordField";
 import {
   inviteSignupSchema,
   type InviteSignupFormValues,
-} from "@/modules/auth/types";
+} from "@/app/validation.schema";
 import { normalizePhoneNumberInput } from "@/app/phoneNumber";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { authApi } from "@/services/api/authApi";

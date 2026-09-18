@@ -15,7 +15,7 @@ import {
   NOTICE_PERIOD_OPTIONS,
   RACE_OPTIONS,
 } from "../types/cvBuilder";
-import type { CvBuilderFormValues } from "../types/cvBuilderSchema";
+import type { CvBuilderFormValues } from "@/app/validation.schema";
 
 const CvBuilderPersonalDetailsForm = () => {
   const { control } = useFormContext<CvBuilderFormValues>();

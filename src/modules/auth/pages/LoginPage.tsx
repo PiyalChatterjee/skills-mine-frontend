@@ -17,7 +17,7 @@ import AuthHero from "@/modules/auth/components/AuthHero";
 import AuthPasswordField from "@/modules/auth/components/AuthPasswordField";
 import ChangePasswordModal from "@/modules/candidate/components/ChangePasswordModal";
 import { roleToDefaultRoute } from "@/routes/roleDefaultRoutes";
-import { loginSchema, type LoginFormValues } from "@/modules/auth/types";
+import { loginSchema, type LoginFormValues } from "@/app/validation.schema";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import { authApi, mapLoginResponseToSession } from "@/services/api/authApi";
 import { candidateApi } from "@/services/api/candidateApi";
