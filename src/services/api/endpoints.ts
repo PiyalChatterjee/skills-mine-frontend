@@ -90,6 +90,10 @@ export const apiEndpoints = {
     generateJobSkills: "/jobs/skills/generate",
     candidateActions: "/candidates/:candidateId/ai-actions",
   },
+  visitor: {
+    profile: "/visitors",
+    apply: "/visitors/apply",
+  },
   recruiter: {
     dashboard: "https://13-245-120-61.nip.io/recruiter/dashboard",
     mandates: "https://13-245-120-61.nip.io/recruiter/mandates",
