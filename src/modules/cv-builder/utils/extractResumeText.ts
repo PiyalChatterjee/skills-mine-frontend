@@ -7,9 +7,22 @@ pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker;
 const getExtension = (fileName: string) =>
   fileName.split(".").pop()?.toLowerCase() ?? "";
 
+const loadPdfDocument = async (data: Uint8Array) => {
+  try {
+    return await pdfjs.getDocument({ data: data.slice() }).promise;
+  } catch {
+    const workerModule = await import("pdfjs-dist/legacy/build/pdf.worker.min.mjs");
+    (globalThis as typeof globalThis & { pdfjsWorker?: unknown }).pdfjsWorker =
+      workerModule;
+    return pdfjs
+      .getDocument({ data: data.slice(), worker: new pdfjs.PDFWorker() })
+      .promise;
+  }
+};
+
 const extractPdfText = async (file: File): Promise<string> => {
   const data = new Uint8Array(await file.arrayBuffer());
-  const document = await pdfjs.getDocument({ data }).promise;
+  const document = await loadPdfDocument(data);
   const pages: string[] = [];
 
   for (let pageNumber = 1; pageNumber <= document.numPages; pageNumber += 1) {

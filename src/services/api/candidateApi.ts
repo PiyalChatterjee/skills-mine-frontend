@@ -1325,8 +1325,9 @@ export const candidateApi = {
   // caller is expected to overwrite the current skills list with the result.
   async generateSkills(payload: GenerateSkillsRequest): Promise<UserSkill[]> {
     const response = await aiApi.generateCandidateSkills({
-      subject_type: "CANDIDATE",
-      subject_id: payload.candidateId,
+      subject_type: payload.subjectType,
+      ...(payload.candidateId ? { subject_id: payload.candidateId } : {}),
+      input_source: "PROFILE",
       career_history: payload.careerHistory.map((entry) => ({
         company_name: entry.companyName,
         position_held: entry.positionHeld,

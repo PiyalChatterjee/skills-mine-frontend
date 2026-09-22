@@ -132,6 +132,7 @@ export const useCvBuilderPageViewModel = () => {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isReadingResume, setIsReadingResume] = useState(false);
   const [isParsingResume, setIsParsingResume] = useState(false);
+  const [visitorId, setVisitorId] = useState<string | undefined>();
   const [uploadDocument, { isLoading: isUploadingResume }] =
     useUploadDocumentMutation();
   const { user } = useAuth();
@@ -237,6 +238,7 @@ export const useCvBuilderPageViewModel = () => {
           ? { owner_type: "VISITOR" as const }
           : { owner_type: "CANDIDATE" as const }),
       });
+      setVisitorId(parsedResume.visitor_id);
           setIsParsingResume(false);
       const prefillData = buildResumePrefillData(parsedResume, extractedText);
       const mergedPrefillData = {
@@ -350,6 +352,7 @@ export const useCvBuilderPageViewModel = () => {
     uploadInputRef,
     uploadError,
     uploadModalOpen,
+    visitorId,
     guestJobTags: isGuestApplication ? guestJobTags : undefined,
   };
 };
