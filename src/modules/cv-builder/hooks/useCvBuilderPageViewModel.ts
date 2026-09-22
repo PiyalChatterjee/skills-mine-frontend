@@ -92,6 +92,8 @@ const buildPrefillFromSavedCv = (
     personalDetails: {
       fullName:
         `${buildMyCvData.personalDetails.firstName ?? ""} ${buildMyCvData.personalDetails.lastName ?? ""}`.trim(),
+      email: buildMyCvData.personalDetails.email ?? "",
+      phoneNumber: buildMyCvData.personalDetails.phoneNumber ?? "",
       residentialLocation: buildMyCvData.personalDetails.location ?? "",
       nationality: buildMyCvData.personalDetails.nationality ?? "",
       noticePeriod: buildMyCvData.personalDetails.noticePeriod ?? "",

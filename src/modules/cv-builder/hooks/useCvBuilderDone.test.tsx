@@ -250,6 +250,8 @@ const makeWrapper = (store: ReturnType<typeof makeTestStore>) =>
 const defaultFormValues = {
   personalDetails: {
     fullName: 'Jane Doe',
+    email: '',
+    phoneNumber: '',
     race: 'African',
     gender: 'Female',
     disabilityStatus: 'None',
