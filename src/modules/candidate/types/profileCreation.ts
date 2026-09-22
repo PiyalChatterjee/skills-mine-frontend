@@ -3,7 +3,7 @@ import {
   fromSouthAfricaApiPhoneNumber,
   toSouthAfricaApiPhoneNumber,
 } from '@/app/phoneNumber'
-import { profileCreationSchema } from '@/modules/candidate/schemas/profileCreationSchema'
+import { profileCreationSchema } from '@/app/validation.schema'
 import { splitCandidateFullName } from '@/modules/candidate/utils/candidateName'
 import type {
   CandidateProfile,

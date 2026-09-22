@@ -279,6 +279,21 @@ const defaultFormValues = {
   otherLanguage: '',
 }
 
+const savedCvResult = {
+  personalDetails: {
+    firstName: 'Jane',
+    lastName: 'Doe',
+    currentCompany: 'Acme',
+    currentPosition: 'Engineer',
+  },
+  careerHistory: [],
+  skills: [],
+  education: { secondaryEducation: [], tertiaryEducation: [] },
+  languages: [],
+  validation: [],
+  lastModified: '2024-01-01',
+}
+
 describe('useCvBuilderDone', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -287,8 +302,7 @@ describe('useCvBuilderDone', () => {
   })
 
   it('calls save mutation when buildMyCvExists is false', async () => {
-    const successResult = { lastModified: '2024-01-01' }
-    mockSaveBuildMyCv.mockReturnValue({ unwrap: () => Promise.resolve(successResult) })
+    mockSaveBuildMyCv.mockReturnValue({ unwrap: () => Promise.resolve(savedCvResult) })
     const store = makeTestStore()
     const { result } = renderHook(
       () =>
@@ -310,6 +324,7 @@ describe('useCvBuilderDone', () => {
       }),
     )
     expect(mockNavigate).toHaveBeenCalled()
+    expect(store.getState().candidate.buildMyCv.personalDetails.currentCompany).toBe('Acme')
   })
 
   it('stores a guest CV locally and does not call authenticated APIs', async () => {
@@ -351,8 +366,9 @@ describe('useCvBuilderDone', () => {
   })
 
   it('calls update mutation when buildMyCvExists is true', async () => {
-    const successResult = { lastModified: '2024-06-01' }
-    mockUpdateBuildMyCv.mockReturnValue({ unwrap: () => Promise.resolve(successResult) })
+    mockUpdateBuildMyCv.mockReturnValue({
+      unwrap: () => Promise.resolve({ ...savedCvResult, lastModified: '2024-06-01' }),
+    })
     const store = makeTestStore()
     const { result } = renderHook(
       () =>
@@ -368,6 +384,28 @@ describe('useCvBuilderDone', () => {
     })
     expect(mockUpdateBuildMyCv).toHaveBeenCalled()
     expect(mockNavigate).toHaveBeenCalled()
+  })
+
+  it('does not upload or save when form validation fails', async () => {
+    const store = makeTestStore()
+    const { result } = renderHook(
+      () =>
+        useCvBuilderDone({
+          getFormValues: () => defaultFormValues,
+          selectedLanguageEntries: ['English'],
+          buildMyCvExists: false,
+          validateForm: async () => false,
+        }),
+      { wrapper: makeWrapper(store) },
+    )
+
+    await act(async () => {
+      await result.current.handleDone()
+    })
+
+    expect(mockUploadResumeDocument).not.toHaveBeenCalled()
+    expect(mockSaveBuildMyCv).not.toHaveBeenCalled()
+    expect(mockNavigate).not.toHaveBeenCalled()
   })
 
   it('skips PDF upload and update when an existing CV has no form changes', async () => {

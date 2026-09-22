@@ -12,6 +12,9 @@ import {
 } from "@/store/api/apiSlice";
 import type { Job } from "@/types";
 import { createGuestApplicationDraft } from "../utils/guestApplicationDraft";
+import { getJobOperationId } from "../utils/jobIdentifier";
+import { getJobCity } from "@/components/jobs/jobPresentation";
+import { useSavedJobsQuery } from "./useCandidateQueries";
 import { useAppliedJobIds } from "./useAppliedJobIds";
 import { useOptimisticSaveJob } from "./useOptimisticSaveJob";
 
@@ -34,12 +37,6 @@ const fallbackSkills = [
   "Interaction Design",
   "User Research",
 ];
-
-const toCityFromLocation = (location?: string) => {
-  if (!location) return "Johannesburg";
-  const [city] = location.split(",");
-  return city?.trim() || "Johannesburg";
-};
 
 const toDisplayTitle = (value: string | undefined, fallback: string) => {
   if (!value || value.trim().length === 0) return fallback;
@@ -64,6 +61,7 @@ export const useJobDetailsViewModel = () => {
   const { jobId } = useParams<{ jobId: string }>();
   const location = useLocation();
   const { isAuthenticated, user } = useAuth();
+  const savedJobsQuery = useSavedJobsQuery(true);
   const { isJobSaved, isJobSaving, toggleJobSaved } = useOptimisticSaveJob();
   const { isJobApplied } = useAppliedJobIds();
   const [applyToJob, { isLoading: isApplying }] = useApplyToJobMutation();
@@ -114,8 +112,18 @@ export const useJobDetailsViewModel = () => {
   }, [jobById, jobProfile, resolvedJob, stateJob]);
 
   const effectiveJob = resolvedJob ?? jobById;
-  const isSaved = effectiveJob ? isJobSaved(effectiveJob.jobId) : false;
-  const isSaving = effectiveJob ? isJobSaving(effectiveJob.jobId) : false;
+  const savedJobKey = effectiveJob ? getJobOperationId(effectiveJob) : "";
+  const savedJobKeysFromCollection = useMemo(
+    () =>
+      new Set(
+        (savedJobsQuery.data?.jobs ?? []).map(getJobOperationId),
+      ),
+    [savedJobsQuery.data],
+  );
+  const isSaved = savedJobKey
+    ? isJobSaved(savedJobKey) || savedJobKeysFromCollection.has(savedJobKey)
+    : false;
+  const isSaving = savedJobKey ? isJobSaving(savedJobKey) : false;
   const isApplied = effectiveJob
     ? hasJustApplied || isJobApplied(effectiveJob.jobId)
     : false;
@@ -147,13 +155,14 @@ export const useJobDetailsViewModel = () => {
 
   const handleToggleSave = () => {
     if (!effectiveJob) return;
-    void toggleJobSaved(effectiveJob.jobId);
+    const saveTargetId = getJobOperationId(effectiveJob);
+    void toggleJobSaved(saveTargetId);
   };
 
   const title = toDisplayTitle(displayJob?.title, "");
   const companyName = toDisplayTitle(displayJob?.company, "");
   const industry = toDisplayTitle(displayJob?.industry, "");
-  const locationName = toCityFromLocation(displayJob?.location);
+  const locationName = getJobCity(displayJob?.location, "Johannesburg");
   const workType = formatEnumLabel(toDisplayTitle(displayJob?.workType, ""));
   const employmentType = formatEnumLabel(toDisplayTitle(displayJob?.employmentType, ""));
   const requirements =

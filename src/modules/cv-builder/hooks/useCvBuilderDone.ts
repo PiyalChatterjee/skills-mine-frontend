@@ -6,17 +6,19 @@ import {
   useSaveBuildMyCvMutation,
   useUpdateBuildMyCvMutation,
   useUploadCvResumeDocumentMutation,
+  apiSlice,
 } from "@/store/api/apiSlice";
 import type { CandidateProfile } from "@/modules/candidate/types";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import type { AppDispatch } from "@/store";
 import { pushNotification } from "@/store/slices/notificationSlice";
 import {
+  setBuildMyCv,
   setBuildMyCvMetadata,
 } from "@/store/slices/candidateSlice";
 import type { SaveBuildMyCvRequest } from "@/types";
 import type { Role } from "@/types/auth";
-import type { CvBuilderFormValues } from "../types/cvBuilderSchema";
+import type { CvBuilderFormValues } from "@/app/validation.schema";
 import {
   saveGuestApplicationCv,
   type GuestApplicationDraft,
@@ -141,6 +143,7 @@ export const buildCvBuilderPrefillData = (
 };
 
 type UseCvBuilderDoneArgs = {
+  candidateId?: string;
   userId?: string;
   candidateProfile?: CandidateProfile;
   getFormValues: () => CvBuilderFormValues;
@@ -222,6 +225,7 @@ export const buildBuildMyCvRequest = ({
 };
 
 export const useCvBuilderDone = ({
+  candidateId: suppliedCandidateId,
   userId,
   getFormValues,
   selectedLanguageEntries,
@@ -234,7 +238,8 @@ export const useCvBuilderDone = ({
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
   // Must match the id used by the getBuildMyCv query so its cache tag is invalidated.
-  const candidateId = useCandidateResourceId();
+  const authenticatedCandidateId = useCandidateResourceId();
+  const candidateId = suppliedCandidateId ?? authenticatedCandidateId;
   const [triggerCreate, { isLoading: isCreating }] = useSaveBuildMyCvMutation();
   const [triggerUpdate, { isLoading: isUpdating }] =
     useUpdateBuildMyCvMutation();
@@ -243,7 +248,10 @@ export const useCvBuilderDone = ({
   const isSavingCandidateProfile = isCreating || isUpdating;
 
   const handleDone = useCallback(async () => {
-    await validateForm?.();
+    const isFormValid = await validateForm?.();
+    if (isFormValid === false) {
+      return;
+    }
 
     const payload = buildBuildMyCvRequest({
       formValues: getFormValues(),
@@ -324,6 +332,14 @@ export const useCvBuilderDone = ({
         ? await triggerUpdate({ candidateId, payload }).unwrap()
         : await triggerCreate({ candidateId, payload }).unwrap();
 
+      dispatch(setBuildMyCv(result));
+      dispatch(
+        apiSlice.util.upsertQueryData(
+          "getBuildMyCv",
+          { candidateId },
+          result,
+        ),
+      );
       dispatch(
         setBuildMyCvMetadata({
           exists: true,

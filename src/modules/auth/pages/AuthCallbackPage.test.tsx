@@ -74,6 +74,15 @@ const renderPage = (state: 'login' | 'signup') =>
     </MemoryRouter>,
   );
 
+const renderCallbackErrorPage = () =>
+  render(
+    <MemoryRouter initialEntries={[
+      '/callback?error=access_denied&error_description=Google%20account%20access%20was%20denied.',
+    ]}>
+      <AuthCallbackPage />
+    </MemoryRouter>,
+  );
+
 describe('AuthCallbackPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -126,5 +135,16 @@ describe('AuthCallbackPage', () => {
 
     expect(mockGetCurrentUser).toHaveBeenCalledOnce();
     expect(mockLogin).toHaveBeenCalledWith({ user, tokens });
+  });
+
+  it('forwards the Cognito callback error description to login', async () => {
+    renderCallbackErrorPage();
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(
+        '/login?error=google_callback&message=Google+account+access+was+denied.',
+        { replace: true },
+      );
+    });
   });
 });

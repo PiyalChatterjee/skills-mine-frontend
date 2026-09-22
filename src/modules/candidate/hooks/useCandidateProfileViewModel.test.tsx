@@ -3,23 +3,18 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useCandidateProfileViewModel } from "./useCandidateProfileViewModel";
 
 const mocks = vi.hoisted(() => ({
-  dispatch: vi.fn(),
   getCandidateProfileUpdatePayload: vi.fn(),
   getProfileFormValues: vi.fn(),
   getValues: vi.fn(),
   navigate: vi.fn(),
   reset: vi.fn(),
-  saveProfileThunk: vi.fn(),
   trigger: vi.fn(),
   useAuth: vi.fn(),
   useCandidateProfileQuery: vi.fn(),
   useCandidateResourceId: vi.fn(),
+  useUpdateCandidateProfileMutation: vi.fn(),
   useIndustryOptions: vi.fn(),
   useZodForm: vi.fn(),
-}));
-
-vi.mock("react-redux", () => ({
-  useDispatch: () => mocks.dispatch,
 }));
 
 vi.mock("react-router-dom", () => ({
@@ -32,10 +27,6 @@ vi.mock("@/app/auth/AuthContext", () => ({
 
 vi.mock("@/hooks/useZodForm", () => ({
   useZodForm: mocks.useZodForm,
-}));
-
-vi.mock("@/store/slices/candidateThunks", () => ({
-  saveProfileThunk: mocks.saveProfileThunk,
 }));
 
 vi.mock("@/modules/candidate/hooks/useIndustryOptions", () => ({
@@ -54,6 +45,7 @@ vi.mock("@/modules/candidate/pages/profileForm.config", () => ({
 vi.mock("@/modules/candidate/hooks/useCandidateQueries", () => ({
   useCandidateProfileQuery: mocks.useCandidateProfileQuery,
   useCandidateResourceId: mocks.useCandidateResourceId,
+  useUpdateCandidateProfileMutation: mocks.useUpdateCandidateProfileMutation,
 }));
 
 const candidateProfile = {
@@ -97,8 +89,8 @@ describe("useCandidateProfileViewModel", () => {
       reset: mocks.reset,
       trigger: mocks.trigger,
     });
-    mocks.dispatch.mockReturnValue({
-      unwrap: vi.fn().mockResolvedValue(candidateProfile),
+    mocks.useUpdateCandidateProfileMutation.mockReturnValue({
+      mutateAsync: vi.fn().mockResolvedValue(candidateProfile),
     });
   });
 
@@ -146,7 +138,7 @@ describe("useCandidateProfileViewModel", () => {
     });
 
     expect(mocks.trigger).not.toHaveBeenCalled();
-    expect(mocks.saveProfileThunk).not.toHaveBeenCalled();
+    expect(mocks.useUpdateCandidateProfileMutation().mutateAsync).not.toHaveBeenCalled();
     expect(mocks.navigate).toHaveBeenCalledWith("/candidate/dashboard");
   });
 
@@ -170,12 +162,11 @@ describe("useCandidateProfileViewModel", () => {
       { fullName: "Jane Doe" },
       candidateProfile,
     );
-    expect(mocks.saveProfileThunk).toHaveBeenCalledWith({
+    expect(mocks.useUpdateCandidateProfileMutation().mutateAsync).toHaveBeenCalledWith({
       userId: "u-1",
       candidateId: "c-1",
       payload: { personalDetails: { firstName: "Jane" } },
     });
-    expect(mocks.dispatch).toHaveBeenCalled();
     expect(mocks.navigate).toHaveBeenCalledWith("/candidate/dashboard");
   });
 

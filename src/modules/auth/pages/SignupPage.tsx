@@ -16,8 +16,9 @@ import AuthPasswordField from "@/modules/auth/components/AuthPasswordField";
 import {
   inviteSignupSchema,
   type InviteSignupFormValues,
-} from "@/modules/auth/types";
+} from "@/app/validation.schema";
 import { normalizePhoneNumberInput } from "@/app/phoneNumber";
+import { PASSWORD_PLACEHOLDER } from "@/app/passwordPolicy";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { authApi } from "@/services/api/authApi";
 import { ROUTE_PATHS } from "@/routes/routePaths";
@@ -190,7 +191,7 @@ const SignupPage = () => {
 
           <AuthPasswordField
             label="Password"
-            placeholder="At least 8 characters"
+            placeholder={PASSWORD_PLACEHOLDER}
             value={passwordValue}
             error={Boolean(errors.password)}
             helperText={errors.password?.message}

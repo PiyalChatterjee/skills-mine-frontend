@@ -138,7 +138,7 @@ describe('LoginPage', () => {
     await userEvent.type(screen.getByPlaceholderText('Password'), 'wrongpass')
     fireEvent.submit(screen.getByRole('button', { name: /sign in/i }).closest('form')!)
     await waitFor(() => {
-      expect(screen.getByText(/login failed/i)).toBeInTheDocument()
+      expect(screen.getByText('Unauthorized')).toBeInTheDocument()
     })
   })
 
@@ -161,13 +161,18 @@ describe('LoginPage', () => {
     renderPage()
     fireEvent.click(screen.getByRole('button', { name: /sign in with google/i }))
     await waitFor(() => {
-      expect(screen.getByText(/google sign-in failed/i)).toBeInTheDocument()
+      expect(screen.getByText('Redirect failed')).toBeInTheDocument()
     })
   })
 
   it('shows error when redirected back from Cognito with a callback error', () => {
     renderPage('/login?error=google_callback')
     expect(screen.getByText(/google sign-in failed/i)).toBeInTheDocument()
+  })
+
+  it('shows the Cognito callback error description', () => {
+    renderPage('/login?error=google_callback&message=Google%20account%20access%20was%20denied.')
+    expect(screen.getByText('Google account access was denied.')).toBeInTheDocument()
   })
 
   it('routes authenticated job seeker with incomplete profile to profile creation', async () => {

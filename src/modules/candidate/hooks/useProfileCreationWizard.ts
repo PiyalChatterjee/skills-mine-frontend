@@ -5,13 +5,13 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/app/auth/AuthContext'
 import { extractErrorMessage, isNotFoundError } from '@/app/errorUtils'
 import {
+  profileCreationBasicDetailsSchema,
+  profileCreationSchema,
+} from '@/app/validation.schema'
+import {
   useCandidateProfileQuery,
   useUpdateCandidateProfileMutation,
 } from '@/modules/candidate/hooks/useCandidateQueries'
-import {
-  profileCreationBasicDetailsSchema,
-  profileCreationSchema,
-} from '@/modules/candidate/schemas/profileCreationSchema'
 import {
   EMPTY_PROFILE_CREATION_VALUES,
   getProfileCreationDefaultValues,
@@ -44,19 +44,7 @@ const PROFILE_CREATION_STEP_FIELDS: Record<
 }
 
 const isCurrentStepValid = (values: ProfileCreationFormValues) => {
-  return profileCreationBasicDetailsSchema.safeParse({
-    fullName: values.fullName,
-    email: values.email,
-    phoneNumber: values.phoneNumber,
-    alternateEmail: values.alternateEmail,
-    alternatePhoneNumber: values.alternatePhoneNumber,
-    residentialLocation: values.residentialLocation,
-    preferredJobTitle: values.preferredJobTitle,
-    targetedIndustries: values.targetedIndustries,
-    preferredLocations: values.preferredLocations,
-    employmentType: values.employmentType,
-    availability: values.availability,
-  }).success
+  return profileCreationBasicDetailsSchema.safeParse(values).success
 }
 
 export const useProfileCreationWizard = () => {
@@ -65,6 +53,23 @@ export const useProfileCreationWizard = () => {
   const userId = user?.userId
   const [currentStepIndex, setCurrentStepIndex] = useState(0)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [pendingSignupDefaults] = useState<Partial<ProfileCreationFormValues>>(() => {
+    try {
+      const storedDefaults = sessionStorage.getItem(PENDING_CANDIDATE_PROFILE_STORAGE_KEY)
+      return storedDefaults ? JSON.parse(storedDefaults) : {}
+    } catch {
+      return {}
+    }
+  })
+  const hasPendingSignupForUser = Boolean(
+    pendingSignupDefaults.email &&
+      user?.email &&
+      pendingSignupDefaults.email.toLowerCase() === user.email.toLowerCase(),
+  )
+  const signupDefaultsForUser = useMemo(
+    () => hasPendingSignupForUser ? pendingSignupDefaults : {},
+    [hasPendingSignupForUser, pendingSignupDefaults],
+  )
 
   const {
     data: candidateProfile,
@@ -75,14 +80,17 @@ export const useProfileCreationWizard = () => {
   } = useCandidateProfileQuery(
     user?.candidateId,
     userId,
-    Boolean(user?.candidateId || userId),
+    Boolean(user?.candidateId || userId) && !hasPendingSignupForUser,
   )
   const updateProfileMutation = useUpdateCandidateProfileMutation()
   const isNewCandidateProfile = isNotFoundError(error)
 
   const form = useForm<ProfileCreationFormValues>({
     resolver: zodResolver(profileCreationSchema) as never,
-    defaultValues: EMPTY_PROFILE_CREATION_VALUES,
+    defaultValues: {
+      ...EMPTY_PROFILE_CREATION_VALUES,
+      ...signupDefaultsForUser,
+    },
     mode: 'onChange',
     reValidateMode: 'onChange',
   })
@@ -92,24 +100,16 @@ export const useProfileCreationWizard = () => {
 
   useEffect(() => {
     const profileDefaults = getProfileCreationDefaultValues(candidateProfile ?? null)
-    let pendingSignupDefaults: Partial<ProfileCreationFormValues>
-
-    try {
-      const storedDefaults = sessionStorage.getItem(PENDING_CANDIDATE_PROFILE_STORAGE_KEY)
-      pendingSignupDefaults = storedDefaults ? JSON.parse(storedDefaults) : {}
-    } catch {
-      pendingSignupDefaults = {}
-    }
 
     form.reset({
       ...profileDefaults,
-      fullName: profileDefaults.fullName || pendingSignupDefaults.fullName || '',
-      email: profileDefaults.email || pendingSignupDefaults.email || '',
-      phoneNumber: profileDefaults.phoneNumber || pendingSignupDefaults.phoneNumber || '',
+      fullName: profileDefaults.fullName || signupDefaultsForUser.fullName || '',
+      email: profileDefaults.email || signupDefaultsForUser.email || '',
+      phoneNumber: profileDefaults.phoneNumber || signupDefaultsForUser.phoneNumber || '',
     }, {
       keepDirtyValues: true,
     })
-  }, [candidateProfile, form])
+  }, [candidateProfile, form, signupDefaultsForUser])
 
   const canGoNext = useMemo(
     () => isCurrentStepValid(watchedValues as ProfileCreationFormValues),

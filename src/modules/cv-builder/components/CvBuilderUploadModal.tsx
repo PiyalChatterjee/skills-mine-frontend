@@ -1,4 +1,4 @@
-import { Box, ButtonBase, Typography } from "@mui/material";
+import { Box, ButtonBase, CircularProgress, Typography } from "@mui/material";
 import { useState } from "react";
 import uploadIcon from "@/assets/cv-builder/upload-2-line.svg";
 import closeIcon from "@/assets/cv-builder/close-line.svg";
@@ -12,6 +12,9 @@ type CvBuilderUploadModalProps = {
   onClose: () => void;
   onDone: () => void | Promise<void>;
   isUploading?: boolean;
+  isReading?: boolean;
+  isParsing?: boolean;
+  submitError?: string | null;
 };
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
@@ -24,6 +27,9 @@ const CvBuilderUploadModal = ({
   onClose,
   onDone,
   isUploading = false,
+  isReading = false,
+  isParsing = false,
+  submitError,
 }: CvBuilderUploadModalProps) => {
   const [dragOver, setDragOver] = useState(false);
   const [error, setError] = useState("");
@@ -115,6 +121,12 @@ const CvBuilderUploadModal = ({
 
           <Box className={styles.uploadModalDivider} />
 
+          {submitError ? (
+            <Typography className={styles.uploadError} role="alert">
+              {submitError}
+            </Typography>
+          ) : null}
+
           <Box className={styles.uploadModalFooter}>
             <ButtonBase className={styles.uploadCancelButton} onClick={onClose} disableRipple>
               Cancel
@@ -122,10 +134,11 @@ const CvBuilderUploadModal = ({
             <ButtonBase
               className={`${styles.uploadDoneButton} ${selectedFile ? styles.uploadDoneButtonActive : ""}`}
               onClick={onDone}
-              disabled={!selectedFile || isUploading}
+              disabled={!selectedFile || isReading || isParsing || isUploading}
               disableRipple
             >
-              {isUploading ? "Uploading..." : "Done"}
+              {isReading || isParsing ? <CircularProgress size={20} color="inherit" /> : null}
+              {isReading ? "Reading CV..." : isParsing ? "Parsing..." : isUploading ? "Uploading..." : "Done"}
             </ButtonBase>
           </Box>
         </Box>

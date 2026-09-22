@@ -6,6 +6,15 @@ export const extractErrorMessage = (error: unknown, fallback: string): string =>
     }
   }
 
+  if (typeof error === "object" && error !== null) {
+    const responseMessage = (
+      error as { response?: { data?: { message?: unknown } } }
+    ).response?.data?.message;
+    if (typeof responseMessage === "string" && responseMessage.trim()) {
+      return responseMessage;
+    }
+  }
+
   return fallback;
 };
 

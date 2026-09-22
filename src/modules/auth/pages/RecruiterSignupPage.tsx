@@ -16,7 +16,7 @@ import AuthPasswordField from "@/modules/auth/components/AuthPasswordField";
 import {
   recruiterInviteSignupSchema,
   type RecruiterInviteSignupFormValues,
-} from "@/modules/auth/types";
+} from "@/app/validation.schema";
 import { authApi } from "@/services/api/authApi";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import styles from "./SignupPage.module.css";
@@ -172,7 +172,7 @@ const RecruiterSignupPage = () => {
 
           <AuthPasswordField
             label="Password"
-            placeholder="At least 8 characters"
+            placeholder="8+ characters, uppercase, number & special character"
             value={passwordValue}
             error={Boolean(errors.password)}
             helperText={errors.password?.message}

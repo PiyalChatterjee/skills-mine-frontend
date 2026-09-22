@@ -1,6 +1,6 @@
 import { Box, ButtonBase, CircularProgress, Typography } from '@mui/material'
 import { useAuth } from '@/app/auth/AuthContext'
-import { OpportunitiesSearchInput, OpportunityJobCard } from '@/components/opportunities'
+import { OpportunitiesSearchInput, OpportunityJobCard } from '@/components/jobs'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import arrowRight from '@/assets/cv-builder/arrow-right.svg'
 import { useJobsFeedViewModel, type JobsFeedMode } from '../hooks/useJobsFeedViewModel'
@@ -95,7 +95,7 @@ export const JobsFeedPage = ({ mode }: JobsFeedPageProps) => {
                   showSaveButton
                   isSaved={card.isSaved}
                   isSaving={card.isSaving}
-                  onToggleSave={() => handleToggleSave(card.jobId)}
+                  onToggleSave={() => handleToggleSave(card.job)}
                   saveLabel={card.saveLabel}
                 />
               ))}

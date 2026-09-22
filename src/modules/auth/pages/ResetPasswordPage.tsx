@@ -5,9 +5,11 @@ import { useZodForm } from "@/hooks/useZodForm";
 import AuthHero from "@/modules/auth/components/AuthHero";
 import AuthPasswordField from "@/modules/auth/components/AuthPasswordField";
 import {
+  changePasswordSchema,
   resetPasswordSchema,
+  type ChangePasswordFormValues,
   type ResetPasswordFormValues,
-} from "@/modules/auth/types/resetPassword";
+} from "@/app/validation.schema";
 import styles from "./ResetPasswordPage.module.css";
 import { pushNotification } from "@/store/slices/notificationSlice";
 import { useDispatch } from "react-redux";
@@ -17,24 +19,6 @@ import { ROUTE_PATHS } from "@/routes/routePaths";
 import { tokenStorage } from "@/app/auth/tokenStorage";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { authApi } from "@/services/api/authApi";
-import { z } from "zod";
-import { strongPasswordSchema } from "@/app/passwordPolicy";
-
-const changePasswordSchema = z
-  .object({
-    currentPassword: z.string().min(1, "Current password is required"),
-    password: strongPasswordSchema,
-    confirmPassword: z.string().min(1, "Please confirm your password"),
-  })
-  .superRefine((values, context) => {
-    if (values.password !== values.confirmPassword) {
-      context.addIssue({
-        code: "custom",
-        path: ["confirmPassword"],
-        message: "Passwords do not match",
-      });
-    }
-  });
 
 const ResetPasswordPage = () => {
   usePageTitle("Reset Password");
@@ -166,11 +150,7 @@ const ResetPasswordPage = () => {
   };
 
 
-  const onSubmitChangePassword = async (_values: {
-    currentPassword: string;
-    password: string;
-    confirmPassword: string;
-  }) => {
+  const onSubmitChangePassword = async (_values: ChangePasswordFormValues) => {
     try {
       await authApi.resetPassword({
         currentPassword: _values.currentPassword,

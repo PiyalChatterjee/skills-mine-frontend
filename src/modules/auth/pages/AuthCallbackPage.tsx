@@ -4,7 +4,7 @@ import { Box, CircularProgress, Typography } from '@mui/material';
 import { useAuth } from '@/app/auth/AuthContext';
 import { exchangeCodeForTokens } from '@/app/auth/cognitoHostedUi';
 import { tokenStorage } from '@/app/auth/tokenStorage';
-import { isConflictError } from '@/app/errorUtils';
+import { extractErrorMessage, isConflictError } from '@/app/errorUtils';
 import { authApi, buildAuthUserFromCurrentUser } from '@/services/api/authApi';
 import { PENDING_CANDIDATE_PROFILE_STORAGE_KEY } from '@/modules/candidate/types/profileCreation';
 import { roleToDefaultRoute } from '@/routes/roleDefaultRoutes';
@@ -40,11 +40,22 @@ const AuthCallbackPage = () => {
 
     const code  = searchParams.get('code');
     const error = searchParams.get('error');
+    const errorDescription = searchParams.get('error_description');
     const isSignup = searchParams.get('state') === 'signup';
+
+    const redirectToLoginWithError = (message: string) => {
+      const params = new URLSearchParams({
+        error: "google_callback",
+        message,
+      });
+      navigate(`${ROUTE_PATHS.login}?${params.toString()}`, { replace: true });
+    };
 
     // Cognito signals a user-cancelled or IdP error via ?error=
     if (error != null || code == null) {
-      navigate(`${ROUTE_PATHS.login}?error=google_callback`, { replace: true });
+      redirectToLoginWithError(
+        errorDescription ?? error ?? "Google sign-in failed. Please try again.",
+      );
       return;
     }
 
@@ -86,9 +97,14 @@ const AuthCallbackPage = () => {
             ? ROUTE_PATHS.profileCreation
             : roleToDefaultRoute[user.role] ?? ROUTE_PATHS.login;
         navigate(destination, { replace: true });
-      } catch {
+      } catch (callbackError) {
         tokenStorage.clearAuth();
-        navigate(`${ROUTE_PATHS.login}?error=google_callback`, { replace: true });
+        redirectToLoginWithError(
+          extractErrorMessage(
+            callbackError,
+            "Google sign-in failed. Please try again.",
+          ),
+        );
       }
     };
 

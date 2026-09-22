@@ -3,7 +3,7 @@ import { Controller, type UseFieldArrayReturn, useFormContext } from "react-hook
 import styles from "../pages/CvBuilderPage.module.css";
 import CvBuilderRemoveItemButton from "./CvBuilderRemoveItemButton";
 import { CvBuilderFormPanel } from "./CvBuilderFormPrimitives";
-import type { CvBuilderFormValues } from "../types/cvBuilderSchema";
+import type { CvBuilderFormValues } from "@/app/validation.schema";
 
 type CvBuilderSkillsFormProps = {
   skillsFieldArray: UseFieldArrayReturn<CvBuilderFormValues, "skills">;

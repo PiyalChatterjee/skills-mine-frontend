@@ -607,6 +607,8 @@ type RawBuildMyCvSkill =
     };
 
 type RawBuildMyCvResponse = {
+  candidateId?: string;
+  candidate_id?: string;
   resumeId?: string;
   resume_id?: string;
   currentStep?: string;
@@ -678,6 +680,7 @@ const mapBuildResponse = (
     ? educationEntries.filter((item) => item.level_code !== "SECONDARY")
     : (education.tertiary ?? education.tertiaryEducation ?? []);
   return {
+    candidateId: data.candidateId ?? data.candidate_id,
     resumeId: data.resumeId ?? data.resume_id ?? "",
     currentStep: data.currentStep ?? "",
     completedSteps: data.completedSteps ?? [],

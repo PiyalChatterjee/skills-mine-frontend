@@ -23,6 +23,18 @@ describe("extractErrorMessage", () => {
     ).toBe("Unable to save your profile.");
   });
 
+  it("extracts an Axios response payload message", () => {
+    expect(
+      extractErrorMessage(
+        {
+          message: "Request failed with status code 401",
+          response: { data: { message: "Invalid email or password." } },
+        },
+        "Login failed.",
+      ),
+    ).toBe("Invalid email or password.");
+  });
+
   it("uses the fallback for absent or null messages", () => {
     expect(extractErrorMessage({ message: undefined }, "Fallback")).toBe("Fallback");
     expect(extractErrorMessage({ message: null }, "Fallback")).toBe("Fallback");

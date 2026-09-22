@@ -8,7 +8,7 @@ import {
   tertiaryEntrySchema,
   secondaryEntrySchema,
   type CvBuilderFormValues,
-} from "../types/cvBuilderSchema";
+} from "@/app/validation.schema";
 import {
   DISABILITY_OPTIONS,
   GENDER_OPTIONS,

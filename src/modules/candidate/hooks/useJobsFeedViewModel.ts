@@ -8,6 +8,8 @@ import { ROUTE_PATHS } from "@/routes/routePaths";
 import { selectRecommendedJobIds } from "@/store/selectors";
 import type { Job, RecommendedJob } from "@/types";
 import { getApplicationStatusLabel } from "../utils/applicationStatus";
+import { getJobOperationId } from "../utils/jobIdentifier";
+import { getJobTags } from "@/components/jobs/jobPresentation";
 import { useAppliedJobIds } from "./useAppliedJobIds";
 import {
   useRecommendedPositionsQuery,
@@ -60,11 +62,6 @@ export type JobsFeedCard = {
   isSaved: boolean;
   isSaving: boolean;
   saveLabel: string;
-};
-
-const toCityFromLocation = (location: string) => {
-  const [city] = location.split(",");
-  return city?.trim() || "Unknown";
 };
 
 const toContractJob = (job: JobsFeedCandidateJob): JobsFeedJob => ({
@@ -162,7 +159,8 @@ export const useJobsFeedViewModel = (mode: JobsFeedMode) => {
   const jobCards = useMemo(
     () =>
       feedJobs.map((job) => {
-        const isSaved = isJobSaved(job.jobId);
+        const savedJobKey = getJobOperationId(job);
+        const isSaved = isJobSaved(savedJobKey);
         const applicationStage = applicationStages.get(job.jobId);
 
         return {
@@ -170,12 +168,12 @@ export const useJobsFeedViewModel = (mode: JobsFeedMode) => {
           jobId: job.jobId,
           title: job.title,
           description: job.description ?? "",
-          tags: [job.industry, toCityFromLocation(job.location ?? ""), job.employmentType].filter(Boolean) as string[],
+          tags: getJobTags(job),
           matchScore: isRecommendedOnlyMode ? job.matchScore : undefined,
           applicationStatus: getApplicationStatusLabel(applicationStage),
           applicationStatusKey: applicationStage?.trim().toLowerCase(),
           isSaved,
-          isSaving: isJobSaving(job.jobId),
+          isSaving: isJobSaving(savedJobKey),
           saveLabel: isSaved ? `Unsave ${job.title}` : `Save ${job.title}`,
         };
       }),
@@ -219,8 +217,8 @@ export const useJobsFeedViewModel = (mode: JobsFeedMode) => {
     });
   };
 
-  const handleToggleSave = (jobId: string) => {
-    void toggleJobSaved(jobId);
+  const handleToggleSave = (job: JobsFeedJob) => {
+    void toggleJobSaved(getJobOperationId(job));
   };
 
   return {

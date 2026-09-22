@@ -7,7 +7,7 @@ import buildingIcon from '@/assets/cv-builder/building-line.svg'
 import styles from '../pages/CvBuilderPage.module.css'
 import { CvBuilderFormPanel, CvBuilderLabeledField, CvBuilderSectionHeader } from './CvBuilderFormPrimitives'
 import CvBuilderRemoveItemButton from './CvBuilderRemoveItemButton'
-import type { CvBuilderFormValues } from '../types/cvBuilderSchema'
+import type { CvBuilderFormValues } from '@/app/validation.schema'
 import { parseMonthYear, formatMonthYear } from '../utils/monthYearDate'
 
 type DynamicListSectionProps = {

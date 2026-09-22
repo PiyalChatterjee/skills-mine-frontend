@@ -12,6 +12,7 @@ import LoginPage from "@/modules/auth/pages/LoginPage";
 import RecruiterSignupPage from "@/modules/auth/pages/RecruiterSignupPage";
 import SignupPage from "@/modules/auth/pages/SignupPage";
 import ResetPasswordPage from "@/modules/auth/pages/ResetPasswordPage.tsx";
+import ProfileCreationPage from "@/modules/candidate/pages/ProfileCreationPage";
 import LandingPage from "@/modules/public/pages/LandingPage";
 import { PermissionGuard } from "@/routes/guards/PermissionGuard";
 import { ProtectedRoute } from "@/routes/guards/ProtectedRoute";
@@ -41,9 +42,6 @@ const LatestJobsPage = lazy(
 );
 const RecommendedJobsPage = lazy(
   () => import("@/modules/candidate/pages/RecommendedJobsPage"),
-);
-const ProfileCreationPage = lazy(
-  () => import("@/modules/candidate/pages/ProfileCreationPage"),
 );
 const ProfilePage = lazy(() => import("@/modules/candidate/pages/ProfilePage"));
 const RecruiterPage = lazy(

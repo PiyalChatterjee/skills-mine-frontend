@@ -254,6 +254,21 @@
   display: block;
 }
 
+@media (max-width: 600px) {
+  .quickCardTitle,
+  :global(.MuiTypography-root).quickCardTitle,
+  :global(.MuiTypography-root).quickCardTitle.quickCardTitle {
+    flex-direction: row;
+    gap: 4px;
+    max-width: none;
+    white-space: nowrap;
+  }
+
+  .quickCardTitleLine {
+    display: inline;
+  }
+}
+
 .quickCardSubtitle,
 :global(.MuiTypography-root).quickCardSubtitle,
 :global(.MuiTypography-root).quickCardSubtitle.quickCardSubtitle {
@@ -508,6 +523,19 @@
 
 .emptyHeroCta:hover {
   filter: brightness(1.08);
+}
+
+@media (max-width: 600px) {
+  .emptyHeroBanner {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .emptyHeroMessage,
+  :global(.MuiTypography-root).emptyHeroMessage,
+  :global(.MuiTypography-root).emptyHeroMessage.emptyHeroMessage {
+    width: 100%;
+  }
 }
 
 .emptyQuickActionsRow {

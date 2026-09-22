@@ -7,7 +7,7 @@ import { useCandidateResourceId } from "@/modules/candidate/hooks/useCandidateQu
 import { useGenerateSkillsMutation } from "@/store/api/apiSlice";
 import { pushNotification } from "@/store/slices/notificationSlice";
 import styles from "../pages/CvBuilderPage.module.css";
-import type { CvBuilderFormValues } from "../types/cvBuilderSchema";
+import type { CvBuilderFormValues } from "@/app/validation.schema";
 
 type CvBuilderSkillsGenerateActionProps = {
   replaceSkills: (skills: { name: string }[]) => void;

@@ -19,6 +19,7 @@ import { setSavedJobs, setRecommendedJobs, setAvailableSkills, setBuildMyCv } fr
 import type { CandidateProfileUpdatePayload } from '@/modules/candidate/types'
 import type { ApiError, BuildMyCvData, BuildMyCvState, SaveBuildMyCvRequest, UpdateBuildMyCvRequest } from '@/types'
 import type { AppDispatch } from '@/store'
+import { getJobOperationId } from '@/modules/candidate/utils/jobIdentifier'
 
 /**
  * Identity used to address candidate-owned resources.
@@ -139,7 +140,7 @@ export const useSavedJobsQuery = (enabled = true, candidateId?: string) => {
 
   useEffect(() => {
     if (result.data) {
-      dispatch(setSavedJobs(result.data.jobs.map((job) => job.jobId)))
+      dispatch(setSavedJobs(result.data.jobs.map(getJobOperationId)))
     }
   }, [dispatch, result.data])
 
@@ -177,7 +178,7 @@ export const useBuildMyCvQuery = (enabled = true, candidateId?: string) => {
   const resolvedId = candidateId || fallbackId
   const result = useGetBuildMyCvQuery(
     { candidateId: resolvedId },
-    { skip: !enabled || !resolvedId, refetchOnMountOrArgChange: true },
+    { skip: !enabled || !resolvedId },
   )
 
   useEffect(() => {

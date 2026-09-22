@@ -10,14 +10,14 @@ import {
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/app/auth/AuthContext";
 import { tokenStorage } from "@/app/auth/tokenStorage";
-import { isNotFoundError } from "@/app/errorUtils";
+import { extractErrorMessage, isNotFoundError } from "@/app/errorUtils";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { useZodForm } from "@/hooks/useZodForm";
 import AuthHero from "@/modules/auth/components/AuthHero";
 import AuthPasswordField from "@/modules/auth/components/AuthPasswordField";
 import ChangePasswordModal from "@/modules/candidate/components/ChangePasswordModal";
 import { roleToDefaultRoute } from "@/routes/roleDefaultRoutes";
-import { loginSchema, type LoginFormValues } from "@/modules/auth/types";
+import { loginSchema, type LoginFormValues } from "@/app/validation.schema";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import { authApi, mapLoginResponseToSession } from "@/services/api/authApi";
 import { candidateApi } from "@/services/api/candidateApi";
@@ -35,6 +35,8 @@ const LoginPage = () => {
   const [isGoogleRedirecting, setIsGoogleRedirecting] = useState(false);
   // Check for error redirected back from AuthCallbackPage (?error=google_callback)
   const isGoogleCallbackError = searchParams.get('error') === 'google_callback';
+  const googleCallbackErrorMessage =
+    searchParams.get("message") ?? "Google sign-in failed. Please try again.";
   const {
     register,
     handleSubmit,
@@ -95,9 +97,11 @@ const LoginPage = () => {
       setGoogleAuthError(null);
       setIsGoogleRedirecting(true);
       await redirectToGoogleLogin();
-    } catch {
+    } catch (error) {
       setIsGoogleRedirecting(false);
-      setGoogleAuthError("Google sign-in failed. Please try again.");
+      setGoogleAuthError(
+        extractErrorMessage(error, "Google sign-in failed. Please try again."),
+      );
     }
   };
 
@@ -125,8 +129,13 @@ const LoginPage = () => {
       }
 
       login(session);
-    } catch {
-      setSubmitError("Login failed. Check your credentials and try again.");
+    } catch (error) {
+      setSubmitError(
+        extractErrorMessage(
+          error,
+          "Login failed. Check your credentials and try again.",
+        ),
+      );
     }
   };
 
@@ -150,7 +159,7 @@ const LoginPage = () => {
           {submitError ? <Alert severity="error">{submitError}</Alert> : null}
           {googleAuthError ? <Alert severity="error">{googleAuthError}</Alert> : null}
           {isGoogleCallbackError ? (
-            <Alert severity="error">Google sign-in failed. Please try again.</Alert>
+            <Alert severity="error">{googleCallbackErrorMessage}</Alert>
           ) : null}
 
           <Box className={styles.dividerRow}>

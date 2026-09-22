@@ -358,6 +358,7 @@ describe('candidateApi', () => {
 
       const result = await candidateApi.getBuildMyCv('CAND100001')
 
+      expect(result.candidateId).toBe('CAND100001')
       expect(result.education.secondaryEducation).toHaveLength(1)
       expect(result.education.tertiaryEducation).toHaveLength(1)
     })

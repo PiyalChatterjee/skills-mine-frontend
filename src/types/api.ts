@@ -323,6 +323,7 @@ export interface BuildMyCvEducationSection {
 }
 
 export interface BuildMyCvState {
+  candidateId?: string;
   resumeId?: string;
   personalDetails: BuildMyCvPersonalDetails;
   careerHistory: CandidateExperience[];
@@ -427,6 +428,7 @@ export interface ResumeDocumentUploadResult {
 
 export interface RecommendedJob {
   jobId: string;
+  jobProfileId?: string;
   title: string;
   company: string;
   location: string;

@@ -140,6 +140,7 @@
   font-size: 16px;
   line-height: 1.5;
   letter-spacing: 0.1px;
+  gap: 8px;
 }
 
 .uploadBrowseButton {

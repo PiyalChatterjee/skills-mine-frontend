@@ -182,6 +182,9 @@ describe("useCvBuilderPageViewModel", () => {
 
     expect(mocks.useBuildMyCvQuery).toHaveBeenCalledWith(true, "c-1");
     expect(mocks.useCandidateProfileQuery).toHaveBeenCalledWith("c-1", "u-1", true);
+    expect(mocks.useCvBuilderDone).toHaveBeenCalledWith(
+      expect.objectContaining({ candidateId: "c-1" }),
+    );
     expect(mocks.useCvBuilder).toHaveBeenCalledWith(
       expect.objectContaining({
         personalDetails: expect.objectContaining({
@@ -212,6 +215,44 @@ describe("useCvBuilderPageViewModel", () => {
     });
   });
 
+  it("derives current employment fields from the current saved CV experience", () => {
+    const savedCvWithoutCurrentEmploymentFields = {
+      ...savedCv,
+      personalDetails: {
+        ...savedCv.personalDetails,
+        currentCompany: undefined,
+        currentPosition: undefined,
+      },
+      careerHistory: [
+        {
+          company: "Accenture",
+          jobTitle: "App Developer",
+          startDate: "2021-01-01",
+          endDate: "Present",
+          responsibilities: "Built applications",
+        },
+      ],
+    };
+    mocks.useSelector.mockImplementation((selector: unknown) => {
+      if (selector === mocks.selectBuildMyCv) return savedCvWithoutCurrentEmploymentFields;
+      if (selector === mocks.selectBuildMyCvLoaded) return true;
+      if (selector === mocks.selectBuildMyCvExists) return true;
+      return undefined;
+    });
+
+    renderHook(() => useCvBuilderPageViewModel());
+
+    expect(mocks.useCvBuilder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        personalDetails: expect.objectContaining({
+          currentCompany: "Accenture",
+          currentPosition: "App Developer",
+        }),
+      }),
+      true,
+    );
+  });
+
   it("falls back to candidate profile prefill when saved CV data is not loaded", () => {
     mocks.useSelector.mockImplementation((selector: unknown) => {
       if (selector === mocks.selectBuildMyCv) return undefined;
@@ -231,6 +272,21 @@ describe("useCvBuilderPageViewModel", () => {
         }),
       }),
       false,
+    );
+  });
+
+  it("uses the profile response candidate ID for newly created candidate resources", () => {
+    mocks.useCandidateResourceId.mockReturnValue("u-1");
+    mocks.useCandidateProfileQuery.mockReturnValue({
+      data: { ...candidateProfile, candidateId: "c-created" },
+    });
+
+    renderHook(() => useCvBuilderPageViewModel());
+
+    expect(mocks.useCandidateProfileQuery).toHaveBeenCalledWith("u-1", "u-1", true);
+    expect(mocks.useBuildMyCvQuery).toHaveBeenCalledWith(true, "c-created");
+    expect(mocks.useCvBuilderDone).toHaveBeenCalledWith(
+      expect.objectContaining({ candidateId: "c-created" }),
     );
   });
 
@@ -303,6 +359,33 @@ describe("useCvBuilderPageViewModel", () => {
       }),
     );
     expect(result.current.uploadModalOpen).toBe(false);
+  });
+
+  it("reports when a new candidate identity is not ready for upload", async () => {
+    mocks.useCandidateResourceId.mockReturnValue("");
+    const { result } = renderHook(() => useCvBuilderPageViewModel());
+
+    await act(async () => {
+      await result.current.handleUploadDone();
+    });
+
+    expect(mocks.uploadDocument).not.toHaveBeenCalled();
+    expect(result.current.uploadError).toBe(
+      "Your candidate profile is still loading. Please try again shortly.",
+    );
+  });
+
+  it("reports upload pipeline failures", async () => {
+    mocks.parseResume.mockRejectedValue(new Error("Parsing failed"));
+    const { result } = renderHook(() => useCvBuilderPageViewModel());
+
+    await act(async () => {
+      await result.current.handleUploadDone();
+    });
+
+    expect(result.current.uploadError).toBe(
+      "We could not process your CV. Please try again.",
+    );
   });
 
   it("skips upload API for guest applications and opens blank review", async () => {

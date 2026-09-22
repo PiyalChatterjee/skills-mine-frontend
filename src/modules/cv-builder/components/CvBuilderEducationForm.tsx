@@ -4,7 +4,7 @@ import educationIcon from '@/assets/cv-builder/education-line.svg'
 import styles from '../pages/CvBuilderPage.module.css'
 import CvBuilderRemoveItemButton from './CvBuilderRemoveItemButton'
 import { CvBuilderFormPanel, CvBuilderLabeledField, CvBuilderSectionHeader } from './CvBuilderFormPrimitives'
-import type { CvBuilderFormValues } from '../types/cvBuilderSchema'
+import type { CvBuilderFormValues } from '@/app/validation.schema'
 
 type EducationSectionProps = {
   sectionName: 'tertiaryEducation' | 'secondaryEducation'

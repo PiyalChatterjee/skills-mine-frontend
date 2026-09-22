@@ -22,11 +22,12 @@ import {
 import {
   OpportunitiesSearchInput,
   OpportunityJobCard,
-} from "@/components/opportunities";
+} from "@/components/jobs";
 import { useInfiniteScrollTrigger } from "@/hooks/useInfiniteScrollTrigger";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { useJobsSearch } from "@/modules/public/hooks/useJobsSearch";
 import { useSearchQueryState } from "@/hooks/useSearchQueryState";
+import { getJobTags } from "@/components/jobs/jobPresentation";
 import type { PublicLayoutOutletContext } from "@/layouts/PublicLayout";
 import { setLandingMode } from "@/store/slices/uiSlice";
 import { useOutletContext } from "react-router-dom";
@@ -43,11 +44,6 @@ type Metric = {
   value: string;
   label: string;
   cardClassName: string;
-};
-
-const toCityFromLocation = (location: string) => {
-  const [city] = location.split(",");
-  return city?.trim() || "Unknown";
 };
 
 const features: Feature[] = [
@@ -391,11 +387,7 @@ const LandingPage = () => {
                       key={job.jobId}
                       title={job.title}
                       description={job.description ?? ""}
-                      tags={[
-                        job.industry,
-                        toCityFromLocation(job.location ?? ""),
-                        job.employmentType,
-                      ].filter(Boolean) as string[]}
+                      tags={getJobTags(job)}
                       actionLabel="Sign Up to View"
                       onAction={handleCardCtaClick}
                     />

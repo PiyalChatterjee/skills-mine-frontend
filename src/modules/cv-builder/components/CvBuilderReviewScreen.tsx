@@ -13,7 +13,7 @@ import CvBuilderPersonalDetailsForm from "./CvBuilderPersonalDetailsForm";
 import CvBuilderSkillsForm from "./CvBuilderSkillsForm";
 import CvBuilderSkillsGenerateAction from "./CvBuilderSkillsGenerateAction";
 import styles from "../pages/CvBuilderPage.module.css";
-import type { CvBuilderFormValues } from "../types/cvBuilderSchema";
+import type { CvBuilderFormValues } from "@/app/validation.schema";
 
 type ReviewSectionId =
   | "personal"

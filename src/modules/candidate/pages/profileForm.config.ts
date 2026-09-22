@@ -1,11 +1,8 @@
-import { z } from 'zod'
 import {
   fromSouthAfricaApiPhoneNumber,
-  localPhoneNumberSchema,
-  optionalLocalPhoneNumberSchema,
   toSouthAfricaApiPhoneNumber,
 } from '@/app/phoneNumber'
-import { emailSchema, optionalEmailSchema } from '@/app/validation.schema'
+import type { ProfileFormValues } from '@/app/validation.schema'
 import { splitCandidateFullName } from '@/modules/candidate/utils/candidateName'
 import type { CandidateProfile, CandidateProfileUpdatePayload } from '@/modules/candidate/types'
 import {
@@ -17,25 +14,7 @@ import {
   toPreferredLocationLabel,
 } from '@/modules/candidate/utils/profileEnums'
 
-const requiredField = (label: string) =>
-  z.string().trim().min(1, `${label} is required`)
-
-export const profileFormSchema = z.object({
-  fullName: requiredField('Full name'),
-  email: emailSchema,
-  phoneNumber: localPhoneNumberSchema,
-  alternateEmail: optionalEmailSchema,
-  alternatePhoneNumber: optionalLocalPhoneNumberSchema,
-  residentialLocation: requiredField('Residential location'),
-  preferredJobTitle: z.string(),
-  targetedIndustries: z.string(),
-  preferredWorkType: z.string(),
-  employmentType: z.string(),
-  availability: z.string(),
-  password: z.string(),
-})
-
-export type ProfileFormValues = z.infer<typeof profileFormSchema>
+export { profileFormSchema } from '@/app/validation.schema'
 
 export const PROFILE_SELECT_OPTIONS = {
   residentialLocation: [

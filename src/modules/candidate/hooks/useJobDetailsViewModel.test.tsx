@@ -19,6 +19,7 @@ const mocks = vi.hoisted(() => ({
   useLocation: vi.fn(),
   useOptimisticSaveJob: vi.fn(),
   useParams: vi.fn(),
+  useSavedJobsQuery: vi.fn(),
 }));
 
 vi.mock("react-router-dom", () => ({
@@ -47,6 +48,10 @@ vi.mock("../utils/guestApplicationDraft", () => ({
 
 vi.mock("./useAppliedJobIds", () => ({
   useAppliedJobIds: mocks.useAppliedJobIds,
+}));
+
+vi.mock("./useCandidateQueries", () => ({
+  useSavedJobsQuery: mocks.useSavedJobsQuery,
 }));
 
 vi.mock("./useOptimisticSaveJob", () => ({
@@ -78,6 +83,7 @@ describe("useJobDetailsViewModel", () => {
     mocks.useParams.mockReturnValue({ jobId: "job-1" });
     mocks.useLocation.mockReturnValue({ state: { job: listJob, from: "/jobs/saved" } });
     mocks.useAuth.mockReturnValue({ isAuthenticated: true, user: { role: "JOB_SEEKER" } });
+    mocks.useSavedJobsQuery.mockReturnValue({ data: { jobs: [] } });
     mocks.useOptimisticSaveJob.mockReturnValue({
       isJobSaved: mocks.isJobSaved,
       isJobSaving: mocks.isJobSaving,
@@ -188,7 +194,18 @@ describe("useJobDetailsViewModel", () => {
     expect(mocks.applyToJob).toHaveBeenCalledWith({ jobProfileId: "profile-1" });
     expect(result.current.isApplied).toBe(true);
     expect(result.current.applyButtonLabel).toBe("Applied");
-    expect(mocks.toggleJobSaved).toHaveBeenCalledWith("job-1");
+    expect(mocks.toggleJobSaved).toHaveBeenCalledWith("profile-1");
+  });
+
+  it("treats a job as saved when the candidate saved the canonical jobProfileId", () => {
+    mocks.isJobSaved.mockImplementation((jobKey: string) => jobKey === "profile-1");
+    mocks.useLocation.mockReturnValue({ state: { job: { ...listJob, jobId: "job-reference-1", jobProfileId: "profile-1" }, from: "/jobs/saved" } });
+
+    const { result } = renderHook(() => useJobDetailsViewModel());
+
+    expect(result.current.isSaved).toBe(true);
+    expect(result.current.footerSaveLabel).toBe("Saved");
+    expect(result.current.saveAriaLabel).toBe("Unsave Senior Frontend Engineer");
   });
 
   it("uses the compatibility lookup only when no job profile ID is available", () => {
