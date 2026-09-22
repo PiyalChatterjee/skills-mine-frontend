@@ -175,11 +175,14 @@ type RawCvBuildEducationEntry = {
 
 type RawCvBuildCareerEntry = {
   company_name?: string;
+  employer_name?: string;
   position_held?: string;
+  role_title?: string;
   start_date?: string | null;
   end_date?: string | null;
   is_current?: boolean;
   responsibilities?: string | string[];
+  responsibilities_text?: string | string[];
   projects?: string[];
 };
 
@@ -189,6 +192,7 @@ type RawCvBuildResponse = {
   candidate_id?: string;
   personal_details?: RawProfilePersonalDetails;
   career_history?: RawCvBuildCareerEntry[];
+  experience?: RawCvBuildCareerEntry[];
   skills?: RawCvBuildSkill[];
   education?: RawCvBuildEducationEntry[];
   languages?: string[];
@@ -240,19 +244,22 @@ const mapCvBuildResponse = (raw: RawCvBuildResponse): RecruiterCandidateCvBuild 
       currentPosition:  pd.current_position ?? "",
       noticePeriod:     pd.notice_period ?? "",
     },
-    careerHistory: (raw.career_history ?? []).map((entry) => ({
-      companyName:      entry.company_name ?? "",
-      positionHeld:     entry.position_held ?? "",
-      startDate:        entry.start_date ?? "",
-      endDate:          entry.end_date ?? "",
-      isCurrent:        entry.is_current ?? false,
-      responsibilities: Array.isArray(entry.responsibilities)
-        ? entry.responsibilities
-        : entry.responsibilities
-          ? [entry.responsibilities]
-          : [],
-      projects: entry.projects ?? [],
-    })),
+    careerHistory: (raw.career_history ?? raw.experience ?? []).map((entry) => {
+      const resp = entry.responsibilities ?? entry.responsibilities_text;
+      return {
+        companyName:      entry.company_name ?? entry.employer_name ?? "",
+        positionHeld:     entry.position_held ?? entry.role_title ?? "",
+        startDate:        entry.start_date ?? "",
+        endDate:          entry.end_date ?? "",
+        isCurrent:        entry.is_current ?? false,
+        responsibilities: Array.isArray(resp)
+          ? resp
+          : resp
+            ? [resp]
+            : [],
+        projects: entry.projects ?? [],
+      };
+    }),
     skills: (raw.skills ?? [])
       .map((s) => (typeof s === 'string' ? s : (s.skill_name ?? '')))
       .filter(Boolean),
