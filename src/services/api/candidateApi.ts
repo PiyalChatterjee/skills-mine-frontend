@@ -422,7 +422,7 @@ const toFullDate = (value?: string | null): string | null => {
 
 // The CV builder accepts a partial update: only the sections present in the body
 // are overwritten, so undefined sections are stripped before sending.
-const toCvPayload = (payload: SaveBuildMyCvRequest) => {
+export const toCvPayload = (payload: SaveBuildMyCvRequest) => {
   const personalDetails = payload.personalDetails
     ? {
         ...payload.personalDetails,

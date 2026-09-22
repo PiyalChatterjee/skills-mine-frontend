@@ -897,6 +897,9 @@ export interface CandidateListParams {
   search?: string
   location?: string
   skill?: string
+  companyName?: string
+  status?: string
+  jobProfileId?: string
 }
 
 export interface CandidateListData {

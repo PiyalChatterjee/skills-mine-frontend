@@ -35,6 +35,7 @@ type CvBuilderReviewScreenProps = {
   description?: string;
   visitorId?: string;
   isVisitor?: boolean;
+  showGenerateSkills?: boolean;
 };
 
 const CvBuilderReviewScreen = ({
@@ -42,6 +43,7 @@ const CvBuilderReviewScreen = ({
   description = "Use the fields below to build your CV.",
   visitorId,
   isVisitor = false,
+  showGenerateSkills = true,
 }: CvBuilderReviewScreenProps) => {
   const { control } = useFormContext<CvBuilderFormValues>();
   // Single shared instance so the header's "Generate" action and the list stay in sync.
@@ -66,12 +68,14 @@ const CvBuilderReviewScreen = ({
       id: "skills",
       label: "Skills",
       icon: skillsIcon,
-      renderHeaderAction: () => (
-        <CvBuilderSkillsGenerateAction
-          replaceSkills={skillsFieldArray.replace}
-          visitorId={visitorId}
-        />
-      ),
+      renderHeaderAction: showGenerateSkills
+        ? () => (
+            <CvBuilderSkillsGenerateAction
+              replaceSkills={skillsFieldArray.replace}
+              visitorId={visitorId}
+            />
+          )
+        : undefined,
       renderContent: () => (
         <CvBuilderSkillsForm skillsFieldArray={skillsFieldArray} />
       ),
@@ -102,21 +106,21 @@ const CvBuilderReviewScreen = ({
           {REVIEW_SECTIONS.map((section) => (
             <Box key={section.id} className={styles.reviewSectionItem}>
               <Box className={styles.reviewSectionToggle}>
+                <Box
+                  className={styles.reviewSectionIconBadge}
+                  aria-hidden="true"
+                >
                   <Box
-                    className={styles.reviewSectionIconBadge}
-                    aria-hidden="true"
-                  >
-                    <Box
-                      component="img"
-                      src={section.icon}
-                      alt=""
-                      className={styles.reviewSectionIcon}
-                    />
-                  </Box>
-                  <Typography className={styles.reviewSectionLabel}>
-                    {section.label}
-                  </Typography>
-                  {section.renderHeaderAction?.()}
+                    component="img"
+                    src={section.icon}
+                    alt=""
+                    className={styles.reviewSectionIcon}
+                  />
+                </Box>
+                <Typography className={styles.reviewSectionLabel}>
+                  {section.label}
+                </Typography>
+                {section.renderHeaderAction?.()}
               </Box>
               <Box className={styles.reviewSectionContent}>
                 <Box className={styles.reviewEmbeddedSectionContent}>
@@ -127,7 +131,6 @@ const CvBuilderReviewScreen = ({
           ))}
         </Box>
       </Box>
-
     </Box>
   );
 };

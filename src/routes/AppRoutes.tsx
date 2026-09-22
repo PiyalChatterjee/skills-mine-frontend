@@ -71,6 +71,9 @@ const CandidatesPage = lazy(
 const CandidateDetailPage = lazy(
   () => import("@/modules/recruiter/pages/CandidateDetailPage"),
 );
+const CandidateCvReviewPage = lazy(
+  () => import("@/modules/recruiter/pages/CandidateCvReviewPage"),
+);
 const RecruiterCrmPage = lazy(
   () => import("@/modules/recruiter/pages/RecruiterCrmPage"),
 );
@@ -170,6 +173,14 @@ export const AppRoutes = () => {
             <Route
               path={ROUTE_PATHS.recruiterCandidateDetail}
               element={<CandidateDetailPage />}
+            />
+            <Route
+              path={ROUTE_PATHS.recruiterCandidateCvReview}
+              element={<CandidateCvReviewPage />}
+            />
+            <Route
+              path={ROUTE_PATHS.recruiterCandidateJobDetail}
+              element={<MandateDetailPage />}
             />
             <Route
               path={ROUTE_PATHS.recruiterCrm}

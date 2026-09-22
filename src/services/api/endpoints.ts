@@ -32,6 +32,7 @@ export const apiEndpoints = {
   documents: {
     owner: "/documents/owner/:ownerType/:ownerId",
     detail: "/documents/:documentId",
+    download: "/documents/:documentId/download",
     upload: "/documents",
     uploadResume: "/documents/resume",
   },
@@ -52,6 +53,7 @@ export const apiEndpoints = {
   },
   candidates: {
     list: "/candidates",
+    dashboard: "/candidates/dashboard/:candidateId",
   },
   applications: {
     cvUpload: "/applications/:applicationId/cv/upload",
