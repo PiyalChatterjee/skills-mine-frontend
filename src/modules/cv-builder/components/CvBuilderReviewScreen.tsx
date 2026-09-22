@@ -34,12 +34,14 @@ type CvBuilderReviewScreenProps = {
   title?: string;
   description?: string;
   visitorId?: string;
+  isVisitor?: boolean;
 };
 
 const CvBuilderReviewScreen = ({
   title = "Build Your CV.",
   description = "Use the fields below to build your CV.",
   visitorId,
+  isVisitor = false,
 }: CvBuilderReviewScreenProps) => {
   const { control } = useFormContext<CvBuilderFormValues>();
   // Single shared instance so the header's "Generate" action and the list stay in sync.
@@ -50,7 +52,9 @@ const CvBuilderReviewScreen = ({
       id: "personal",
       label: "Personal Details",
       icon: userIcon,
-      renderContent: () => <CvBuilderPersonalDetailsForm />,
+      renderContent: () => (
+        <CvBuilderPersonalDetailsForm isVisitor={isVisitor} />
+      ),
     },
     {
       id: "career",

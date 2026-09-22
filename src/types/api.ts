@@ -292,6 +292,7 @@ export interface BuildMyCvPersonalDetails {
   firstName?: string;
   lastName?: string;
   email?: string;
+  phoneNumber?: string;
   mobileNumber?: string;
   race?: string;
   gender?: string;

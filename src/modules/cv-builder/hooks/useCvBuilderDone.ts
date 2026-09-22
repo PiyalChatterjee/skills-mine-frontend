@@ -129,6 +129,8 @@ export const buildCvBuilderPrefillData = (
     personalDetails: {
       fullName:
         `${profile.personalDetails.firstName} ${profile.personalDetails.lastName}`.trim(),
+      email: "",
+      phoneNumber: "",
       race: profile.personalDetails.eeStatus ?? "",
       gender: "",
       disabilityStatus: "",
@@ -187,6 +189,8 @@ export const buildBuildMyCvRequest = ({
     personalDetails: {
       firstName: firstName || "",
       lastName: lastNameParts.join(" ").trim(),
+      email: formValues.personalDetails.email?.trim() ?? "",
+      phoneNumber: formValues.personalDetails.phoneNumber?.trim() ?? "",
       race: formValues.personalDetails.race.trim(),
       gender: formValues.personalDetails.gender.trim(),
       disabilityStatus: formValues.personalDetails.disabilityStatus.trim(),

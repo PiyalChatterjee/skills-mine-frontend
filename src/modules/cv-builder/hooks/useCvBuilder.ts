@@ -52,6 +52,8 @@ const normalizeCareerDateValue = (value: string): string => {
 const DEFAULT_FORM_VALUES: CvBuilderFormValues = {
   personalDetails: {
     fullName: "",
+    email: "",
+    phoneNumber: "",
     race: "",
     gender: "",
     disabilityStatus: "",

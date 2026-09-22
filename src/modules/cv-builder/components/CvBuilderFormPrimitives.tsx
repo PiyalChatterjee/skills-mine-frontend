@@ -5,6 +5,7 @@ import {
   type Control,
   type FieldPath,
   type FieldValues,
+  type RegisterOptions,
 } from "react-hook-form";
 import chevronDownIcon from "@/assets/cv-builder/chevron-down.svg";
 import styles from "../pages/CvBuilderPage.module.css";
@@ -49,6 +50,7 @@ type CvBuilderControlledTextFieldProps<TFieldValues extends FieldValues> = {
   span?: FieldSpan;
   placeholder?: string;
   showError?: boolean;
+  rules?: RegisterOptions<TFieldValues>;
 };
 
 const spanClassNameMap: Record<FieldSpan, string> = {
@@ -177,11 +179,13 @@ export const CvBuilderControlledTextField = <
   span = "one",
   placeholder,
   showError = true,
+  rules,
 }: CvBuilderControlledTextFieldProps<TFieldValues>) => (
   <CvBuilderLabeledField label={label} span={span}>
     <Controller
       name={name}
       control={control}
+      rules={rules}
       render={({ field, fieldState }) => (
         <TextField
           {...field}

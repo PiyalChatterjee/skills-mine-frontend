@@ -237,6 +237,8 @@ export const personalDetailsSchema = z
 			.refine((value) => !value.trim() || /^[a-zA-Z0-9 ]+$/.test(value.trim()), {
 				message: 'Full name must be alphanumeric',
 			}),
+		email: optionalEmailSchema.default(''),
+		phoneNumber: optionalLocalPhoneNumberSchema.default(''),
 		race: z.string().min(1, 'Race is required'),
 		gender: z.string().min(1, 'Gender is required'),
 		disabilityStatus: z.string().min(1, 'Disability status is required'),
