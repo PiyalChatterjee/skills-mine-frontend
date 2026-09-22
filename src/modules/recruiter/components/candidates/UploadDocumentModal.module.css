@@ -1,0 +1,244 @@
+/* ── Overlay ──────────────────────────────────────────────────────────── */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1300;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+/* ── Card ─────────────────────────────────────────────────────────────── */
+.card {
+  background: #ffffff;
+  border-radius: 14px;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.14);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── Header ───────────────────────────────────────────────────────────── */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 22px 24px 18px;
+  position: relative;
+}
+
+.iconWrap {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #f9e4e4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.title {
+  flex: 1;
+  margin: 0;
+  color: #d45f5f;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.closeBtn:global(.MuiButtonBase-root) {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: #57606a;
+  font-size: 22px;
+  line-height: 1;
+  transition: background 0.12s;
+}
+
+.closeBtn:global(.MuiButtonBase-root):hover {
+  background: #f6f7f8;
+}
+
+/* ── Divider ──────────────────────────────────────────────────────────── */
+.divider {
+  height: 1px;
+  background: #e5e7eb;
+  margin: 0 24px;
+}
+
+/* ── Body ─────────────────────────────────────────────────────────────── */
+.body {
+  padding: 24px 24px 8px;
+}
+
+/* drop zone (browse state) */
+.dropZone {
+  border: 2px dashed #c8d8e4;
+  border-radius: 10px;
+  padding: 36px 24px 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  transition: border-color 0.15s, background 0.15s;
+  background: #ffffff;
+}
+
+.dropZoneDragging {
+  border-color: #2b96d9;
+  background: #f0f8ff;
+}
+
+.dropText {
+  margin: 0;
+  color: #1f2328;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.dropHint {
+  margin: 0 0 16px;
+  color: #57606a;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.browseBtn:global(.MuiButtonBase-root) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  padding: 0 28px;
+  border: 1.5px solid #c8d8e4;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #1f2328;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  transition: background 0.12s;
+}
+
+.browseBtn:global(.MuiButtonBase-root):hover {
+  background: #f6f7f8;
+}
+
+/* file row (uploaded state) */
+.fileRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: #f6f7f8;
+  border-radius: 8px;
+}
+
+.fileName {
+  flex: 1;
+  color: #2a3132;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.4;
+  word-break: break-all;
+}
+
+.fileRemoveBtn:global(.MuiButtonBase-root) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 6px;
+  transition: background 0.12s;
+  flex-shrink: 0;
+}
+
+.fileRemoveBtn:global(.MuiButtonBase-root):hover {
+  background: #eef0f2;
+}
+
+/* ── Footer ───────────────────────────────────────────────────────────── */
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 24px;
+  gap: 12px;
+}
+
+.cancelBtn:global(.MuiButtonBase-root) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  padding: 0 28px;
+  border: 1.5px solid #c8d8e4;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #1f2328;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  transition: background 0.12s;
+}
+
+.cancelBtn:global(.MuiButtonBase-root):hover {
+  background: #f6f7f8;
+}
+
+.doneBtn:global(.MuiButtonBase-root) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  padding: 0 36px;
+  border-radius: 999px;
+  background: #03478c;
+  color: #ffffff;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background 0.15s;
+}
+
+.doneBtn:global(.MuiButtonBase-root):hover {
+  background: #023d78;
+}
+
+.doneBtnDisabled:global(.MuiButtonBase-root) {
+  background: #c8d8e4;
+  color: #ffffff;
+  cursor: not-allowed;
+}
+
+.doneBtnDisabled:global(.MuiButtonBase-root):hover {
+  background: #c8d8e4;
+}
+
+/* ── Error text ───────────────────────────────────────────────────────── */
+.errorText {
+  margin: 0 24px 4px;
+  color: #d45f5f;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 13px;
+  line-height: 1.4;
+}

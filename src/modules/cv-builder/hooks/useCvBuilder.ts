@@ -1,4 +1,4 @@
-﻿import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
+import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -13,7 +13,6 @@ import {
   DISABILITY_OPTIONS,
   GENDER_OPTIONS,
   LANGUAGES_LIST,
-  LOCATION_OPTIONS,
   NOTICE_PERIOD_OPTIONS,
   RACE_OPTIONS,
   type CvBuilderView,
@@ -101,7 +100,6 @@ const PERSONAL_SELECT_OPTIONS: Partial<
   race: RACE_OPTIONS,
   gender: GENDER_OPTIONS,
   disabilityStatus: DISABILITY_OPTIONS,
-  residentialLocation: LOCATION_OPTIONS,
   noticePeriod: NOTICE_PERIOD_OPTIONS,
 };
 

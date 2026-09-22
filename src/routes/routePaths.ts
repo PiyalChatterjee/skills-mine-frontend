@@ -24,6 +24,8 @@ export const ROUTE_PATHS = {
   recruiterEditJobPost: '/recruiter/edit-job-post/:mandateId',
   recruiterCandidates: '/recruiter/candidates',
   recruiterCandidateDetail: '/recruiter/candidates/:candidateId',
+  recruiterCandidateCvReview: '/recruiter/candidates/:candidateId/cv-review',
+  recruiterCandidateJobDetail: '/recruiter/candidates/:candidateId/job/:jobProfileId',
   crm: '/crm',
   recruiterCrm: '/recruiter/crm',
   manco: '/manco',
