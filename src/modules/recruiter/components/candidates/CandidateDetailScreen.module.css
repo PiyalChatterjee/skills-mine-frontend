@@ -4,7 +4,7 @@
   min-height: 100vh;
   background: #e8f3fb;
   padding: 0 0 60px;
-  overflow-x: auto;
+  overflow-x: hidden;
 }
 
 /* ── Breadcrumb bar ──────────────────────────────────────────────────── */
@@ -120,6 +120,19 @@
   row-gap: 14px;
 }
 
+.heroInfoGrid3 {
+  display: grid;
+  grid-template-columns: minmax(160px, 1fr) minmax(160px, 1fr) minmax(200px, 1.2fr);
+  column-gap: 40px;
+  align-items: flex-start;
+}
+
+.heroInfoColGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
 .heroInfoBlock {
   display: flex;
   flex-direction: column;
@@ -129,9 +142,9 @@
 .heroInfoLabel,
 :global(.MuiTypography-root).heroInfoLabel {
   margin: 0;
-  color: #57606a;
+  color: #2A3132;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 400;
   line-height: 1.4;
 }
@@ -139,10 +152,10 @@
 .heroInfoValue,
 :global(.MuiTypography-root).heroInfoValue {
   margin: 0;
-  color: #03478c;
+  color: #03478C;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 16px;
+  font-weight: 500;
   line-height: 1.4;
 }
 
@@ -171,7 +184,7 @@
   padding: 3px 14px;
   border-radius: 100px;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 400;
   color: #ffffff;
   white-space: nowrap;
@@ -193,7 +206,7 @@
 }
 
 .leftCol {
-  flex: 1;
+  flex: 1 1 0;
   min-width: 0;
   display: flex;
   flex-direction: column;
@@ -201,7 +214,8 @@
 }
 
 .rightCol {
-  flex: 0 0 360px;
+  flex: 1 1 0;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 0;
@@ -217,6 +231,7 @@
 .aiActionsHeading {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
   margin-bottom: 16px;
 }
@@ -231,7 +246,7 @@
 .aiTitle {
   color: #2b96d9;
   font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 500;
   line-height: 1.4;
 }
@@ -248,10 +263,10 @@
   align-items: center;
   padding: 9px 22px;
   border-radius: 999px;
-  background: #03478c;
+  background: #6FBF8F;
   color: #ffffff;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 400;
   white-space: nowrap;
   transition: background 0.15s ease;
@@ -268,12 +283,51 @@
   padding: 20px 24px;
 }
 
+/* ── Review & Edit CV card ────────────────────────────────────────────── */
+.reviewCvCard {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 20px 24px;
+  margin-bottom: 20px;
+}
+
+.reviewCvButton:global(.MuiButtonBase-root) {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px;
+  background: #d8ebf9;
+  border-radius: 8px;
+  transition: background 0.15s ease;
+  text-align: left;
+}
+
+.reviewCvButton:global(.MuiButtonBase-root):hover {
+  background: #c8e2f5;
+}
+
+.reviewCvText {
+  color: #03478c;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.reviewCvArrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #03478c;
+}
+
 .sectionTitle,
 :global(.MuiTypography-root).sectionTitle {
   margin: 0 0 14px;
   color: #2b96d9;
   font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 500;
   line-height: 1.5;
 }
@@ -294,7 +348,7 @@
   flex: 0 0 130px;
   color: #2a3132;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 400;
   line-height: 1.4;
 }
@@ -316,7 +370,7 @@
   border-radius: 100px;
   color: #ffffff;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 400;
   white-space: nowrap;
   flex-shrink: 0;
@@ -328,7 +382,7 @@
   gap: 4px;
   color: #03478c;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 400;
   padding: 0;
   background: none;
@@ -361,11 +415,15 @@
 
 .docName {
   flex: 1;
+  min-width: 0;
   color: #2a3132;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
   font-size: 13px;
   font-weight: 400;
   line-height: 1.4;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .docActions {
@@ -410,6 +468,78 @@
   font-weight: 400;
 }
 
+/* ── CV Review page ───────────────────────────────────────────────────── */
+.cvReviewContent {
+  flex: 1;
+  padding: 0 28px 60px;
+}
+
+.cvReviewCardDescription,
+:global(.MuiTypography-root).cvReviewCardDescription {
+  color: #03478c;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 15px;
+  font-weight: 400;
+  font-style: italic;
+  line-height: 1.6;
+  letter-spacing: 0.1px;
+  margin-bottom: 24px;
+}
+
+/* reviewLayout inside the white card already has its own max-width constraint
+   from cvReviewCard — remove the inner auto-centering so it fills the card. */
+[data-recruiter-cv-review] :global(.MuiBox-root[class*="reviewLayout"]) {
+  max-width: none;
+  margin: 0;
+}
+
+/* positionCard — white background to match the white card container. */
+[data-recruiter-cv-review] :global(.MuiBox-root[class*="positionCard"]) {
+  background-color: #ffffff !important;
+}
+
+.cvReviewSaveBar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 32px 0 8px;
+}
+
+.cvReviewSaveBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  min-width: 120px;
+  padding: 0 32px;
+  background: #03478c;
+  color: #ffffff;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  white-space: nowrap;
+}
+
+.cvReviewSaveBtn:hover {
+  background: #02356a;
+}
+
+.cvReviewSaveBtn:disabled {
+  background: #90aec8;
+  cursor: not-allowed;
+}
+
+.cvReviewCard {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 28px 32px 36px;
+  max-width: 723px;
+  margin: 0 auto;
+}
+
 /* ── Loading / error states ───────────────────────────────────────────── */
 .centeredState {
   display: flex;
@@ -419,11 +549,6 @@
 }
 
 /* ── Responsive ───────────────────────────────────────────────────────── */
-@media (max-width: 1100px) {
-  .rightCol {
-    flex: 0 0 300px;
-  }
-}
 
 @media (max-width: 900px) {
   .heroCard {

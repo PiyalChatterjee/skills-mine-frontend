@@ -1,67 +1,16 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { useSelector } from 'react-redux'
-import { Box, ButtonBase, Typography } from '@mui/material'
+import { Box, ButtonBase, CircularProgress, Typography } from '@mui/material'
 import { RecruiterSidebar } from '@/modules/recruiter/components/RecruiterSidebar'
+import { jobProfileApi, type JobProfile, type TopCandidate } from '@/services/api/recruiterCandidatesApi'
 import { ROUTE_PATHS } from '@/routes/routePaths'
-import type { RootState } from '@/store'
 import styles from './MandateDetailPage.module.css'
 
 // ── Icons ──────────────────────────────────────────────────────────────
 
-const TrendIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <polyline points="3 17 8 12 12 15 17 9 21 13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-    <polyline points="17 9 21 9 21 13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-  </svg>
-)
-
-const ApplicantsIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <circle cx="9" cy="7" r="3.5" stroke="currentColor" strokeWidth="1.7"/>
-    <path d="M2 20c0-3.866 3.134-7 7-7h0c3.866 0 7 3.134 7 7" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/>
-    <path d="M17 11l2 2 4-4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/>
-  </svg>
-)
-
-const TransformationIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.7"/>
-    <path d="M7 9h4M7 12h8M7 15h5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
-  </svg>
-)
-
-const EditIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5Z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-  </svg>
-)
-
-const ShareIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <circle cx="18" cy="5" r="3" stroke="currentColor" strokeWidth="1.8"/>
-    <circle cx="6"  cy="12" r="3" stroke="currentColor" strokeWidth="1.8"/>
-    <circle cx="18" cy="19" r="3" stroke="currentColor" strokeWidth="1.8"/>
-    <path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
-  </svg>
-)
-
-const CheckIcon = () => (
-  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-    <path d="M2 6l3 3 5-5" stroke="#ffffff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-  </svg>
-)
-
-const ArrowIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-  </svg>
-)
-
 const BackArrowIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <path d="M19 12H5M5 12l7-7M5 12l7 7" stroke="#B0B4B8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path d="M19 12H5M5 12l7-7M5 12l7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
 )
 
@@ -71,11 +20,44 @@ const ChevronRightIcon = () => (
   </svg>
 )
 
-const EmptyIcon = () => (
-  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <circle cx="12" cy="8" r="4" stroke="#b0bec5" strokeWidth="1.5"/>
-    <path d="M4 20c0-4 3.582-7 8-7s8 3 8 7" stroke="#b0bec5" strokeWidth="1.5" strokeLinecap="round"/>
-    <line x1="5" y1="5" x2="19" y2="19" stroke="#e57373" strokeWidth="1.5" strokeLinecap="round"/>
+const CopyIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" strokeWidth="1.8"/>
+    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+  </svg>
+)
+
+const TrendIcon = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <polyline points="3 17 8 12 12 15 17 9 21 13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+    <polyline points="17 9 21 9 21 13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+)
+
+const ApplicantsIcon = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <circle cx="9" cy="7" r="3.5" stroke="currentColor" strokeWidth="1.7"/>
+    <path d="M2 20c0-3.866 3.134-7 7-7h0c3.866 0 7 3.134 7 7" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/>
+    <path d="M17 11l2 2 4-4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+)
+
+const CalendarIcon = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.7"/>
+    <path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/>
+  </svg>
+)
+
+const ChevronDownIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+)
+
+const ArrowRightIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
 )
 
@@ -83,59 +65,120 @@ const EmptyIcon = () => (
 
 const MandateDetailPage = () => {
   const navigate = useNavigate()
-  const { cardId } = useParams<{ cardId: string }>()
-  const [jobDetailsOpen, setJobDetailsOpen] = useState(false)
-  const [selectedCandidates, setSelectedCandidates] = useState<Set<string>>(new Set())
+  const { jobProfileId, candidateId, cardId } = useParams<{ jobProfileId: string; candidateId: string; cardId: string }>()
 
-  const toggleCandidate = (id: string) => {
-    setSelectedCandidates(prev => {
-      const next = new Set(prev)
-      next.has(id) ? next.delete(id) : next.add(id)
-      return next
+  const [jobProfile, setJobProfile] = useState<JobProfile | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [jobDetailsOpen, setJobDetailsOpen] = useState(false)
+  const [copied, setCopied] = useState(false)
+  const [topCandidates, setTopCandidates] = useState<TopCandidate[]>([])
+  const [candidatesLoading, setCandidatesLoading] = useState(false)
+
+  // Resolve the id — comes as :jobProfileId from candidate flow, :cardId from mandate flow
+  const resolvedId = jobProfileId ?? cardId
+
+  useEffect(() => {
+    if (!resolvedId) return
+    let cancelled = false
+
+    setLoading(true)
+    setError(null)
+
+    jobProfileApi
+      .getJobProfile(resolvedId)
+      .then((data) => {
+        if (!cancelled) setJobProfile(data)
+      })
+      .catch(() => {
+        if (!cancelled) setError('Failed to load job profile. Please try again.')
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+
+    // Load top candidates filtered by jobProfileId
+    setCandidatesLoading(true)
+    jobProfileApi
+      .getTopCandidates(resolvedId)
+      .then((data) => {
+        if (!cancelled) setTopCandidates(data)
+      })
+      .catch(() => {
+        if (!cancelled) setTopCandidates([])
+      })
+      .finally(() => {
+        if (!cancelled) setCandidatesLoading(false)
+      })
+
+    return () => { cancelled = true }
+  }, [resolvedId])
+
+  const goBack = () => {
+    if (candidateId) {
+      navigate(ROUTE_PATHS.recruiterCandidateDetail.replace(':candidateId', candidateId))
+    } else {
+      navigate(ROUTE_PATHS.recruiterDashboard)
+    }
+  }
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
     })
   }
 
-  const toggleAll = (ids: string[]) => {
-    setSelectedCandidates(prev =>
-      prev.size === ids.length ? new Set() : new Set(ids)
-    )
-  }
-
-  // ── Load data from Redux store ──────────────────────────────────────
-  const mandate = useSelector((state: RootState) =>
-    state.recruiterPipeline.mandates.find(m => m.id === cardId)
-  )
-
-  const inboundCandidates = useSelector((state: RootState) =>
-    state.recruiterPipeline.candidates.filter(
-      c => c.mandateId === cardId && c.currentStage === 'Inbound'
-    )
-  )
-
-  // ── Navigate to Candidate Profile ──────────────────────────────────
-  const handleViewCandidate = (candidateId: string) => {
-    const path = ROUTE_PATHS.recruiterCandidate
-      .replace(':cardId', cardId ?? '')
-      .replace(':candidateId', candidateId)
-    navigate(path)
-  }
-
-  // ── Fallback if mandate not found ───────────────────────────────────
-  if (!mandate) {
+  // ── Loading ──
+  if (loading) {
     return (
       <Box className={styles.shell}>
         <RecruiterSidebar />
         <Box className={styles.pageRoot}>
+          <Box style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
+            <CircularProgress size={32} />
+          </Box>
+        </Box>
+      </Box>
+    )
+  }
+
+  // ── Error / not found ──
+  if (error || !jobProfile) {
+    return (
+      <Box className={styles.shell}>
+        <RecruiterSidebar />
+        <Box className={styles.pageRoot}>
+          <Box className={styles.breadcrumbBar}>
+            <ButtonBase className={styles.backBtn} onClick={goBack} disableRipple>
+              <BackArrowIcon /> Back
+            </ButtonBase>
+          </Box>
           <Box style={{ padding: '48px 32px', color: '#57606a' }}>
-            Mandate not found.{' '}
-            <ButtonBase onClick={() => navigate(ROUTE_PATHS.recruiterDashboard)} disableRipple style={{ color: '#03478C', textDecoration: 'underline' }}>
-              Back to Pipeline
+            {error ?? 'Job profile not found.'}{' '}
+            <ButtonBase onClick={goBack} disableRipple style={{ color: '#03478C', textDecoration: 'underline' }}>
+              Go back
             </ButtonBase>
           </Box>
         </Box>
       </Box>
     )
   }
+
+  // ── Salary display helper ──
+  const salaryDisplay = (() => {
+    if (jobProfile.minSalary != null && jobProfile.maxSalary != null) {
+      return `R${jobProfile.minSalary.toLocaleString()} – R${jobProfile.maxSalary.toLocaleString()}`
+    }
+    if (jobProfile.minSalary != null) return `From R${jobProfile.minSalary.toLocaleString()}`
+    if (jobProfile.maxSalary != null) return `Up to R${jobProfile.maxSalary.toLocaleString()}`
+    return 'Negotiable'
+  })()
+
+  // ── Format employment type ──
+  const employmentTypeDisplay = jobProfile.employmentType
+    ? jobProfile.employmentType.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+    : '—'
 
   return (
     <Box className={styles.shell}>
@@ -145,53 +188,86 @@ const MandateDetailPage = () => {
 
         {/* ── Breadcrumb header bar ── */}
         <Box className={styles.breadcrumbBar}>
-          <ButtonBase className={styles.backBtn} onClick={() => navigate(ROUTE_PATHS.recruiterDashboard)} disableRipple>
+          <ButtonBase className={styles.backBtn} onClick={goBack} disableRipple>
             <BackArrowIcon /> Back
           </ButtonBase>
           <Box className={styles.breadcrumbDivider} />
-          <ButtonBase className={styles.breadcrumbLink} onClick={() => navigate(ROUTE_PATHS.recruiterDashboard)} disableRipple>
-            Job Posts
+          <ButtonBase className={styles.breadcrumbLink} onClick={goBack} disableRipple>
+            {candidateId ? 'Candidates' : 'Job Posts'}
           </ButtonBase>
           <Box className={styles.breadcrumbArrow}><ChevronRightIcon /></Box>
           <Typography component="span" className={styles.breadcrumbCurrent}>
-            {mandate.title}
+            {jobProfile.title}
           </Typography>
-          <Box component="span" className={styles.statusBadgePill}>{mandate.status}</Box>
+          <Box component="span" className={styles.statusBadgePill}>
+            {jobProfile.status.charAt(0).toUpperCase() + jobProfile.status.slice(1).toLowerCase()}
+          </Box>
+          <ButtonBase className={styles.copyLinkBtn} onClick={handleCopyLink} disableRipple>
+            <CopyIcon /> {copied ? 'Copied!' : 'Copy Job Post Link'}
+          </ButtonBase>
         </Box>
 
         <Box className={styles.layout}>
           {/* ── Left column ── */}
           <Box className={styles.leftCol}>
 
-            {/* Post data wrapper */}
+            {/* ── Post Data ── */}
             <Box className={styles.postDataWrapper}>
-              <Typography component="p" className={styles.postDataTitle}>Post data</Typography>
+              <Typography component="p" className={styles.postDataTitle}>Post Data</Typography>
               <Box className={styles.statsBanner}>
                 <Box className={`${styles.statCard} ${styles.statCardViews}`}>
                   <Box>
-                    <Typography component="p" className={styles.statValue}>{mandate.views}</Typography>
+                    <Typography component="p" className={styles.statValue}>{jobProfile.viewCount}</Typography>
                     <Typography component="p" className={styles.statLabel}>Views</Typography>
                   </Box>
                   <Box className={styles.statIcon}><TrendIcon /></Box>
                 </Box>
                 <Box className={`${styles.statCard} ${styles.statCardApplicants}`}>
                   <Box>
-                    <Typography component="p" className={styles.statValue}>{mandate.applicants}</Typography>
+                    <Typography component="p" className={styles.statValue}>{jobProfile.applicantCount}</Typography>
                     <Typography component="p" className={styles.statLabel}>Applicants</Typography>
                   </Box>
                   <Box className={styles.statIcon}><ApplicantsIcon /></Box>
                 </Box>
                 <Box className={`${styles.statCard} ${styles.statCardTransformation}`}>
                   <Box>
-                    <Typography component="p" className={styles.statValue}>{mandate.transformationApplicants}</Typography>
-                    <Typography component="p" className={styles.statLabel}>Transformation applicants</Typography>
+                    <Typography component="p" className={styles.statValue}>
+                      {jobProfile.daysLeftToFill ?? '—'}
+                    </Typography>
+                    <Typography component="p" className={styles.statLabel}>Days left to fill the role</Typography>
                   </Box>
-                  <Box className={styles.statIcon}><TransformationIcon /></Box>
+                  <Box className={styles.statIcon}><CalendarIcon /></Box>
                 </Box>
               </Box>
             </Box>
 
-            {/* Job Details accordion */}
+            {/* ── Contact Person row ── */}
+            <Box className={styles.contactCard}>
+              <table className={styles.contactTable}>
+                <thead>
+                  <tr>
+                    <th>Contact Person</th>
+                    <th>Contact Email</th>
+                    <th>Contact Phone</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>{jobProfile.contactName || '—'}</td>
+                    <td>
+                      {jobProfile.contactEmail ? (
+                        <a className={styles.contactEmailLink} href={`mailto:${jobProfile.contactEmail}`}>
+                          {jobProfile.contactEmail}
+                        </a>
+                      ) : '—'}
+                    </td>
+                    <td>{jobProfile.contactPhone || '—'}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </Box>
+
+            {/* ── Job Details accordion ── */}
             <Box className={styles.jobDetailsCard}>
               <Box
                 className={styles.jobDetailsHeader}
@@ -203,46 +279,104 @@ const MandateDetailPage = () => {
                   Job details
                 </Typography>
                 <Box className={`${styles.chevronIcon} ${jobDetailsOpen ? styles.chevronIconOpen : ''}`}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
+                  <ChevronDownIcon />
                 </Box>
               </Box>
               {jobDetailsOpen && (
-                <Typography component="p" className={styles.jobDetailsBody}>
-                  {mandate.jobDetails}
-                </Typography>
+                <Box>
+                  {/* Job Description */}
+                  <Typography component="h3" className={styles.jobDetailsSectionTitle}>
+                    Job Description
+                  </Typography>
+                  <Typography component="p" className={styles.jobDetailsBody}>
+                    {jobProfile.description || '—'}
+                  </Typography>
+
+                  {/* Requirements */}
+                  {jobProfile.requirements.length > 0 && (
+                    <>
+                      <Typography component="h3" className={styles.jobDetailsSectionTitle}>
+                        Requirements
+                      </Typography>
+                      <Box component="ul" className={styles.jobDetailsList}>
+                        {jobProfile.requirements.map((req, i) => (
+                          <Box key={i} component="li" className={styles.jobDetailsListItem}>
+                            {req}
+                          </Box>
+                        ))}
+                      </Box>
+                    </>
+                  )}
+
+                  {/* Responsibilities */}
+                  {jobProfile.responsibilities.length > 0 && (
+                    <>
+                      <Typography component="h3" className={styles.jobDetailsSectionTitle}>
+                        Responsibilities
+                      </Typography>
+                      <Box component="ul" className={styles.jobDetailsList}>
+                        {jobProfile.responsibilities.map((resp, i) => (
+                          <Box key={i} component="li" className={styles.jobDetailsListItem}>
+                            {resp}
+                          </Box>
+                        ))}
+                      </Box>
+                    </>
+                  )}
+
+                  {/* Skills */}
+                  {jobProfile.skills.length > 0 && (
+                    <>
+                      <Typography component="h3" className={styles.jobDetailsSectionTitle}>
+                        Skills
+                      </Typography>
+                      <Box className={styles.jobDetailsChips}>
+                        {jobProfile.skills.map((skill, i) => (
+                          <Box
+                            key={skill}
+                            component="span"
+                            className={`${styles.jobDetailsChip} ${styles[`jobDetailsChipColor${i % 6}` as keyof typeof styles]}`}
+                          >
+                            {skill}
+                          </Box>
+                        ))}
+                      </Box>
+                    </>
+                  )}
+
+                  {/* Industries */}
+                  {jobProfile.industryName && (
+                    <>
+                      <Typography component="h3" className={styles.jobDetailsSectionTitle}>
+                        Industries
+                      </Typography>
+                      <Box className={styles.jobDetailsChips}>
+                        <Box
+                          component="span"
+                          className={`${styles.jobDetailsChip} ${styles.jobDetailsChipOutlined}`}
+                        >
+                          {jobProfile.industryName}
+                        </Box>
+                      </Box>
+                    </>
+                  )}
+                </Box>
               )}
             </Box>
 
-            {/* Top Candidates heading — outside the white card */}
-            <Typography component="p" className={styles.candidatesHeading}>
-              Top candidates for this post
-            </Typography>
-
-            {/* Top Candidates table */}
+            {/* ── Top Candidates For This Post ── */}
             <Box className={styles.candidatesCard}>
-              {inboundCandidates.length === 0 ? (
-                <Box className={styles.emptyState}>
-                  <EmptyIcon />
-                  <Typography component="p" className={styles.emptyStateText}>
-                    No candidates in Inbound for this mandate yet.
-                  </Typography>
+              <Typography component="p" className={styles.topCandidatesHeading}>
+                Top Candidates For This Post
+              </Typography>
+              {candidatesLoading ? (
+                <Box style={{ display: 'flex', justifyContent: 'center', padding: '32px 0' }}>
+                  <CircularProgress size={24} />
                 </Box>
               ) : (
                 <table className={styles.table}>
                   <thead className={styles.tableHead}>
                     <tr>
-                      <th className={styles.checkboxCell}>
-                        <ButtonBase
-                          className={`${styles.checkbox} ${selectedCandidates.size === inboundCandidates.length && inboundCandidates.length > 0 ? styles.checkboxChecked : ''}`}
-                          onClick={() => toggleAll(inboundCandidates.map(c => c.id))}
-                          disableRipple
-                          aria-label="Select all"
-                        >
-                          {selectedCandidates.size === inboundCandidates.length && inboundCandidates.length > 0 && <CheckIcon />}
-                        </ButtonBase>
-                      </th>
                       <th>Name</th>
                       <th>Title</th>
                       <th>Match</th>
@@ -251,107 +385,125 @@ const MandateDetailPage = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {inboundCandidates.map(c => (
-                      <tr key={c.id} className={styles.tableRow}>
-                        <td className={styles.checkboxCell}>
-                          <ButtonBase
-                            className={`${styles.checkbox} ${selectedCandidates.has(c.id) ? styles.checkboxChecked : ''}`}
-                            onClick={() => toggleCandidate(c.id)}
-                            disableRipple
-                            aria-label={`Select ${c.name}`}
-                          >
-                            {selectedCandidates.has(c.id) && <CheckIcon />}
-                          </ButtonBase>
-                        </td>
-                        <td>
-                          <Typography component="span" className={styles.candidateName}>{c.name}</Typography>
-                        </td>
-                        <td>
-                          <Typography component="span" className={styles.candidateTitle}>{c.title}</Typography>
-                        </td>
-                        <td>
-                          <Box className={styles.matchBarTrack}>
-                            <Box className={styles.matchBarFill} style={{ width: `${c.matchScore}%` }} />
+                    {topCandidates.length === 0 ? (
+                      <tr>
+                        <td colSpan={5}>
+                          <Box className={styles.emptyState}>
+                            <Typography component="p" className={styles.emptyStateText}>
+                              No candidates found for this post.
+                            </Typography>
                           </Box>
                         </td>
-                        <td>
-                          <Box component="span" className={styles.statusBadge}>{c.currentStage}</Box>
-                        </td>
-                        <td>
-                          <ButtonBase className={styles.viewLink} disableRipple onClick={() => handleViewCandidate(c.id)}>
-                            View <ArrowIcon />
-                          </ButtonBase>
-                        </td>
                       </tr>
-                    ))}
+                    ) : (
+                      topCandidates.map((c) => (
+                        <tr key={c.candidateId} className={styles.tableRow}>
+                          <td>
+                            <Typography component="span" className={styles.candidateName}>
+                              {c.fullName}
+                            </Typography>
+                          </td>
+                          <td>
+                            <Typography component="span" className={styles.candidateTitle}>
+                              {c.title || '—'}
+                            </Typography>
+                          </td>
+                          <td>
+                            <Box className={styles.matchBarTrack}>
+                              <Box
+                                className={styles.matchBarFill}
+                                style={{ width: `${Math.min(c.matchPercentage ?? 0, 100)}%` }}
+                              />
+                            </Box>
+                          </td>
+                          <td>
+                            <Box component="span" className={styles.statusBadge}>
+                              {c.status
+                                ? c.status.charAt(0).toUpperCase() + c.status.slice(1).toLowerCase()
+                                : '—'}
+                            </Box>
+                          </td>
+                          <td>
+                            <ButtonBase
+                              className={styles.viewLink}
+                              disableRipple
+                              onClick={() =>
+                                navigate(
+                                  ROUTE_PATHS.recruiterCandidateDetail.replace(':candidateId', c.candidateId)
+                                )
+                              }
+                            >
+                              View <ArrowRightIcon />
+                            </ButtonBase>
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               )}
             </Box>
 
-            {/* View Candidate Pipeline button */}
+            {/* ── View Candidate Pipeline button ── */}
             <ButtonBase
               className={styles.pipelineBtn}
               disableRipple
               onClick={() =>
                 navigate(
-                  ROUTE_PATHS.recruiterCandidatePipeline.replace(':cardId', cardId ?? '')
+                  ROUTE_PATHS.recruiterCandidatePipeline.replace(':cardId', resolvedId ?? '')
                 )
               }
             >
               View Candidate Pipeline
             </ButtonBase>
+
           </Box>
 
           {/* ── Right column ── */}
           <Box className={styles.rightCol}>
-            <ButtonBase className={styles.actionBtn} disableRipple>
-              <EditIcon /> Edit
-            </ButtonBase>
-            <ButtonBase className={styles.actionBtn} disableRipple>
-              <ShareIcon /> Share
-            </ButtonBase>
 
+            {/* Client Rate card */}
+            <Box className={styles.clientRateCard}>
+              <Typography component="p" className={styles.clientRateLabel}>Client Rate</Typography>
+              <Box className={styles.clientRateValue}>
+                <Typography component="p" className={styles.clientRateNumber}>
+                  {jobProfile.clientRate != null ? `${jobProfile.clientRate}%` : '—'}
+                </Typography>
+              </Box>
+            </Box>
+
+            {/* Meta card */}
             <Box className={styles.metaCard}>
               <Box className={styles.metaItem}>
                 <Typography component="p" className={styles.metaLabel}>Company</Typography>
-                <Typography component="p" className={styles.metaLink}>{mandate.company}</Typography>
+                <Typography component="p" className={styles.metaLink}>{jobProfile.companyName || '—'}</Typography>
               </Box>
               <Box className={styles.metaItem}>
-                <Typography component="p" className={styles.metaLabel}>Employment type</Typography>
-                <Typography component="p" className={styles.metaValue}>{mandate.employmentType}</Typography>
+                <Typography component="p" className={styles.metaLabel}>Employment Type</Typography>
+                <Typography component="p" className={styles.metaValue}>{employmentTypeDisplay}</Typography>
               </Box>
               <Box className={styles.metaItem}>
                 <Typography component="p" className={styles.metaLabel}>Experience</Typography>
-                <Typography component="p" className={styles.metaValue}>{mandate.experience}</Typography>
+                <Typography component="p" className={styles.metaValue}>{jobProfile.experienceLevel || '—'}</Typography>
               </Box>
               <Box className={styles.metaItem}>
                 <Typography component="p" className={styles.metaLabel}>Salary</Typography>
-                <Typography component="p" className={styles.metaValue}>{mandate.salary}</Typography>
+                <Typography component="p" className={styles.metaValue}>{salaryDisplay}</Typography>
               </Box>
               <Box className={styles.metaItem}>
-                <Typography component="p" className={styles.metaLabel}>Job published</Typography>
-                <Typography component="p" className={styles.metaValue}>{mandate.jobPublished}</Typography>
+                <Typography component="p" className={styles.metaLabel}>Job Published</Typography>
+                <Typography component="p" className={styles.metaValue}>
+                  {jobProfile.publishedAt
+                    ? new Date(jobProfile.publishedAt).toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' })
+                    : '—'}
+                </Typography>
               </Box>
               <Box className={styles.metaItem}>
                 <Typography component="p" className={styles.metaLabel}>Job Reference No.</Typography>
-                <Typography component="p" className={styles.metaValue}>{mandate.jobReference}</Typography>
+                <Typography component="p" className={styles.metaValue}>{jobProfile.jobReference || '—'}</Typography>
               </Box>
             </Box>
 
-            <Box className={styles.postedOnSection}>
-              <Typography component="p" className={styles.postedOnLabel}>Posted on</Typography>
-              <Box className={styles.postedOnList}>
-                {mandate.postedOn.map(site => (
-                  <Box key={site.name} className={styles.postedOnItem}>
-                    <Box className={styles.postedOnIconBox} style={{ background: site.color }}>
-                      {site.label}
-                    </Box>
-                    {site.name}
-                  </Box>
-                ))}
-              </Box>
-            </Box>
           </Box>
         </Box>
       </Box>

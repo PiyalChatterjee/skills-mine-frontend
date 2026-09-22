@@ -194,16 +194,19 @@
   font-size: 12px;
   font-weight: 400;
   line-height: 1.2;
+  text-align: left;
+  justify-self: start;
 }
 
 /* NAME column — bold, dark; clickable button variant */
 .cellNameBtn:global(.MuiButtonBase-root) {
-  color: #03478c;
+  color: #2A3132;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   line-height: 1.35;
   text-align: left;
+  justify-self: start;
   padding: 0;
   background: none;
   border: none;
@@ -220,31 +223,37 @@
 /* TITLE column — regular, mid-gray */
 .cellTitle,
 :global(.MuiTypography-root).cellTitle {
-  color: #4d4d4d;
+  color: #2A3132;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 400;
   line-height: 1.35;
+  text-align: left;
+  justify-self: start;
 }
 
 /* COMPANY column — bold, dark */
 .cellCompany,
 :global(.MuiTypography-root).cellCompany {
-  color: #1a1a2e;
+  color: #2A3132;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   line-height: 1.35;
+  text-align: left;
+  justify-self: start;
 }
 
 /* LOCATION column — regular, lighter gray */
 .cellLocation,
 :global(.MuiTypography-root).cellLocation {
-  color: #7a8590;
+  color: #2A3132;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 400;
   line-height: 1.35;
+  text-align: left;
+  justify-self: start;
 }
 
 .moreButton:global(.MuiButtonBase-root) {
@@ -313,4 +322,76 @@
     flex: 1 1 100%;
     min-width: 100%;
   }
+}
+
+/* ── Company free-text search inside popover ────────────────────────────── */
+.companySearchWrap {
+  padding: 10px 12px 6px;
+}
+
+.companySearchInput {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #c8d0d8;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 14px;
+  color: #2e3a47;
+  outline: none;
+  background: #ffffff;
+}
+
+.companySearchInput:focus {
+  border-color: #4da6d8;
+}
+
+/* ── Pagination ─────────────────────────────────────────────────────────── */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 20px 20px 28px;
+  margin-top: auto;
+}
+
+.pageBtn:global(.MuiButtonBase-root) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 6px;
+  border-radius: 6px;
+  border: 1px solid #d9e4ec;
+  background: #ffffff;
+  color: #2e3a47;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.pageBtn:global(.MuiButtonBase-root):hover:not(:disabled) {
+  background: #edf3f8;
+  border-color: #9cc5df;
+}
+
+.pageBtn:global(.MuiButtonBase-root):disabled {
+  color: #b0b4b8;
+  cursor: default;
+}
+
+.pageBtnActive:global(.MuiButtonBase-root) {
+  background: #03478c;
+  border-color: #03478c;
+  color: #ffffff;
+  font-weight: 500;
+}
+
+.pageBtnActive:global(.MuiButtonBase-root):hover {
+  background: #0a559f;
+  border-color: #0a559f;
 }

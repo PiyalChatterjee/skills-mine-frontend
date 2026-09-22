@@ -235,6 +235,86 @@
   line-height: 1.7;
 }
 
+/* ── Job details expanded sections ───────────────────────────────────── */
+.jobDetailsSectionTitle,
+:global(.MuiTypography-root).jobDetailsSectionTitle {
+  margin: 24px 0 10px;
+  color: #2B96D9;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.jobDetailsSectionTitle:first-of-type {
+  margin-top: 20px;
+}
+
+.jobDetailsList {
+  margin: 0 0 4px;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.jobDetailsListItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: #2A3132;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+.jobDetailsListItem::before {
+  content: '•';
+  color: #2A3132;
+  font-size: 16px;
+  line-height: 1.4;
+  flex-shrink: 0;
+}
+
+.jobDetailsChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.jobDetailsChip {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 14px;
+  border-radius: 100px;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.jobDetailsChipFilled {
+  background: #d4f0f7;
+  color: #03478C;
+}
+
+.jobDetailsChipColor0 { background: #CABEE9; color: #ffffff; }
+.jobDetailsChipColor1 { background: #EFB5B5; color: #ffffff; }
+.jobDetailsChipColor2 { background: #80C0E8; color: #ffffff; }
+.jobDetailsChipColor3 { background: #93CFAB; color: #ffffff; }
+.jobDetailsChipColor4 { background: #6891BA; color: #ffffff; }
+.jobDetailsChipColor5 { background: #CABEE9; color: #ffffff; }
+
+.jobDetailsChipOutlined {
+  background: transparent;
+  color: #2A3132;
+  border: 1.5px solid #c8d0da;
+}
+
 /* ── Empty state ─────────────────────────────────────────────────────── */
 .emptyState {
   display: flex;
@@ -614,4 +694,118 @@
   :global(.MuiTypography-root).postDataTitle,
   :global(.MuiTypography-root).postDataTitle.postDataTitle { font-size: 18px; }
   .table { font-size: 12px; }
+}
+
+/* ── Copy link button ─────────────────────────────────────────────────── */
+.copyLinkBtn:global(.MuiButtonBase-root) {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #57606a;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  padding: 0 12px;
+  height: 33px;
+  border: 1px solid #80C0E8;
+  border-radius: 8px;
+  background: #ffffff;
+  text-transform: none;
+  transition: background 0.15s ease;
+  white-space: nowrap;
+  margin-left: auto;
+}
+
+.copyLinkBtn:global(.MuiButtonBase-root):hover {
+  background: #f0f8ff;
+}
+
+/* ── Contact row card ─────────────────────────────────────────────────── */
+.contactCard {
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+}
+
+.contactTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.contactTable thead th {
+  padding: 10px 20px;
+  text-align: left;
+  color: #2B96D9;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  border-bottom: 1px solid #e5e7eb;
+  background: #ffffff;
+}
+
+.contactTable tbody td {
+  padding: 14px 20px;
+  color: #2A3132;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  vertical-align: middle;
+}
+
+.contactEmailLink {
+  color: #2B96D9;
+  text-decoration: underline;
+}
+
+/* ── Top Candidates heading ───────────────────────────────────────────── */
+.topCandidatesHeading,
+:global(.MuiTypography-root).topCandidatesHeading {
+  margin: 0 0 0;
+  padding: 16px 20px 0;
+  color: #2B96D9;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+/* ── Client rate card ─────────────────────────────────────────────────── */
+.clientRateCard {
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 16px 20px 20px;
+  margin-bottom: 16px;
+}
+
+.clientRateLabel,
+:global(.MuiTypography-root).clientRateLabel {
+  margin: 0 0 12px;
+  color: #2B96D9;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.clientRateValue {
+  background: #4BAF73;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px 24px;
+}
+
+.clientRateNumber,
+:global(.MuiTypography-root).clientRateNumber {
+  margin: 0;
+  color: #ffffff;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 40px;
+  font-weight: 600;
+  line-height: 1;
 }
