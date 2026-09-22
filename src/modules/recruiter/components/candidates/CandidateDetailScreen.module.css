@@ -44,7 +44,7 @@
   align-items: center;
   color: #03478c;
   font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 500;
   letter-spacing: 0.1px;
   line-height: 1.5;
@@ -64,10 +64,11 @@
   color: #374151;
 }
 
-.breadcrumbCurrent {
+.breadcrumbCurrent,
+.breadcrumbCurrent:global(.MuiTypography-root) {
   color: #03478c;
   font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 500;
   letter-spacing: 0.1px;
   line-height: 1.5;
@@ -470,17 +471,15 @@
 
 /* ── CV Review page ───────────────────────────────────────────────────── */
 .cvReviewContent {
-  flex: 1;
-  padding: 0 28px 60px;
+  padding: 24px 28px 60px;
 }
 
 .cvReviewCardDescription,
 :global(.MuiTypography-root).cvReviewCardDescription {
-  color: #03478c;
+  color: #2B96D9;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 15px;
-  font-weight: 400;
-  font-style: italic;
+  font-size: 24px;
+  font-weight: 500;
   line-height: 1.6;
   letter-spacing: 0.1px;
   margin-bottom: 24px;
@@ -496,6 +495,21 @@
 /* positionCard — white background to match the white card container. */
 [data-recruiter-cv-review] :global(.MuiBox-root[class*="positionCard"]) {
   background-color: #ffffff !important;
+}
+
+/* Override browser autofill blue tint on inputs inside the recruiter CV review card. */
+[data-recruiter-cv-review] :global(input:-webkit-autofill),
+[data-recruiter-cv-review] :global(input:-webkit-autofill:hover),
+[data-recruiter-cv-review] :global(input:-webkit-autofill:focus),
+[data-recruiter-cv-review] :global(input:-webkit-autofill:active) {
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+  box-shadow: 0 0 0 1000px #ffffff inset !important;
+  -webkit-text-fill-color: #2a3132 !important;
+}
+
+/* Section headers (Personal Details, Career History, etc.) — 24px in recruiter view. */
+[data-recruiter-cv-review] :global([class*="reviewSectionLabel"]) {
+  font-size: 24px !important;
 }
 
 .cvReviewSaveBar {
@@ -536,8 +550,6 @@
   background: #ffffff;
   border-radius: 10px;
   padding: 28px 32px 36px;
-  max-width: 723px;
-  margin: 0 auto;
 }
 
 /* ── Loading / error states ───────────────────────────────────────────── */

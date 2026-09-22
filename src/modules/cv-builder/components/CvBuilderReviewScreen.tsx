@@ -33,11 +33,13 @@ type ReviewSectionConfig = {
 type CvBuilderReviewScreenProps = {
   title?: string;
   description?: string;
+  showGenerateSkills?: boolean;
 };
 
 const CvBuilderReviewScreen = ({
   title = "Build Your CV.",
   description = "Use the fields below to build your CV.",
+  showGenerateSkills = true,
 }: CvBuilderReviewScreenProps) => {
   const { control } = useFormContext<CvBuilderFormValues>();
   // Single shared instance so the header's "Generate" action and the list stay in sync.
@@ -60,11 +62,13 @@ const CvBuilderReviewScreen = ({
       id: "skills",
       label: "Skills",
       icon: skillsIcon,
-      renderHeaderAction: () => (
-        <CvBuilderSkillsGenerateAction
-          replaceSkills={skillsFieldArray.replace}
-        />
-      ),
+      renderHeaderAction: showGenerateSkills
+        ? () => (
+            <CvBuilderSkillsGenerateAction
+              replaceSkills={skillsFieldArray.replace}
+            />
+          )
+        : undefined,
       renderContent: () => (
         <CvBuilderSkillsForm skillsFieldArray={skillsFieldArray} />
       ),

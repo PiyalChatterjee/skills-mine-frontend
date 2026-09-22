@@ -100,8 +100,8 @@
   background: #2B96D9;
   color: #ffffff;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 14px;
+  font-weight: 400;
   margin-left: 4px;
   white-space: nowrap;
 }
@@ -136,8 +136,8 @@
   margin: 0 0 14px;
   color: #ffffff;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 18px;
+  font-weight: 500;
   line-height: 1.4;
 }
 
@@ -157,9 +157,9 @@
   border-radius: 12px;
 }
 
-.statCardViews   { background: #3aafb9; }
-.statCardApplicants { background: #8b5cf6; }
-.statCardTransformation { background: #d96b6b; }
+.statCardViews   { background: #32ABBF; }
+.statCardApplicants { background: #7A5DC7; }
+.statCardTransformation { background: #DE6A6A; }
 
 .statValue,
 :global(.MuiTypography-root).statValue,
@@ -167,8 +167,8 @@
   margin: 0;
   color: #ffffff;
   font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 48px;
-  font-weight: 400;
+  font-size: 72px;
+  font-weight: 600;
   line-height: 1;
 }
 
@@ -178,7 +178,7 @@
   margin: 8px 0 0;
   color: rgba(255, 255, 255, 0.85);
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 400;
   line-height: 1.4;
 }
@@ -210,7 +210,7 @@
   margin: 0;
   color: #03478C;
   font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 20px;
+  font-size: 24px;
   font-weight: 500;
   line-height: 1.3;
 }
@@ -242,7 +242,7 @@
   color: #2B96D9;
   font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1.4;
 }
 
@@ -311,8 +311,8 @@
 
 .jobDetailsChipOutlined {
   background: transparent;
-  color: #2A3132;
-  border: 1.5px solid #c8d0da;
+  color: #03478C;
+  border: 1.5px solid #03478C;
 }
 
 /* ── Empty state ─────────────────────────────────────────────────────── */
@@ -365,10 +365,10 @@
 .tableHead th {
   padding: 10px 16px;
   text-align: left;
-  color: #57606a;
+  color: #03478C;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 400;
   letter-spacing: 0.5px;
   text-transform: uppercase;
   border-bottom: 1px solid #e5e7eb;
@@ -567,8 +567,8 @@
   color: #03478C;
   font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
   font-style: normal;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 18px;
+  font-weight: 500;
   line-height: 1.4;
   letter-spacing: 0.1px;
 }
@@ -580,7 +580,7 @@
   color: #2A3132;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
   font-style: normal;
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 400;
   line-height: 1.4;
   letter-spacing: 0.1px;
@@ -590,10 +590,10 @@
 :global(.MuiTypography-root).metaLink,
 :global(.MuiTypography-root).metaLink.metaLink {
   margin: 0;
-  color: #03478C;
+  color: #2B96D9;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
   font-style: normal;
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 400;
   line-height: 1.4;
   letter-spacing: 0.1px;
@@ -736,10 +736,10 @@
 .contactTable thead th {
   padding: 10px 20px;
   text-align: left;
-  color: #2B96D9;
+  color: #03478C;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 400;
   letter-spacing: 0.6px;
   text-transform: uppercase;
   border-bottom: 1px solid #e5e7eb;
@@ -763,13 +763,13 @@
 /* ── Top Candidates heading ───────────────────────────────────────────── */
 .topCandidatesHeading,
 :global(.MuiTypography-root).topCandidatesHeading {
-  margin: 0 0 0;
-  padding: 16px 20px 0;
-  color: #2B96D9;
-  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 16px;
-  font-weight: 600;
-  line-height: 1.4;
+    margin: 0 0 0;
+    padding: 16px 20px 10px;
+    color: #2B96D9;
+    font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 1.4;
 }
 
 /* ── Client rate card ─────────────────────────────────────────────────── */
@@ -786,8 +786,8 @@
   margin: 0 0 12px;
   color: #2B96D9;
   font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 18px;
+  font-weight: 500;
   line-height: 1.4;
 }
 
@@ -805,7 +805,7 @@
   margin: 0;
   color: #ffffff;
   font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 40px;
+  font-size: 72px;
   font-weight: 600;
   line-height: 1;
 }

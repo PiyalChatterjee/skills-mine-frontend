@@ -183,7 +183,7 @@ const CandidateCvReviewInner = ({ candidateId }: { candidateId: string }) => {
 
             {/* CV review sections */}
             <FormProvider {...form}>
-              <CvBuilderReviewScreen title="" description="" />
+              <CvBuilderReviewScreen title="" description="" showGenerateSkills={false} />
             </FormProvider>
 
             {/* ── Save bar ── */}
