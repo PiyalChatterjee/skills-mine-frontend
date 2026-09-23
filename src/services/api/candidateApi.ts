@@ -798,7 +798,7 @@ type RawProfileExperience = Partial<CandidateExperience> & {
   start_date?: string;
   end_date?: string;
   is_current?: boolean;
-  responsibilities_text?: string;
+  responsibilities_text?: string | string[];
 };
 
 type RawSavedJobReference = string | { jobId?: string; jobProfileId?: string };
@@ -929,7 +929,9 @@ const mapProfileResponse = (
       startDate: item.startDate ?? item.start_date ?? "",
       endDate:
         item.endDate ?? item.end_date ?? (item.is_current ? "Present" : ""),
-      responsibilities: item.responsibilities ?? item.responsibilities_text,
+      responsibilities: Array.isArray(item.responsibilities_text)
+        ? item.responsibilities_text.join("; ")
+        : (item.responsibilities ?? item.responsibilities_text),
     })),
     skills: data.skills ?? [],
     languages: Array.isArray(data.languages) ? data.languages : [],

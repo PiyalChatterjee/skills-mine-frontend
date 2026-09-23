@@ -199,8 +199,9 @@ export const profileFormSchema = z.object({
 
 export type ProfileFormValues = z.infer<typeof profileFormSchema>
 
-const monthYearPattern =
-	/^(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)(?:-|,\s?)(19|20)\d{2}$/i
+// UI career-history dates are entered as "DD,MMM,YYYY"; the API payload uses ISO yyyy-mm-dd.
+const careerDatePattern =
+	/^(0[1-9]|[12]\d|3[01]),(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?),(19|20)\d{2}$/i
 const currentRolePattern = /^(present|current)$/i
 const monthNames = [
 	'january',
@@ -217,14 +218,14 @@ const monthNames = [
 	'december',
 ]
 
-function monthYearToComparable(value: string): number | null {
-	const match = value.trim().match(/^([A-Za-z]+)(?:-|,\s?)(\d{4})$/)
+function careerDateToComparable(value: string): number | null {
+	const match = value.trim().match(/^(\d{1,2}),([A-Za-z]+),(\d{4})$/)
 	if (!match) return null
 	const monthIndex = monthNames.findIndex((month) =>
-		month.startsWith(match[1].toLowerCase()),
+		month.startsWith(match[2].toLowerCase()),
 	)
 	if (monthIndex < 0) return null
-	return Number(match[2]) * 12 + monthIndex
+	return Number(match[3]) * 372 + monthIndex * 31 + Number(match[1])
 }
 
 export const personalDetailsSchema = z
@@ -275,13 +276,13 @@ export const careerHistoryEntrySchema = z.object({
 	startDate: z
 		.string()
 		.min(1, 'Employment start date is required')
-		.regex(monthYearPattern, 'Use format like Apr,2020'),
+		.regex(careerDatePattern, 'Use format like 01,Apr,2020'),
 	endDate: z.string().refine(
 		(value) =>
 			!value.trim() ||
-			monthYearPattern.test(value.trim()) ||
+			careerDatePattern.test(value.trim()) ||
 			currentRolePattern.test(value.trim()),
-		{ message: 'Use format like Apr,2020 or Present' },
+		{ message: 'Use format like 01,Apr,2020 or Present' },
 	),
 	isCurrentRole: z.boolean(),
 	tasks: z.array(z.string()),
@@ -299,8 +300,8 @@ const emptyCareerHistoryEntrySchema = z
 		projects: z.array(z.string()),
 	})
 	.superRefine((data, ctx) => {
-		const start = monthYearToComparable(data.startDate)
-		const end = monthYearToComparable(data.endDate)
+		const start = careerDateToComparable(data.startDate)
+		const end = careerDateToComparable(data.endDate)
 		if (start !== null && end !== null && start > end) {
 			ctx.addIssue({
 				code: 'custom',

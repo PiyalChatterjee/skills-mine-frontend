@@ -74,8 +74,21 @@ const monthNames = [
   "December",
 ] as const;
 
+// UI values are "DD,MMM,YYYY"; the cv-build API requires ISO yyyy-mm-dd.
 const monthNameToIso = (value: string): string => {
   const normalized = value.trim();
+  const dayMatch = normalized.match(/^(\d{1,2}),([A-Za-z]+),(\d{4})$/);
+  if (dayMatch) {
+    const monthIndex = monthNames.findIndex((name) =>
+      name.toLowerCase().startsWith(dayMatch[2].toLowerCase()),
+    );
+    if (monthIndex >= 0) {
+      const day = dayMatch[1].padStart(2, "0");
+      return `${dayMatch[3]}-${String(monthIndex + 1).padStart(2, "0")}-${day}`;
+    }
+  }
+
+  // Legacy "MMM,YYYY" values (no day) default to the 1st of the month.
   const match = normalized.match(/^([A-Za-z]+)(?:-|,\s?)(\d{4})$/);
   const month = match?.[1];
   const year = match?.[2];
@@ -90,7 +103,7 @@ const monthNameToIso = (value: string): string => {
     return value;
   }
 
-  return `${year}-${String(monthIndex + 1).padStart(2, "0")}`;
+  return `${year}-${String(monthIndex + 1).padStart(2, "0")}-01`;
 };
 
 const normalizeTextEntry = (value: unknown): string => {
@@ -102,16 +115,19 @@ const normalizeTextEntry = (value: unknown): string => {
   return typeof nestedValue === "string" ? nestedValue.trim() : "";
 };
 
+// Converts an ISO yyyy-mm(-dd) date back into the UI's "DD,MMM,YYYY" format;
+// dates saved before day-level tracking default to the 1st.
 export const isoToMonthName = (value: string): string => {
-  const match = value.match(/^(19|20)\d{2}-(0[1-9]|1[0-2])(?:-\d{2})?$/);
+  const match = value.match(/^(19|20)\d{2}-(0[1-9]|1[0-2])(?:-(0[1-9]|[12]\d|3[01]))?$/);
   if (!match) {
     return value;
   }
 
   const year = value.slice(0, 4);
   const monthIndex = Number(value.slice(5, 7)) - 1;
+  const day = match[3] ?? "01";
   const monthName = monthNames[monthIndex];
-  return monthName ? `${monthName.slice(0, 3)},${year}` : value;
+  return monthName ? `${day},${monthName.slice(0, 3)},${year}` : value;
 };
 
 export const buildCvBuilderPrefillData = (

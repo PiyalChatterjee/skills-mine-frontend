@@ -22,15 +22,17 @@ const asStringArray = (value: unknown): string[] =>
       ? value.split(/[,;\n]/).map((item) => item.trim()).filter(Boolean)
       : [];
 
+// AI-parsed resumes rarely include a day, so default to the 1st of the month.
 const toMonthYear = (value: unknown) => {
   const text = asString(value);
-  const match = text.match(/^(\d{4})-(\d{2})$/);
+  const match = text.match(/^(\d{4})-(\d{2})(?:-(\d{2}))?$/);
   if (!match) return text;
   const month = [
     "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December",
   ][Number(match[2]) - 1];
-  return month ? `${month},${match[1]}` : text;
+  const day = match[3] ?? "01";
+  return month ? `${day},${month},${match[1]}` : text;
 };
 
 const extractSection = (text: string, heading: string, nextHeadings: string[]) => {

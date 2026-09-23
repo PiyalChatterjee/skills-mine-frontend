@@ -57,6 +57,16 @@ const extractResumeTextWithTimeout = (file: File) =>
 const buildPrefillFromSavedCv = (
   buildMyCvData: BuildMyCvState,
 ): Partial<CvBuilderFormValues> => {
+  // Tasks are joined with "; " into a single responsibilities string on save
+  // (see buildBuildMyCvRequest); split on the same delimiter when reloading so
+  // each responsibility renders as its own task row instead of one merged line.
+  const splitResponsibilities = (value?: string): string[] => {
+    const items = (value ?? "")
+      .split(/;\s*/)
+      .map((item) => item.trim())
+      .filter(Boolean);
+    return items.length ? items : [""];
+  };
   const savedEntries = (Array.isArray(buildMyCvData.careerHistory)
     ? buildMyCvData.careerHistory
     : []
@@ -79,7 +89,7 @@ const buildPrefillFromSavedCv = (
           : isoToMonthName(entry.endDate),
       isCurrentRole:
         entry.endDate == null || (entry.endDate ?? "").toLowerCase() === "present",
-      tasks: [entry.responsibilities ?? ""],
+      tasks: splitResponsibilities(entry.responsibilities),
       projects: [""],
     }));
   const currentEntry = savedEntries.find((entry) => entry.isCurrentRole);

@@ -109,9 +109,9 @@ const CvBuilderPositionCard = ({ entryIndex }: { entryIndex: number }) => {
                   value={parseMonthYear(field.value)}
                   onChange={(value) => field.onChange(formatMonthYear(value))}
                   onClose={field.onBlur}
-                  views={['year', 'month']}
-                  openTo="month"
-                  format="MMM,YYYY"
+                  views={['year', 'month', 'day']}
+                  openTo="day"
+                  format="DD,MMM,YYYY"
                   disableFuture
                   maxDate={endDateAsDate ?? undefined}
                   slotProps={{
@@ -139,9 +139,9 @@ const CvBuilderPositionCard = ({ entryIndex }: { entryIndex: number }) => {
                   value={parseMonthYear(field.value)}
                   onChange={(value) => field.onChange(formatMonthYear(value))}
                   onClose={field.onBlur}
-                  views={['year', 'month']}
-                  openTo="month"
-                  format="MMM,YYYY"
+                  views={['year', 'month', 'day']}
+                  openTo="day"
+                  format="DD,MMM,YYYY"
                   disableFuture={entryIndex > 0}
                   minDate={startDateAsDate ?? undefined}
                   slotProps={{
