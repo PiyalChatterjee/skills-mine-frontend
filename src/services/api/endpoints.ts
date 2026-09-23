@@ -94,6 +94,9 @@ export const apiEndpoints = {
   },
   visitor: {
     profile: "/visitors",
+    detail: "/visitors/:visitorId",
+    byEmail: "/visitors/by-email",
+    checkEmail: "/visitors/email",
     apply: "/visitors/apply",
   },
   recruiter: {

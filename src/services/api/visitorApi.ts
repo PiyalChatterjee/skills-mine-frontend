@@ -1,5 +1,5 @@
 import { unwrapResponseData, visitorApiClient } from "./axios";
-import { apiEndpoints } from "./endpoints";
+import { apiEndpoints, resolveEndpoint } from "./endpoints";
 import type { SaveBuildMyCvRequest } from "@/types";
 
 type VisitorProfilePayload = SaveBuildMyCvRequest & {
@@ -27,6 +27,60 @@ type ApplyToJobResponse = {
 
 type VisitorProfileResponse = {
   visitor_id?: string;
+};
+
+type VisitorPersonalDetailsRecord = {
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  phone_number?: string;
+  residential_location?: string;
+  race?: string;
+  gender?: string;
+  disability_status?: string;
+};
+
+type VisitorEducationRecord = {
+  education_id?: string;
+  institution_name?: string;
+  qualification?: string;
+  field_of_study?: string;
+  level_code?: string;
+  start_date?: string;
+  end_date?: string;
+  year_completed?: number;
+};
+
+type VisitorExperienceRecord = {
+  position_id?: string;
+  employer_name?: string;
+  role_title?: string;
+  start_date?: string;
+  end_date?: string | null;
+  is_current?: boolean;
+  responsibilities_text?: string;
+};
+
+type VisitorSkillRecord = {
+  skill_id?: string;
+  skill_name?: string;
+};
+
+export type VisitorRecordResponse = {
+  visitor_id?: string;
+  personal_details?: VisitorPersonalDetailsRecord;
+  education?: VisitorEducationRecord[];
+  experience?: VisitorExperienceRecord[];
+  skills?: VisitorSkillRecord[];
+  languages?: string[];
+  created_at?: string;
+  updated_at?: string;
+};
+
+export type CheckVisitorEmailResponse = {
+  email?: string;
+  is_present?: boolean;
+  type?: "VISITOR" | "CANDIDATE" | "NOT_FOUND";
 };
 
 const toVisitorProfileRequest = ({
@@ -98,6 +152,31 @@ export const visitorApi = {
           visitor_id: payload.visitorId,
           job_profile_id: payload.jobProfileId,
         },
+      ),
+    );
+  },
+
+  getById(visitorId: string): Promise<VisitorRecordResponse> {
+    return unwrapResponseData(
+      visitorApiClient.get<VisitorRecordResponse>(
+        resolveEndpoint(apiEndpoints.visitor.detail, { visitorId }),
+      ),
+    );
+  },
+
+  getByEmail(email: string): Promise<VisitorRecordResponse> {
+    return unwrapResponseData(
+      visitorApiClient.get<VisitorRecordResponse>(apiEndpoints.visitor.byEmail, {
+        params: { email },
+      }),
+    );
+  },
+
+  checkEmail(email: string): Promise<CheckVisitorEmailResponse> {
+    return unwrapResponseData(
+      visitorApiClient.get<CheckVisitorEmailResponse>(
+        apiEndpoints.visitor.checkEmail,
+        { params: { email } },
       ),
     );
   },
