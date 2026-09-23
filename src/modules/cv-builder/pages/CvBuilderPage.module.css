@@ -432,6 +432,14 @@
   display: flex;
 }
 
+.checkingEmailLoader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 480px;
+  width: 100%;
+}
+
 .welcomeHeading,
 .welcomeHeading:global(.MuiTypography-root) {
   max-width: 721px;

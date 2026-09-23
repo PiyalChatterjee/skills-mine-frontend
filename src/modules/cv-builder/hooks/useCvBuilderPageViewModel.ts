@@ -174,6 +174,7 @@ export const useCvBuilderPageViewModel = () => {
   const {
     isCandidateExistsModalOpen,
     existingCandidateEmail,
+    isCheckingEmail,
     checkEmail,
     closeModal: closeCandidateExistsModal,
     goToLogin: goToLoginFromCandidateExistsModal,
@@ -399,6 +400,7 @@ export const useCvBuilderPageViewModel = () => {
     onEmailBlur: handleEmailBlur,
     isCandidateExistsModalOpen,
     existingCandidateEmail,
+    isCheckingEmail,
     closeCandidateExistsModal,
     goToLoginFromCandidateExistsModal,
   };

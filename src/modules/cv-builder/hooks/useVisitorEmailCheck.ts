@@ -9,11 +9,13 @@ import { visitorApi } from "@/services/api/visitorApi";
 export const useVisitorEmailCheck = (jobId?: string) => {
   const navigate = useNavigate();
   const [existingCandidateEmail, setExistingCandidateEmail] = useState<string | null>(null);
+  const [isCheckingEmail, setIsCheckingEmail] = useState(false);
 
   const checkEmail = useCallback(async (email: string) => {
     const trimmedEmail = email.trim();
     if (!trimmedEmail) return;
 
+    setIsCheckingEmail(true);
     try {
       const result = await visitorApi.checkEmail(trimmedEmail);
       if (result.type === "CANDIDATE" && result.is_present) {
@@ -21,6 +23,8 @@ export const useVisitorEmailCheck = (jobId?: string) => {
       }
     } catch {
       // Best-effort lookup — a failed check shouldn't block the guest flow.
+    } finally {
+      setIsCheckingEmail(false);
     }
   }, []);
 
@@ -38,6 +42,7 @@ export const useVisitorEmailCheck = (jobId?: string) => {
   return {
     isCandidateExistsModalOpen: Boolean(existingCandidateEmail),
     existingCandidateEmail,
+    isCheckingEmail,
     checkEmail,
     closeModal,
     goToLogin,

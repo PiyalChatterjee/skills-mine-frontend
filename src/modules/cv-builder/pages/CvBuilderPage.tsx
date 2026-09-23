@@ -1,4 +1,4 @@
-import { Box } from "@mui/material";
+import { Box, CircularProgress } from "@mui/material";
 import { FormProvider } from "react-hook-form";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import CvBuilderFooterActions from "../components/CvBuilderFooterActions";
@@ -39,6 +39,7 @@ const CvBuilderPage = () => {
     onEmailBlur,
     isCandidateExistsModalOpen,
     existingCandidateEmail,
+    isCheckingEmail,
     closeCandidateExistsModal,
     goToLoginFromCandidateExistsModal,
   } = useCvBuilderPageViewModel();
@@ -76,6 +77,10 @@ const CvBuilderPage = () => {
               cards={actionCards}
               heading={isGuestApplication ? "Upload your CV" : undefined}
             />
+          ) : isCheckingEmail ? (
+            <Box className={styles.checkingEmailLoader}>
+              <CircularProgress />
+            </Box>
           ) : reviewSource === "upload" || buildMyCvExists ? (
             <CvBuilderReviewScreen
               title="Review your CV."
@@ -92,7 +97,7 @@ const CvBuilderPage = () => {
             />
           )}
 
-          {activeView === "review" && (
+          {activeView === "review" && !isCheckingEmail && (
             <CvBuilderFooterActions
               onNext={handleDone}
               isNextDisabled={isSavingCandidateProfile}
