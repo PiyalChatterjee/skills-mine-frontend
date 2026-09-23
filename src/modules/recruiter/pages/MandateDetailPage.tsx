@@ -5,6 +5,9 @@ import { RecruiterSidebar } from '@/modules/recruiter/components/RecruiterSideba
 import { jobProfileApi, type JobProfile, type TopCandidate } from '@/services/api/recruiterCandidatesApi'
 import { ROUTE_PATHS } from '@/routes/routePaths'
 import styles from './MandateDetailPage.module.css'
+import lineChartIcon from '@/assets/recruiter/line-chart-line.svg'
+import userLineIcon from '@/assets/recruiter/user-line.svg'
+import calendarMonthIcon from '@/assets/recruiter/calendar_month.svg'
 
 // ── Icons ──────────────────────────────────────────────────────────────
 
@@ -27,27 +30,6 @@ const CopyIcon = () => (
   </svg>
 )
 
-const TrendIcon = () => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <polyline points="3 17 8 12 12 15 17 9 21 13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-    <polyline points="17 9 21 9 21 13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-  </svg>
-)
-
-const ApplicantsIcon = () => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <circle cx="9" cy="7" r="3.5" stroke="currentColor" strokeWidth="1.7"/>
-    <path d="M2 20c0-3.866 3.134-7 7-7h0c3.866 0 7 3.134 7 7" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/>
-    <path d="M17 11l2 2 4-4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/>
-  </svg>
-)
-
-const CalendarIcon = () => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.7"/>
-    <path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/>
-  </svg>
-)
 
 const ChevronDownIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -220,14 +202,14 @@ const MandateDetailPage = () => {
                     <Typography component="p" className={styles.statValue}>{jobProfile.viewCount}</Typography>
                     <Typography component="p" className={styles.statLabel}>Views</Typography>
                   </Box>
-                  <Box className={styles.statIcon}><TrendIcon /></Box>
+                  <Box className={styles.statIcon}><img src={lineChartIcon} width={22} height={22} alt="" aria-hidden="true" /></Box>
                 </Box>
                 <Box className={`${styles.statCard} ${styles.statCardApplicants}`}>
                   <Box>
                     <Typography component="p" className={styles.statValue}>{jobProfile.applicantCount}</Typography>
                     <Typography component="p" className={styles.statLabel}>Applicants</Typography>
                   </Box>
-                  <Box className={styles.statIcon}><ApplicantsIcon /></Box>
+                  <Box className={styles.statIcon}><img src={userLineIcon} width={22} height={22} alt="" aria-hidden="true" /></Box>
                 </Box>
                 <Box className={`${styles.statCard} ${styles.statCardTransformation}`}>
                   <Box>
@@ -236,7 +218,7 @@ const MandateDetailPage = () => {
                     </Typography>
                     <Typography component="p" className={styles.statLabel}>Days left to fill the role</Typography>
                   </Box>
-                  <Box className={styles.statIcon}><CalendarIcon /></Box>
+                  <Box className={styles.statIcon}><img src={calendarMonthIcon} width={22} height={22} alt="" aria-hidden="true" /></Box>
                 </Box>
               </Box>
             </Box>
