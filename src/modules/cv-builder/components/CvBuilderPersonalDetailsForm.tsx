@@ -17,7 +17,7 @@ import {
 } from "../types/cvBuilder";
 import type { CvBuilderFormValues } from "@/app/validation.schema";
 import { emailSchema } from "@/app/validation.schema";
-import { isValidLocalPhoneNumber } from "@/app/phoneNumber";
+import { isValidLocalPhoneNumber, normalizePhoneNumberInput } from "@/app/phoneNumber";
 
 type CvBuilderPersonalDetailsFormProps = {
   isVisitor?: boolean;
@@ -67,6 +67,7 @@ const CvBuilderPersonalDetailsForm = ({
             label="Phone number"
             span="one"
             placeholder="Phone number"
+            transformValue={normalizePhoneNumberInput}
             rules={{
               required: "Phone number is required",
               validate: (value) => {

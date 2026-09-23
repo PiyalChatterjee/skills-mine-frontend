@@ -384,7 +384,12 @@ export const cvBuilderSchema = z
   .object({
     personalDetails: personalDetailsSchema,
     careerHistory: z.array(careerHistoryEntrySchema),
-    skills: z.array(skillEntrySchema),
+    skills: z
+      .array(skillEntrySchema)
+      .refine(
+        (skills) => skills.some((skill) => skill.name.trim().length > 0),
+        "At least one skill is required",
+      ),
     tertiaryEducation: z.array(tertiaryEntrySchema),
     secondaryEducation: z.array(secondaryEntrySchema),
     languages: z.array(z.string()),

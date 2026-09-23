@@ -56,6 +56,7 @@ type CvBuilderControlledTextFieldProps<TFieldValues extends FieldValues> = {
   showError?: boolean;
   rules?: RegisterOptions<TFieldValues>;
   onBlur?: (value: string) => void;
+  transformValue?: (value: string) => string;
 };
 
 const spanClassNameMap: Record<FieldSpan, string> = {
@@ -189,6 +190,7 @@ export const CvBuilderControlledTextField = <TFieldValues extends FieldValues>({
   showError = true,
   rules,
   onBlur,
+  transformValue,
 }: CvBuilderControlledTextFieldProps<TFieldValues>) => (
   <CvBuilderLabeledField label={label} span={span} fieldName={name}>
     <Controller
@@ -198,6 +200,10 @@ export const CvBuilderControlledTextField = <TFieldValues extends FieldValues>({
       render={({ field, fieldState }) => (
         <TextField
           {...field}
+          onChange={(event) => {
+            const value = transformValue ? transformValue(event.target.value) : event.target.value;
+            field.onChange(value);
+          }}
           onBlur={(event) => {
             field.onBlur();
             onBlur?.(event.target.value);
