@@ -2,7 +2,8 @@ import dayjs, { type Dayjs } from 'dayjs'
 
 const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December']
 
-// Form values use "DD MMMM YYYY" strings; legacy comma and hyphen formats remain readable.
+// Form values use "MMMM YYYY" strings; legacy "DD MMMM YYYY", comma and hyphen
+// formats remain readable so previously-saved data still parses correctly.
 export function parseMonthYear(value: string): Dayjs | null {
   const dayMatch = value.trim().match(/^(\d{1,2})[ ,]([A-Za-z]+)[ ,](\d{4})$/)
   if (dayMatch) {
@@ -11,12 +12,12 @@ export function parseMonthYear(value: string): Dayjs | null {
     )
     if (monthIndex < 0) return null
     const parsed = dayjs(
-      `${dayMatch[3]}-${String(monthIndex + 1).padStart(2, '0')}-${dayMatch[1].padStart(2, '0')}`,
+      `${dayMatch[3]}-${String(monthIndex + 1).padStart(2, '0')}-01`,
     )
     return parsed.isValid() ? parsed : null
   }
 
-  const match = value.trim().match(/^([A-Za-z]+)(?:-|,\s?)(\d{4})$/)
+  const match = value.trim().match(/^([A-Za-z]+)(?:-|,\s?| )(\d{4})$/)
   if (!match) return null
   const monthIndex = monthNames.findIndex((name) =>
     name.toLowerCase().startsWith(match[1].toLowerCase()),
@@ -27,5 +28,5 @@ export function parseMonthYear(value: string): Dayjs | null {
 }
 
 export function formatMonthYear(value: Dayjs | null): string {
-  return value ? value.format('DD MMMM YYYY') : ''
+  return value ? value.format('MMMM YYYY') : ''
 }

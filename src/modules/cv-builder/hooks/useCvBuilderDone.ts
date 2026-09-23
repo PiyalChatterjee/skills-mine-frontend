@@ -74,24 +74,15 @@ const monthNames = [
   "December",
 ] as const;
 
-// UI values are "DD MMMM YYYY"; the cv-build API requires ISO yyyy-mm-dd.
+// UI values are "MMMM YYYY"; the cv-build API requires ISO yyyy-mm-dd, taking
+// the 1st of the month.
 const monthNameToIso = (value: string): string => {
   const normalized = value.trim();
-  const dayMatch = normalized.match(/^(\d{1,2})[ ,]([A-Za-z]+)[ ,](\d{4})$/);
-  if (dayMatch) {
-    const monthIndex = monthNames.findIndex((name) =>
-      name.toLowerCase().startsWith(dayMatch[2].toLowerCase()),
-    );
-    if (monthIndex >= 0) {
-      const day = dayMatch[1].padStart(2, "0");
-      return `${dayMatch[3]}-${String(monthIndex + 1).padStart(2, "0")}-${day}`;
-    }
-  }
 
-  // Legacy "MMM,YYYY" values (no day) default to the 1st of the month.
-  const match = normalized.match(/^([A-Za-z]+)(?:-|,\s?)(\d{4})$/);
-  const month = match?.[1];
-  const year = match?.[2];
+  // Legacy "DD MMMM YYYY" values (previously saved with a day) drop the day.
+  const dayMatch = normalized.match(/^(\d{1,2})[ ,]([A-Za-z]+)[ ,](\d{4})$/);
+  const month = dayMatch?.[2] ?? normalized.match(/^([A-Za-z]+)(?:-|,\s?| )(\d{4})$/)?.[1];
+  const year = dayMatch?.[3] ?? normalized.match(/^([A-Za-z]+)(?:-|,\s?| )(\d{4})$/)?.[2];
   if (!month || !year || !/^\d{4}$/.test(year)) {
     return value;
   }
@@ -115,8 +106,8 @@ const normalizeTextEntry = (value: unknown): string => {
   return typeof nestedValue === "string" ? nestedValue.trim() : "";
 };
 
-// Converts an ISO yyyy-mm(-dd) date back into the UI's "DD MMMM YYYY" format;
-// dates saved before day-level tracking default to the 1st.
+// Converts an ISO yyyy-mm(-dd) date back into the UI's "MMMM YYYY" format;
+// the day (if present) is dropped since the UI no longer tracks it.
 export const isoToMonthName = (value: string): string => {
   const match = value.match(/^(19|20)\d{2}-(0[1-9]|1[0-2])(?:-(0[1-9]|[12]\d|3[01]))?$/);
   if (!match) {
@@ -125,9 +116,8 @@ export const isoToMonthName = (value: string): string => {
 
   const year = value.slice(0, 4);
   const monthIndex = Number(value.slice(5, 7)) - 1;
-  const day = match[3] ?? "01";
   const monthName = monthNames[monthIndex];
-  return monthName ? `${day} ${monthName} ${year}` : value;
+  return monthName ? `${monthName} ${year}` : value;
 };
 
 export const buildCvBuilderPrefillData = (

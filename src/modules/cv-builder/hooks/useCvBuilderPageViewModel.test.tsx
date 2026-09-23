@@ -196,7 +196,7 @@ describe("useCvBuilderPageViewModel", () => {
           expect.objectContaining({
             companyName: "Acme",
             positionHeld: "Engineer",
-            startDate: "01 January 2020",
+            startDate: "January 2020",
             endDate: "Present",
             isCurrentRole: true,
           }),

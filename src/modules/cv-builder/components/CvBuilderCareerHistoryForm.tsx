@@ -187,9 +187,9 @@ const CvBuilderPositionCard = ({ entryIndex }: { entryIndex: number }) => {
                     void revalidateDateRange();
                   }}
                   onClose={field.onBlur}
-                  views={["year", "month", "day"]}
-                  openTo="day"
-                  format="DD MMMM YYYY"
+                  views={["year", "month"]}
+                  openTo="month"
+                  format="MMMM YYYY"
                   disableFuture
                   maxDate={endDateAsDate ?? undefined}
                   slotProps={{
@@ -223,9 +223,9 @@ const CvBuilderPositionCard = ({ entryIndex }: { entryIndex: number }) => {
                     void revalidateDateRange();
                   }}
                   onClose={field.onBlur}
-                  views={["year", "month", "day"]}
-                  openTo="day"
-                  format="DD MMMM YYYY"
+                  views={["year", "month"]}
+                  openTo="month"
+                  format="MMMM YYYY"
                   disableFuture={entryIndex > 0}
                   minDate={startDateAsDate ?? undefined}
                   slotProps={{

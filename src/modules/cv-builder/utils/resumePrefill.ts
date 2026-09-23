@@ -22,7 +22,7 @@ const asStringArray = (value: unknown): string[] =>
       ? value.split(/[,;\n]/).map((item) => item.trim()).filter(Boolean)
       : [];
 
-// AI-parsed resumes rarely include a day, so default to the 1st of the month.
+// The UI tracks month/year only, so any day component in the parsed date is dropped.
 const toMonthYear = (value: unknown) => {
   const text = asString(value);
   const match = text.match(/^(\d{4})-(\d{2})(?:-(\d{2}))?$/);
@@ -31,8 +31,7 @@ const toMonthYear = (value: unknown) => {
     "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December",
   ][Number(match[2]) - 1];
-  const day = match[3] ?? "01";
-  return month ? `${day} ${month} ${match[1]}` : text;
+  return month ? `${month} ${match[1]}` : text;
 };
 
 const extractSection = (text: string, heading: string, nextHeadings: string[]) => {

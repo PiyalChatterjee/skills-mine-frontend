@@ -201,9 +201,10 @@ export const profileFormSchema = z.object({
 
 export type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
-// UI career-history dates are entered as "DD MMMM YYYY"; the API payload uses ISO yyyy-mm-dd.
+// UI career-history dates are entered as "MMMM YYYY"; the API payload uses ISO yyyy-mm-dd
+// (transformed to the 1st of the month).
 const careerDatePattern =
-  /^(0[1-9]|[12]\d|3[01]) (January|February|March|April|May|June|July|August|September|October|November|December) (19|20)\d{2}$/i;
+  /^(January|February|March|April|May|June|July|August|September|October|November|December) (19|20)\d{2}$/i;
 const currentRolePattern = /^(present|current)$/i;
 const monthNames = [
   "january",
@@ -221,13 +222,13 @@ const monthNames = [
 ];
 
 function careerDateToComparable(value: string): number | null {
-  const match = value.trim().match(/^(\d{1,2}) ([A-Za-z]+) (\d{4})$/);
+  const match = value.trim().match(/^([A-Za-z]+) (\d{4})$/);
   if (!match) return null;
   const monthIndex = monthNames.findIndex(
-    (month) => month === match[2].toLowerCase(),
+    (month) => month === match[1].toLowerCase(),
   );
   if (monthIndex < 0) return null;
-  return Number(match[3]) * 372 + monthIndex * 31 + Number(match[1]);
+  return Number(match[2]) * 12 + monthIndex;
 }
 
 export const personalDetailsSchema = z
@@ -329,7 +330,7 @@ export const careerHistoryEntrySchema = z
     } else if (!careerDatePattern.test(data.startDate.trim())) {
       ctx.addIssue({
         code: "custom",
-        message: "Use format like 01 April 2020",
+        message: "Use format like April 2020",
         path: ["startDate"],
       });
     }
@@ -341,7 +342,7 @@ export const careerHistoryEntrySchema = z
     ) {
       ctx.addIssue({
         code: "custom",
-        message: "Use format like 01 April 2020 or Present",
+        message: "Use format like April 2020 or Present",
         path: ["endDate"],
       });
     }
