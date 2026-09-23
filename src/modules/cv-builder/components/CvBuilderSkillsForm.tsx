@@ -1,7 +1,15 @@
-import { Box, Button, TextField, Typography } from "@mui/material";
-import { Controller, type UseFieldArrayReturn, useFormContext } from "react-hook-form";
+import {
+  Box,
+  Button,
+  Chip,
+  IconButton,
+  InputAdornment,
+  TextField,
+  Typography,
+} from "@mui/material";
+import { useState } from "react";
+import { type UseFieldArrayReturn, useFormContext } from "react-hook-form";
 import styles from "../pages/CvBuilderPage.module.css";
-import CvBuilderRemoveItemButton from "./CvBuilderRemoveItemButton";
 import { CvBuilderFormPanel } from "./CvBuilderFormPrimitives";
 import type { CvBuilderFormValues } from "@/app/validation.schema";
 
@@ -11,19 +19,48 @@ type CvBuilderSkillsFormProps = {
 
 const CvBuilderSkillsForm = ({ skillsFieldArray }: CvBuilderSkillsFormProps) => {
   const {
-    control,
     formState: { errors },
     clearErrors,
   } = useFormContext<CvBuilderFormValues>();
   const { fields, append, remove } = skillsFieldArray;
+  const [skillDraft, setSkillDraft] = useState("");
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [editingDraft, setEditingDraft] = useState("");
+  const [showAllSkills, setShowAllSkills] = useState(false);
   const formError = (
     errors.skills as { root?: { message?: string } } | undefined
   )?.root?.message;
 
   const handleAddSkill = () => {
+    const name = skillDraft.trim();
+    if (!name) return;
     clearErrors("skills");
-    append({ name: "" });
+    append({ name });
+    setSkillDraft("");
   };
+
+  const handleEditStart = (index: number, name: string) => {
+    setEditingIndex(index);
+    setEditingDraft(name);
+  };
+
+  const handleEditCommit = () => {
+    if (editingIndex === null) return;
+    const name = editingDraft.trim();
+    if (!name) return;
+    skillsFieldArray.update(editingIndex, { name });
+    setEditingIndex(null);
+    setEditingDraft("");
+  };
+
+  const SKILLS_COLLAPSE_LIMIT = 16;
+  const populatedFields = fields
+    .map((fieldItem, index) => ({ fieldItem, index }))
+    .filter(({ fieldItem }) => fieldItem.name.trim());
+  const visibleFields = showAllSkills
+    ? populatedFields
+    : populatedFields.slice(0, SKILLS_COLLAPSE_LIMIT);
+  const hasMoreSkills = populatedFields.length > SKILLS_COLLAPSE_LIMIT;
 
   return (
     <CvBuilderFormPanel>
@@ -38,38 +75,88 @@ const CvBuilderSkillsForm = ({ skillsFieldArray }: CvBuilderSkillsFormProps) => 
       </Typography>
 
       <Box className={styles.skillsList}>
-        {fields.map((fieldItem, index) => (
-          <Box key={fieldItem.id} className={styles.skillRow}>
-            <Controller
-              name={`skills.${index}.name`}
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  placeholder={`Skill ${index + 1}`}
-                  className={styles.fieldControl}
-                  variant="outlined"
-                  fullWidth
-                />
-              )}
-            />
-            <CvBuilderRemoveItemButton
-              canRemove={fields.length > 1}
-              ariaLabel={`Remove skill ${index + 1}`}
-              onClick={() => remove(index)}
-            />
-          </Box>
-        ))}
-
-        <Button
-          type="button"
-          onClick={handleAddSkill}
-          className={styles.addMutedPillButton}
-          disableRipple
+        <Box className={styles.skillEntryRow}>
+        <TextField
+          value={skillDraft}
+          onChange={(event) => setSkillDraft(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              event.preventDefault();
+              handleAddSkill();
+            }
+          }}
+          placeholder="Add a skill"
+          className={styles.fieldControl}
+          variant="outlined"
           fullWidth
-        >
-          Add skill
-        </Button>
+          slotProps={{
+            input: {
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    type="button"
+                    onClick={handleAddSkill}
+                    className={styles.addSkillIconButton}
+                    aria-label="Add skill"
+                    disableRipple
+                  >
+                    +
+                  </IconButton>
+                </InputAdornment>
+              ),
+            },
+          }}
+        />
+        </Box>
+
+        <Box className={styles.skillChips}>
+        {visibleFields.map(({ fieldItem, index }) =>
+          editingIndex === index ? (
+            <TextField
+              key={fieldItem.id}
+              autoFocus
+              value={editingDraft}
+              onChange={(event) => setEditingDraft(event.target.value)}
+              onBlur={handleEditCommit}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  handleEditCommit();
+                }
+                if (event.key === "Escape") {
+                  setEditingIndex(null);
+                  setEditingDraft("");
+                }
+              }}
+              className={styles.editableSkillChip}
+              variant="outlined"
+              size="small"
+            />
+          ) : (
+            <Chip
+              key={fieldItem.id}
+              label={fieldItem.name}
+              onClick={() => handleEditStart(index, fieldItem.name)}
+              onDelete={() => remove(index)}
+              className={styles.skillChip}
+              deleteIcon={<span aria-hidden="true">×</span>}
+            />
+          ),
+        )}
+        </Box>
+
+        {hasMoreSkills ? (
+          <Button
+            type="button"
+            onClick={() => setShowAllSkills((current) => !current)}
+            className={styles.moreSkillsButton}
+            disableRipple
+          >
+            {showAllSkills
+              ? "Show less"
+              : `More (${populatedFields.length - SKILLS_COLLAPSE_LIMIT})`}
+          </Button>
+        ) : null}
       </Box>
     </CvBuilderFormPanel>
   );

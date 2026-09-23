@@ -91,10 +91,11 @@ const AuthCallbackPage = () => {
         tokenStorage.setUser(user);
         login({ user, tokens });
 
-        // Step 6: route to the user's default page
+        // Step 6: enter through the dashboard so the onboarding guard can
+        // route incomplete candidates to profile or CV setup as needed.
         const destination =
           isSignup && user.role === 'JOB_SEEKER'
-            ? ROUTE_PATHS.profileCreation
+            ? ROUTE_PATHS.candidateDashboard
             : roleToDefaultRoute[user.role] ?? ROUTE_PATHS.login;
         navigate(destination, { replace: true });
       } catch (callbackError) {

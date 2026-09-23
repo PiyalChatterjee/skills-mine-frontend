@@ -328,11 +328,22 @@
 }
 
 .metricCardNarrow {
-    width: 159px;
+    width: 213px;
 }
 
 .metricCardWideRight {
-    width: 238px;
+    width: 213px;
+    height: 165px;
+}
+
+.metricCardWideRight .metricValue {
+    font-size: 42px;
+    white-space: nowrap;
+}
+
+.metricCardWideRight .metricLabel {
+    font-size: 15px;
+    white-space: nowrap;
 }
 
 .metricValue {

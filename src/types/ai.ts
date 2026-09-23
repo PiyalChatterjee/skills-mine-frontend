@@ -28,6 +28,7 @@ export interface VisitorRegistration {
 export interface GenerateCandidateSkillsRequest {
   subject_type: AiSubjectType;
   subject_id?: string;
+  input_source: "PROFILE" | "OCR";
   visitor_registration?: VisitorRegistration;
   career_history: Array<Record<string, unknown>>;
 }

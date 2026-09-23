@@ -283,7 +283,8 @@ export interface GenerateSkillsCareerHistoryEntry {
 }
 
 export interface GenerateSkillsRequest {
-  candidateId: string;
+  candidateId?: string;
+  subjectType: "CANDIDATE" | "VISITOR";
   careerHistory: GenerateSkillsCareerHistoryEntry[];
 }
 
@@ -291,6 +292,7 @@ export interface BuildMyCvPersonalDetails {
   firstName?: string;
   lastName?: string;
   email?: string;
+  phoneNumber?: string;
   mobileNumber?: string;
   race?: string;
   gender?: string;

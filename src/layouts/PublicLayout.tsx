@@ -145,14 +145,7 @@ export const PublicLayout = () => {
         onNotificationClick={handleNotificationClick}
         showHelpButton={shouldUseLoginHeaderVariant}
         showNotificationButton={false}
-        showProfileBadge={
-          shouldUseAuthHeaderVariant ||
-          (!isLoginPage &&
-            !isSignupPage &&
-            !isLandingPage &&
-            !isHiringLandingMode &&
-            !isResetPasswordPage)
-        }
+        showProfileBadge={shouldUseAuthHeaderVariant}
         showSearchButton={
           shouldUseAuthHeaderVariant || !shouldUseLoginHeaderVariant
         }

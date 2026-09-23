@@ -34,6 +34,7 @@ const CvBuilderPage = () => {
     setUploadModalOpen,
     uploadModalOpen,
     guestJobTags,
+    visitorId,
   } = useCvBuilderPageViewModel();
 
   usePageTitle("CV Builder");
@@ -73,9 +74,14 @@ const CvBuilderPage = () => {
             <CvBuilderReviewScreen
               title="Review your CV."
               description="Your CV has been uploaded, we have highlighted potential gaps in your CV."
+              visitorId={visitorId}
+              isVisitor={isGuestApplication}
             />
           ) : (
-            <CvBuilderReviewScreen />
+            <CvBuilderReviewScreen
+              visitorId={visitorId}
+              isVisitor={isGuestApplication}
+            />
           )}
 
           {activeView === "review" && (

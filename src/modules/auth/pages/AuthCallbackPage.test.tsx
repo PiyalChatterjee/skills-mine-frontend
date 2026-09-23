@@ -102,7 +102,7 @@ describe('AuthCallbackPage', () => {
     renderPage('signup');
 
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('/profile/create', { replace: true });
+      expect(mockNavigate).toHaveBeenCalledWith('/candidate/dashboard', { replace: true });
     });
 
     expect(mockExchangeGoogleToken).toHaveBeenCalledWith({ idToken: 'id-token' });
@@ -130,7 +130,7 @@ describe('AuthCallbackPage', () => {
     renderPage('signup');
 
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('/profile/create', { replace: true });
+      expect(mockNavigate).toHaveBeenCalledWith('/candidate/dashboard', { replace: true });
     });
 
     expect(mockGetCurrentUser).toHaveBeenCalledOnce();

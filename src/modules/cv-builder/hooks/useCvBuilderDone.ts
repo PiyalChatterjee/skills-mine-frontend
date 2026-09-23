@@ -74,11 +74,15 @@ const monthNames = [
   "December",
 ] as const;
 
+// UI values are "MMMM YYYY"; the cv-build API requires ISO yyyy-mm-dd, taking
+// the 1st of the month.
 const monthNameToIso = (value: string): string => {
   const normalized = value.trim();
-  const match = normalized.match(/^([A-Za-z]+)(?:-|,\s?)(\d{4})$/);
-  const month = match?.[1];
-  const year = match?.[2];
+
+  // Legacy "DD MMMM YYYY" values (previously saved with a day) drop the day.
+  const dayMatch = normalized.match(/^(\d{1,2})[ ,]([A-Za-z]+)[ ,](\d{4})$/);
+  const month = dayMatch?.[2] ?? normalized.match(/^([A-Za-z]+)(?:-|,\s?| )(\d{4})$/)?.[1];
+  const year = dayMatch?.[3] ?? normalized.match(/^([A-Za-z]+)(?:-|,\s?| )(\d{4})$/)?.[2];
   if (!month || !year || !/^\d{4}$/.test(year)) {
     return value;
   }
@@ -90,7 +94,7 @@ const monthNameToIso = (value: string): string => {
     return value;
   }
 
-  return `${year}-${String(monthIndex + 1).padStart(2, "0")}`;
+  return `${year}-${String(monthIndex + 1).padStart(2, "0")}-01`;
 };
 
 const normalizeTextEntry = (value: unknown): string => {
@@ -102,8 +106,10 @@ const normalizeTextEntry = (value: unknown): string => {
   return typeof nestedValue === "string" ? nestedValue.trim() : "";
 };
 
+// Converts an ISO yyyy-mm(-dd) date back into the UI's "MMMM YYYY" format;
+// the day (if present) is dropped since the UI no longer tracks it.
 export const isoToMonthName = (value: string): string => {
-  const match = value.match(/^(19|20)\d{2}-(0[1-9]|1[0-2])(?:-\d{2})?$/);
+  const match = value.match(/^(19|20)\d{2}-(0[1-9]|1[0-2])(?:-(0[1-9]|[12]\d|3[01]))?$/);
   if (!match) {
     return value;
   }
@@ -111,7 +117,7 @@ export const isoToMonthName = (value: string): string => {
   const year = value.slice(0, 4);
   const monthIndex = Number(value.slice(5, 7)) - 1;
   const monthName = monthNames[monthIndex];
-  return monthName ? `${monthName.slice(0, 3)},${year}` : value;
+  return monthName ? `${monthName} ${year}` : value;
 };
 
 export const buildCvBuilderPrefillData = (
@@ -129,6 +135,8 @@ export const buildCvBuilderPrefillData = (
     personalDetails: {
       fullName:
         `${profile.personalDetails.firstName} ${profile.personalDetails.lastName}`.trim(),
+      email: "",
+      phoneNumber: "",
       race: profile.personalDetails.eeStatus ?? "",
       gender: "",
       disabilityStatus: "",
@@ -187,6 +195,8 @@ export const buildBuildMyCvRequest = ({
     personalDetails: {
       firstName: firstName || "",
       lastName: lastNameParts.join(" ").trim(),
+      email: formValues.personalDetails.email?.trim() ?? "",
+      phoneNumber: formValues.personalDetails.phoneNumber?.trim() ?? "",
       race: formValues.personalDetails.race.trim(),
       gender: formValues.personalDetails.gender.trim(),
       disabilityStatus: formValues.personalDetails.disabilityStatus.trim(),

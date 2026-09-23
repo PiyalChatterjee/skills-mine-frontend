@@ -19,7 +19,7 @@ import {
   type Language,
 } from "../types/cvBuilder";
 
-const isoYearMonthPattern = /^(19|20)\d{2}-(0[1-9]|1[0-2])$/;
+const isoDatePattern = /^(19|20)\d{2}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
 const currentRolePattern = /^(present|current)$/i;
 
 const monthNames = [
@@ -39,18 +39,21 @@ const monthNames = [
 
 const normalizeCareerDateValue = (value: string): string => {
   const normalized = value.trim();
-  const isoMatch = normalized.match(isoYearMonthPattern);
+  const isoMatch = normalized.match(isoDatePattern);
   if (!isoMatch) return value;
   const year = normalized.slice(0, 4);
   const monthIndex = Number(normalized.slice(5, 7)) - 1;
+  const day = normalized.slice(8, 10);
   const monthName = monthNames[monthIndex];
   if (!monthName) return value;
-  return `${monthName},${year}`;
+  return `${day} ${monthName} ${year}`;
 };
 
 const DEFAULT_FORM_VALUES: CvBuilderFormValues = {
   personalDetails: {
     fullName: "",
+    email: "",
+    phoneNumber: "",
     race: "",
     gender: "",
     disabilityStatus: "",

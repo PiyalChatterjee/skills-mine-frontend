@@ -27,6 +27,7 @@ import {
   useCvBuilderDone,
 } from "./useCvBuilderDone";
 import { extractResumeText } from "../utils/extractResumeText";
+import { focusFirstErrorField } from "../utils/focusFirstError";
 import { buildResumePrefillData } from "../utils/resumePrefill";
 import { LANGUAGES_LIST, type CvActionCard } from "../types/cvBuilder";
 import type { CvBuilderFormValues } from "@/app/validation.schema";
@@ -57,6 +58,16 @@ const extractResumeTextWithTimeout = (file: File) =>
 const buildPrefillFromSavedCv = (
   buildMyCvData: BuildMyCvState,
 ): Partial<CvBuilderFormValues> => {
+  // Tasks are joined with "; " into a single responsibilities string on save
+  // (see buildBuildMyCvRequest); split on the same delimiter when reloading so
+  // each responsibility renders as its own task row instead of one merged line.
+  const splitResponsibilities = (value?: string): string[] => {
+    const items = (value ?? "")
+      .split(/;\s*/)
+      .map((item) => item.trim())
+      .filter(Boolean);
+    return items.length ? items : [""];
+  };
   const savedEntries = (Array.isArray(buildMyCvData.careerHistory)
     ? buildMyCvData.careerHistory
     : []
@@ -79,7 +90,7 @@ const buildPrefillFromSavedCv = (
           : isoToMonthName(entry.endDate),
       isCurrentRole:
         entry.endDate == null || (entry.endDate ?? "").toLowerCase() === "present",
-      tasks: [entry.responsibilities ?? ""],
+      tasks: splitResponsibilities(entry.responsibilities),
       projects: [""],
     }));
   const currentEntry = savedEntries.find((entry) => entry.isCurrentRole);
@@ -92,6 +103,8 @@ const buildPrefillFromSavedCv = (
     personalDetails: {
       fullName:
         `${buildMyCvData.personalDetails.firstName ?? ""} ${buildMyCvData.personalDetails.lastName ?? ""}`.trim(),
+      email: buildMyCvData.personalDetails.email ?? "",
+      phoneNumber: buildMyCvData.personalDetails.phoneNumber ?? "",
       residentialLocation: buildMyCvData.personalDetails.location ?? "",
       nationality: buildMyCvData.personalDetails.nationality ?? "",
       noticePeriod: buildMyCvData.personalDetails.noticePeriod ?? "",
@@ -132,6 +145,7 @@ export const useCvBuilderPageViewModel = () => {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isReadingResume, setIsReadingResume] = useState(false);
   const [isParsingResume, setIsParsingResume] = useState(false);
+  const [visitorId, setVisitorId] = useState<string | undefined>();
   const [uploadDocument, { isLoading: isUploadingResume }] =
     useUploadDocumentMutation();
   const { user } = useAuth();
@@ -207,6 +221,16 @@ export const useCvBuilderPageViewModel = () => {
   );
   const hasFormChanges = form.formState.isDirty;
 
+  // Scroll to and focus the first invalid field so the user immediately sees
+  // what needs fixing when validation fails on submit.
+  const validateForm = async () => {
+    const isValid = await form.trigger();
+    if (!isValid) {
+      focusFirstErrorField(form.formState.errors);
+    }
+    return isValid;
+  };
+
   const { handleDone, isSavingCandidateProfile } = useCvBuilderDone({
     candidateId,
     userId,
@@ -214,7 +238,7 @@ export const useCvBuilderPageViewModel = () => {
     getFormValues: form.getValues,
     selectedLanguageEntries,
     buildMyCvExists,
-    validateForm: form.trigger,
+    validateForm,
     hasFormChanges,
     userRole: user?.role,
     guestApplicationDraft,
@@ -237,6 +261,7 @@ export const useCvBuilderPageViewModel = () => {
           ? { owner_type: "VISITOR" as const }
           : { owner_type: "CANDIDATE" as const }),
       });
+      setVisitorId(parsedResume.visitor_id);
           setIsParsingResume(false);
       const prefillData = buildResumePrefillData(parsedResume, extractedText);
       const mergedPrefillData = {
@@ -350,6 +375,7 @@ export const useCvBuilderPageViewModel = () => {
     uploadInputRef,
     uploadError,
     uploadModalOpen,
+    visitorId,
     guestJobTags: isGuestApplication ? guestJobTags : undefined,
   };
 };

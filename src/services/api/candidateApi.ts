@@ -798,7 +798,7 @@ type RawProfileExperience = Partial<CandidateExperience> & {
   start_date?: string;
   end_date?: string;
   is_current?: boolean;
-  responsibilities_text?: string;
+  responsibilities_text?: string | string[];
 };
 
 type RawSavedJobReference = string | { jobId?: string; jobProfileId?: string };
@@ -929,7 +929,9 @@ const mapProfileResponse = (
       startDate: item.startDate ?? item.start_date ?? "",
       endDate:
         item.endDate ?? item.end_date ?? (item.is_current ? "Present" : ""),
-      responsibilities: item.responsibilities ?? item.responsibilities_text,
+      responsibilities: Array.isArray(item.responsibilities_text)
+        ? item.responsibilities_text.join("; ")
+        : (item.responsibilities ?? item.responsibilities_text),
     })),
     skills: data.skills ?? [],
     languages: Array.isArray(data.languages) ? data.languages : [],
@@ -1325,8 +1327,9 @@ export const candidateApi = {
   // caller is expected to overwrite the current skills list with the result.
   async generateSkills(payload: GenerateSkillsRequest): Promise<UserSkill[]> {
     const response = await aiApi.generateCandidateSkills({
-      subject_type: "CANDIDATE",
-      subject_id: payload.candidateId,
+      subject_type: payload.subjectType,
+      ...(payload.candidateId ? { subject_id: payload.candidateId } : {}),
+      input_source: "PROFILE",
       career_history: payload.careerHistory.map((entry) => ({
         company_name: entry.companyName,
         position_held: entry.positionHeld,
