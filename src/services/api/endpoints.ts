@@ -62,8 +62,8 @@ export const apiEndpoints = {
   },
   jobs: {
     list: "/view/jobs",
-    details: "/jobs/:jobProfileId",
-    profileDetails: "/jobs/:jobProfileId",
+    details: "/view/jobs/:jobProfileId",
+    profileDetails: "/view/jobs/:jobProfileId",
     listQueryParam: "search",
     listPageParam: "page",
     listLimitParam: "size",
