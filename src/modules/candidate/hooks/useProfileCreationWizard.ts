@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect, useMemo, useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/app/auth/AuthContext'
 import { extractErrorMessage, isNotFoundError } from '@/app/errorUtils'
 import {
@@ -49,6 +49,7 @@ const isCurrentStepValid = (values: ProfileCreationFormValues) => {
 
 export const useProfileCreationWizard = () => {
   const navigate = useNavigate()
+  const location = useLocation()
   const { user } = useAuth()
   const userId = user?.userId
   const [currentStepIndex, setCurrentStepIndex] = useState(0)
@@ -154,7 +155,7 @@ export const useProfileCreationWizard = () => {
     try {
       await persistValues(form.getValues())
       sessionStorage.removeItem(PENDING_CANDIDATE_PROFILE_STORAGE_KEY)
-      navigate(ROUTE_PATHS.cvBuilder, { replace: true })
+      navigate({ pathname: ROUTE_PATHS.cvBuilder, search: location.search }, { replace: true })
     } catch (saveError) {
       setSubmitError(
         extractErrorMessage(saveError, 'Failed to save your profile.'),

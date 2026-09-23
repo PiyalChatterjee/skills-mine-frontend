@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@/app/auth/AuthContext";
 import { extractErrorMessage } from "@/app/errorUtils";
@@ -21,6 +21,9 @@ import { useOptimisticSaveJob } from "./useOptimisticSaveJob";
 type LocationState = {
   job?: Job;
   from?: string;
+  // Set by LoginPage when the user was redirected here from the visitor
+  // "candidate already exists" flow, so the pending application completes automatically.
+  autoApply?: boolean;
 };
 
 const allowedBackRoutes = new Set<string>([
@@ -152,6 +155,23 @@ export const useJobDetailsViewModel = () => {
       setApplyError(extractErrorMessage(error, "Unable to submit your application."));
     }
   };
+
+  // Auto-submits the pending application once, after login redirected here with autoApply state.
+  const hasAutoAppliedRef = useRef(false);
+  useEffect(() => {
+    if (
+      !locationState?.autoApply ||
+      hasAutoAppliedRef.current ||
+      !effectiveJob ||
+      isApplied ||
+      isApplying
+    ) {
+      return;
+    }
+
+    hasAutoAppliedRef.current = true;
+    void handleApply();
+  }, [effectiveJob, handleApply, isApplied, isApplying, locationState?.autoApply]);
 
   const handleToggleSave = () => {
     if (!effectiveJob) return;

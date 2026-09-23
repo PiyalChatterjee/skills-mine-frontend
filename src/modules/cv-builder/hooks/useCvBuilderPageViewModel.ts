@@ -258,6 +258,7 @@ export const useCvBuilderPageViewModel = () => {
     hasFormChanges,
     userRole: user?.role,
     guestApplicationDraft,
+    pendingJobId: guestApplicationJobId ?? undefined,
   });
 
   const handleUploadDone = async () => {

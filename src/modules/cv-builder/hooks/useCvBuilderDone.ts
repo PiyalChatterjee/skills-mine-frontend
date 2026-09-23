@@ -31,16 +31,28 @@ const resolveResumeRoleLabel = (userId?: string, role?: Role): string => {
   return "candidate";
 };
 
-const resolveSuccessRoute = (roleLabel: string, candidateId: string): string => {
-  if (roleLabel === "visitor") return ROUTE_PATHS.landing;
+const resolveSuccessRoute = (
+  roleLabel: string,
+  candidateId: string,
+  pendingJobId?: string,
+): { pathname: string; state?: { autoApply: boolean } } => {
+  if (roleLabel === "visitor") return { pathname: ROUTE_PATHS.landing };
   if (roleLabel === "recruiter") {
     // TODO: Navigate to ROUTE_PATHS.recruiterCandidate when the mandate cardId is available here.
-    return ROUTE_PATHS.recruiterCandidateDetail.replace(
-      ":candidateId",
-      candidateId,
-    );
+    return {
+      pathname: ROUTE_PATHS.recruiterCandidateDetail.replace(
+        ":candidateId",
+        candidateId,
+      ),
+    };
   }
-  return ROUTE_PATHS.candidateDashboard;
+  if (pendingJobId) {
+    return {
+      pathname: ROUTE_PATHS.jobDetails.replace(":jobId", pendingJobId),
+      state: { autoApply: true },
+    };
+  }
+  return { pathname: ROUTE_PATHS.candidateDashboard };
 };
 
 const sanitizeFileNamePart = (value: string): string =>
@@ -161,6 +173,7 @@ type UseCvBuilderDoneArgs = {
   hasFormChanges?: boolean;
   userRole?: Role;
   guestApplicationDraft?: GuestApplicationDraft;
+  pendingJobId?: string;
 };
 
 export const buildBuildMyCvRequest = ({
@@ -244,6 +257,7 @@ export const useCvBuilderDone = ({
   hasFormChanges = true,
   userRole,
   guestApplicationDraft,
+  pendingJobId,
 }: UseCvBuilderDoneArgs) => {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
@@ -282,7 +296,7 @@ export const useCvBuilderDone = ({
     }
 
     const roleLabel = resolveResumeRoleLabel(userId, userRole);
-    const successRoute = resolveSuccessRoute(roleLabel, candidateId);
+    const successRoute = resolveSuccessRoute(roleLabel, candidateId, pendingJobId);
 
     if (buildMyCvExists && !hasFormChanges) {
       dispatch(
@@ -292,7 +306,7 @@ export const useCvBuilderDone = ({
           level: "info",
         }),
       );
-      navigate(successRoute);
+      navigate(successRoute.pathname, { state: successRoute.state });
       return;
     }
 
@@ -367,7 +381,7 @@ export const useCvBuilderDone = ({
         }),
       );
 
-      navigate(successRoute);
+      navigate(successRoute.pathname, { state: successRoute.state });
     } catch (error) {
       const fallbackMessage =
         "We could not save your CV right now. Please try again.";
@@ -391,6 +405,7 @@ export const useCvBuilderDone = ({
     guestApplicationDraft,
     getFormValues,
     hasFormChanges,
+    pendingJobId,
     selectedLanguageEntries,
     triggerCreate,
     triggerUpdate,

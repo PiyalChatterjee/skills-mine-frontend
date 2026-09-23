@@ -26,6 +26,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock('react-router-dom', () => ({
   useNavigate: () => mocks.navigate,
+  useLocation: () => ({ search: '' }),
 }))
 
 vi.mock('@/app/auth/AuthContext', () => ({
@@ -154,8 +155,9 @@ describe('useProfileCreationWizard', () => {
       userId: 'candidate-1',
       candidateId: 'candidate-1',
     }))
-    expect(mocks.navigate).toHaveBeenCalledWith('/candidate/cv-builder', {
-      replace: true,
-    })
+    expect(mocks.navigate).toHaveBeenCalledWith(
+      { pathname: '/candidate/cv-builder', search: '' },
+      { replace: true },
+    )
   })
 })
