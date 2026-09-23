@@ -238,6 +238,18 @@ describe('careerHistoryEntrySchema', () => {
     expect(careerHistoryEntrySchema.safeParse(validEntry).success).toBe(true)
   })
 
+  it('rejects an end date earlier than the start date', () => {
+    const result = careerHistoryEntrySchema.safeParse({
+      ...validEntry,
+      startDate: '01 January 2021',
+      endDate: '18 December 2013',
+    })
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.issues.some((i) => i.path.includes('startDate'))).toBe(true)
+    }
+  })
+
   it('accepts current role with empty endDate', () => {
     const result = careerHistoryEntrySchema.safeParse({
       ...validEntry,

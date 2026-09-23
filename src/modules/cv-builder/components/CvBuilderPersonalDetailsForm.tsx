@@ -85,6 +85,7 @@ const CvBuilderPersonalDetailsForm = ({
           render={({ field, fieldState }) => (
             <CvBuilderSelectField
               label="Race"
+              name="personalDetails.race"
               value={field.value}
               onChange={field.onChange}
               onBlur={field.onBlur}
@@ -101,6 +102,7 @@ const CvBuilderPersonalDetailsForm = ({
           render={({ field, fieldState }) => (
             <CvBuilderSelectField
               label="Gender"
+              name="personalDetails.gender"
               value={field.value}
               onChange={field.onChange}
               onBlur={field.onBlur}
@@ -117,6 +119,7 @@ const CvBuilderPersonalDetailsForm = ({
           render={({ field, fieldState }) => (
             <CvBuilderSelectField
               label="Disability status"
+              name="personalDetails.disabilityStatus"
               value={field.value}
               onChange={field.onChange}
               onBlur={field.onBlur}
@@ -166,6 +169,7 @@ const CvBuilderPersonalDetailsForm = ({
           render={({ field, fieldState }) => (
             <CvBuilderSelectField
               label="Notice period"
+              name="personalDetails.noticePeriod"
               value={field.value}
               onChange={field.onChange}
               onBlur={field.onBlur}

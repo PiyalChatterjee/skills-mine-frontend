@@ -27,6 +27,7 @@ import {
   useCvBuilderDone,
 } from "./useCvBuilderDone";
 import { extractResumeText } from "../utils/extractResumeText";
+import { focusFirstErrorField } from "../utils/focusFirstError";
 import { buildResumePrefillData } from "../utils/resumePrefill";
 import { LANGUAGES_LIST, type CvActionCard } from "../types/cvBuilder";
 import type { CvBuilderFormValues } from "@/app/validation.schema";
@@ -220,6 +221,16 @@ export const useCvBuilderPageViewModel = () => {
   );
   const hasFormChanges = form.formState.isDirty;
 
+  // Scroll to and focus the first invalid field so the user immediately sees
+  // what needs fixing when validation fails on submit.
+  const validateForm = async () => {
+    const isValid = await form.trigger();
+    if (!isValid) {
+      focusFirstErrorField(form.formState.errors);
+    }
+    return isValid;
+  };
+
   const { handleDone, isSavingCandidateProfile } = useCvBuilderDone({
     candidateId,
     userId,
@@ -227,7 +238,7 @@ export const useCvBuilderPageViewModel = () => {
     getFormValues: form.getValues,
     selectedLanguageEntries,
     buildMyCvExists,
-    validateForm: form.trigger,
+    validateForm,
     hasFormChanges,
     userRole: user?.role,
     guestApplicationDraft,

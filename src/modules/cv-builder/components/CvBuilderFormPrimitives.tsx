@@ -25,6 +25,9 @@ type CvBuilderLabeledFieldProps = {
   label: string;
   span?: FieldSpan;
   children: ReactNode;
+  // Path matching the react-hook-form field name, used to scroll/focus this
+  // field when it's the first error after a failed validation.
+  fieldName?: string;
 };
 
 type CvBuilderSelectFieldProps = {
@@ -41,6 +44,7 @@ type CvBuilderSelectFieldProps = {
   displayEmpty?: boolean;
   error?: boolean;
   helperText?: string;
+  name?: string;
 };
 
 type CvBuilderControlledTextFieldProps<TFieldValues extends FieldValues> = {
@@ -109,10 +113,14 @@ export const CvBuilderLabeledField = ({
   label,
   span = "one",
   children,
+  fieldName,
 }: CvBuilderLabeledFieldProps) => (
-  <Box className={`${styles.fieldGroup} ${spanClassNameMap[span]}`}>
+  <Box
+    className={`${styles.fieldGroup} ${spanClassNameMap[span]}`}
+    data-field={fieldName}
+  >
     <Typography component="label" className={styles.fieldLabel}>
-        {toTitleCase(label)}
+      {toTitleCase(label)}
     </Typography>
     {children}
   </Box>
@@ -131,8 +139,9 @@ export const CvBuilderSelectField = ({
   displayEmpty = true,
   error = false,
   helperText,
+  name,
 }: CvBuilderSelectFieldProps) => (
-  <CvBuilderLabeledField label={label} span={span}>
+  <CvBuilderLabeledField label={label} span={span} fieldName={name}>
     <TextField
       select
       value={value}
@@ -170,9 +179,7 @@ export const CvBuilderSelectField = ({
   </CvBuilderLabeledField>
 );
 
-export const CvBuilderControlledTextField = <
-  TFieldValues extends FieldValues,
->({
+export const CvBuilderControlledTextField = <TFieldValues extends FieldValues>({
   name,
   control,
   label,
@@ -181,7 +188,7 @@ export const CvBuilderControlledTextField = <
   showError = true,
   rules,
 }: CvBuilderControlledTextFieldProps<TFieldValues>) => (
-  <CvBuilderLabeledField label={label} span={span}>
+  <CvBuilderLabeledField label={label} span={span} fieldName={name}>
     <Controller
       name={name}
       control={control}
