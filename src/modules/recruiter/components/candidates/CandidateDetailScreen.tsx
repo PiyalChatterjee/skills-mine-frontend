@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Box, ButtonBase, CircularProgress, Typography } from '@mui/material'
+import { Box, ButtonBase, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Typography } from '@mui/material'
 import { UploadDocumentModal } from './UploadDocumentModal'
 import { recruiterCandidatesApi } from '@/services/api/recruiterCandidatesApi'
 import type {
@@ -99,6 +99,7 @@ export const CandidateDetailScreen = () => {
   const [documents, setDocuments] = useState<CandidateDocument[]>([])
   const [documentsLoading, setDocumentsLoading] = useState(true)
   const [deletingDocumentId, setDeletingDocumentId] = useState<string | null>(null)
+  const [confirmDeleteDocumentId, setConfirmDeleteDocumentId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -455,19 +456,7 @@ export const CandidateDetailScreen = () => {
                         disableRipple
                         aria-label={`Delete ${displayName}`}
                         disabled={deletingDocumentId === doc.documentId}
-                        onClick={() => {
-                          setDeletingDocumentId(doc.documentId)
-                          recruiterCandidatesApi
-                            .deleteDocument(doc.documentId)
-                            .then(() => {
-                              setDocuments((prev) =>
-                                prev.filter((d) => d.documentId !== doc.documentId),
-                              )
-                            })
-                            .finally(() => {
-                              setDeletingDocumentId(null)
-                            })
-                        }}
+                        onClick={() => setConfirmDeleteDocumentId(doc.documentId)}
                       >
                         {deletingDocumentId === doc.documentId ? (
                           <CircularProgress size={14} sx={{ color: '#b0b4b8' }} />
@@ -495,6 +484,47 @@ export const CandidateDetailScreen = () => {
                 Upload document
               </Typography>
             </Box>
+
+            <Dialog
+              open={confirmDeleteDocumentId !== null}
+              onClose={() => setConfirmDeleteDocumentId(null)}
+              aria-labelledby="delete-doc-dialog-title"
+            >
+              <DialogTitle id="delete-doc-dialog-title">Delete Document</DialogTitle>
+              <DialogContent>
+                <DialogContentText>
+                  Are you sure you want to delete this document? This action cannot be undone.
+                </DialogContentText>
+              </DialogContent>
+              <DialogActions>
+                <ButtonBase
+                  onClick={() => setConfirmDeleteDocumentId(null)}
+                  disableRipple
+                  sx={{ px: 2, py: 1, fontSize: 14, borderRadius: 1, color: '#57606a' }}
+                >
+                  Cancel
+                </ButtonBase>
+                <ButtonBase
+                  disableRipple
+                  sx={{ px: 2, py: 1, fontSize: 14, borderRadius: 1, color: '#d32f2f', fontWeight: 600 }}
+                  onClick={() => {
+                    const docId = confirmDeleteDocumentId!
+                    setConfirmDeleteDocumentId(null)
+                    setDeletingDocumentId(docId)
+                    recruiterCandidatesApi
+                      .deleteDocument(docId)
+                      .then(() => {
+                        setDocuments((prev) => prev.filter((d) => d.documentId !== docId))
+                      })
+                      .finally(() => {
+                        setDeletingDocumentId(null)
+                      })
+                  }}
+                >
+                  Delete
+                </ButtonBase>
+              </DialogActions>
+            </Dialog>
 
             <UploadDocumentModal
               open={uploadModalOpen}

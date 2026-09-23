@@ -1,10 +1,13 @@
-import { Box, Button, ButtonBase, CircularProgress, Popover, Typography } from '@mui/material'
+import { Box, Button, ButtonBase, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Popover, Typography } from '@mui/material'
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import { useDispatch } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
 import { mandateApi } from '@/services/api/mandateApi'
+import { recruiterCandidatesApi } from '@/services/api/recruiterCandidatesApi'
 import { pushNotification } from '@/store/slices/notificationSlice'
 import type { AppDispatch } from '@/store'
 import type { JobPost } from '@/types/api'
+import { ROUTE_PATHS } from '@/routes/routePaths'
 import styles from './MandatesScreen.module.css'
 
 type MandatesScreenProps = {
@@ -37,6 +40,7 @@ function toTitleCase(s: string): string {
 
 export const MandatesScreen = ({ onNewJobPost, onEditJobPost }: MandatesScreenProps) => {
   const dispatch = useDispatch<AppDispatch>()
+  const navigate = useNavigate()
 
   const [jobPosts, setJobPosts] = useState<JobPost[]>([])
   const [loading, setLoading]   = useState(true)
@@ -44,6 +48,12 @@ export const MandatesScreen = ({ onNewJobPost, onEditJobPost }: MandatesScreenPr
 
   const [anchorEl, setAnchorEl]       = useState<HTMLButtonElement | null>(null)
   const [activeRowId, setActiveRowId] = useState<string | null>(null)
+
+  // Delete check / confirmation / block dialogs
+  const [deleteCheckLoading, setDeleteCheckLoading] = useState(false)
+  const [blockDeleteDialogOpen, setBlockDeleteDialogOpen] = useState(false)
+  const [confirmDeleteDialogOpen, setConfirmDeleteDialogOpen] = useState(false)
+  const pendingDeleteRef = useRef<{ id: string; title: string } | null>(null)
 
   // Status filter dropdown
   const statusBtnRef = useRef<HTMLButtonElement | null>(null)
@@ -187,19 +197,52 @@ export const MandatesScreen = ({ onNewJobPost, onEditJobPost }: MandatesScreenPr
 
     const deletedPost = jobPosts.find((p) => p.mandateId === idToDelete)
 
-    // Optimistic removal
-    setJobPosts((prev) => prev.filter((p) => p.mandateId !== idToDelete))
+    setDeleteCheckLoading(true)
+    recruiterCandidatesApi
+      .listCandidates({ jobProfileId: idToDelete, limit: 1 })
+      .then((envelope) => {
+        const total = envelope.data?.pagination?.total ?? 0
+        if (total > 0) {
+          // Candidates have applied — block the delete
+          setBlockDeleteDialogOpen(true)
+          return
+        }
 
-    mandateApi.deleteJobPost(idToDelete)
+        // No applications — show confirmation dialog before deleting
+        pendingDeleteRef.current = {
+          id: idToDelete,
+          title: deletedPost?.title ?? '',
+        }
+        setConfirmDeleteDialogOpen(true)
+      })
+      .catch(() => {
+        dispatch(pushNotification({
+          level: 'error',
+          title: 'Delete failed',
+          message: 'Could not verify applications for this job post. Please try again.',
+        }))
+      })
+      .finally(() => {
+        setDeleteCheckLoading(false)
+      })
+  }
+
+  const confirmDelete = () => {
+    const pending = pendingDeleteRef.current
+    setConfirmDeleteDialogOpen(false)
+    pendingDeleteRef.current = null
+    if (!pending) return
+
+    setJobPosts((prev) => prev.filter((p) => p.mandateId !== pending.id))
+    mandateApi.deleteJobPost(pending.id)
       .then(() => {
         dispatch(pushNotification({
           level: 'success',
           title: 'Job post deleted',
-          message: deletedPost ? `"${deletedPost.title}" has been deleted.` : undefined,
+          message: pending.title ? `"${pending.title}" has been deleted.` : undefined,
         }))
       })
       .catch(() => {
-        // Restore the row if the request fails
         mandateApi.getJobPosts().then((envelope) => {
           setJobPosts(envelope.data ?? [])
         })
@@ -409,7 +452,14 @@ export const MandatesScreen = ({ onNewJobPost, onEditJobPost }: MandatesScreenPr
               const timeline      = `${formatDate(post.openDate)} – ${formatDate(post.targetCloseDate)}`
 
               return (
-                <Box key={post.mandateId} className={styles.tableRow}>
+                <Box
+                  key={post.mandateId}
+                  className={`${styles.tableRow} ${styles.tableRowClickable}`}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => navigate(ROUTE_PATHS.recruiterMandate.replace(':cardId', post.mandateId))}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(ROUTE_PATHS.recruiterMandate.replace(':cardId', post.mandateId)) } }}
+                >
                   <Box className={styles.companyStrip}>
                     <Typography component="span" className={styles.companyName}>
                       {post.client}
@@ -428,7 +478,7 @@ export const MandatesScreen = ({ onNewJobPost, onEditJobPost }: MandatesScreenPr
                           type="button"
                           className={`${styles.timelineSortBtn} ${timelineSortDir === 'asc' ? styles.timelineSortBtnActive : ''}`}
                           aria-label="Sort ascending"
-                          onClick={() => setTimelineSortDir((prev) => (prev === 'asc' ? null : 'asc'))}
+                          onClick={(e) => { e.stopPropagation(); setTimelineSortDir((prev) => (prev === 'asc' ? null : 'asc')) }}
                         >
                           <svg viewBox="0 0 10 6" fill="none" aria-hidden="true" width="10" height="6">
                             <path d="M1 5L5 1L9 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
@@ -438,7 +488,7 @@ export const MandatesScreen = ({ onNewJobPost, onEditJobPost }: MandatesScreenPr
                           type="button"
                           className={`${styles.timelineSortBtn} ${timelineSortDir === 'desc' ? styles.timelineSortBtnActive : ''}`}
                           aria-label="Sort descending"
-                          onClick={() => setTimelineSortDir((prev) => (prev === 'desc' ? null : 'desc'))}
+                          onClick={(e) => { e.stopPropagation(); setTimelineSortDir((prev) => (prev === 'desc' ? null : 'desc')) }}
                         >
                           <svg viewBox="0 0 10 6" fill="none" aria-hidden="true" width="10" height="6">
                             <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
@@ -467,7 +517,7 @@ export const MandatesScreen = ({ onNewJobPost, onEditJobPost }: MandatesScreenPr
                       aria-label={`More actions for ${post.title}`}
                       aria-haspopup="true"
                       aria-expanded={activeRowId === post.mandateId && open ? 'true' : undefined}
-                      onClick={(e) => handleMoreClick(e as React.MouseEvent<HTMLButtonElement>, post.mandateId)}
+                      onClick={(e) => { e.stopPropagation(); handleMoreClick(e as React.MouseEvent<HTMLButtonElement>, post.mandateId) }}
                     >
                       <Box component="span" className={styles.moreDot} />
                       <Box component="span" className={styles.moreDot} />
@@ -555,25 +605,96 @@ export const MandatesScreen = ({ onNewJobPost, onEditJobPost }: MandatesScreenPr
           Edit post
         </ButtonBase>
 
-        <ButtonBase className={`${styles.menuItem} ${styles.menuItemDelete}`} onClick={handleDelete} disableRipple>
-          <svg
-            className={styles.menuIcon}
-            viewBox="0 0 20 20"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            aria-hidden="true"
-          >
-            <path
-              d="M3.333 5.833h13.334M8.333 9.167v5M11.667 9.167v5M4.167 5.833l.833 10c0 .92.746 1.667 1.667 1.667h6.666c.92 0 1.667-.747 1.667-1.667l.833-10M7.5 5.833V3.333a.833.833 0 0 1 .833-.833h3.334a.833.833 0 0 1 .833.833v2.5"
-              stroke="#d32f2f"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+        <ButtonBase
+          className={`${styles.menuItem} ${styles.menuItemDelete}`}
+          onClick={handleDelete}
+          disableRipple
+          disabled={deleteCheckLoading}
+        >
+          {deleteCheckLoading ? (
+            <CircularProgress size={14} className={styles.menuIcon} sx={{ color: '#d32f2f' }} />
+          ) : (
+            <svg
+              className={styles.menuIcon}
+              viewBox="0 0 20 20"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+            >
+              <path
+                d="M3.333 5.833h13.334M8.333 9.167v5M11.667 9.167v5M4.167 5.833l.833 10c0 .92.746 1.667 1.667 1.667h6.666c.92 0 1.667-.747 1.667-1.667l.833-10M7.5 5.833V3.333a.833.833 0 0 1 .833-.833h3.334a.833.833 0 0 1 .833.833v2.5"
+                stroke="#d32f2f"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          )}
           Delete
         </ButtonBase>
       </Popover>
+
+      {/* Block-delete dialog — shown when candidates have applied */}
+      <Dialog
+        open={blockDeleteDialogOpen}
+        onClose={() => setBlockDeleteDialogOpen(false)}
+        slotProps={{ paper: { className: styles.blockDeleteDialog } }}
+        aria-labelledby="block-delete-title"
+        aria-describedby="block-delete-desc"
+      >
+        <DialogTitle id="block-delete-title" className={styles.blockDeleteTitle}>
+          Cannot delete job post
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="block-delete-desc" className={styles.blockDeleteBody}>
+            This job post cannot be deleted because candidates have already applied to it.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions className={styles.blockDeleteActions}>
+          <Button
+            variant="contained"
+            disableElevation
+            className={styles.blockDeleteOkBtn}
+            onClick={() => setBlockDeleteDialogOpen(false)}
+          >
+            OK
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Confirm-delete dialog — shown when no candidates have applied */}
+      <Dialog
+        open={confirmDeleteDialogOpen}
+        onClose={() => { setConfirmDeleteDialogOpen(false); pendingDeleteRef.current = null }}
+        slotProps={{ paper: { className: styles.blockDeleteDialog } }}
+        aria-labelledby="confirm-delete-title"
+        aria-describedby="confirm-delete-desc"
+      >
+        <DialogTitle id="confirm-delete-title" className={styles.blockDeleteTitle}>
+          Delete job post?
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="confirm-delete-desc" className={styles.blockDeleteBody}>
+            Are you sure you want to delete this job post?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <ButtonBase
+            disableRipple
+            sx={{ px: 2, py: 1, fontSize: 14, borderRadius: 1, color: '#57606a' }}
+            onClick={() => { setConfirmDeleteDialogOpen(false); pendingDeleteRef.current = null }}
+          >
+            Cancel
+          </ButtonBase>
+          <ButtonBase
+            disableRipple
+            sx={{ px: 2, py: 1, fontSize: 14, borderRadius: 1, color: '#d32f2f', fontWeight: 600 }}
+            onClick={confirmDelete}
+          >
+            Delete
+          </ButtonBase>
+        </DialogActions>
+      </Dialog>
     </Box>
   )
 }
