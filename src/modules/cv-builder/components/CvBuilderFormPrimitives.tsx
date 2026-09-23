@@ -5,6 +5,7 @@ import {
   type Control,
   type FieldPath,
   type FieldValues,
+  type RegisterOptions,
 } from "react-hook-form";
 import chevronDownIcon from "@/assets/cv-builder/chevron-down.svg";
 import styles from "../pages/CvBuilderPage.module.css";
@@ -24,6 +25,9 @@ type CvBuilderLabeledFieldProps = {
   label: string;
   span?: FieldSpan;
   children: ReactNode;
+  // Path matching the react-hook-form field name, used to scroll/focus this
+  // field when it's the first error after a failed validation.
+  fieldName?: string;
 };
 
 type CvBuilderSelectFieldProps = {
@@ -40,6 +44,7 @@ type CvBuilderSelectFieldProps = {
   displayEmpty?: boolean;
   error?: boolean;
   helperText?: string;
+  name?: string;
 };
 
 type CvBuilderControlledTextFieldProps<TFieldValues extends FieldValues> = {
@@ -49,6 +54,7 @@ type CvBuilderControlledTextFieldProps<TFieldValues extends FieldValues> = {
   span?: FieldSpan;
   placeholder?: string;
   showError?: boolean;
+  rules?: RegisterOptions<TFieldValues>;
 };
 
 const spanClassNameMap: Record<FieldSpan, string> = {
@@ -107,10 +113,14 @@ export const CvBuilderLabeledField = ({
   label,
   span = "one",
   children,
+  fieldName,
 }: CvBuilderLabeledFieldProps) => (
-  <Box className={`${styles.fieldGroup} ${spanClassNameMap[span]}`}>
+  <Box
+    className={`${styles.fieldGroup} ${spanClassNameMap[span]}`}
+    data-field={fieldName}
+  >
     <Typography component="label" className={styles.fieldLabel}>
-        {toTitleCase(label)}
+      {toTitleCase(label)}
     </Typography>
     {children}
   </Box>
@@ -129,8 +139,9 @@ export const CvBuilderSelectField = ({
   displayEmpty = true,
   error = false,
   helperText,
+  name,
 }: CvBuilderSelectFieldProps) => (
-  <CvBuilderLabeledField label={label} span={span}>
+  <CvBuilderLabeledField label={label} span={span} fieldName={name}>
     <TextField
       select
       value={value}
@@ -168,20 +179,20 @@ export const CvBuilderSelectField = ({
   </CvBuilderLabeledField>
 );
 
-export const CvBuilderControlledTextField = <
-  TFieldValues extends FieldValues,
->({
+export const CvBuilderControlledTextField = <TFieldValues extends FieldValues>({
   name,
   control,
   label,
   span = "one",
   placeholder,
   showError = true,
+  rules,
 }: CvBuilderControlledTextFieldProps<TFieldValues>) => (
-  <CvBuilderLabeledField label={label} span={span}>
+  <CvBuilderLabeledField label={label} span={span} fieldName={name}>
     <Controller
       name={name}
       control={control}
+      rules={rules}
       render={({ field, fieldState }) => (
         <TextField
           {...field}

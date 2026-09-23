@@ -4,6 +4,7 @@ import { useFormContext } from "react-hook-form";
 import { useDispatch } from "react-redux";
 import skillsGenerateIcon from "@/assets/cv-builder/skills-generate.svg";
 import { useCandidateResourceId } from "@/modules/candidate/hooks/useCandidateQueries";
+import { useAuth } from "@/app/auth/AuthContext";
 import { useGenerateSkillsMutation } from "@/store/api/apiSlice";
 import { pushNotification } from "@/store/slices/notificationSlice";
 import styles from "../pages/CvBuilderPage.module.css";
@@ -11,14 +12,17 @@ import type { CvBuilderFormValues } from "@/app/validation.schema";
 
 type CvBuilderSkillsGenerateActionProps = {
   replaceSkills: (skills: { name: string }[]) => void;
+  visitorId?: string;
 };
 
 // Lives in the Skills section title row so it stays visible on the single-page review layout.
 const CvBuilderSkillsGenerateAction = ({
   replaceSkills,
+  visitorId,
 }: CvBuilderSkillsGenerateActionProps) => {
   const { getValues, clearErrors } = useFormContext<CvBuilderFormValues>();
   const candidateId = useCandidateResourceId();
+  const { user } = useAuth();
   const dispatch = useDispatch();
   const [generateSkills, { isLoading: isGenerating }] =
     useGenerateSkillsMutation();
@@ -36,7 +40,7 @@ const CvBuilderSkillsGenerateAction = ({
       }))
       .filter((entry) => entry.responsibilities.length > 0);
 
-    if (!candidateId || careerHistory.length === 0) {
+    if ((user && !candidateId) || careerHistory.length === 0) {
       dispatch(
         pushNotification({
           title: "Add career history first",
@@ -50,7 +54,8 @@ const CvBuilderSkillsGenerateAction = ({
 
     try {
       const suggestedSkills = await generateSkills({
-        candidateId,
+        candidateId: user ? candidateId : visitorId,
+        subjectType: user ? "CANDIDATE" : "VISITOR",
         careerHistory,
       }).unwrap();
 

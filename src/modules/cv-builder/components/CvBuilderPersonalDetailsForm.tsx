@@ -16,8 +16,16 @@ import {
   RACE_OPTIONS,
 } from "../types/cvBuilder";
 import type { CvBuilderFormValues } from "@/app/validation.schema";
+import { emailSchema } from "@/app/validation.schema";
+import { isValidLocalPhoneNumber } from "@/app/phoneNumber";
 
-const CvBuilderPersonalDetailsForm = () => {
+type CvBuilderPersonalDetailsFormProps = {
+  isVisitor?: boolean;
+};
+
+const CvBuilderPersonalDetailsForm = ({
+  isVisitor = false,
+}: CvBuilderPersonalDetailsFormProps) => {
   const { control } = useFormContext<CvBuilderFormValues>();
 
   return (
@@ -33,12 +41,51 @@ const CvBuilderPersonalDetailsForm = () => {
           placeholder="Full name"
         />
 
+        {isVisitor ? (
+          <CvBuilderControlledTextField
+            name="personalDetails.email"
+            control={control}
+            label="Email address"
+            span="two"
+            placeholder="Email address"
+            rules={{
+              required: "Email address is required",
+              validate: (value) =>
+                emailSchema.safeParse(value).success ||
+                "Enter a valid email address",
+            }}
+          />
+        ) : null}
+
+        {isVisitor ? (
+          <CvBuilderControlledTextField
+            name="personalDetails.phoneNumber"
+            control={control}
+            label="Phone number"
+            span="one"
+            placeholder="Phone number"
+            rules={{
+              required: "Phone number is required",
+              validate: (value) => {
+                if (typeof value !== "string") {
+                  return "Phone number must be 10 digits";
+                }
+                return (
+                  isValidLocalPhoneNumber(value) ||
+                  "Phone number must be 10 digits"
+                );
+              },
+            }}
+          />
+        ) : null}
+
         <Controller
           name="personalDetails.race"
           control={control}
           render={({ field, fieldState }) => (
             <CvBuilderSelectField
               label="Race"
+              name="personalDetails.race"
               value={field.value}
               onChange={field.onChange}
               onBlur={field.onBlur}
@@ -55,6 +102,7 @@ const CvBuilderPersonalDetailsForm = () => {
           render={({ field, fieldState }) => (
             <CvBuilderSelectField
               label="Gender"
+              name="personalDetails.gender"
               value={field.value}
               onChange={field.onChange}
               onBlur={field.onBlur}
@@ -71,6 +119,7 @@ const CvBuilderPersonalDetailsForm = () => {
           render={({ field, fieldState }) => (
             <CvBuilderSelectField
               label="Disability status"
+              name="personalDetails.disabilityStatus"
               value={field.value}
               onChange={field.onChange}
               onBlur={field.onBlur}
@@ -120,6 +169,7 @@ const CvBuilderPersonalDetailsForm = () => {
           render={({ field, fieldState }) => (
             <CvBuilderSelectField
               label="Notice period"
+              name="personalDetails.noticePeriod"
               value={field.value}
               onChange={field.onChange}
               onBlur={field.onBlur}

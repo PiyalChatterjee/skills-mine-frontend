@@ -196,7 +196,7 @@ describe('personalDetailsSchema', () => {
       careerHistory: [{
         companyName: 'Accenture',
         positionHeld: 'App Developer',
-        startDate: 'Jan,2022',
+        startDate: 'January 2022',
         endDate: '',
         isCurrentRole: true,
         tasks: ['Lead frontend development for enterprise clients using React and Node.js.'],
@@ -227,8 +227,8 @@ describe('careerHistoryEntrySchema', () => {
   const validEntry = {
     companyName: 'Acme Corp',
     positionHeld: 'Software Engineer',
-    startDate: 'January,2020',
-    endDate: 'December,2022',
+    startDate: 'January 2020',
+    endDate: 'December 2022',
     isCurrentRole: false,
     tasks: ['Built features'],
     projects: ['Project A'],
@@ -236,6 +236,18 @@ describe('careerHistoryEntrySchema', () => {
 
   it('accepts valid entry', () => {
     expect(careerHistoryEntrySchema.safeParse(validEntry).success).toBe(true)
+  })
+
+  it('rejects an end date earlier than the start date', () => {
+    const result = careerHistoryEntrySchema.safeParse({
+      ...validEntry,
+      startDate: 'January 2021',
+      endDate: 'December 2013',
+    })
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.issues.some((i) => i.path.includes('startDate'))).toBe(true)
+    }
   })
 
   it('accepts current role with empty endDate', () => {
