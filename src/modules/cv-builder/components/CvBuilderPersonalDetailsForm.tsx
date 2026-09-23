@@ -21,10 +21,12 @@ import { isValidLocalPhoneNumber } from "@/app/phoneNumber";
 
 type CvBuilderPersonalDetailsFormProps = {
   isVisitor?: boolean;
+  onEmailBlur?: (email: string) => void;
 };
 
 const CvBuilderPersonalDetailsForm = ({
   isVisitor = false,
+  onEmailBlur,
 }: CvBuilderPersonalDetailsFormProps) => {
   const { control } = useFormContext<CvBuilderFormValues>();
 
@@ -48,6 +50,7 @@ const CvBuilderPersonalDetailsForm = ({
             label="Email address"
             span="two"
             placeholder="Email address"
+            onBlur={onEmailBlur}
             rules={{
               required: "Email address is required",
               validate: (value) =>

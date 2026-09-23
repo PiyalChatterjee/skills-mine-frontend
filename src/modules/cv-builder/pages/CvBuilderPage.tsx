@@ -7,6 +7,7 @@ import CvBuilderLauncher from "../components/CvBuilderLauncher";
 import CvBuilderReviewScreen from "../components/CvBuilderReviewScreen";
 import styles from "./CvBuilderPage.module.css";
 import CvBuilderUploadModal from "../components/CvBuilderUploadModal";
+import CvBuilderCandidateExistsModal from "../components/CvBuilderCandidateExistsModal";
 import { useCvBuilderPageViewModel } from "../hooks/useCvBuilderPageViewModel";
 
 const CvBuilderPage = () => {
@@ -35,6 +36,11 @@ const CvBuilderPage = () => {
     uploadModalOpen,
     guestJobTags,
     visitorId,
+    onEmailBlur,
+    isCandidateExistsModalOpen,
+    existingCandidateEmail,
+    closeCandidateExistsModal,
+    goToLoginFromCandidateExistsModal,
   } = useCvBuilderPageViewModel();
 
   usePageTitle("CV Builder");
@@ -76,11 +82,13 @@ const CvBuilderPage = () => {
               description="Your CV has been uploaded, we have highlighted potential gaps in your CV."
               visitorId={visitorId}
               isVisitor={isGuestApplication}
+              onEmailBlur={onEmailBlur}
             />
           ) : (
             <CvBuilderReviewScreen
               visitorId={visitorId}
               isVisitor={isGuestApplication}
+              onEmailBlur={onEmailBlur}
             />
           )}
 
@@ -107,6 +115,13 @@ const CvBuilderPage = () => {
             submitError={uploadError}
           />
         )}
+
+        <CvBuilderCandidateExistsModal
+          open={isCandidateExistsModalOpen}
+          email={existingCandidateEmail}
+          onClose={closeCandidateExistsModal}
+          onGoToLogin={goToLoginFromCandidateExistsModal}
+        />
       </Box>
     </FormProvider>
   );

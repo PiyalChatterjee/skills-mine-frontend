@@ -26,6 +26,7 @@ import {
   isoToMonthName,
   useCvBuilderDone,
 } from "./useCvBuilderDone";
+import { useVisitorEmailCheck } from "./useVisitorEmailCheck";
 import { extractResumeText } from "../utils/extractResumeText";
 import { focusFirstErrorField } from "../utils/focusFirstError";
 import { buildResumePrefillData } from "../utils/resumePrefill";
@@ -170,6 +171,20 @@ export const useCvBuilderPageViewModel = () => {
   }, [guestApplicationJobId, userId]);
   const isGuestApplication = Boolean(guestApplicationDraft);
 
+  const {
+    isCandidateExistsModalOpen,
+    existingCandidateEmail,
+    checkEmail,
+    closeModal: closeCandidateExistsModal,
+    goToLogin: goToLoginFromCandidateExistsModal,
+  } = useVisitorEmailCheck(guestApplicationJobId ?? undefined);
+
+  const handleEmailBlur = (email: string) => {
+    if (isGuestApplication) {
+      void checkEmail(email);
+    }
+  };
+
   const guestJobTags = useMemo(() => {
     const job = guestApplicationDraft?.job;
     if (!job) return [];
@@ -272,6 +287,10 @@ export const useCvBuilderPageViewModel = () => {
           ...prefillData.personalDetails,
         },
       };
+
+      if (isGuestApplication && mergedPrefillData.personalDetails?.email) {
+        void checkEmail(mergedPrefillData.personalDetails.email);
+      }
 
       if (isGuestApplication) {
         setUploadModalOpen(false);
@@ -377,5 +396,10 @@ export const useCvBuilderPageViewModel = () => {
     uploadModalOpen,
     visitorId,
     guestJobTags: isGuestApplication ? guestJobTags : undefined,
+    onEmailBlur: handleEmailBlur,
+    isCandidateExistsModalOpen,
+    existingCandidateEmail,
+    closeCandidateExistsModal,
+    goToLoginFromCandidateExistsModal,
   };
 };

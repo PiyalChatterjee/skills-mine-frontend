@@ -1,0 +1,78 @@
+/* ── Dialog Paper ─────────────────────────────────────────────────────────── */
+
+.paper:global(.MuiPaper-root) {
+  border-radius: 8px;
+  box-shadow: 2px 4px 10px 0 rgba(3, 71, 140, 0.32);
+  padding: 0;
+  max-width: 480px;
+  width: 480px;
+}
+
+/* ── Dialog Content ──────────────────────────────────────────────────────── */
+
+.content:global(.MuiDialogContent-root) {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow: visible;
+}
+
+.title,
+.title:global(.MuiTypography-root) {
+  margin: 0;
+  color: #03478c;
+  font-family: "Red Hat Display", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
+}
+
+.description,
+.description:global(.MuiTypography-root) {
+  margin: 0;
+  color: #000000;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
+}
+
+.buttonsRow {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.cancelButton,
+.cancelButton:global(.MuiButton-root) {
+  border-radius: 100px;
+  border-color: #b0b4b8;
+  color: #2a3132;
+  text-transform: none;
+  box-shadow: none;
+  padding: 8px 24px;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.loginButton,
+.loginButton:global(.MuiButton-root) {
+  border-radius: 100px;
+  background-color: #165293;
+  color: #fff;
+  text-transform: none;
+  box-shadow: none;
+  padding: 8px 24px;
+  font-family: "Red Hat Display", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.loginButton:global(.MuiButton-root):hover {
+  background-color: #0d3d70;
+}
