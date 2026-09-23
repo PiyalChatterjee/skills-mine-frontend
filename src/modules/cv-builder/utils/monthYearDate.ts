@@ -2,9 +2,9 @@ import dayjs, { type Dayjs } from 'dayjs'
 
 const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December']
 
-// Form values use "DD,MMM,YYYY" strings; legacy "MMM,YYYY" and hyphen formats remain readable.
+// Form values use "DD MMMM YYYY" strings; legacy comma and hyphen formats remain readable.
 export function parseMonthYear(value: string): Dayjs | null {
-  const dayMatch = value.trim().match(/^(\d{1,2}),([A-Za-z]+),(\d{4})$/)
+  const dayMatch = value.trim().match(/^(\d{1,2})[ ,]([A-Za-z]+)[ ,](\d{4})$/)
   if (dayMatch) {
     const monthIndex = monthNames.findIndex((name) =>
       name.toLowerCase().startsWith(dayMatch[2].toLowerCase()),
@@ -27,5 +27,5 @@ export function parseMonthYear(value: string): Dayjs | null {
 }
 
 export function formatMonthYear(value: Dayjs | null): string {
-  return value ? value.format('DD,MMM,YYYY') : ''
+  return value ? value.format('DD MMMM YYYY') : ''
 }

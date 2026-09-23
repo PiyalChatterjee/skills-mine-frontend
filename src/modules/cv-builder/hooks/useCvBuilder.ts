@@ -46,7 +46,7 @@ const normalizeCareerDateValue = (value: string): string => {
   const day = normalized.slice(8, 10);
   const monthName = monthNames[monthIndex];
   if (!monthName) return value;
-  return `${day},${monthName},${year}`;
+  return `${day} ${monthName} ${year}`;
 };
 
 const DEFAULT_FORM_VALUES: CvBuilderFormValues = {

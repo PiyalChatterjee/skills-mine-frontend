@@ -196,7 +196,7 @@ describe('personalDetailsSchema', () => {
       careerHistory: [{
         companyName: 'Accenture',
         positionHeld: 'App Developer',
-        startDate: '01,Jan,2022',
+        startDate: '01 January 2022',
         endDate: '',
         isCurrentRole: true,
         tasks: ['Lead frontend development for enterprise clients using React and Node.js.'],
@@ -227,8 +227,8 @@ describe('careerHistoryEntrySchema', () => {
   const validEntry = {
     companyName: 'Acme Corp',
     positionHeld: 'Software Engineer',
-    startDate: '01,January,2020',
-    endDate: '01,December,2022',
+    startDate: '01 January 2020',
+    endDate: '01 December 2022',
     isCurrentRole: false,
     tasks: ['Built features'],
     projects: ['Project A'],

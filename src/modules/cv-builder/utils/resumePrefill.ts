@@ -32,7 +32,7 @@ const toMonthYear = (value: unknown) => {
     "July", "August", "September", "October", "November", "December",
   ][Number(match[2]) - 1];
   const day = match[3] ?? "01";
-  return month ? `${day},${month},${match[1]}` : text;
+  return month ? `${day} ${month} ${match[1]}` : text;
 };
 
 const extractSection = (text: string, heading: string, nextHeadings: string[]) => {
