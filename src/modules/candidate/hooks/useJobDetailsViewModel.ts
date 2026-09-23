@@ -5,6 +5,7 @@ import { extractErrorMessage } from "@/app/errorUtils";
 import { formatEnumLabel } from "@/app/formatEnumLabel";
 import { useJobs } from "@/modules/public/hooks/useJobs";
 import { ROUTE_PATHS } from "@/routes/routePaths";
+import { jobsApi } from "@/services/api/jobsApi";
 import {
   useApplyToJobMutation,
   useGetJobByIdQuery,
@@ -130,6 +131,16 @@ export const useJobDetailsViewModel = () => {
   const isApplied = effectiveJob
     ? hasJustApplied || isJobApplied(effectiveJob.jobId)
     : false;
+
+  // Best-effort view tracking, once per job per page load.
+  const hasTrackedViewRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!jobProfileId || hasTrackedViewRef.current === jobProfileId) return;
+    hasTrackedViewRef.current = jobProfileId;
+    void jobsApi.incrementViewCount(jobProfileId).catch(() => {
+      // Non-critical — view count tracking failures shouldn't affect the candidate.
+    });
+  }, [jobProfileId]);
 
   const handleApply = async () => {
     if (!effectiveJob || isApplied || isApplying) return;

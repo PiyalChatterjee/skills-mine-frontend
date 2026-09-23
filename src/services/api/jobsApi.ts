@@ -133,4 +133,10 @@ export const jobsApi = {
     };
   },
 
+  // Best-effort view count tracking — failures shouldn't block the candidate from viewing the job.
+  async incrementViewCount(jobProfileId: string): Promise<void> {
+    await mandateApiClient.patch(
+      resolveEndpoint(apiEndpoints.jobs.incrementViewCount, { jobProfileId }),
+    );
+  },
 };

@@ -46,6 +46,8 @@ export type CreateMandateRequest = {
   skills: string[];
   industries: string[];
   jobBoards?: string[];
+  // Links this job post to the AI skill-generation run it was created from, if any.
+  aiGenerationRunId?: string;
 };
 
 type IndustryItem = { industryId: string; industryName: string; normalizedKey?: string };
@@ -73,6 +75,7 @@ type CreateJobPostBody = {
   responsibilities: string[];
   industryId: string | null;
   skills: Array<{ skillId?: string; originalText: string; sourceType: string }>;
+  ai_generation_run_id?: string;
 };
 
 /** Shape of the JSON body sent to PATCH /jobs/{jobProfileId} — all fields optional */
@@ -310,6 +313,7 @@ const toJobWriteRequest = async (payload: CreateMandateRequest): Promise<CreateJ
       originalText,
       sourceType: "RECRUITER_ENTERED",
     })),
+    ...(payload.aiGenerationRunId ? { ai_generation_run_id: payload.aiGenerationRunId } : {}),
   };
 };
 
@@ -491,7 +495,7 @@ export const mandateApi = {
   getJobPostDetail(mandateId: string) {
     return mandateApiClient
       .get<JobProfile>(
-        resolveEndpoint(apiEndpoints.jobs.details, { jobProfileId: mandateId }),
+        resolveEndpoint(apiEndpoints.jobs.profileDetails, { jobProfileId: mandateId }),
       )
       .then((response): SuccessEnvelope<JobPost> => ({
         success: true,
@@ -523,6 +527,21 @@ export const mandateApi = {
         statusCode: 204,
         message: "Job post deleted.",
         data: { mandateId },
+      }));
+  },
+
+  // e.g. POSTED <-> PAUSED, or FILLED/CLOSED/CANCELLED to end the mandate.
+  updateJobStatus(mandateId: string, status: string) {
+    return mandateApiClient
+      .patch<JobProfile>(
+        resolveEndpoint(apiEndpoints.jobs.details, { jobProfileId: mandateId }),
+        { status },
+      )
+      .then((): SuccessEnvelope<{ mandateId: string; status: string }> => ({
+        success: true,
+        statusCode: 200,
+        message: "Job post status updated.",
+        data: { mandateId, status },
       }));
   },
 };

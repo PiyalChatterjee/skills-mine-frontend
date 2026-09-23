@@ -85,7 +85,7 @@ describe("Mandate Service v2 frontend adapters", () => {
     const result = await jobsApi.getJobProfile(summary.jobProfileId);
 
     expect(mockGet).toHaveBeenCalledWith(
-      `/jobs/${summary.jobProfileId}`,
+      `/view/jobs/${summary.jobProfileId}`,
     );
     expect(result).toMatchObject({
       jobId: summary.jobReferenceNumber,
