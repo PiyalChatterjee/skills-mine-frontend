@@ -190,6 +190,15 @@ const mockSaveBuildMyCv = vi.hoisted(() => vi.fn())
 const mockUpdateBuildMyCv = vi.hoisted(() => vi.fn())
 const mockUploadResumeDocument = vi.hoisted(() => vi.fn())
 const mockNavigate = vi.hoisted(() => vi.fn())
+const mockCreateVisitorProfile = vi.hoisted(() => vi.fn())
+const mockApplyToJob = vi.hoisted(() => vi.fn())
+
+vi.mock('@/services/api/visitorApi', () => ({
+  visitorApi: {
+    createProfile: mockCreateVisitorProfile,
+    applyToJob: mockApplyToJob,
+  },
+}))
 
 vi.mock('@/store/api/apiSlice', async () => {
   const actual = await vi.importActual<typeof import('@/store/api/apiSlice')>(
@@ -329,9 +338,12 @@ describe('useCvBuilderDone', () => {
     expect(store.getState().candidate.buildMyCv.personalDetails.currentCompany).toBe('Acme')
   })
 
-  it('stores a guest CV locally and does not call authenticated APIs', async () => {
+  it('creates a visitor profile, applies to the job, then navigates home', async () => {
+    mockCreateVisitorProfile.mockResolvedValue({ visitor_id: 'visitor-1' })
+    mockApplyToJob.mockResolvedValue({ application_id: 'app-1' })
     const guestApplicationDraft = createGuestApplicationDraft({
       jobId: 'j001',
+      jobProfileId: 'jp-001',
       title: 'Senior Engineer',
       company: 'SkillsMine',
       employmentType: 'Permanent',
@@ -360,6 +372,11 @@ describe('useCvBuilderDone', () => {
 
     expect(mockSaveBuildMyCv).not.toHaveBeenCalled()
     expect(mockUploadResumeDocument).not.toHaveBeenCalled()
+    expect(mockCreateVisitorProfile).toHaveBeenCalledTimes(1)
+    expect(mockApplyToJob).toHaveBeenCalledWith({
+      visitorId: 'visitor-1',
+      jobProfileId: 'jp-001',
+    })
     expect(getGuestApplicationDrafts()[0]).toMatchObject({
       applicationStatus: 'cv-completed',
       cvData: expect.objectContaining({ skills: ['React'] }),

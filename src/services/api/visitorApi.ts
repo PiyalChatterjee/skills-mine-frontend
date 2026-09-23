@@ -2,11 +2,7 @@ import { unwrapResponseData, visitorApiClient } from "./axios";
 import { apiEndpoints, resolveEndpoint } from "./endpoints";
 import type { SaveBuildMyCvRequest } from "@/types";
 
-type VisitorProfilePayload = SaveBuildMyCvRequest & {
-  visitorId: string;
-  email: string;
-  phoneNumber: string;
-};
+type VisitorProfilePayload = SaveBuildMyCvRequest;
 
 type ApplyToJobPayload = {
   visitorId: string;
@@ -83,10 +79,14 @@ export type CheckVisitorEmailResponse = {
   type?: "VISITOR" | "CANDIDATE" | "NOT_FOUND";
 };
 
+// CV builder joins tasks with "; " into a single string; the API wants an array.
+const splitResponsibilities = (value?: string): string[] =>
+  (value ?? "")
+    .split(/;\s*/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+
 const toVisitorProfileRequest = ({
-  visitorId,
-  email,
-  phoneNumber,
   personalDetails,
   careerHistory,
   skills,
@@ -94,11 +94,10 @@ const toVisitorProfileRequest = ({
   languages,
 }: VisitorProfilePayload) => ({
   personal_details: {
-    visitor_id: visitorId,
     first_name: personalDetails?.firstName ?? "",
     last_name: personalDetails?.lastName ?? "",
-    email,
-    phone_number: phoneNumber,
+    email: personalDetails?.email ?? "",
+    phone_number: personalDetails?.phoneNumber ?? "",
     residential_location: personalDetails?.location,
     nationality: personalDetails?.nationality,
     race: personalDetails?.race,
@@ -108,14 +107,17 @@ const toVisitorProfileRequest = ({
     current_position: personalDetails?.currentPosition,
     notice_period: personalDetails?.noticePeriod,
   },
-  career_history: careerHistory?.map((entry) => ({
-    company_name: entry.company,
-    position_held: entry.jobTitle,
-    start_date: entry.startDate,
-    end_date: entry.endDate,
-    is_current: entry.endDate.toLowerCase() === "present",
-    responsibilities: entry.responsibilities ?? "",
-  })),
+  career_history: careerHistory?.map((entry) => {
+    const isCurrent = entry.endDate.toLowerCase() === "present";
+    return {
+      company_name: entry.company,
+      position_held: entry.jobTitle,
+      start_date: entry.startDate,
+      end_date: isCurrent || !entry.endDate ? null : entry.endDate,
+      is_current: isCurrent,
+      responsibilities: splitResponsibilities(entry.responsibilities),
+    };
+  }),
   skills: skills?.map((skill) => ({ skill_name: skill })),
   education: [
     ...(education?.tertiaryEducation ?? []).map((entry) => ({

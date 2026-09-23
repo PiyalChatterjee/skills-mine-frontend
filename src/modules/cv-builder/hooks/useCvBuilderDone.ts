@@ -19,6 +19,7 @@ import {
 import type { SaveBuildMyCvRequest } from "@/types";
 import type { Role } from "@/types/auth";
 import type { CvBuilderFormValues } from "@/app/validation.schema";
+import { visitorApi } from "@/services/api/visitorApi";
 import {
   saveGuestApplicationCv,
   type GuestApplicationDraft,
@@ -284,10 +285,33 @@ export const useCvBuilderDone = ({
 
     if (guestApplicationDraft) {
       saveGuestApplicationCv(guestApplicationDraft.jobId, payload);
+
+      try {
+        const { visitor_id: visitorId } = await visitorApi.createProfile(payload);
+        if (!visitorId) {
+          throw new Error("Visitor profile creation did not return a visitor id.");
+        }
+
+        await visitorApi.applyToJob({
+          visitorId,
+          jobProfileId:
+            guestApplicationDraft.job.jobProfileId ?? guestApplicationDraft.jobId,
+        });
+      } catch {
+        dispatch(
+          pushNotification({
+            title: "Application failed",
+            message: `We could not submit your application for ${guestApplicationDraft.jobTitle}. Please try again.`,
+            level: "error",
+          }),
+        );
+        return;
+      }
+
       dispatch(
         pushNotification({
-          title: "CV saved",
-          message: `Your application for ${guestApplicationDraft.jobTitle} is ready when you create an account.`,
+          title: "Application submitted",
+          message: `Your application for ${guestApplicationDraft.jobTitle} has been submitted.`,
           level: "success",
         }),
       );
