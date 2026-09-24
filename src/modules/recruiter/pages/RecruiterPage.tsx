@@ -493,9 +493,6 @@ const PipelineCardItem = ({ card, onView }: PipelineCardProps) => {
         {card.title}
       </Typography>
       <Box className={styles.pipelineCardCompany}>
-        <Box component="span" className={styles.pipelineCardCompanyIcon}>
-          {card.companyIcon}
-        </Box>
         <Typography component="span" className={styles.pipelineCardCompanyName}>
           {card.company}
         </Typography>

@@ -424,10 +424,11 @@ export const recruiterCandidatesApi = {
   getDocumentsByOwner(
     ownerType: string,
     ownerId: string,
+    documentType?: string,
   ): Promise<CandidateDocument[]> {
     const url = resolveEndpoint(apiEndpoints.documents.owner, { ownerType, ownerId });
     return documentApiClient
-      .get<RawDocumentsResponse>(url)
+      .get<RawDocumentsResponse>(url, { params: documentType ? { document_type: documentType } : undefined })
       .then((res) => (res.data.documents ?? []).map(mapDocument));
   },
 
