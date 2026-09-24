@@ -270,11 +270,8 @@
   font-size: 14px;
   font-weight: 400;
   white-space: nowrap;
-  transition: background 0.15s ease;
-}
-
-.aiBtn:global(.MuiButtonBase-root):hover {
-  background: #023d78;
+  cursor: default;
+  pointer-events: none;
 }
 
 /* ── Applications section ─────────────────────────────────────────────── */

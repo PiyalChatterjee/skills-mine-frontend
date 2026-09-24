@@ -102,6 +102,8 @@ export const CandidateDetailScreen = () => {
   const [confirmDeleteDocumentId, setConfirmDeleteDocumentId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null)
+  const [profileImagePreviewOpen, setProfileImagePreviewOpen] = useState(false)
 
   useEffect(() => {
     if (!candidateId) return
@@ -137,7 +139,7 @@ export const CandidateDetailScreen = () => {
         if (!cancelled) setApplicationsLoading(false)
       })
 
-    // Load documents (GET /documents/owner/candidate/:candidateId)
+    // Load documents (GET /documents/owner/CANDIDATE/:candidateId)
     setDocumentsLoading(true)
     recruiterCandidatesApi
       .getDocumentsByOwner('CANDIDATE', candidateId)
@@ -150,6 +152,20 @@ export const CandidateDetailScreen = () => {
       .finally(() => {
         if (!cancelled) setDocumentsLoading(false)
       })
+
+    // Load profile image (GET /documents/owner/CANDIDATE/:candidateId?document_type=IDENTITY_DOCUMENT)
+    recruiterCandidatesApi
+      .getDocumentsByOwner('CANDIDATE', candidateId, 'IDENTITY_DOCUMENT')
+      .then((docs) => {
+        if (cancelled) return
+        const imageDoc = docs[0]
+        if (!imageDoc) return
+        return recruiterCandidatesApi.fetchDocumentPresignedUrl(imageDoc.documentId, 'inline')
+      })
+      .then((url) => {
+        if (!cancelled && url) setProfileImageUrl(url)
+      })
+      .catch(() => { /* profile image is non-critical — silently ignore */ })
 
     return () => { cancelled = true }
   }, [candidateId])
@@ -211,19 +227,64 @@ export const CandidateDetailScreen = () => {
       <Box className={styles.heroCard}>
         {/* Avatar */}
         <Box className={styles.avatarCircle} aria-label="Profile photo placeholder">
-          {candidate.profileImageUrl ? (
-            <Box
-              component="img"
-              src={candidate.profileImageUrl}
-              alt={candidate.fullName}
-              sx={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
-            />
+          {profileImageUrl ? (
+            <ButtonBase
+              disableRipple
+              aria-label="Preview profile photo"
+              onClick={() => setProfileImagePreviewOpen(true)}
+              sx={{ width: '100%', height: '100%', borderRadius: '50%', cursor: 'pointer' }}
+            >
+              <Box
+                component="img"
+                src={profileImageUrl}
+                alt={candidate.fullName}
+                sx={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
+              />
+            </ButtonBase>
           ) : (
             <Typography component="span" className={styles.avatarInitials}>
               {initials}
             </Typography>
           )}
         </Box>
+
+        {/* ── Profile image preview dialog ── */}
+        <Dialog
+          open={profileImagePreviewOpen}
+          onClose={() => setProfileImagePreviewOpen(false)}
+          maxWidth="md"
+          aria-labelledby="profile-image-preview-title"
+          slotProps={{ backdrop: { sx: { backgroundColor: 'rgba(0,0,0,0.75)' } } }}
+        >
+          <DialogContent sx={{ p: 0, lineHeight: 0, position: 'relative' }}>
+            <ButtonBase
+              disableRipple
+              aria-label="Close preview"
+              onClick={() => setProfileImagePreviewOpen(false)}
+              sx={{
+                position: 'absolute',
+                top: 8,
+                right: 8,
+                zIndex: 1,
+                width: 28,
+                height: 28,
+                borderRadius: '50%',
+                backgroundColor: 'rgba(0,0,0,0.45)',
+                color: '#fff',
+                fontSize: 16,
+                lineHeight: 1,
+              }}
+            >
+              ✕
+            </ButtonBase>
+            <Box
+              component="img"
+              src={profileImageUrl ?? ''}
+              alt={candidate.fullName}
+              sx={{ display: 'block', maxWidth: '80vw', maxHeight: '80vh', objectFit: 'contain' }}
+            />
+          </DialogContent>
+        </Dialog>
 
         {/* Info grid — 3 columns: left | middle | right  matching the UI */}
         <Box className={styles.heroInfoCol}>

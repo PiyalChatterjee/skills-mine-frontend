@@ -323,7 +323,7 @@
 .cardYellow { background: #FCF7DB; }
 .cardBlush { background: #F9E2E2; }
 .cardIce { background: #D3E5E8; }
-.cardMint { background: #B7DFC7; }
+.cardMint { background: #DBEFE3; }
 .cardSuccess { background: #4BAF73; color: #ffffff; }
 .cardDanger { background: #e64b4b; color: #ffffff; }
 
@@ -331,10 +331,10 @@
 :global(.MuiTypography-root).pipelineCardTitle,
 :global(.MuiTypography-root).pipelineCardTitle.pipelineCardTitle {
   margin: 0;
-  color: #0057a5;
+  color: #03478C;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 400;
   line-height: 1.4;
   letter-spacing: 0;
   white-space: nowrap;
@@ -360,7 +360,7 @@
 
 .pipelineCardCompanyName,
 :global(.MuiTypography-root).pipelineCardCompanyName {
-  color: #4b5e68;
+  color: #2A3132;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
   font-size: 10px;
   font-weight: 400;
@@ -390,8 +390,8 @@
   color: #1a1a1a;
   background: transparent;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 14px;
+  font-weight: 400;
   line-height: 1.2;
   min-width: 0;
   transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
@@ -411,24 +411,25 @@
   flex-shrink: 0;
 }
 
-.cardSuccess .pipelineCardTitle, .cardDanger .pipelineCardTitle,
+.cardSuccess .pipelineCardTitle.pipelineCardTitle,
+.cardDanger .pipelineCardTitle.pipelineCardTitle,
+.cardSuccess :global(.MuiTypography-root).pipelineCardTitle,
+.cardDanger :global(.MuiTypography-root).pipelineCardTitle,
 .cardSuccess .pipelineCardCompanyName, .cardDanger .pipelineCardCompanyName,
 .cardSuccess .pipelineCardCompanyIcon, .cardDanger .pipelineCardCompanyIcon { color: #ffffff; }
 
 .cardSuccess .pipelineCardViewBtn:global(.MuiButtonBase-root),
 .cardDanger .pipelineCardViewBtn:global(.MuiButtonBase-root) {
-  border-color: #1a1a1a;
-  color: #1a1a1a;
+  border-color: #ffffff;
+  color: #ffffff;
 }
 
-.cardSuccess .pipelineCardViewBtnIcon svg path,
-.cardDanger .pipelineCardViewBtnIcon svg path {
-  stroke: #1a1a1a;
-}
+.cardSuccess .pipelineCardViewBtnIcon,
+.cardDanger .pipelineCardViewBtnIcon { color: #ffffff; }
 
 .cardSuccess .pipelineCardViewBtn:global(.MuiButtonBase-root):hover,
 .cardDanger .pipelineCardViewBtn:global(.MuiButtonBase-root):hover {
-  background: rgba(0,0,0,0.06);
+  background: rgba(255,255,255,0.15);
 }
 
 /* ── View More Button ────────────────────────────────────────────────── */
