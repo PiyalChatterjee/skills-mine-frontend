@@ -286,17 +286,21 @@ export const useCvBuilderDone = ({
     if (guestApplicationDraft) {
       saveGuestApplicationCv(guestApplicationDraft.jobId, payload);
 
+      let visitorId: string | undefined;
+      let matchScore: number | undefined;
       try {
-        const { visitor_id: visitorId } = await visitorApi.createProfile(payload);
+        const createdVisitor = await visitorApi.createProfile(payload);
+        visitorId = createdVisitor.visitor_id;
         if (!visitorId) {
           throw new Error("Visitor profile creation did not return a visitor id.");
         }
 
-        await visitorApi.applyToJob({
+        const application = await visitorApi.applyToJob({
           visitorId,
           jobProfileId:
             guestApplicationDraft.job.jobProfileId ?? guestApplicationDraft.jobId,
         });
+        matchScore = application.match_score_latest;
       } catch {
         dispatch(
           pushNotification({
@@ -315,7 +319,9 @@ export const useCvBuilderDone = ({
           level: "success",
         }),
       );
-      navigate(ROUTE_PATHS.landing);
+      navigate(ROUTE_PATHS.landing, {
+        state: { visitorId, matchScore, jobTitle: guestApplicationDraft.jobTitle },
+      });
       return;
     }
 

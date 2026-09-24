@@ -26,7 +26,7 @@ const isSuccessfulRegistration = (response: unknown) => {
   );
 };
 
-export const useCandidateSignUpForm = () => {
+export const useCandidateSignUpForm = (visitorId?: string) => {
   const {
     register,
     control,
@@ -41,13 +41,16 @@ export const useCandidateSignUpForm = () => {
     let submitted = false;
 
     await handleSubmit(async (formValues: SignUpFormValues) => {
-      const response = await authApi.candidateRegister({
+      const payload = {
         firstName: formValues.firstName,
         lastName: formValues.lastName,
         email: formValues.email,
         mobileNumber: formValues.mobileNumber,
         password: formValues.password,
-      });
+      };
+      const response = visitorId
+        ? await authApi.candidateRegisterFromVisitor({ ...payload, visitorId })
+        : await authApi.candidateRegister(payload);
       submitted = isSuccessfulRegistration(response);
       if (submitted) {
         sessionStorage.setItem(

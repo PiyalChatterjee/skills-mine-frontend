@@ -340,7 +340,7 @@ describe('useCvBuilderDone', () => {
 
   it('creates a visitor profile, applies to the job, then navigates home', async () => {
     mockCreateVisitorProfile.mockResolvedValue({ visitor_id: 'visitor-1' })
-    mockApplyToJob.mockResolvedValue({ application_id: 'app-1' })
+    mockApplyToJob.mockResolvedValue({ application_id: 'app-1', match_score_latest: 80 })
     const guestApplicationDraft = createGuestApplicationDraft({
       jobId: 'j001',
       jobProfileId: 'jp-001',
@@ -381,7 +381,9 @@ describe('useCvBuilderDone', () => {
       applicationStatus: 'cv-completed',
       cvData: expect.objectContaining({ skills: ['React'] }),
     })
-    expect(mockNavigate).toHaveBeenCalledWith('/')
+    expect(mockNavigate).toHaveBeenCalledWith('/', {
+      state: { visitorId: 'visitor-1', matchScore: 80, jobTitle: 'Senior Engineer' },
+    })
   })
 
   it('calls update mutation when buildMyCvExists is true', async () => {

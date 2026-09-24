@@ -22,11 +22,13 @@ import styles from "./CandidateSignUpDrawer.module.css";
 type CandidateSignUpDrawerProps = {
   open: boolean;
   onClose: () => void;
+  visitorId?: string;
 };
 
 export const CandidateSignUpDrawer = ({
   open,
   onClose,
+  visitorId,
 }: CandidateSignUpDrawerProps) => {
   const dispatch = useDispatch<AppDispatch>();
   const [signUpSuccess, setSignUpSuccess] = useState(false);
@@ -37,7 +39,7 @@ export const CandidateSignUpDrawer = ({
     isSubmitting,
     submitForm,
     resetForm,
-  } = useCandidateSignUpForm();
+  } = useCandidateSignUpForm(visitorId);
   const handleDrawerClose = () => {
     onClose();
   };

@@ -7,6 +7,7 @@ import {
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
+import { useLocation, useNavigate, useOutletContext } from "react-router-dom";
 import aiIconUrl from "@/assets/landing-page/ai-icon.svg";
 import chartIconUrl from "@/assets/landing-page/chart-icon.svg";
 import patternOneUrl from "@/assets/landing-page/pattern-one.svg";
@@ -30,7 +31,7 @@ import { useSearchQueryState } from "@/hooks/useSearchQueryState";
 import { getJobTags } from "@/components/jobs/jobPresentation";
 import type { PublicLayoutOutletContext } from "@/layouts/PublicLayout";
 import { setLandingMode } from "@/store/slices/uiSlice";
-import { useOutletContext } from "react-router-dom";
+import { pushNotification } from "@/store/slices/notificationSlice";
 import styles from "./LandingPage.module.css";
 
 type Feature = {
@@ -78,6 +79,14 @@ const LandingPage = () => {
   usePageTitle("Strategic Recruitment Solutions Home");
   const { openSignUpDrawer } = useOutletContext<PublicLayoutOutletContext>();
   const dispatch = useDispatch();
+  const location = useLocation();
+  const navigate = useNavigate();
+  // Set by the CV builder after a visitor applies to a job. Snapshotted once so it
+  // survives the history-state clear below, instead of being read fresh on every render.
+  const [appliedJobState] = useState(
+    () => location.state as { visitorId?: string; matchScore?: number } | null,
+  );
+  const { visitorId, matchScore } = appliedJobState ?? {};
   const [activeHeroMode] = useState<HeroMode>("findJob");
   const {
     inputValue: searchInputValue,
@@ -123,6 +132,15 @@ const LandingPage = () => {
     };
   }, [activeHeroMode, dispatch]);
 
+  // Strip the visitor-apply state from history so a hard refresh (or revisiting "/"
+  // later) shows the normal landing page instead of re-showing "Application submitted."
+  useEffect(() => {
+    if (appliedJobState) {
+      navigate(location.pathname, { replace: true, state: null });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
  /*  const handleFindJobClick = () => {
     setActiveHeroMode("findJob");
   };
@@ -141,6 +159,20 @@ const LandingPage = () => {
 
   const handleCardCtaClick = () => {
     openSignUpDrawer();
+  };
+
+  const handleKeepCvOnFile = () => {
+    openSignUpDrawer();
+  };
+
+  const handleDeclineKeepCvOnFile = () => {
+    dispatch(
+      pushNotification({
+        title: "No problem",
+        message: "We won't keep your CV on file for future roles.",
+        level: "info",
+      }),
+    );
   };
 
   const currentHeroContent = heroContent[activeHeroMode];
@@ -168,139 +200,176 @@ const LandingPage = () => {
         />
 
         <Box className={styles.heroInner}>
-          <Box className={styles.heroBadge}>
-            <img
-              src={aiIconUrl}
-              alt=""
-              className={styles.heroBadgeIcon}
-              aria-hidden="true"
-            />
-            <Typography
-              component="span"
-              className={styles.heroBadgeText}
-              sx={{ m: 0 }}
-            >
-              {currentHeroContent.badge}
-            </Typography>
-          </Box>
+          {visitorId ? (
+            <>
+              <Box className={styles.applicationSubmittedRow}>
+                <Box
+                  className={styles.matchBadge}
+                  style={{ ["--match-pct" as string]: matchScore ?? 100 }}
+                  aria-hidden="true"
+                >
+                  <Typography component="p" className={styles.matchBadgePercent} sx={{ m: 0 }}>
+                    {matchScore != null ? `${matchScore}%` : "—"}
+                  </Typography>
+                </Box>
+                <Box className={styles.applicationSubmittedText}>
+                  <Typography component="h1" className={styles.applicationHeading} sx={{ m: 0 }}>
+                    Application submitted.
+                  </Typography>
+                  {matchScore != null && (
+                    <Typography component="p" className={styles.applicationSubtitle} sx={{ m: 0 }}>
+                      You are a {matchScore}% match for this role.
+                    </Typography>
+                  )}
+                </Box>
+              </Box>
 
-          {/* <Box
-            className={`${styles.heroSwitch} ${
-              activeHeroMode === "findJob"
-                ? styles.heroSwitchFindJob
-                : styles.heroSwitchStartHiring
-            }`}
-            style={{
-              ["--hero-switch-active-width" as string]: heroSwitchActiveWidth,
-              ["--hero-switch-active-x" as string]: heroSwitchActiveX,
-            }}
-          >
-            <Button
-              ref={findJobButtonRef}
-              type="button"
-              variant="text"
-              className={
-                activeHeroMode === "findJob"
-                  ? styles.heroSwitchActive
-                  : styles.heroSwitchIdle
-              }
-              onClick={handleFindJobClick}
-              aria-pressed={activeHeroMode === "findJob"}
-              disableRipple
-            >
-              Find a job
-            </Button>
-            <Button
-              ref={startHiringButtonRef}
-              type="button"
-              variant="text"
-              className={
-                activeHeroMode === "startHiring"
-                  ? styles.heroSwitchActive
-                  : styles.heroSwitchIdle
-              }
-              onClick={handleStartHiringClick}
-              aria-pressed={activeHeroMode === "startHiring"}
-              disableRipple
-            >
-              Start hiring
-            </Button>
-          </Box> */}
+              <Typography component="p" className={styles.retentionText} sx={{ m: 0 }}>
+                We would like to keep your CV on file so that we can alert you about similar roles in the future.
+              </Typography>
 
-          <Box className={styles.heroTextBlock}>
-            <Typography
-              component="h1"
-              className={styles.heroTitle}
-              sx={{ m: 0 }}
-            >
-              <Box component="span" className={styles.heroTitleStrong}>
-                {currentHeroContent.titleStrong}
-              </Box>{" "}
-              {"titleLight" in currentHeroContent &&
-                currentHeroContent.titleLight && (
+              <Box className={styles.retentionActions}>
+                <Button
+                  variant="contained"
+                  className={styles.heroCta}
+                  onClick={handleKeepCvOnFile}
+                >
+                  Yes please
+                </Button>
+                <Button
+                  variant="outlined"
+                  className={styles.retentionDeclineCta}
+                  onClick={handleDeclineKeepCvOnFile}
+                >
+                  No thanks
+                </Button>
+              </Box>
+
+              <Box className={styles.retentionDivider} />
+
+              <Box className={styles.heroTextBlock}>
+                <Typography component="h2" className={styles.heroTitle} sx={{ m: 0 }}>
+                  <Box component="span" className={styles.heroTitleStrong}>
+                    Sign up to find your perfect role,
+                  </Box>{" "}
                   <Box component="span" className={styles.heroTitleLight}>
-                    {currentHeroContent.titleLight}
+                    matched to you.
                   </Box>
-                )}
-            </Typography>
+                </Typography>
 
-            <Box className={styles.heroCopy}>
-              {currentHeroContent.copy.map((line) => (
+                <Box className={styles.heroCopy}>
+                  {heroContent.findJob.copy.slice(1).map((line) => (
+                    <Typography key={line} component="p" className={styles.heroText} sx={{ m: 0 }}>
+                      {line}
+                    </Typography>
+                  ))}
+                </Box>
+              </Box>
+
+              <Box className={styles.heroCtaGroup}>
+                <Button
+                  variant="contained"
+                  className={styles.heroCta}
+                  onClick={handleHeroCtaClick}
+                >
+                  Sign up and Browse Jobs
+                </Button>
+              </Box>
+            </>
+          ) : (
+            <>
+              <Box className={styles.heroBadge}>
+                <img
+                  src={aiIconUrl}
+                  alt=""
+                  className={styles.heroBadgeIcon}
+                  aria-hidden="true"
+                />
                 <Typography
-                  key={line}
-                  component="p"
-                  className={styles.heroText}
+                  component="span"
+                  className={styles.heroBadgeText}
                   sx={{ m: 0 }}
                 >
-                  {line}
+                  {currentHeroContent.badge}
                 </Typography>
-              ))}
-            </Box>
-          </Box>
-          <Box className={styles.heroCtaGroup}>
-            <Button
-              variant="contained"
-              className={styles.heroCta}
-              onClick={handleHeroCtaClick}
-            >
-              {currentHeroContent.primaryCta}
-            </Button>
+              </Box>
 
-            {activeHeroMode === "startHiring" ? (
-              <Button
-                variant="outlined"
-                className={styles.heroSecondaryCta}
-                onClick={handleHeroSecondaryCtaClick}
-              >
-                {heroContent.startHiring.secondaryCta}
-              </Button>
-            ) : null}
-          </Box>
-
-          <Box className={styles.metricsGrid}>
-            {metrics.map((metric) => (
-              <Card
-                key={metric.id}
-                className={metric.cardClassName}
-                elevation={0}
-              >
+              <Box className={styles.heroTextBlock}>
                 <Typography
-                  component="p"
-                  className={styles.metricValue}
+                  component="h1"
+                  className={styles.heroTitle}
                   sx={{ m: 0 }}
                 >
-                  {metric.value}
+                  <Box component="span" className={styles.heroTitleStrong}>
+                    {currentHeroContent.titleStrong}
+                  </Box>{" "}
+                  {"titleLight" in currentHeroContent &&
+                    currentHeroContent.titleLight && (
+                      <Box component="span" className={styles.heroTitleLight}>
+                        {currentHeroContent.titleLight}
+                      </Box>
+                    )}
                 </Typography>
-                <Typography
-                  component="p"
-                  className={styles.metricLabel}
-                  sx={{ m: 0 }}
+
+                <Box className={styles.heroCopy}>
+                  {currentHeroContent.copy.map((line) => (
+                    <Typography
+                      key={line}
+                      component="p"
+                      className={styles.heroText}
+                      sx={{ m: 0 }}
+                    >
+                      {line}
+                    </Typography>
+                  ))}
+                </Box>
+              </Box>
+              <Box className={styles.heroCtaGroup}>
+                <Button
+                  variant="contained"
+                  className={styles.heroCta}
+                  onClick={handleHeroCtaClick}
                 >
-                  {metric.label}
-                </Typography>
-              </Card>
-            ))}
-          </Box>
+                  {currentHeroContent.primaryCta}
+                </Button>
+
+                {activeHeroMode === "startHiring" ? (
+                  <Button
+                    variant="outlined"
+                    className={styles.heroSecondaryCta}
+                    onClick={handleHeroSecondaryCtaClick}
+                  >
+                    {heroContent.startHiring.secondaryCta}
+                  </Button>
+                ) : null}
+              </Box>
+
+              <Box className={styles.metricsGrid}>
+                {metrics.map((metric) => (
+                  <Card
+                    key={metric.id}
+                    className={metric.cardClassName}
+                    elevation={0}
+                  >
+                    <Typography
+                      component="p"
+                      className={styles.metricValue}
+                      sx={{ m: 0 }}
+                    >
+                      {metric.value}
+                    </Typography>
+                    <Typography
+                      component="p"
+                      className={styles.metricLabel}
+                      sx={{ m: 0 }}
+                    >
+                      {metric.label}
+                    </Typography>
+                  </Card>
+                ))}
+              </Box>
+            </>
+          )}
         </Box>
       </Box>
 
