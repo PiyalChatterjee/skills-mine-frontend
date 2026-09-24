@@ -6,6 +6,7 @@ const mockGet = vi.hoisted(() => vi.fn())
 const mockPost = vi.hoisted(() => vi.fn())
 const mockPut = vi.hoisted(() => vi.fn())
 const mockDelete = vi.hoisted(() => vi.fn())
+const mockGenerateCandidateSkills = vi.hoisted(() => vi.fn())
 
 vi.mock('@/services/api/axios', () => ({
   apiClient: { get: mockGet, post: mockPost, put: mockPut, delete: mockDelete },
@@ -16,6 +17,12 @@ vi.mock('@/services/api/axios', () => ({
     ((await promise) as { data: unknown }).data,
   unwrapEnvelopeData: async (promise: Promise<unknown>) =>
     (((await promise) as { data: { data: unknown } }).data).data,
+}))
+
+vi.mock('@/services/api/aiApi', () => ({
+  aiApi: {
+    generateCandidateSkills: mockGenerateCandidateSkills,
+  },
 }))
 
 vi.mock('@/services/api/endpoints', () => ({
@@ -88,6 +95,56 @@ const mockProfileResponse = {
 }
 
 describe('candidateApi', () => {
+  it('includes visitor registration when generating skills without a visitor id', async () => {
+    mockGenerateCandidateSkills.mockResolvedValue({
+      suggested_skills: [{ skill_id: 's1', skill_name: 'Java' }],
+    })
+
+    const result = await candidateApi.generateSkills({
+      subjectType: 'VISITOR',
+      visitorRegistration: {
+        email: 'ayanda.maseko@example.com',
+        firstName: 'Ayanda',
+        lastName: 'Maseko',
+        phoneNumber: '+27821234567',
+      },
+      careerHistory: [
+        {
+          companyName: 'Accenture',
+          positionHeld: 'Senior Java Developer',
+          startDate: 'January 2020',
+          endDate: '',
+          isCurrentRole: true,
+          responsibilities: ['Led migration to microservices'],
+          projects: ['Real-time analytics dashboard'],
+        },
+      ],
+    })
+
+    expect(mockGenerateCandidateSkills).toHaveBeenCalledWith({
+      subject_type: 'VISITOR',
+      visitor_registration: {
+        email: 'ayanda.maseko@example.com',
+        first_name: 'Ayanda',
+        last_name: 'Maseko',
+        phone_number: '+27821234567',
+      },
+      input_source: 'PROFILE',
+      career_history: [
+        {
+          company_name: 'Accenture',
+          position_held: 'Senior Java Developer',
+          start_date: '2020-01',
+          end_date: null,
+          is_current: true,
+          responsibilities: ['Led migration to microservices'],
+          projects: ['Real-time analytics dashboard'],
+        },
+      ],
+    })
+    expect(result[0].skillName).toBe('Java')
+  })
+
   beforeEach(() => {
     vi.clearAllMocks()
   })

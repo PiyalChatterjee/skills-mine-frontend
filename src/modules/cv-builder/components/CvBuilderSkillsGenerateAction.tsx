@@ -9,6 +9,7 @@ import { useGenerateSkillsMutation } from "@/store/api/apiSlice";
 import { pushNotification } from "@/store/slices/notificationSlice";
 import styles from "../pages/CvBuilderPage.module.css";
 import type { CvBuilderFormValues } from "@/app/validation.schema";
+import { toSouthAfricaApiPhoneNumber } from "@/app/phoneNumber";
 
 type CvBuilderSkillsGenerateActionProps = {
   replaceSkills: (skills: { name: string }[]) => void;
@@ -35,17 +36,40 @@ const CvBuilderSkillsGenerateAction = ({
       .map((entry) => ({
         companyName: entry.companyName,
         positionHeld: entry.positionHeld,
+        startDate: entry.startDate,
+        endDate: entry.endDate,
+        isCurrentRole: entry.isCurrentRole,
         responsibilities: (entry.tasks ?? []).filter((task) => task?.trim()),
         projects: (entry.projects ?? []).filter((project) => project?.trim()),
       }))
       .filter((entry) => entry.responsibilities.length > 0);
 
-    if ((user && !candidateId) || careerHistory.length === 0) {
+    const isVisitor = !user;
+    const personalDetails = getValues("personalDetails");
+    const nameParts = personalDetails.fullName.trim().split(/\s+/);
+    const visitorRegistration = {
+      email: personalDetails.email.trim(),
+      firstName: nameParts[0] ?? "",
+      lastName: nameParts.slice(1).join(" "),
+      phoneNumber: toSouthAfricaApiPhoneNumber(personalDetails.phoneNumber),
+    };
+
+    if (
+      (user && !candidateId) ||
+      careerHistory.length === 0 ||
+      (isVisitor &&
+        (!visitorRegistration.email ||
+          !visitorRegistration.firstName ||
+          !visitorRegistration.lastName ||
+          !visitorRegistration.phoneNumber))
+    ) {
       dispatch(
         pushNotification({
-          title: "Add career history first",
+          title: isVisitor ? "Add your details first" : "Add career history first",
           message:
-            "Fill in at least one job's company, position and responsibilities before generating skills.",
+            isVisitor
+              ? "Fill in your full name, email and phone number, plus at least one job's company, position and responsibilities before generating skills."
+              : "Fill in at least one job's company, position and responsibilities before generating skills.",
           level: "info",
         }),
       );
@@ -56,6 +80,7 @@ const CvBuilderSkillsGenerateAction = ({
       const suggestedSkills = await generateSkills({
         candidateId: user ? candidateId : visitorId,
         subjectType: user ? "CANDIDATE" : "VISITOR",
+        ...(isVisitor && !visitorId ? { visitorRegistration } : {}),
         careerHistory,
       }).unwrap();
 

@@ -395,7 +395,7 @@ const toFullDate = (value?: string | null): string | null => {
   if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
   if (/^\d{4}-\d{2}$/.test(value)) return `${value}-01`;
 
-  const match = value.trim().match(/^([A-Za-z]+),\s?(\d{4})$/);
+  const match = value.trim().match(/^([A-Za-z]+)(?:,\s?|\s+)(\d{4})$/);
   if (!match) return value;
 
   const monthNames = [
@@ -418,6 +418,13 @@ const toFullDate = (value?: string | null): string | null => {
   return monthIndex < 0
     ? value
     : `${match[2]}-${String(monthIndex + 1).padStart(2, "0")}-01`;
+};
+
+const toMonthDate = (value?: string | null): string | null => {
+  const fullDate = toFullDate(value);
+  return fullDate && /^\d{4}-\d{2}-\d{2}$/.test(fullDate)
+    ? fullDate.slice(0, 7)
+    : fullDate;
 };
 
 // The CV builder accepts a partial update: only the sections present in the body
@@ -1329,10 +1336,23 @@ export const candidateApi = {
     const response = await aiApi.generateCandidateSkills({
       subject_type: payload.subjectType,
       ...(payload.candidateId ? { subject_id: payload.candidateId } : {}),
+      ...(payload.visitorRegistration
+        ? {
+            visitor_registration: {
+              email: payload.visitorRegistration.email,
+              first_name: payload.visitorRegistration.firstName,
+              last_name: payload.visitorRegistration.lastName,
+              phone_number: payload.visitorRegistration.phoneNumber,
+            },
+          }
+        : {}),
       input_source: "PROFILE",
       career_history: payload.careerHistory.map((entry) => ({
         company_name: entry.companyName,
         position_held: entry.positionHeld,
+        start_date: toMonthDate(entry.startDate),
+        end_date: entry.isCurrentRole ? null : toMonthDate(entry.endDate),
+        is_current: entry.isCurrentRole,
         responsibilities: entry.responsibilities,
         ...(entry.projects ? { projects: entry.projects } : {}),
       })),
