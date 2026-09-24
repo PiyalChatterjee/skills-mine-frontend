@@ -657,6 +657,11 @@
   min-width: 0;
 }
 
+.monthYearField :global(.MuiPickersInputBase-root) {
+  height: 52px;
+  min-height: 52px;
+}
+
 .monthYearField :global(.MuiPickersInputBase-sectionsContainer) {
   flex: 1;
 }
@@ -666,7 +671,8 @@
 }
 
 .fieldControl :global(.MuiInputBase-root) {
-  min-height: 48px;
+  height: 52px;
+  min-height: 52px;
   border-radius: 8px;
   background-color: #fff;
   font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
