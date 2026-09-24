@@ -70,6 +70,7 @@ export const useJobDetailsViewModel = () => {
   const { isJobApplied } = useAppliedJobIds();
   const [applyToJob, { isLoading: isApplying }] = useApplyToJobMutation();
   const [hasJustApplied, setHasJustApplied] = useState(false);
+  const [isApplySuccessModalOpen, setIsApplySuccessModalOpen] = useState(false);
   const [applyError, setApplyError] = useState<string | null>(null);
 
   const { data, isLoading } = useJobs(undefined, true, 50);
@@ -162,6 +163,7 @@ export const useJobDetailsViewModel = () => {
     try {
       await applyToJob({ jobProfileId: effectiveJob.jobProfileId ?? effectiveJob.jobId }).unwrap();
       setHasJustApplied(true);
+      setIsApplySuccessModalOpen(true);
     } catch (error) {
       setApplyError(extractErrorMessage(error, "Unable to submit your application."));
     }
@@ -219,9 +221,12 @@ export const useJobDetailsViewModel = () => {
     handleApply,
     handleBack: () => navigate(backRoute),
     handleBackToLatest: () => navigate(ROUTE_PATHS.latestJobs),
+    handleApplySuccessClose: () => setIsApplySuccessModalOpen(false),
+    handleApplySuccessDashboard: () => navigate(ROUTE_PATHS.candidateDashboard),
     handleToggleSave,
     industry,
     isApplied,
+    isApplySuccessModalOpen,
     isApplying,
     isAuthenticated,
     isInitialLoading: (isLoading || isJobProfileLoading) && !effectiveJob,

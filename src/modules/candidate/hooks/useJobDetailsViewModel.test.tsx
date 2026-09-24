@@ -132,6 +132,7 @@ describe("useJobDetailsViewModel", () => {
       isSaved: true,
       isSaving: false,
       isApplied: false,
+      isApplySuccessModalOpen: false,
       applyButtonLabel: "Apply now",
       footerSaveLabel: "Saved",
       saveAriaLabel: "Unsave Senior Frontend Engineer",
@@ -193,8 +194,34 @@ describe("useJobDetailsViewModel", () => {
 
     expect(mocks.applyToJob).toHaveBeenCalledWith({ jobProfileId: "profile-1" });
     expect(result.current.isApplied).toBe(true);
+    expect(result.current.isApplySuccessModalOpen).toBe(true);
     expect(result.current.applyButtonLabel).toBe("Applied");
     expect(mocks.toggleJobSaved).toHaveBeenCalledWith("profile-1");
+  });
+
+  it("closes the apply success modal without leaving job details", async () => {
+    const { result } = renderHook(() => useJobDetailsViewModel());
+
+    await act(async () => {
+      await result.current.handleApply();
+    });
+
+    act(() => {
+      result.current.handleApplySuccessClose();
+    });
+
+    expect(result.current.isApplySuccessModalOpen).toBe(false);
+    expect(mocks.navigate).not.toHaveBeenCalled();
+  });
+
+  it("navigates to candidate dashboard from the apply success modal", () => {
+    const { result } = renderHook(() => useJobDetailsViewModel());
+
+    act(() => {
+      result.current.handleApplySuccessDashboard();
+    });
+
+    expect(mocks.navigate).toHaveBeenCalledWith("/candidate/dashboard");
   });
 
   it("treats a job as saved when the candidate saved the canonical jobProfileId", () => {

@@ -1,0 +1,116 @@
+.paper:global(.MuiPaper-root) {
+  width: 396px;
+  max-width: calc(100vw - 32px);
+  border-radius: 8px;
+  box-shadow: 2px 4px 10px 0 rgba(3, 71, 140, 0.32);
+  overflow: hidden;
+}
+
+.content:global(.MuiDialogContent-root) {
+  padding: 20px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 24px;
+}
+
+.closeButton:global(.MuiIconButton-root) {
+  align-self: flex-end;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border-radius: 0;
+}
+
+.closeIcon {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+
+.successIconWrap {
+  position: relative;
+  align-self: center;
+  width: 64px;
+  height: 64px;
+}
+
+.successBg {
+  width: 64px;
+  height: 64px;
+  display: block;
+}
+
+.checkIcon {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 22.627px;
+  height: 16.028px;
+  transform: translate(-50%, -50%);
+  display: block;
+}
+
+.title,
+.title:global(.MuiTypography-root) {
+  margin: 0;
+  color: #03478c;
+  font-family: "Red Hat Display", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
+  text-align: center;
+  text-transform: capitalize;
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboardButton,
+.dashboardButton:global(.MuiButton-root):global(.MuiButton-contained) {
+  width: 100%;
+  min-height: 48px;
+  border-radius: 100px;
+  padding: 12px 30px;
+  background: #03478c;
+  color: #ffffff;
+  text-transform: none;
+  box-shadow: none;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
+}
+
+.dashboardButton:global(.MuiButton-root):global(.MuiButton-contained):hover {
+  background: #03478c;
+  box-shadow: none;
+}
+
+.continueButton {
+  align-self: center;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: #2b96d9;
+  cursor: pointer;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
+  text-align: center;
+  text-decoration: underline;
+}
+
+.continueButton:focus-visible {
+  outline: 2px solid #03478c;
+  outline-offset: 3px;
+}
+
+@media (max-width: 480px) {
+  .paper:global(.MuiPaper-root) {
+    width: calc(100vw - 32px);
+  }
+}

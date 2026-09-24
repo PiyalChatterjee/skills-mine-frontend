@@ -10,6 +10,7 @@ import patternHeroLeft from "@/assets/job-details/pattern-hero-left.svg";
 import patternHeroRight from "@/assets/job-details/pattern-hero-right.svg";
 import { GradientPatternHero } from "@/components/hero";
 import { usePageTitle } from "@/hooks/usePageTitle";
+import JobApplySuccessModal from "@/modules/candidate/components/JobApplySuccessModal";
 import { useJobDetailsViewModel } from "@/modules/candidate/hooks/useJobDetailsViewModel";
 import styles from "./JobDetailsPage.module.css";
 
@@ -30,11 +31,14 @@ const JobDetailsPage = () => {
     employmentType,
     footerSaveLabel,
     handleApply,
+    handleApplySuccessClose,
+    handleApplySuccessDashboard,
     handleBack,
     handleBackToLatest,
     handleToggleSave,
     industry,
     isApplied,
+    isApplySuccessModalOpen,
     isApplying,
     isAuthenticated,
     isInitialLoading,
@@ -274,6 +278,12 @@ const JobDetailsPage = () => {
           )}
         </Box>
       </Box>
+
+      <JobApplySuccessModal
+        open={isApplySuccessModalOpen}
+        onBackToDashboard={handleApplySuccessDashboard}
+        onContinueBrowsing={handleApplySuccessClose}
+      />
     </Box>
   );
 };
