@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@/app/auth/AuthContext";
 import { extractErrorMessage } from "@/app/errorUtils";
@@ -143,7 +143,7 @@ export const useJobDetailsViewModel = () => {
     });
   }, [jobProfileId]);
 
-  const handleApply = async () => {
+  const handleApply = useCallback(async () => {
     if (!effectiveJob || isApplied || isApplying) return;
     setApplyError(null);
 
@@ -167,7 +167,7 @@ export const useJobDetailsViewModel = () => {
     } catch (error) {
       setApplyError(extractErrorMessage(error, "Unable to submit your application."));
     }
-  };
+  }, [applyToJob, effectiveJob, isApplied, isApplying, isAuthenticated, navigate, user?.role]);
 
   // Auto-submits the pending application once, after login redirected here with autoApply state.
   const hasAutoAppliedRef = useRef(false);
