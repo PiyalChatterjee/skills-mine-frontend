@@ -195,6 +195,7 @@ export const profileCreationEducationExperienceSchema =
 export const profileFormSchema = z.object({
   ...profileCommonShape,
   phoneNumber: localPhoneNumberSchema,
+  preferredJobTitle: requiredField("Preferred job title"),
   preferredWorkType: z.string(),
   password: z.string(),
 });
