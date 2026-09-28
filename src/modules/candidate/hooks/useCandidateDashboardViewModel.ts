@@ -74,8 +74,8 @@ const getPipelineProgress = (
   pipeline: string[],
 ): number => {
   if (!stage || pipeline.length === 0) return 0;
-  const normalized = stage.toLowerCase();
-  const idx = pipeline.findIndex((pipelineStage) => pipelineStage.toLowerCase() === normalized);
+  const status = getApplicationStatusKey(stage);
+  const idx = pipeline.findIndex((pipelineStage) => getApplicationStatusKey(pipelineStage) === status);
   return idx >= 0 ? idx : 0;
 };
 
@@ -126,7 +126,7 @@ const transformApplicationToDisplay = (
   if (status === "unknown" && app.stage) {
     reportUnknownStage(app.stage);
   }
-  const pipeline = app.pipeline.length > 0 ? app.pipeline : DEFAULT_PIPELINE;
+  const pipeline = DEFAULT_PIPELINE;
 
   return {
     id: app.id,
@@ -136,7 +136,7 @@ const transformApplicationToDisplay = (
     pipelineStages: pipeline.map((stageKey) => ({
       key: stageKey,
       label: getApplicationStatusLabel(stageKey),
-      isActive: stageKey.toLowerCase() === app.stage.toLowerCase(),
+      isActive: getApplicationStatusKey(stageKey) === status,
     })),
     fillPercent: getPipelineFillPercent(app.stage, pipeline),
     message: app.statusMessage || DASHBOARD_APPLICATION_STATUS_CONFIG[status].caption || "",
