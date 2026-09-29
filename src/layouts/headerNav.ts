@@ -5,31 +5,36 @@ export type HeaderNavKey =
   | "exploreJobs"
   | "dashboard"
   | "skillsBuild"
-  | "blog"
+  | "careerSupport"
   | "signIn"
   | "candidateDashboard"
   | "candidateSavedJobPosts"
   | "candidateCvBuilder"
   | "candidateSkillsBuild"
-  | "candidateBlog"
+  | "candidateCareerSupport"
   | "recruiterDashboard"
   | "recruiterLatestOpenings"
   | "recruiterSavedJobPosts"
   | "recruiterCvBuilder"
   | "recruiterSkillsBuild"
-  | "recruiterBlog";
+  | "recruiterCareerSupport";
 
 export type HeaderNavActionId =
   | "savedJobPosts"
   | "cvBuilder"
   | "skillsBuild"
-  | "blog"
   | "latestOpenings";
+
+export type HeaderNavMenuLink = {
+  label: string;
+  href: string;
+};
 
 type HeaderNavDefinition = {
   label: string;
   to?: string;
   href?: string;
+  menuItems?: readonly HeaderNavMenuLink[];
   requiresAuth?: boolean;
   actionId?: HeaderNavActionId;
 };
@@ -39,12 +44,32 @@ export type HeaderNavItem = {
   label: string;
   to?: string;
   href?: string;
+  menuItems?: readonly HeaderNavMenuLink[];
   isActive: boolean;
   requiresAuth?: boolean;
   onClick?: () => void;
 };
 
 export type HeaderNavActionMap = Partial<Record<HeaderNavActionId, () => void>>;
+
+const CAREER_SUPPORT_LINKS: readonly HeaderNavMenuLink[] = [
+  {
+    label: "Career Direction Self-Assessment",
+    href: "https://theskillsmine.com/career-direction-self-assessment/",
+  },
+  {
+    label: "CV Checklist and Sample CV",
+    href: "https://theskillsmine.com/resource-1-cv-checklist-and-sample-cv/",
+  },
+  {
+    label: "Job Opportunity Websites Guide",
+    href: "https://theskillsmine.com/resource-2-learner-opportunity-websites-guide/",
+  },
+  {
+    label: "LinkedIn Profile Checklist and Sample Profile",
+    href: "https://theskillsmine.com/resource-3-linkedin-profile-checklist-and-sample-profile/",
+  },
+];
 
 const HEADER_NAV_DEFINITIONS: Record<HeaderNavKey, HeaderNavDefinition> = {
   exploreJobs: {
@@ -61,9 +86,9 @@ const HEADER_NAV_DEFINITIONS: Record<HeaderNavKey, HeaderNavDefinition> = {
     label: "Skills Build",
     href: "https://skillsbuild.org/",
   },
-  blog: {
-    label: "Blog",
-    href: "https://theskillsmine.com/blog/",
+  careerSupport: {
+    label: "Career Support",
+    menuItems: CAREER_SUPPORT_LINKS,
   },
   signIn: {
     label: "Sign in",
@@ -88,9 +113,9 @@ const HEADER_NAV_DEFINITIONS: Record<HeaderNavKey, HeaderNavDefinition> = {
     label: "Skills Build",
     actionId: "skillsBuild",
   },
-  candidateBlog: {
-    label: "Blog",
-    href: "https://theskillsmine.com/blog/",
+  candidateCareerSupport: {
+    label: "Career Support",
+    menuItems: CAREER_SUPPORT_LINKS,
   },
   recruiterDashboard: {
     label: "Dashboard",
@@ -113,15 +138,15 @@ const HEADER_NAV_DEFINITIONS: Record<HeaderNavKey, HeaderNavDefinition> = {
     label: "Skills Build",
     actionId: "skillsBuild",
   },
-  recruiterBlog: {
-    label: "Blog",
-    href: "https://theskillsmine.com/blog/",
+  recruiterCareerSupport: {
+    label: "Career Support",
+    menuItems: CAREER_SUPPORT_LINKS,
   },
 };
 
 export const PUBLIC_HEADER_NAV_PRESETS = {
-  landing: ["skillsBuild", "blog", "signIn"] as const,
-  discovery: ["skillsBuild", "blog", "signIn"] as const,
+  landing: ["skillsBuild", "careerSupport", "signIn"] as const,
+  discovery: ["skillsBuild", "careerSupport", "signIn"] as const,
 } satisfies Record<string, readonly HeaderNavKey[]>;
 
 const ROLE_HEADER_NAV_PRESETS: Partial<Record<Role, readonly HeaderNavKey[]>> =
@@ -131,7 +156,7 @@ const ROLE_HEADER_NAV_PRESETS: Partial<Record<Role, readonly HeaderNavKey[]>> =
       "candidateSavedJobPosts",
       "candidateCvBuilder",
       "candidateSkillsBuild",
-      "candidateBlog",
+      "candidateCareerSupport",
     ],
     RECRUITER: [
       "recruiterDashboard",
@@ -139,7 +164,7 @@ const ROLE_HEADER_NAV_PRESETS: Partial<Record<Role, readonly HeaderNavKey[]>> =
       "recruiterSavedJobPosts",
       "recruiterCvBuilder",
       "recruiterSkillsBuild",
-      "recruiterBlog",
+      "recruiterCareerSupport",
     ],
   };
 
@@ -170,6 +195,7 @@ export const buildHeaderNavItems = ({
       label: definition.label,
       to: definition.to,
       href: definition.href,
+      menuItems: definition.menuItems,
       isActive: Boolean(definition.to && definition.to === pathname),
       requiresAuth: definition.requiresAuth,
       onClick: definition.actionId ? actions[definition.actionId] : undefined,

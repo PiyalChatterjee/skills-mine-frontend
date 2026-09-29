@@ -60,7 +60,17 @@ export const PublicHeader = ({
     null,
   );
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+  const [navMenuAnchor, setNavMenuAnchor] = useState<{
+    id: string;
+    element: HTMLElement;
+  } | null>(null);
+  const [expandedMobileMenuId, setExpandedMobileMenuId] = useState<
+    string | null
+  >(null);
 
+  const handleNavMenuClose = () => {
+    setNavMenuAnchor(null);
+  };
   const isProfileMenuOpen = Boolean(profileAnchorEl);
   const accessToken = tokens?.accessToken;
   const hasValidAccessToken = accessToken ? !isJwtExpired(accessToken) : false;
@@ -113,6 +123,8 @@ export const PublicHeader = ({
     const handleResize = () => {
       if (window.innerWidth > 900) {
         setIsMobileNavOpen(false);
+      } else {
+        setNavMenuAnchor(null);
       }
     };
 
@@ -155,6 +167,72 @@ export const PublicHeader = ({
                   const itemClassName = item.isActive
                     ? styles.navItemSelected
                     : styles.navItemDefault;
+
+                  if (item.menuItems?.length) {
+                    const menuId = `nav-menu-${item.id}`;
+                    const isMenuOpen = navMenuAnchor?.id === item.id;
+
+                    return (
+                      <Box key={item.id} className={styles.navMenuWrapper}>
+                        <Box
+                          component="button"
+                          type="button"
+                          id={`${menuId}-trigger`}
+                          aria-haspopup="menu"
+                          aria-controls={isMenuOpen ? menuId : undefined}
+                          aria-expanded={isMenuOpen ? "true" : "false"}
+                          onClick={(event: MouseEvent<HTMLButtonElement>) =>
+                            setNavMenuAnchor({
+                              id: item.id,
+                              element: event.currentTarget,
+                            })
+                          }
+                          className={`${styles.navButton} ${styles.navMenuTrigger} ${itemClassName}`}
+                        >
+                          {item.label}
+                          <Box
+                            component="svg"
+                            viewBox="0 0 12 12"
+                            aria-hidden="true"
+                            className={`${styles.navMenuChevron} ${
+                              isMenuOpen ? styles.navMenuChevronOpen : ""
+                            }`}
+                          >
+                            <path d="M2.5 4.5 6 8l3.5-3.5" />
+                          </Box>
+                        </Box>
+                        <Menu
+                          id={menuId}
+                          anchorEl={isMenuOpen ? navMenuAnchor.element : null}
+                          open={isMenuOpen}
+                          onClose={handleNavMenuClose}
+                          anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+                          transformOrigin={{ vertical: "top", horizontal: "left" }}
+                          slotProps={{
+                            paper: { className: styles.navMenuPaper },
+                            list: {
+                              className: styles.navMenuList,
+                              "aria-labelledby": `${menuId}-trigger`,
+                            },
+                          }}
+                        >
+                          {item.menuItems.map((link) => (
+                            <MenuItem
+                              key={link.href}
+                              component="a"
+                              href={link.href}
+                              target="_blank"
+                              rel="noreferrer"
+                              onClick={handleNavMenuClose}
+                              className={styles.navMenuItem}
+                            >
+                              {link.label}
+                            </MenuItem>
+                          ))}
+                        </Menu>
+                      </Box>
+                    );
+                  }
 
                   if (item.to) {
                     const targetPath = item.to;
@@ -215,7 +293,10 @@ export const PublicHeader = ({
                 aria-label={isMobileNavOpen ? "Close navigation menu" : "Open navigation menu"}
                 aria-expanded={isMobileNavOpen ? "true" : undefined}
                 aria-controls="mobile-nav-menu"
-                onClick={() => setIsMobileNavOpen((prev) => !prev)}
+                onClick={() => {
+                  setIsMobileNavOpen((prev) => !prev);
+                  setExpandedMobileMenuId(null);
+                }}
                 className={styles.mobileMenuButton}
               >
                 <Box className={styles.mobileMenuIcon} aria-hidden="true">
@@ -368,6 +449,55 @@ export const PublicHeader = ({
                 const itemClassName = item.isActive
                   ? styles.navItemSelected
                   : styles.navItemDefault;
+
+                if (item.menuItems?.length) {
+                  const subMenuId = `mobile-nav-submenu-${item.id}`;
+                  const isExpanded = expandedMobileMenuId === item.id;
+
+                  return (
+                    <Box key={`mobile-${item.id}`} className={styles.mobileNavGroup}>
+                      <Box
+                        component="button"
+                        type="button"
+                        aria-expanded={isExpanded ? "true" : "false"}
+                        aria-controls={subMenuId}
+                        onClick={() =>
+                          setExpandedMobileMenuId(isExpanded ? null : item.id)
+                        }
+                        className={`${styles.navButton} ${styles.navMenuTrigger} ${itemClassName} ${styles.mobileNavItem}`}
+                      >
+                        {item.label}
+                        <Box
+                          component="svg"
+                          viewBox="0 0 12 12"
+                          aria-hidden="true"
+                          className={`${styles.navMenuChevron} ${
+                            isExpanded ? styles.navMenuChevronOpen : ""
+                          }`}
+                        >
+                          <path d="M2.5 4.5 6 8l3.5-3.5" />
+                        </Box>
+                      </Box>
+                      {isExpanded ? (
+                        <Box id={subMenuId} className={styles.mobileNavSubList}>
+                          {item.menuItems.map((link) => (
+                            <Box
+                              key={`mobile-${link.href}`}
+                              component="a"
+                              href={link.href}
+                              target="_blank"
+                              rel="noreferrer"
+                              onClick={() => setIsMobileNavOpen(false)}
+                              className={`${styles.navItemDefault} ${styles.mobileNavItem} ${styles.mobileNavSubItem}`}
+                            >
+                              {link.label}
+                            </Box>
+                          ))}
+                        </Box>
+                      ) : null}
+                    </Box>
+                  );
+                }
 
                 if (item.to) {
                   const targetPath = item.to;
