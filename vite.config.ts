@@ -96,6 +96,7 @@ export default defineConfig({
       reporter: ['text', 'html'],
       include: [
         // Auth module - component, page, type, and service layers
+        'src/app/auth/AuthContext.tsx',
         'src/modules/auth/components/AuthHero.tsx',
         'src/modules/auth/components/AuthPasswordField.tsx',
         'src/modules/auth/pages/LoginPage.tsx',
@@ -104,7 +105,19 @@ export default defineConfig({
         'src/modules/auth/types/signup.ts',
         // Candidate module - component, hook, and service layers
         'src/modules/candidate/components/ProfileFormFields.tsx',
+        'src/modules/candidate/hooks/useJobDetailsViewModel.ts',
+        'src/modules/candidate/hooks/useJobsFeedViewModel.ts',
         'src/modules/candidate/hooks/useCandidateQueries.ts',
+        'src/modules/candidate/hooks/useProfileCreationWizard.ts',
+        // Public job search and shared job presentation
+        'src/modules/public/hooks/useJobs.ts',
+        'src/modules/public/hooks/useJobsSearch.ts',
+        'src/components/jobs/OpportunityJobCard.tsx',
+        'src/components/jobs/jobPresentation.ts',
+        // Route access and global notifications
+        'src/routes/guards/RoleGuard.tsx',
+        'src/routes/guards/PermissionGuard.tsx',
+        'src/components/NotificationToaster.tsx',
         // CV Builder module - hook and schema layers (with tests)
         'src/modules/cv-builder/hooks/useCvBuilderDone.ts',
         'src/modules/cv-builder/types/cvBuilderSchema.ts',
@@ -113,6 +126,7 @@ export default defineConfig({
         'src/app/auth/tokenStorage.ts',
         'src/app/queryErrorHandler.ts',
         // API services
+        'src/services/api/axios.ts',
         'src/services/api/authApi.ts',
         'src/services/api/candidateApi.ts',
         // Redux - slices and API slice
