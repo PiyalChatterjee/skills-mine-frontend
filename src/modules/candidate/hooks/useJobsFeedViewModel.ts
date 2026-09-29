@@ -83,7 +83,7 @@ export const useJobsFeedViewModel = (mode: JobsFeedMode) => {
   const isLatestMode = !isSavedOnlyMode && !isRecommendedOnlyMode;
   const modeConfig = JOBS_FEED_MODE_CONFIG[mode];
   const recommendedJobIds = useSelector(selectRecommendedJobIds);
-  // Always fetched (not gated to the Saved Jobs page) so isJobSaved is accurate on every feed page.
+  // Always fetch saved jobs so the bookmark state remains accurate on every feed page.
   const savedJobsQuery = useSavedJobsQuery(true);
   const recommendedPositionsQuery = useRecommendedPositionsQuery(isRecommendedOnlyMode);
 

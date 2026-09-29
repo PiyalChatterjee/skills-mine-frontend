@@ -48,6 +48,7 @@ export const OpportunityJobCard = ({
   applicationStatus,
   applicationStatusKey,
 }: OpportunityJobCardProps) => {
+  // Match scores are display data; clamp malformed API values before calculating the ring angle.
   const clampedMatchScore =
     typeof matchScore === "number"
       ? Math.max(0, Math.min(100, Math.round(matchScore)))

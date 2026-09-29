@@ -263,4 +263,34 @@ describe("useJobDetailsViewModel", () => {
     });
     expect(mocks.navigate).toHaveBeenCalledWith("/jobs/latest");
   });
+
+  it("does not submit a duplicate application", async () => {
+    mocks.isJobApplied.mockReturnValue(true);
+
+    const { result } = renderHook(() => useJobDetailsViewModel());
+
+    await act(async () => {
+      await result.current.handleApply();
+    });
+
+    expect(mocks.applyToJob).not.toHaveBeenCalled();
+    expect(result.current.isApplied).toBe(true);
+    expect(result.current.isApplySuccessModalOpen).toBe(false);
+  });
+
+  it("exposes a recoverable error when application submission fails", async () => {
+    mocks.applyToJob.mockReturnValue({
+      unwrap: vi.fn().mockRejectedValue({ message: "Application failed" }),
+    });
+
+    const { result } = renderHook(() => useJobDetailsViewModel());
+
+    await act(async () => {
+      await result.current.handleApply();
+    });
+
+    expect(result.current.applyError).toBe("Application failed");
+    expect(result.current.isApplied).toBe(false);
+    expect(result.current.isApplySuccessModalOpen).toBe(false);
+  });
 });

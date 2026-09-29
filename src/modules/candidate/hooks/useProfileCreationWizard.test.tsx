@@ -160,4 +160,49 @@ describe('useProfileCreationWizard', () => {
       { replace: true },
     )
   })
+
+  it('blocks progression when the current step is invalid', async () => {
+    const { result } = renderHook(() => useProfileCreationWizard())
+
+    await act(async () => {
+      await result.current.handleNext()
+    })
+
+    expect(mocks.mutateAsync).not.toHaveBeenCalled()
+    expect(mocks.navigate).not.toHaveBeenCalled()
+    expect(result.current.currentStepIndex).toBe(0)
+  })
+
+  it('exposes a recoverable error when profile persistence fails', async () => {
+    mocks.mutateAsync.mockRejectedValueOnce({ message: 'Profile save failed' })
+    const { result } = renderHook(() => useProfileCreationWizard())
+
+    act(() => {
+      result.current.form.reset({
+        fullName: 'Jane Doe',
+        email: 'jane@example.com',
+        phoneNumber: '0821234567',
+        alternateEmail: '',
+        alternatePhoneNumber: '',
+        residentialLocation: 'Cape Town',
+        preferredJobTitle: 'Software Engineer',
+        targetedIndustries: 'Technology',
+        preferredLocations: 'Cape Town',
+        employmentType: 'Permanent',
+        availability: 'Immediately',
+        certifications: [{ value: '' }],
+        highestDegreeEarned: '',
+        currentJobTitle: '',
+        currentEmployer: '',
+        totalYearsOfExperience: '',
+      })
+    })
+
+    await act(async () => {
+      await result.current.handleNext()
+    })
+
+    expect(result.current.submitError).toBe('Profile save failed')
+    expect(mocks.navigate).not.toHaveBeenCalled()
+  })
 })

@@ -94,6 +94,7 @@ export const useJobDetailsViewModel = () => {
     return allJobs.find((job) => job.jobId === jobId) ?? stateJob;
   }, [allJobs, jobId, stateJob]);
 
+  // Job routes may start with a reference number; resolve the canonical profile id before detail/apply requests.
   const knownJobProfileId = resolvedJob?.jobProfileId;
   const { data: jobById } = useGetJobByIdQuery(jobId ?? "", {
     skip: !jobId || Boolean(knownJobProfileId),
@@ -117,6 +118,7 @@ export const useJobDetailsViewModel = () => {
   }, [jobById, jobProfile, resolvedJob, stateJob]);
 
   const effectiveJob = resolvedJob ?? jobById;
+  // Saved-job state uses the same canonical identifier as save, remove, and apply mutations.
   const savedJobKey = effectiveJob ? getJobOperationId(effectiveJob) : "";
   const savedJobKeysFromCollection = useMemo(
     () =>

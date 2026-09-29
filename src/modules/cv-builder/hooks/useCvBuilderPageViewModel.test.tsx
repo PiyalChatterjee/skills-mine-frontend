@@ -388,6 +388,26 @@ describe("useCvBuilderPageViewModel", () => {
     );
   });
 
+  it("reports a recoverable error when the parsed resume upload fails", async () => {
+    mocks.parseResume.mockResolvedValue({
+      personal_details: { first_name: "Ben", last_name: "Hur" },
+    });
+    mocks.uploadDocument.mockReturnValue({
+      unwrap: vi.fn().mockRejectedValue(new Error("Upload failed")),
+    });
+
+    const { result } = renderHook(() => useCvBuilderPageViewModel());
+
+    await act(async () => {
+      await result.current.handleUploadDone();
+    });
+
+    expect(result.current.uploadError).toBe(
+      "We could not process your CV. Please try again.",
+    );
+    expect(mocks.openReviewFlowBlank).not.toHaveBeenCalled();
+  });
+
   it("skips upload API for guest applications and opens blank review", async () => {
     mocks.useAuth.mockReturnValue({ user: undefined });
     mocks.getGuestApplicationDrafts.mockReturnValue([

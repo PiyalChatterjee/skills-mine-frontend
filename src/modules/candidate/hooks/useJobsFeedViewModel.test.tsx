@@ -204,4 +204,41 @@ describe("useJobsFeedViewModel", () => {
       state: { job: result.current.jobCards[0].job, from: "/jobs/latest" },
     });
   });
+
+  it("exposes an empty state when the latest jobs query has no results", () => {
+    mocks.useJobsSearch.mockReturnValue({
+      allJobs: [],
+      visibleJobs: [],
+      isJobsError: false,
+      jobsError: undefined,
+      isJobsLoading: false,
+      hasNextPage: false,
+      isFetchingNextPage: false,
+      fetchNextPage: mocks.fetchNextPage,
+    });
+
+    const { result } = renderHook(() => useJobsFeedViewModel("latest"));
+
+    expect(result.current.hasJobs).toBe(false);
+    expect(result.current.emptyMessage).toBe("No jobs available right now.");
+    expect(result.current.isError).toBe(false);
+  });
+
+  it("preserves the jobs API error for an accessible page-level error state", () => {
+    mocks.useJobsSearch.mockReturnValue({
+      allJobs: [],
+      visibleJobs: [],
+      isJobsError: true,
+      jobsError: { message: "Jobs service unavailable" },
+      isJobsLoading: false,
+      hasNextPage: false,
+      isFetchingNextPage: false,
+      fetchNextPage: mocks.fetchNextPage,
+    });
+
+    const { result } = renderHook(() => useJobsFeedViewModel("latest"));
+
+    expect(result.current.isError).toBe(true);
+    expect(result.current.loadErrorMessage).toBe("Jobs service unavailable");
+  });
 });

@@ -386,6 +386,45 @@ describe('useCvBuilderDone', () => {
     })
   })
 
+  it('dispatches an error and stays in the flow when visitor application fails', async () => {
+    mockCreateVisitorProfile.mockRejectedValue(new Error('Visitor request failed'))
+    const guestApplicationDraft = createGuestApplicationDraft({
+      jobId: 'j001',
+      title: 'Senior Engineer',
+      company: 'SkillsMine',
+      employmentType: 'Permanent',
+      workType: 'Hybrid',
+      salaryRange: 'Negotiable',
+      responsibilities: [],
+      status: 'Open',
+      applicationCount: 0,
+      postedDate: '2026-01-01',
+    })
+    const store = makeTestStore()
+    const { result } = renderHook(
+      () =>
+        useCvBuilderDone({
+          getFormValues: () => defaultFormValues,
+          selectedLanguageEntries: ['English'],
+          buildMyCvExists: false,
+          guestApplicationDraft,
+        }),
+      { wrapper: makeWrapper(store) },
+    )
+
+    await act(async () => {
+      await result.current.handleDone()
+    })
+
+    expect(mockApplyToJob).not.toHaveBeenCalled()
+    expect(mockNavigate).not.toHaveBeenCalled()
+    expect(store.getState().notification.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ title: 'Application failed', level: 'error' }),
+      ]),
+    )
+  })
+
   it('calls update mutation when buildMyCvExists is true', async () => {
     mockUpdateBuildMyCv.mockReturnValue({
       unwrap: () => Promise.resolve({ ...savedCvResult, lastModified: '2024-06-01' }),
