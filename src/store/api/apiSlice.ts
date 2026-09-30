@@ -1,5 +1,6 @@
 import { createApi, fakeBaseQuery } from "@reduxjs/toolkit/query/react";
 import { candidateApi, industryApi, jobsApi, locationApi } from "@/services/api";
+import type { JobsSearchFilters } from "@/services/api/jobsApi";
 import type {
   CandidateDashboardData,
   CandidateDashboardQuery,
@@ -37,6 +38,7 @@ type JobsListArgs = {
   searchQuery?: string;
   page: number;
   pageSize: number;
+  filters?: JobsSearchFilters;
 };
 
 type CandidateProfileArgs = { candidateId: string; userId?: string };
@@ -154,12 +156,12 @@ export const apiSlice = createApi({
       ],
     }),
     listJobsPage: build.query<JobsResponse, JobsListArgs>({
-      queryFn: ({ searchQuery, page, pageSize }) =>
-        withMappedApiError(() => jobsApi.list(searchQuery, page, pageSize)),
+      queryFn: ({ searchQuery, page, pageSize, filters }) =>
+        withMappedApiError(() => jobsApi.list(searchQuery, page, pageSize, "POSTED", filters)),
       providesTags: (_result, _error, args) => [
         {
           type: "Jobs",
-          id: `${args.searchQuery ?? ""}:${args.page}:${args.pageSize}`,
+          id: `${args.searchQuery ?? ""}:${JSON.stringify(args.filters ?? {})}:${args.page}:${args.pageSize}`,
         },
       ],
     }),
@@ -329,6 +331,7 @@ export const {
   useGetCandidateLandingQuery,
   useGetCandidateStatisticsQuery,
   useUpdateCandidateProfileMutation,
+  useListJobsPageQuery,
   useLazyListJobsPageQuery,
   useGetJobProfileQuery,
   useGetJobByIdQuery,

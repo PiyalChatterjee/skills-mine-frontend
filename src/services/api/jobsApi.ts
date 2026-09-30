@@ -1,6 +1,7 @@
 import { mandateApiClient } from "@/services/api/axios";
 import { apiEndpoints, resolveEndpoint } from "@/services/api/endpoints";
 import { formatEnumLabel } from "@/app/formatEnumLabel";
+import { resolveIndustryIds } from "@/services/api/industryApi";
 import type {
   Job,
   JobsResponse,
@@ -43,6 +44,13 @@ type JobProfileDetail = JobProfileSummary & {
   applicantCount: number | null;
 };
 
+export type JobsSearchFilters = {
+  industries?: string[];
+  locations?: string[];
+  datePosted?: string;
+  jobTypes?: string[];
+};
+
 const toJob = (job: JobProfileSummary): Job => ({
   jobId: job.jobProfileId,
   jobProfileId: job.jobProfileId,
@@ -76,14 +84,21 @@ export const jobsApi = {
     page = 1,
     limit = 10,
     status: string = "POSTED",
+    filters: JobsSearchFilters = {},
   ): Promise<JobsResponse> {
+    const industryIds = await resolveIndustryIds(filters.industries ?? []);
     const response = await mandateApiClient.get<JobProfilePage>(apiEndpoints.jobs.list, {
       params: {
         status,
         ...(q ? { [apiEndpoints.jobs.listQueryParam]: q } : {}),
+        ...(industryIds.length > 0 ? { industryId: industryIds } : {}),
+        ...(filters.locations?.length ? { locationText: filters.locations } : {}),
+        ...(filters.datePosted ? { datePosted: filters.datePosted } : {}),
+        ...(filters.jobTypes?.length ? { jobType: filters.jobTypes } : {}),
         [apiEndpoints.jobs.listPageParam]: Math.max(0, page - 1),
         [apiEndpoints.jobs.listLimitParam]: limit,
       },
+      paramsSerializer: { indexes: null },
     });
 
     return toJobsResponse(response.data);

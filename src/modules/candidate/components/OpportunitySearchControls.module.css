@@ -1,0 +1,133 @@
+.controls {
+  width: min(815px, 100%);
+}
+
+.title,
+.title:global(.MuiTypography-root) {
+  margin: 0 0 16px;
+  color: #03478c;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
+}
+
+.searchField {
+  height: 48px;
+  border: 1px solid #b0b4b8;
+  border-radius: 100px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 20px;
+  background: #ffffff;
+}
+
+.searchInput:global(.MuiInputBase-root) {
+  flex: 1;
+  min-width: 0;
+  color: #2a3132;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
+}
+
+.searchInput:global(.MuiInputBase-root) :global(input)::placeholder {
+  color: #5a5e63;
+  opacity: 1;
+}
+
+.searchIconButton:global(.MuiIconButton-root) {
+  width: 32px;
+  height: 32px;
+  margin-right: 7px;
+  padding: 0;
+  border: 1px solid #e1e3e6;
+  border-radius: 100px;
+  background: #ffffff;
+}
+
+.searchIconButton:global(.MuiIconButton-root):hover {
+  background: #ffffff;
+}
+
+.searchIcon {
+  width: 20px;
+  height: 20px;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.filterSelect:global(.MuiInputBase-root) {
+  height: 48px;
+  border: 1px solid #03478c;
+  border-radius: 100px;
+  color: #03478c;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
+}
+
+.filterSelect :global(.MuiSelect-select) {
+  min-height: 0;
+  padding: 11px 50px 11px 24px;
+  color: inherit;
+}
+
+.filterSelect :global(.MuiOutlinedInput-notchedOutline) {
+  border: 0;
+}
+
+.filterSelect:global(.Mui-focused),
+.searchIconButton:focus-visible {
+  outline: 2px solid #32abbf;
+  outline-offset: 2px;
+}
+
+.filterArrow {
+  width: 16px;
+  height: 16px;
+}
+
+.heroControls {
+  width: min(721px, 100%);
+}
+
+.heroControls .title,
+.heroControls .title:global(.MuiTypography-root) {
+  margin-bottom: 19px;
+  color: #ffffff;
+}
+
+.heroControls .filters {
+  margin-top: 24px;
+}
+
+.heroFilterSelect:global(.MuiInputBase-root) {
+  border-color: #ffffff;
+  color: #ffffff;
+}
+
+.heroFilterSelect :global(.MuiSelect-icon) {
+  filter: brightness(0) invert(1);
+}
+
+@media (max-width: 700px) {
+  .title,
+  .title:global(.MuiTypography-root) {
+    font-size: 26px;
+  }
+
+  .filterSelect :global(.MuiSelect-select) {
+    padding-inline: 18px 42px;
+  }
+}
