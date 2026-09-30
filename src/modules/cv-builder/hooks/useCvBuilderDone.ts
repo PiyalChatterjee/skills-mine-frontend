@@ -69,8 +69,9 @@ const buildResumeFileName = (
   firstName: string,
   lastName: string,
   roleLabel: string,
+  extension: "pdf" | "docx" = "pdf",
 ): string =>
-  `${sanitizeFileNamePart(firstName)}_${sanitizeFileNamePart(lastName)}_${roleLabel}_${formatFileNameTimestamp(new Date())}.pdf`;
+  `${sanitizeFileNamePart(firstName)}_${sanitizeFileNamePart(lastName)}_${roleLabel}_${formatFileNameTimestamp(new Date())}.${extension}`;
 
 const monthNames = [
   "January",
@@ -340,19 +341,20 @@ export const useCvBuilderDone = ({
       return;
     }
 
+    const payloadText = JSON.stringify(payload, null, 2);
+    const firstName = payload.personalDetails?.firstName ?? "";
+    const lastName = payload.personalDetails?.lastName ?? "";
+
+    // ── PDF generation + upload (required) ───────────────────────────────────
     let pdfBlob: Blob;
-    let fileName: string;
+    let pdfFileName: string;
 
     try {
       const { generateCvPdfBlobFromText } = await import(
         "../utils/downloadCvPdf"
       );
-      pdfBlob = await generateCvPdfBlobFromText(JSON.stringify(payload, null, 2));
-      fileName = buildResumeFileName(
-        payload.personalDetails?.firstName ?? "",
-        payload.personalDetails?.lastName ?? "",
-        roleLabel,
-      );
+      pdfBlob = await generateCvPdfBlobFromText(payloadText);
+      pdfFileName = buildResumeFileName(firstName, lastName, roleLabel, "pdf");
     } catch {
       dispatch(
         pushNotification({
@@ -368,7 +370,7 @@ export const useCvBuilderDone = ({
       await triggerResumeUpload({
         candidateId,
         file: pdfBlob,
-        fileName,
+        fileName: pdfFileName,
       }).unwrap();
     } catch {
       dispatch(
@@ -379,6 +381,29 @@ export const useCvBuilderDone = ({
         }),
       );
       return;
+    }
+
+    // ── DOCX generation + upload (best-effort — does not block save) ─────────
+    try {
+      const [{ generateCvDocxBlob }, headerImageModule] = await Promise.all([
+        import("../utils/generateCvDocx"),
+        import("@/assets/cv-builder/skills-mine-cv-hero-img.png"),
+      ]);
+      const docxBlob = await generateCvDocxBlob(payloadText, headerImageModule.default);
+      const docxFileName = buildResumeFileName(firstName, lastName, roleLabel, "docx");
+      await triggerResumeUpload({
+        candidateId,
+        file: docxBlob,
+        fileName: docxFileName,
+      }).unwrap();
+    } catch {
+      dispatch(
+        pushNotification({
+          title: "Word document upload skipped",
+          message: "Your CV was saved as PDF. The Word copy could not be generated.",
+          level: "info",
+        }),
+      );
     }
 
     try {

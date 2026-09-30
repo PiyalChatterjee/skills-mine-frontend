@@ -51,7 +51,7 @@ export const extractResumeText = async (file: File): Promise<string> => {
   const text =
     extension === "pdf"
       ? await extractPdfText(file)
-      : extension === "docx"
+      : extension === "docx" || extension === "doc"
         ? await extractDocxText(file)
         : file.type.startsWith("text/")
           ? await file.text()

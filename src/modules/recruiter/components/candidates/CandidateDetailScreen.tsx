@@ -471,12 +471,23 @@ export const CandidateDetailScreen = () => {
               documents.map((doc) => {
                 const displayName = doc.title || doc.fileName
 
+                const isWordDocument =
+                  doc.mediaType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+                  doc.mediaType === 'application/msword' ||
+                  /\.(docx?)\s*$/i.test(doc.fileName)
+
                 const openDocument = (forDownload: boolean) => {
                   recruiterCandidatesApi
                     .fetchDocumentPresignedUrl(doc.documentId, forDownload ? 'attachment' : 'inline')
                     .then((presignedUrl) => {
                       const a = document.createElement('a')
-                      a.href = presignedUrl
+                      // For Word files opened as preview, route through Microsoft Office Online
+                      // viewer so the browser can render the document instead of downloading it.
+                      if (!forDownload && isWordDocument) {
+                        a.href = `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(presignedUrl)}`
+                      } else {
+                        a.href = presignedUrl
+                      }
                       if (forDownload) {
                         a.download = displayName
                       } else {

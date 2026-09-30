@@ -18,7 +18,7 @@ type CvBuilderUploadModalProps = {
 };
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
-const ACCEPTED_EXTENSIONS = ["pdf", "doc", "docx"];
+const ACCEPTED_EXTENSIONS = ["pdf", "doc", "docx"] as const;
 
 const CvBuilderUploadModal = ({
   selectedFile,
@@ -37,8 +37,8 @@ const CvBuilderUploadModal = ({
   const selectFile = (file: File | undefined) => {
     if (!file) return;
     const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
-    if (!ACCEPTED_EXTENSIONS.includes(extension)) {
-      setError("Only PDF and DOC/DOCX files are accepted.");
+    if (!ACCEPTED_EXTENSIONS.includes(extension as never)) {
+      setError("Only PDF, DOC, and DOCX files are accepted.");
       return;
     }
     if (file.size > MAX_FILE_SIZE) {
@@ -96,7 +96,7 @@ const CvBuilderUploadModal = ({
               onDragLeave={() => setDragOver(false)}
             >
               <Typography>Choose a file or drag and drop it here</Typography>
-              <Typography>PDF and DOC formats only, up to 5mb</Typography>
+              <Typography>PDF, DOC and DOCX formats only, up to 5 MB</Typography>
               <ButtonBase className={styles.uploadBrowseButton} onClick={onBrowse} disableRipple>
                 Browse file
               </ButtonBase>

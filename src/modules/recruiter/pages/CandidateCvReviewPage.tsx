@@ -107,7 +107,7 @@ const CandidateCvReviewInner = ({ candidateId }: { candidateId: string }) => {
   const handleSave = async () => {
     setSaving(true)
     try {
-      // Build the SaveBuildMyCvRequest once — used for both the API save and PDF generation
+      // Build the SaveBuildMyCvRequest once — used for both the API save and PDF/DOCX generation
       const cvRequest = buildBuildMyCvRequest({
         formValues: form.getValues(),
         selectedLanguageEntries,
@@ -116,25 +116,52 @@ const CandidateCvReviewInner = ({ candidateId }: { candidateId: string }) => {
       // 1. Persist the structured CV data
       await recruiterCandidatesApi.saveCandidateCvBuild(candidateId, cvRequest)
 
-      // 2. Generate a PDF and upload it as a candidate document
-      const { generateCvPdfBlobFromText } = await import(
-        '@/modules/cv-builder/utils/downloadCvPdf'
-      )
-      const pdfBlob = await generateCvPdfBlobFromText(JSON.stringify(cvRequest, null, 2))
+      const payloadText = JSON.stringify(cvRequest, null, 2)
       const pd = cvRequest.personalDetails
       const sanitize = (v: string) => v.trim().replace(/[^a-zA-Z0-9]+/g, '').toLowerCase() || 'candidate'
       const pad = (n: number) => String(n).padStart(2, '0')
       const now = new Date()
       const timestamp = `${pad(now.getUTCMonth() + 1)}${pad(now.getUTCDate())}${now.getUTCFullYear()}${pad(now.getUTCHours())}${pad(now.getUTCMinutes())}${pad(now.getUTCSeconds())}`
-      const fileName = `${sanitize(pd?.firstName ?? '')}${sanitize(pd?.lastName ?? '')}_recruiter_${timestamp}.pdf`
-      const pdfFile = new File([pdfBlob], fileName, { type: 'application/pdf' })
+      const baseName = `${sanitize(pd?.firstName ?? '')}${sanitize(pd?.lastName ?? '')}_recruiter_${timestamp}`
+
+      // 2. Generate PDF and upload it as a candidate document (required)
+      const { generateCvPdfBlobFromText } = await import(
+        '@/modules/cv-builder/utils/downloadCvPdf'
+      )
+      const pdfBlob = await generateCvPdfBlobFromText(payloadText)
+      const pdfFileName = `${baseName}.pdf`
+      const pdfFile = new File([pdfBlob], pdfFileName, { type: 'application/pdf' })
       await recruiterCandidatesApi.uploadDocument({
         file:         pdfFile,
         ownerType:    'CANDIDATE',
         ownerId:      candidateId,
         documentType: 'RESUME',
-        title:        fileName,
+        title:        pdfFileName,
       })
+
+      // 3. Generate DOCX and upload it alongside the PDF (best-effort)
+      try {
+        const [{ generateCvDocxBlob }, headerImageModule] = await Promise.all([
+          import('@/modules/cv-builder/utils/generateCvDocx'),
+          import('@/assets/cv-builder/skills-mine-cv-hero-img.png'),
+        ])
+        const docxBlob = await generateCvDocxBlob(payloadText, headerImageModule.default)
+        const docxFileName = `${baseName}.docx`
+        const docxFile = new File(
+          [docxBlob],
+          docxFileName,
+          { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' },
+        )
+        await recruiterCandidatesApi.uploadDocument({
+          file:         docxFile,
+          ownerType:    'CANDIDATE',
+          ownerId:      candidateId,
+          documentType: 'RESUME',
+          title:        docxFileName,
+        })
+      } catch {
+        // DOCX failure is non-fatal — PDF was already saved successfully
+      }
 
       goToCandidate()
     } finally {

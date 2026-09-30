@@ -319,7 +319,7 @@ export const useCvBuilderPageViewModel = () => {
       setUploadError(
         hasStartedParsing
           ? "We could not process your CV. Please try again."
-          : "We could not read your CV. Please use a text-based PDF or DOCX file and try again.",
+          : "We could not read your CV. Please use a text-based PDF, DOC, or DOCX file and try again.",
       );
     } finally {
       setIsReadingResume(false);
