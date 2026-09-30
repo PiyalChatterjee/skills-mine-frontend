@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Box, CircularProgress, IconButton, Typography } from "@mui/material";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useAuth } from "@/app/auth/AuthContext";
 import patternLeft from "@/assets/landing-page/pattern-two.svg";
 import patternRight from "@/assets/landing-page/pattern-one.svg";
 import paginationArrow from "@/assets/opportunities/figma-pagination-next.svg";
@@ -9,7 +10,9 @@ import { OpportunitySearchControls } from "@/modules/candidate/components/Opport
 import { datePostedOptions, jobTypeOptions } from "@/modules/candidate/hooks/useOpportunitySearchModalState";
 import { useIndustryOptions } from "@/modules/candidate/hooks/useIndustryOptions";
 import { useLocationOptions } from "@/modules/candidate/hooks/useLocationOptions";
+import { useOptimisticSaveJob } from "@/modules/candidate/hooks/useOptimisticSaveJob";
 import { PROFILE_SELECT_OPTIONS } from "@/modules/candidate/pages/profileForm.config";
+import { getJobOperationId } from "@/modules/candidate/utils/jobIdentifier";
 import { buildJobSearchParams, parseJobSearchParams, toJobsSearchFilters, type JobSearchQuery } from "@/modules/candidate/jobSearchParams";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import { useListJobsPageQuery } from "@/store/api/apiSlice";
@@ -59,6 +62,8 @@ const SearchHero = ({
 
 const JobSearchResultsPage = () => {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+  const { isJobSaved, isJobSaving, toggleJobSaved } = useOptimisticSaveJob();
   const [searchParams, setSearchParams] = useSearchParams();
   const query = useMemo(() => parseJobSearchParams(searchParams), [searchParams]);
   const industryOptions = toOptions(useIndustryOptions(PROFILE_SELECT_OPTIONS.targetedIndustries));
@@ -107,18 +112,27 @@ const JobSearchResultsPage = () => {
           <Typography className={styles.feedback}>No opportunities match your search.</Typography>
         ) : (
           <Box className={styles.cards}>
-            {jobs.map((job) => (
-              <OpportunityJobCard
-                key={job.jobId}
-                className={styles.resultCard}
-                title={job.title}
-                description={job.description ?? ""}
-                tags={getJobTags(job)}
-                actionLabel="View"
-                onAction={() => viewJob(job)}
-                showSaveButton={false}
-              />
-            ))}
+            {jobs.map((job) => {
+              const operationId = getJobOperationId(job);
+              const saved = isJobSaved(operationId);
+
+              return (
+                <OpportunityJobCard
+                  key={job.jobId}
+                  className={styles.resultCard}
+                  title={job.title}
+                  description={job.description ?? ""}
+                  tags={getJobTags(job)}
+                  actionLabel="View"
+                  onAction={() => viewJob(job)}
+                  showSaveButton={isAuthenticated}
+                  isSaved={saved}
+                  isSaving={isJobSaving(operationId)}
+                  onToggleSave={() => void toggleJobSaved(operationId)}
+                  saveLabel={saved ? `Unsave ${job.title}` : `Save ${job.title}`}
+                />
+              );
+            })}
           </Box>
         )}
 
