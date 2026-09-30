@@ -27,9 +27,13 @@ const CvBuilderSkillsForm = ({ skillsFieldArray }: CvBuilderSkillsFormProps) => 
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editingDraft, setEditingDraft] = useState("");
   const [showAllSkills, setShowAllSkills] = useState(false);
-  const formError = (
-    errors.skills as { root?: { message?: string } } | undefined
-  )?.root?.message;
+  // zodResolver reports a whole-array refine (no per-item path) directly on
+  // `errors.skills.message`; `.root.message` only applies to useFieldArray's
+  // own built-in array errors, so check both to be safe.
+  const skillsError = errors.skills as
+    | { message?: string; root?: { message?: string } }
+    | undefined;
+  const formError = skillsError?.message ?? skillsError?.root?.message;
 
   const handleAddSkill = () => {
     const name = skillDraft.trim();
@@ -64,15 +68,16 @@ const CvBuilderSkillsForm = ({ skillsFieldArray }: CvBuilderSkillsFormProps) => 
 
   return (
     <CvBuilderFormPanel>
-      {formError && (
-        <Typography component="p" className={styles.skillsError}>
-          {formError}
-        </Typography>
-      )}
+      <Box data-field="skills">
+        {formError && (
+          <Typography component="p" className={styles.skillsError}>
+            {formError}
+          </Typography>
+        )}
 
-      <Typography className={styles.skillsSubHeading}>
-        List Your Skills
-      </Typography>
+        <Typography className={styles.skillsSubHeading}>
+          List Your Skills
+        </Typography>
 
       <Box className={styles.skillsList}>
         <Box className={styles.skillEntryRow}>
@@ -157,6 +162,7 @@ const CvBuilderSkillsForm = ({ skillsFieldArray }: CvBuilderSkillsFormProps) => 
               : `More (${populatedFields.length - SKILLS_COLLAPSE_LIMIT})`}
           </Button>
         ) : null}
+      </Box>
       </Box>
     </CvBuilderFormPanel>
   );

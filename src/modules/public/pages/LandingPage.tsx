@@ -87,6 +87,8 @@ const LandingPage = () => {
     () => location.state as { visitorId?: string; matchScore?: number } | null,
   );
   const { visitorId, matchScore } = appliedJobState ?? {};
+  const [isApplicationSubmittedDismissed, setIsApplicationSubmittedDismissed] =
+    useState(false);
   const [activeHeroMode] = useState<HeroMode>("findJob");
   const {
     inputValue: searchInputValue,
@@ -166,6 +168,7 @@ const LandingPage = () => {
   };
 
   const handleDeclineKeepCvOnFile = () => {
+    setIsApplicationSubmittedDismissed(true);
     dispatch(
       pushNotification({
         title: "No problem",
@@ -200,7 +203,7 @@ const LandingPage = () => {
         />
 
         <Box className={styles.heroInner}>
-          {visitorId ? (
+          {visitorId && !isApplicationSubmittedDismissed ? (
             <>
               <Box className={styles.applicationSubmittedRow}>
                 <Box

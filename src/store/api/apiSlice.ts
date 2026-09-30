@@ -49,12 +49,18 @@ type CreateSimpleProfileArgs = {
   candidateId: string;
   payload: SimpleCandidateProfileInput;
 };
-type UploadCvResumeArgs = { candidateId: string; file: Blob; fileName: string };
+type UploadCvResumeArgs = {
+  candidateId: string;
+  file: Blob;
+  fileName: string;
+  ownerType?: "CANDIDATE" | "VISITOR";
+};
 type UploadDocumentArgs = {
   candidateId: string;
   file: Blob;
   fileName: string;
   documentType: string;
+  ownerType?: "CANDIDATE" | "VISITOR";
 };
 
 type UpdateCandidateProfileArgs = {
@@ -287,22 +293,28 @@ export const apiSlice = createApi({
       ResumeDocumentUploadResult,
       UploadCvResumeArgs
     >({
-      queryFn: ({ candidateId, file, fileName }) =>
+      queryFn: ({ candidateId, file, fileName, ownerType }) =>
         withMappedApiError(() =>
-          candidateApi.uploadResumeDocument(candidateId, file, fileName),
+          candidateApi.uploadResumeDocument(
+            candidateId,
+            file,
+            fileName,
+            ownerType,
+          ),
         ),
     }),
     uploadDocument: build.mutation<
       ResumeDocumentUploadResult,
       UploadDocumentArgs
     >({
-      queryFn: ({ candidateId, file, fileName, documentType }) =>
+      queryFn: ({ candidateId, file, fileName, documentType, ownerType }) =>
         withMappedApiError(() =>
           candidateApi.uploadDocument(
             candidateId,
             file,
             fileName,
             documentType,
+            ownerType,
           ),
         ),
     }),

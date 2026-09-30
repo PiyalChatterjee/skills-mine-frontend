@@ -1449,8 +1449,9 @@ export const candidateApi = {
     candidateId: string,
     file: Blob,
     fileName: string,
+    ownerType: "CANDIDATE" | "VISITOR" = "CANDIDATE",
   ): Promise<ResumeDocumentUploadResult> {
-    return this.uploadDocument(candidateId, file, fileName, "RESUME");
+    return this.uploadDocument(candidateId, file, fileName, "RESUME", ownerType);
   },
 
   async uploadDocument(
@@ -1458,10 +1459,11 @@ export const candidateApi = {
     file: Blob,
     fileName: string,
     documentType = "RESUME",
+    ownerType: "CANDIDATE" | "VISITOR" = "CANDIDATE",
   ): Promise<ResumeDocumentUploadResult> {
     const formData = new FormData();
     formData.append("file", file, fileName);
-    formData.append("owner_type", "CANDIDATE"); // can be visitor if the user has not logged in and applying for a job
+    formData.append("owner_type", ownerType);
     formData.append("owner_id", candidateId);
     formData.append("document_type", documentType);
     formData.append("title", fileName);

@@ -2,7 +2,7 @@ import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  cvBuilderSchema,
+  createCvBuilderSchema,
   personalDetailsSchema,
   careerHistoryEntrySchema,
   tertiaryEntrySchema,
@@ -175,6 +175,7 @@ const useCvBuilder = (
   prefillData?: CvBuilderPrefillData,
   forceApply = false,
   initialView: CvBuilderView = "launcher",
+  isVisitor = false,
 ) => {
   const uploadInputRef = useRef<HTMLInputElement | null>(null);
   const [activeView, setActiveView] = useState<CvBuilderView>(initialView);
@@ -184,7 +185,7 @@ const useCvBuilder = (
   );
 
   const form = useForm<CvBuilderFormValues>({
-    resolver: zodResolver(cvBuilderSchema) as never,
+    resolver: zodResolver(createCvBuilderSchema(isVisitor)) as never,
     defaultValues: DEFAULT_FORM_VALUES,
     // onBlur avoids re-running the (large, nested) schema on every keystroke;
     // reValidateMode still clears/updates errors immediately once a field is fixed.

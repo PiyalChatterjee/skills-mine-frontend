@@ -234,6 +234,8 @@ export const useCvBuilderPageViewModel = () => {
   } = useCvBuilder(
     cvBuilderPrefillData,
     buildMyCvLoaded && Boolean(buildMyCvData),
+    undefined,
+    isGuestApplication,
   );
   const hasFormChanges = form.formState.isDirty;
 

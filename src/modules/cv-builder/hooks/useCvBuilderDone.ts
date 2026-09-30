@@ -296,6 +296,37 @@ export const useCvBuilderDone = ({
           throw new Error("Visitor profile creation did not return a visitor id.");
         }
 
+        // Generate + upload the CV PDF against the newly created visitor record,
+        // matching what happens for logged-in candidates.
+        try {
+          const { generateCvPdfBlobFromText } = await import(
+            "../utils/downloadCvPdf"
+          );
+          const payloadText = JSON.stringify(payload, null, 2);
+          const pdfBlob = await generateCvPdfBlobFromText(payloadText);
+          const pdfFileName = buildResumeFileName(
+            payload.personalDetails?.firstName ?? "",
+            payload.personalDetails?.lastName ?? "",
+            "visitor",
+            "pdf",
+          );
+          await triggerResumeUpload({
+            candidateId: visitorId,
+            file: pdfBlob,
+            fileName: pdfFileName,
+            ownerType: "VISITOR",
+          }).unwrap();
+        } catch {
+          // CV upload failure should not block the application submission.
+          dispatch(
+            pushNotification({
+              title: "CV upload skipped",
+              message: "Your application was submitted, but we could not attach your CV PDF.",
+              level: "info",
+            }),
+          );
+        }
+
         const application = await visitorApi.applyToJob({
           visitorId,
           jobProfileId:

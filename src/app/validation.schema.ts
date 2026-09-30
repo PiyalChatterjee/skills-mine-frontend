@@ -232,51 +232,83 @@ function careerDateToComparable(value: string): number | null {
   return Number(match[2]) * 12 + monthIndex;
 }
 
-export const personalDetailsSchema = z
-  .object({
-    fullName: z
-      .string()
-      .refine((value) => value.trim().length > 0, {
-        message: "Full name is required",
-      })
-      .refine(
-        (value) => !value.trim() || /^[a-zA-Z0-9 ]+$/.test(value.trim()),
-        {
-          message: "Full name must be alphanumeric",
-        },
-      ),
-    email: optionalEmailSchema.default(""),
-    phoneNumber: optionalLocalPhoneNumberSchema.default(""),
-    race: z.string().min(1, "Race is required"),
-    gender: z.string().min(1, "Gender is required"),
-    disabilityStatus: z.string().min(1, "Disability status is required"),
-    nationality: z.string().refine((value) => value.trim().length > 0, {
-      message: "Nationality is required",
-    }),
-    residentialLocation: z.string().min(1, "Residential location is required"),
-    currentCompany: z.string(),
-    currentPosition: z.string(),
-    noticePeriod: z.string(),
-  })
-  .superRefine((data, ctx) => {
-    if (data.currentCompany.trim()) {
-      if (!data.currentPosition.trim()) {
-        ctx.addIssue({
-          code: "custom",
-          message:
-            "Current position is required when current company is provided",
-          path: ["currentPosition"],
-        });
+// isVisitor: the guest/visitor CV-apply flow additionally requires email,
+// phone number, and notice period upfront (candidates only need these
+// conditionally, once a current company is provided).
+export const createPersonalDetailsSchema = (isVisitor = false) =>
+  z
+    .object({
+      fullName: z
+        .string()
+        .refine((value) => value.trim().length > 0, {
+          message: "Full name is required",
+        })
+        .refine(
+          (value) => !value.trim() || /^[a-zA-Z0-9 ]+$/.test(value.trim()),
+          {
+            message: "Full name must be alphanumeric",
+          },
+        ),
+      email: optionalEmailSchema.default(""),
+      phoneNumber: optionalLocalPhoneNumberSchema.default(""),
+      race: z.string().min(1, "Race is required"),
+      gender: z.string().min(1, "Gender is required"),
+      disabilityStatus: z.string().min(1, "Disability status is required"),
+      nationality: z.string().refine((value) => value.trim().length > 0, {
+        message: "Nationality is required",
+      }),
+      residentialLocation: z
+        .string()
+        .min(1, "Residential location is required"),
+      currentCompany: z.string(),
+      currentPosition: z.string(),
+      noticePeriod: z.string(),
+    })
+    .superRefine((data, ctx) => {
+      if (isVisitor) {
+        if (!data.email.trim()) {
+          ctx.addIssue({
+            code: "custom",
+            message: "Email address is required",
+            path: ["email"],
+          });
+        }
+        if (!data.phoneNumber.trim()) {
+          ctx.addIssue({
+            code: "custom",
+            message: "Phone number is required",
+            path: ["phoneNumber"],
+          });
+        }
+        if (!data.noticePeriod.trim()) {
+          ctx.addIssue({
+            code: "custom",
+            message: "Notice period is required",
+            path: ["noticePeriod"],
+          });
+        }
       }
-      if (!data.noticePeriod.trim()) {
-        ctx.addIssue({
-          code: "custom",
-          message: "Notice period is required when current company is provided",
-          path: ["noticePeriod"],
-        });
+
+      if (data.currentCompany.trim()) {
+        if (!data.currentPosition.trim()) {
+          ctx.addIssue({
+            code: "custom",
+            message:
+              "Current position is required when current company is provided",
+            path: ["currentPosition"],
+          });
+        }
+        if (!isVisitor && !data.noticePeriod.trim()) {
+          ctx.addIssue({
+            code: "custom",
+            message: "Notice period is required when current company is provided",
+            path: ["noticePeriod"],
+          });
+        }
       }
-    }
-  });
+    });
+
+export const personalDetailsSchema = createPersonalDetailsSchema(false);
 
 const careerHistoryEntryShape = {
   companyName: z.string(),
@@ -381,60 +413,63 @@ export const secondaryEntrySchema = z.object({
     .regex(/^\d{4}$/, "Enter a valid year (YYYY)"),
 });
 
-export const cvBuilderSchema = z
-  .object({
-    personalDetails: personalDetailsSchema,
-    careerHistory: z.array(careerHistoryEntrySchema),
-    skills: z
-      .array(skillEntrySchema)
-      .refine(
-        (skills) => skills.some((skill) => skill.name.trim().length > 0),
-        "At least one skill is required",
-      ),
-    tertiaryEducation: z.array(tertiaryEntrySchema),
-    secondaryEducation: z.array(secondaryEntrySchema),
-    languages: z.array(z.string()),
-    otherLanguage: z.string(),
-  })
-  .superRefine((data, ctx) => {
-    if (
-      data.personalDetails.currentCompany.trim() &&
-      !data.careerHistory.some(
-        (entry) => entry.companyName.trim() || entry.positionHeld.trim(),
-      )
-    ) {
-      ctx.addIssue({
-        code: "custom",
-        message:
-          "At least one career history position is required when current company is provided",
-        path: ["careerHistory"],
-      });
+export const createCvBuilderSchema = (isVisitor = false) =>
+  z
+    .object({
+      personalDetails: createPersonalDetailsSchema(isVisitor),
+      careerHistory: z.array(careerHistoryEntrySchema),
+      skills: z
+        .array(skillEntrySchema)
+        .refine(
+          (skills) => skills.some((skill) => skill.name.trim().length > 0),
+          "At least one skill is required",
+        ),
+      tertiaryEducation: z.array(tertiaryEntrySchema),
+      secondaryEducation: z.array(secondaryEntrySchema),
+      languages: z.array(z.string()),
+      otherLanguage: z.string(),
+    })
+    .superRefine((data, ctx) => {
+      if (
+        data.personalDetails.currentCompany.trim() &&
+        !data.careerHistory.some(
+          (entry) => entry.companyName.trim() || entry.positionHeld.trim(),
+        )
+      ) {
+        ctx.addIssue({
+          code: "custom",
+          message:
+            "At least one career history position is required when current company is provided",
+          path: ["careerHistory"],
+        });
 
-      const firstEntry = data.careerHistory[0];
-      if (firstEntry) {
-        if (!firstEntry.companyName.trim()) {
-          ctx.addIssue({
-            code: "custom",
-            message: "Company name is required",
-            path: ["careerHistory", 0, "companyName"],
-          });
-        }
-        if (!firstEntry.positionHeld.trim()) {
-          ctx.addIssue({
-            code: "custom",
-            message: "Position held is required",
-            path: ["careerHistory", 0, "positionHeld"],
-          });
-        }
-        if (!firstEntry.startDate.trim()) {
-          ctx.addIssue({
-            code: "custom",
-            message: "Employment start date is required",
-            path: ["careerHistory", 0, "startDate"],
-          });
+        const firstEntry = data.careerHistory[0];
+        if (firstEntry) {
+          if (!firstEntry.companyName.trim()) {
+            ctx.addIssue({
+              code: "custom",
+              message: "Company name is required",
+              path: ["careerHistory", 0, "companyName"],
+            });
+          }
+          if (!firstEntry.positionHeld.trim()) {
+            ctx.addIssue({
+              code: "custom",
+              message: "Position held is required",
+              path: ["careerHistory", 0, "positionHeld"],
+            });
+          }
+          if (!firstEntry.startDate.trim()) {
+            ctx.addIssue({
+              code: "custom",
+              message: "Employment start date is required",
+              path: ["careerHistory", 0, "startDate"],
+            });
+          }
         }
       }
-    }
-  });
+    });
+
+export const cvBuilderSchema = createCvBuilderSchema(false);
 
 export type CvBuilderFormValues = z.infer<typeof cvBuilderSchema>;
