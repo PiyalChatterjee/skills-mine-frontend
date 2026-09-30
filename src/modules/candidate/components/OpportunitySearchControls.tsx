@@ -79,7 +79,7 @@ const FilterSelect = ({
         IconComponent={FilterDropdownIcon}
         className={selectClassName}
         inputProps={{ "aria-label": label }}
-        MenuProps={{ slotProps: { paper: { sx: { maxHeight: 360 } } } }}
+        MenuProps={{ slotProps: { paper: { className: styles.filterMenu, sx: { maxHeight: 360 } } } }}
         renderValue={(selected) => selected.length > 0 ? `${label} (${selected.length})` : label}
       >
         {options.map((option) => (
@@ -104,7 +104,7 @@ const FilterSelect = ({
       IconComponent={FilterDropdownIcon}
       className={selectClassName}
       inputProps={{ "aria-label": label }}
-      MenuProps={{ slotProps: { paper: { sx: { maxHeight: 360 } } } }}
+      MenuProps={{ slotProps: { paper: { className: styles.filterMenu, sx: { maxHeight: 360 } } } }}
       renderValue={(selected) => options.find((option) => option.value === selected)?.label ?? label}
     >
       {options.map((option) => (

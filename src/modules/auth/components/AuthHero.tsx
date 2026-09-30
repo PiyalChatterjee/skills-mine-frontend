@@ -27,6 +27,8 @@ const AuthHero = ({ headline, headlineClassName }: AuthHeroProps) => {
 
       <Box className={styles.heroHeadlineWrap}>
         <Typography
+          component="h1"
+          variant="h4"
           className={[styles.heroHeadline, headlineClassName]
             .filter(Boolean)
             .join(" ")}

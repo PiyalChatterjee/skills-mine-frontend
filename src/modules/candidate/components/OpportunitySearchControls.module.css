@@ -98,6 +98,10 @@
   height: 16px;
 }
 
+.filterMenu :global(.MuiMenuItem-root) {
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+}
+
 .heroControls {
   width: min(721px, 100%);
 }
@@ -124,7 +128,13 @@
 @media (max-width: 700px) {
   .title,
   .title:global(.MuiTypography-root) {
-    font-size: 26px;
+    font-size: 24px;
+  }
+
+  .searchInput:global(.MuiInputBase-root),
+  .filterSelect:global(.MuiInputBase-root),
+  .filterMenu :global(.MuiMenuItem-root) {
+    font-size: 14px;
   }
 
   .filterSelect :global(.MuiSelect-select) {
