@@ -59,6 +59,16 @@ describe('SignupPage', () => {
     })
   })
 
+  it('validates email on blur', async () => {
+    renderPage()
+    const emailInput = screen.getByPlaceholderText('Email')
+    await userEvent.type(emailInput, 'notanemail')
+    fireEvent.blur(emailInput)
+    await waitFor(() => {
+      expect(screen.getByText(/valid email/i)).toBeInTheDocument()
+    })
+  })
+
   it('shows passwords do not match error', async () => {
     renderPage()
     await userEvent.type(screen.getByPlaceholderText('First name'), 'Jane')

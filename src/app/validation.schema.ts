@@ -23,8 +23,28 @@ export const optionalEmailSchema = z
     message: "Enter a valid email address",
   });
 
+const signupEmailPattern =
+  /^(?=.*[A-Za-z0-9])[A-Za-z0-9_%+-]+(?:\.[A-Za-z0-9_%+-]+)*@(?:[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?\.)+[A-Za-z]{2,}$/;
+const signupEmailSchema = z
+  .string()
+  .trim()
+  .min(1, "Email address is required")
+  .refine((value) => signupEmailPattern.test(value), {
+    message: "Enter a valid email address",
+  });
+
 const requiredField = (label: string) =>
   z.string().trim().min(1, `${label} is required`);
+
+const signupNamePattern = /^[\p{L}\p{M}]+(?:[ '\u2019-][\p{L}\p{M}]+)*$/u;
+const signupName = (label: string) =>
+  z
+    .string()
+    .trim()
+    .min(1, `${label} is required`)
+    .refine((value) => value === "" || signupNamePattern.test(value), {
+      message: `${label} can only include letters, spaces, apostrophes, or hyphens`,
+    });
 
 const passwordMismatchIssue = {
   path: ["confirmPassword"],
@@ -37,9 +57,9 @@ const passwordsMatch = (values: {
 }) => values.password === values.confirmPassword;
 
 const baseSignupShape = {
-  firstName: z.string().trim().min(1, "First name is required"),
-  lastName: z.string().trim().min(1, "Last name is required"),
-  email: emailSchema,
+  firstName: signupName("First name"),
+  lastName: signupName("Last name"),
+  email: signupEmailSchema,
   mobileNumber: localPhoneNumberSchema,
   password: strongPasswordSchema,
   confirmPassword: z.string().min(1, "Please confirm your password"),
