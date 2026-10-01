@@ -4,6 +4,7 @@ import { OpportunitySearchModal } from "./OpportunitySearchModal";
 
 const mocks = vi.hoisted(() => ({
   navigate: vi.fn(),
+  setSelectedDatePosted: vi.fn(),
   setSelectedJobTypes: vi.fn(),
   useOpportunitySearchModalState: vi.fn(),
 }));
@@ -14,7 +15,10 @@ vi.mock("react-router-dom", async (importOriginal) => ({
 }));
 
 vi.mock("@/modules/candidate/hooks/useOpportunitySearchModalState", () => ({
-  datePostedOptions: [],
+  datePostedOptions: [
+    { value: "TODAY", label: "Today" },
+    { value: "LAST_7_DAYS", label: "Last 7 days" },
+  ],
   jobTypeOptions: [
     { value: "FULL_TIME", label: "Full time" },
     { value: "CONTRACT", label: "Contract" },
@@ -32,7 +36,7 @@ describe("OpportunitySearchModal", () => {
       selectedIndustries: ["Technology"],
       selectedJobTypes: ["FULL_TIME"],
       selectedLocations: ["Cape Town"],
-      setSelectedDatePosted: vi.fn(),
+      setSelectedDatePosted: mocks.setSelectedDatePosted,
       setSelectedIndustries: vi.fn(),
       setSelectedJobTypes: mocks.setSelectedJobTypes,
       setSelectedLocations: vi.fn(),
@@ -61,5 +65,14 @@ describe("OpportunitySearchModal", () => {
     fireEvent.click(await screen.findByRole("option", { name: "Contract" }));
 
     expect(mocks.setSelectedJobTypes).toHaveBeenCalledWith(["CONTRACT"]);
+  });
+
+  it("clears the selected date posted filter", async () => {
+    render(<OpportunitySearchModal open onClose={vi.fn()} />);
+
+    fireEvent.mouseDown(screen.getByRole("combobox", { name: "Date posted" }));
+    fireEvent.click(await screen.findByRole("option", { name: "None" }));
+
+    expect(mocks.setSelectedDatePosted).toHaveBeenCalledWith([]);
   });
 });

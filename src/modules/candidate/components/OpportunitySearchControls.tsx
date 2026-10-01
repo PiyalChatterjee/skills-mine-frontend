@@ -107,6 +107,7 @@ const FilterSelect = ({
       MenuProps={{ slotProps: { paper: { className: styles.filterMenu, sx: { maxHeight: 360 } } } }}
       renderValue={(selected) => options.find((option) => option.value === selected)?.label ?? label}
     >
+      {value.length > 0 && <MenuItem value="">None</MenuItem>}
       {options.map((option) => (
         <MenuItem key={option.value} value={option.value}>
           {option.label}
