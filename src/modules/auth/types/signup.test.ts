@@ -93,6 +93,17 @@ describe('inviteSignupSchema', () => {
     }
   })
 
+  it('rejects a phone number containing only zeros', () => {
+    const result = inviteSignupSchema.safeParse({
+      ...validPayload,
+      mobileNumber: '0000000000',
+    })
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.issues.some((issue) => issue.path.includes('mobileNumber'))).toBe(true)
+    }
+  })
+
   it('rejects password shorter than 8 characters', () => {
     const result = inviteSignupSchema.safeParse({
       ...validPayload,
