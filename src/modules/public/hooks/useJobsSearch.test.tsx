@@ -58,7 +58,7 @@ describe('useJobsSearch', () => {
     expect(result.current.visibleJobs).toHaveLength(2)
   })
 
-  it('filters visible jobs by normalized title while preserving the full collection', () => {
+  it('renders the API result set without applying a second client-side filter', () => {
     const { result } = renderHook(() => useJobsSearch({
       normalizedSearchTerm: 'designer',
       shouldFilter: true,
@@ -68,7 +68,7 @@ describe('useJobsSearch', () => {
 
     expect(mocks.useJobs).toHaveBeenCalledWith('designer', true, expect.any(Number))
     expect(result.current.allJobs).toHaveLength(2)
-    expect(result.current.visibleJobs).toEqual([secondJob])
+    expect(result.current.visibleJobs).toEqual([firstJob, secondJob])
   })
 
   it('passes through loading and API error state', () => {
