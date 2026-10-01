@@ -1,6 +1,12 @@
 import { useMemo } from "react";
-import { useJobs, type Job } from "@/modules/public/hooks/useJobs";
+import {
+  useJobs,
+  type Job,
+  type JobsResponse,
+} from "@/modules/public/hooks/useJobs";
 import { DEFAULT_JOBS_PAGE_SIZE } from "../constants/landingPage.constants";
+
+const EMPTY_PAGES: JobsResponse[] = [];
 
 type UseJobsSearchOptions = {
   normalizedSearchTerm: string;
@@ -23,7 +29,7 @@ export const useJobsSearch = ({
 
   const jobsQuery = useJobs(activeSearchQuery, enabled, DEFAULT_JOBS_PAGE_SIZE);
 
-  const pages = jobsQuery.data?.pages ?? [];
+  const pages = jobsQuery.data?.pages ?? EMPTY_PAGES;
 
   const allJobs = useMemo(() => {
     const seenJobIds = new Set<string>();
