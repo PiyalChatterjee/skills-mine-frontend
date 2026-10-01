@@ -1,6 +1,13 @@
-import { unwrapResponseData, visitorApiClient } from "./axios";
+import {
+  publicDocumentApiClient,
+  unwrapResponseData,
+  visitorApiClient,
+} from "./axios";
 import { apiEndpoints, resolveEndpoint } from "./endpoints";
-import type { SaveBuildMyCvRequest } from "@/types";
+import type {
+  ResumeDocumentUploadResult,
+  SaveBuildMyCvRequest,
+} from "@/types";
 
 type VisitorProfilePayload = SaveBuildMyCvRequest;
 
@@ -23,6 +30,21 @@ type ApplyToJobResponse = {
 
 type VisitorProfileResponse = {
   visitor_id?: string;
+};
+
+type PublicDocumentRecord = {
+  owner_id_ref?: string;
+  document_id?: string;
+  title?: string;
+  file_name?: string;
+  media_type?: string;
+  size_bytes?: number;
+  lifecycle_status?: string;
+  updated_at?: string;
+};
+
+type PublicDocumentUploadResponse = PublicDocumentRecord & {
+  document?: PublicDocumentRecord;
 };
 
 type VisitorPersonalDetailsRecord = {
@@ -156,6 +178,39 @@ export const visitorApi = {
         },
       ),
     );
+  },
+
+  async uploadDocument(
+    visitorId: string,
+    file: Blob,
+    fileName: string,
+  ): Promise<ResumeDocumentUploadResult> {
+    const formData = new FormData();
+    formData.append("file", file, fileName);
+    formData.append("owner_type", "VISITOR");
+    formData.append("owner_id", visitorId);
+    formData.append("document_type", "RESUME");
+    formData.append("title", fileName);
+
+    const raw = await unwrapResponseData(
+      publicDocumentApiClient.post<PublicDocumentUploadResponse>(
+        apiEndpoints.documents.uploadPublic,
+        formData,
+      ),
+    );
+    const document = raw.document ?? raw;
+
+    return {
+      ownerId: raw.owner_id_ref ?? document.owner_id_ref ?? visitorId,
+      documentId: document.document_id ?? "",
+      title: document.title ?? fileName,
+      fileName: document.file_name ?? fileName,
+      mediaType: document.media_type ?? file.type,
+      sizeBytes: document.size_bytes ?? file.size,
+      lifecycleStatus: document.lifecycle_status ?? "ACTIVE",
+      uploadedAt:
+        document.updated_at ?? raw.updated_at ?? new Date().toISOString(),
+    };
   },
 
   getById(visitorId: string): Promise<VisitorRecordResponse> {

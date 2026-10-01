@@ -41,12 +41,13 @@ const AI_REQUEST_TIMEOUT_MS = 60000;
 const createApiClient = (
   baseURL: string,
   timeout = REQUEST_TIMEOUT_MS,
+  includeAuth = true,
 ) => {
   const client = axios.create({ baseURL, timeout });
 
   client.interceptors.request.use((config: InternalAxiosRequestConfig) => {
     const tokens = tokenStorage.getTokens();
-    if (tokens?.accessToken) {
+    if (includeAuth && tokens?.accessToken) {
       config.headers.Authorization = `Bearer ${tokens.accessToken}`;
     }
     return config;
@@ -59,6 +60,7 @@ const createApiClient = (
       // already-logged-out/public request would keep re-triggering clearSession
       // -> resetApiState() -> refetch -> 401 in an infinite loop.
       if (
+        includeAuth &&
         error.response?.status === 401 &&
         tokenStorage.getTokens()?.accessToken &&
         !error.config?.skipUnauthorizedRedirect
@@ -78,6 +80,11 @@ export const authApiClient   = createApiClient(serviceBaseUrls.auth);
 export const candidateApiClient = createApiClient(serviceBaseUrls.candidate);
 export const mandateApiClient   = createApiClient(serviceBaseUrls.mandate);
 export const documentApiClient  = createApiClient(serviceBaseUrls.document);
+export const publicDocumentApiClient = createApiClient(
+  serviceBaseUrls.document,
+  REQUEST_TIMEOUT_MS,
+  false,
+);
 export const crmApiClient       = createApiClient(serviceBaseUrls.crm);
 export const aiApiClient        = createApiClient(
   serviceBaseUrls.ai,

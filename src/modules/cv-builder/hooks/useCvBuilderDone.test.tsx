@@ -189,6 +189,7 @@ describe('buildCvBuilderPrefillData', () => {
 const mockSaveBuildMyCv = vi.hoisted(() => vi.fn())
 const mockUpdateBuildMyCv = vi.hoisted(() => vi.fn())
 const mockUploadResumeDocument = vi.hoisted(() => vi.fn())
+const mockUploadVisitorDocument = vi.hoisted(() => vi.fn())
 const mockNavigate = vi.hoisted(() => vi.fn())
 const mockCreateVisitorProfile = vi.hoisted(() => vi.fn())
 const mockApplyToJob = vi.hoisted(() => vi.fn())
@@ -215,6 +216,7 @@ vi.mock('@/store/api/apiSlice', async () => {
       { isLoading: false },
     ],
     useUploadCvResumeDocumentMutation: () => [mockUploadResumeDocument, { isLoading: false }],
+    useUploadVisitorDocumentMutation: () => [mockUploadVisitorDocument, { isLoading: false }],
   }
 })
 
@@ -236,6 +238,14 @@ vi.mock('@/app/auth/AuthContext', async () => {
 vi.mock('../utils/downloadCvPdf', () => ({
   generateCvPdfBlobFromText: vi.fn().mockResolvedValue(
     new Blob(['test-pdf'], { type: 'application/pdf' }),
+  ),
+}))
+
+vi.mock('../utils/generateCvDocx', () => ({
+  generateCvDocxBlob: vi.fn().mockResolvedValue(
+    new Blob(['test-docx'], {
+      type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    }),
   ),
 }))
 
@@ -310,6 +320,7 @@ describe('useCvBuilderDone', () => {
     vi.clearAllMocks()
     sessionStorage.clear()
     mockUploadResumeDocument.mockReturnValue({ unwrap: () => Promise.resolve({}) })
+    mockUploadVisitorDocument.mockReturnValue({ unwrap: () => Promise.resolve({}) })
   })
 
   it('calls save mutation when buildMyCvExists is false', async () => {
@@ -338,7 +349,7 @@ describe('useCvBuilderDone', () => {
     expect(store.getState().candidate.buildMyCv.personalDetails.currentCompany).toBe('Acme')
   })
 
-  it('creates a visitor profile, applies to the job, then navigates home', async () => {
+  it('creates a visitor, applies, uploads both CV documents, then navigates home', async () => {
     mockCreateVisitorProfile.mockResolvedValue({ visitor_id: 'visitor-1' })
     mockApplyToJob.mockResolvedValue({ application_id: 'app-1', match_score_latest: 80 })
     const guestApplicationDraft = createGuestApplicationDraft({
@@ -377,6 +388,23 @@ describe('useCvBuilderDone', () => {
       visitorId: 'visitor-1',
       jobProfileId: 'jp-001',
     })
+    expect(mockUploadVisitorDocument).toHaveBeenCalledTimes(2)
+    expect(mockUploadVisitorDocument).toHaveBeenNthCalledWith(1, {
+      visitorId: 'visitor-1',
+      file: expect.any(Blob),
+      fileName: expect.stringMatching(/\.pdf$/),
+    })
+    expect(mockUploadVisitorDocument).toHaveBeenNthCalledWith(2, {
+      visitorId: 'visitor-1',
+      file: expect.any(Blob),
+      fileName: expect.stringMatching(/\.docx$/),
+    })
+    expect(mockCreateVisitorProfile.mock.invocationCallOrder[0]).toBeLessThan(
+      mockApplyToJob.mock.invocationCallOrder[0],
+    )
+    expect(mockApplyToJob.mock.invocationCallOrder[0]).toBeLessThan(
+      mockUploadVisitorDocument.mock.invocationCallOrder[0],
+    )
     expect(getGuestApplicationDrafts()[0]).toMatchObject({
       applicationStatus: 'cv-completed',
       cvData: expect.objectContaining({ skills: ['React'] }),
@@ -417,6 +445,7 @@ describe('useCvBuilderDone', () => {
     })
 
     expect(mockApplyToJob).not.toHaveBeenCalled()
+    expect(mockUploadVisitorDocument).not.toHaveBeenCalled()
     expect(mockNavigate).not.toHaveBeenCalled()
     expect(store.getState().notification.items).toEqual(
       expect.arrayContaining([

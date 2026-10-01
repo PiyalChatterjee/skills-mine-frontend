@@ -6,6 +6,7 @@ import {
   useSaveBuildMyCvMutation,
   useUpdateBuildMyCvMutation,
   useUploadCvResumeDocumentMutation,
+  useUploadVisitorDocumentMutation,
   apiSlice,
 } from "@/store/api/apiSlice";
 import type { CandidateProfile } from "@/modules/candidate/types";
@@ -270,6 +271,7 @@ export const useCvBuilderDone = ({
   const [triggerUpdate, { isLoading: isUpdating }] =
     useUpdateBuildMyCvMutation();
   const [triggerResumeUpload] = useUploadCvResumeDocumentMutation();
+  const [triggerVisitorDocumentUpload] = useUploadVisitorDocumentMutation();
 
   const isSavingCandidateProfile = isCreating || isUpdating;
 
@@ -289,44 +291,56 @@ export const useCvBuilderDone = ({
 
       let visitorId: string | undefined;
       let matchScore: number | undefined;
+      let pdfBlob: Blob;
+      let pdfFileName: string;
+      let docxBlob: Blob;
+      let docxFileName: string;
+
       try {
         const createdVisitor = await visitorApi.createProfile(payload);
         visitorId = createdVisitor.visitor_id;
         if (!visitorId) {
           throw new Error("Visitor profile creation did not return a visitor id.");
         }
+      } catch {
+        dispatch(
+          pushNotification({
+            title: "Application failed",
+            message: `We could not submit your application for ${guestApplicationDraft.jobTitle}. Please try again.`,
+            level: "error",
+          }),
+        );
+        return;
+      }
 
-        // Generate + upload the CV PDF against the newly created visitor record,
-        // matching what happens for logged-in candidates.
-        try {
-          const { generateCvPdfBlobFromText } = await import(
-            "../utils/downloadCvPdf"
-          );
-          const payloadText = JSON.stringify(payload, null, 2);
-          const pdfBlob = await generateCvPdfBlobFromText(payloadText);
-          const pdfFileName = buildResumeFileName(
-            payload.personalDetails?.firstName ?? "",
-            payload.personalDetails?.lastName ?? "",
-            "visitor",
-            "pdf",
-          );
-          await triggerResumeUpload({
-            candidateId: visitorId,
-            file: pdfBlob,
-            fileName: pdfFileName,
-            ownerType: "VISITOR",
-          }).unwrap();
-        } catch {
-          // CV upload failure should not block the application submission.
-          dispatch(
-            pushNotification({
-              title: "CV upload skipped",
-              message: "Your application was submitted, but we could not attach your CV PDF.",
-              level: "info",
-            }),
-          );
-        }
+      try {
+        const payloadText = JSON.stringify(payload, null, 2);
+        const [{ generateCvPdfBlobFromText }, { generateCvDocxBlob }, headerImageModule] =
+          await Promise.all([
+            import("../utils/downloadCvPdf"),
+            import("../utils/generateCvDocx"),
+            import("@/assets/cv-builder/skills-mine-cv-hero-img.png"),
+          ]);
+        [pdfBlob, docxBlob] = await Promise.all([
+          generateCvPdfBlobFromText(payloadText),
+          generateCvDocxBlob(payloadText, headerImageModule.default),
+        ]);
+        const firstName = payload.personalDetails?.firstName ?? "";
+        const lastName = payload.personalDetails?.lastName ?? "";
+        pdfFileName = buildResumeFileName(firstName, lastName, "visitor", "pdf");
+        docxFileName = buildResumeFileName(firstName, lastName, "visitor", "docx");
+      } catch {
+        dispatch(
+          pushNotification({
+            title: "CV generation failed",
+            message: "We could not generate your CV documents. Please try again.",
+            level: "error",
+          }),
+        );
+        return;
+      }
 
+      try {
         const application = await visitorApi.applyToJob({
           visitorId,
           jobProfileId:
@@ -338,6 +352,28 @@ export const useCvBuilderDone = ({
           pushNotification({
             title: "Application failed",
             message: `We could not submit your application for ${guestApplicationDraft.jobTitle}. Please try again.`,
+            level: "error",
+          }),
+        );
+        return;
+      }
+
+      try {
+        await triggerVisitorDocumentUpload({
+          visitorId,
+          file: pdfBlob,
+          fileName: pdfFileName,
+        }).unwrap();
+        await triggerVisitorDocumentUpload({
+          visitorId,
+          file: docxBlob,
+          fileName: docxFileName,
+        }).unwrap();
+      } catch {
+        dispatch(
+          pushNotification({
+            title: "CV upload failed",
+            message: "Your application was submitted, but we could not attach your CV documents. Please try again.",
             level: "error",
           }),
         );
@@ -496,6 +532,7 @@ export const useCvBuilderDone = ({
     triggerCreate,
     triggerUpdate,
     triggerResumeUpload,
+    triggerVisitorDocumentUpload,
     userId,
     userRole,
     navigate,

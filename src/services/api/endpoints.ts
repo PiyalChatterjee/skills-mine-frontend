@@ -34,6 +34,7 @@ export const apiEndpoints = {
     detail: "/documents/:documentId",
     download: "/documents/:documentId/download",
     upload: "/documents",
+    uploadPublic: "/documents/upload",
     uploadResume: "/documents/resume",
   },
   candidate: {

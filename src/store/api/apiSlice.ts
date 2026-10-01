@@ -1,5 +1,6 @@
 import { createApi, fakeBaseQuery } from "@reduxjs/toolkit/query/react";
 import { candidateApi, industryApi, jobsApi, locationApi } from "@/services/api";
+import { visitorApi } from "@/services/api/visitorApi";
 import type { JobsSearchFilters } from "@/services/api/jobsApi";
 import type {
   CandidateDashboardData,
@@ -56,6 +57,11 @@ type UploadCvResumeArgs = {
   file: Blob;
   fileName: string;
   ownerType?: "CANDIDATE" | "VISITOR";
+};
+type UploadVisitorDocumentArgs = {
+  visitorId: string;
+  file: Blob;
+  fileName: string;
 };
 type UploadDocumentArgs = {
   candidateId: string;
@@ -305,6 +311,15 @@ export const apiSlice = createApi({
           ),
         ),
     }),
+    uploadVisitorDocument: build.mutation<
+      ResumeDocumentUploadResult,
+      UploadVisitorDocumentArgs
+    >({
+      queryFn: ({ visitorId, file, fileName }) =>
+        withMappedApiError(() =>
+          visitorApi.uploadDocument(visitorId, file, fileName),
+        ),
+    }),
     uploadDocument: build.mutation<
       ResumeDocumentUploadResult,
       UploadDocumentArgs
@@ -349,5 +364,6 @@ export const {
   useUpdateBuildMyCvMutation,
   useCreateSimpleProfileMutation,
   useUploadCvResumeDocumentMutation,
+  useUploadVisitorDocumentMutation,
   useUploadDocumentMutation,
 } = apiSlice;
