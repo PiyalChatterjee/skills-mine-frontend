@@ -45,7 +45,7 @@
 }
 
 .heroInner {
-    width: 50vw;
+    width: min(100%, 836px);
     margin: 0 auto;
     padding-top: 97px;
     color: #ffffff;
