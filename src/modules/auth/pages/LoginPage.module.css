@@ -147,6 +147,11 @@
 
 /* ── Mobile (600px) ───────────────────────────────────────────────────── */
 @media (max-width: 600px) {
+  .heroHeadlineOverride,
+  .heroHeadlineOverride:global(.MuiTypography-root) {
+    font-size: 26px;
+  }
+
   .formSection {
     margin-top: 32px;
     padding: 0 16px 48px;

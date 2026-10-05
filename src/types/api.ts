@@ -278,6 +278,9 @@ export interface UserSkill {
 export interface GenerateSkillsCareerHistoryEntry {
   companyName: string;
   positionHeld: string;
+  startDate: string;
+  endDate: string;
+  isCurrentRole: boolean;
   responsibilities: string[];
   projects?: string[];
 }
@@ -285,6 +288,12 @@ export interface GenerateSkillsCareerHistoryEntry {
 export interface GenerateSkillsRequest {
   candidateId?: string;
   subjectType: "CANDIDATE" | "VISITOR";
+  visitorRegistration?: {
+    email: string;
+    firstName: string;
+    lastName: string;
+    phoneNumber: string;
+  };
   careerHistory: GenerateSkillsCareerHistoryEntry[];
 }
 

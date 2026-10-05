@@ -34,6 +34,9 @@ const CvBuilderPage = lazy(
 const JobDetailsPage = lazy(
   () => import("@/modules/candidate/pages/JobDetailsPage"),
 );
+const JobSearchResultsPage = lazy(
+  () => import("@/modules/candidate/pages/JobSearchResultsPage"),
+);
 const SavedJobsPage = lazy(
   () => import("@/modules/candidate/pages/SavedJobsPage"),
 );
@@ -220,6 +223,7 @@ export const AppRoutes = () => {
         </Route>
 
         <Route element={<OptionalCandidateLayout />}>
+          <Route path={ROUTE_PATHS.jobSearch} element={<JobSearchResultsPage />} />
           <Route path={ROUTE_PATHS.jobDetails} element={<JobDetailsPage />} />
           <Route path={ROUTE_PATHS.cvBuilder} element={<CvBuilderPage />} />
         </Route>

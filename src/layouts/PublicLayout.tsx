@@ -38,6 +38,11 @@ export const PublicLayout = () => {
   const landingMode = useSelector((state: RootState) => state.ui.landingMode);
   const isLandingPage = location.pathname === ROUTE_PATHS.landing;
   const isHiringLandingMode = isLandingPage && landingMode === "startHiring";
+  // Set by the CV builder after a visitor applies, so sign-up converts that visitor into a candidate.
+  // Snapshotted once so it survives LandingPage clearing location.state (e.g. on a hard refresh).
+  const [visitorId] = useState(
+    () => (location.state as { visitorId?: string } | null)?.visitorId,
+  );
   const accessToken = tokens?.accessToken;
   const hasValidAccessToken = accessToken ? !isJwtExpired(accessToken) : false;
   const canAccessProtectedRoutes = isAuthenticated && hasValidAccessToken;
@@ -182,6 +187,7 @@ export const PublicLayout = () => {
         <CandidateSignUpDrawer
           open={isSignUpDrawerOpen}
           onClose={handleSignUpDrawerClose}
+          visitorId={visitorId}
         />
       )}
     </Box>

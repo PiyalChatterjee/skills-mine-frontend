@@ -6,6 +6,7 @@ import {
   useSaveBuildMyCvMutation,
   useUpdateBuildMyCvMutation,
   useUploadCvResumeDocumentMutation,
+  useUploadVisitorDocumentMutation,
   apiSlice,
 } from "@/store/api/apiSlice";
 import type { CandidateProfile } from "@/modules/candidate/types";
@@ -19,6 +20,7 @@ import {
 import type { SaveBuildMyCvRequest } from "@/types";
 import type { Role } from "@/types/auth";
 import type { CvBuilderFormValues } from "@/app/validation.schema";
+import { visitorApi } from "@/services/api/visitorApi";
 import {
   saveGuestApplicationCv,
   type GuestApplicationDraft,
@@ -31,16 +33,28 @@ const resolveResumeRoleLabel = (userId?: string, role?: Role): string => {
   return "candidate";
 };
 
-const resolveSuccessRoute = (roleLabel: string, candidateId: string): string => {
-  if (roleLabel === "visitor") return ROUTE_PATHS.landing;
+const resolveSuccessRoute = (
+  roleLabel: string,
+  candidateId: string,
+  pendingJobId?: string,
+): { pathname: string; state?: { autoApply: boolean } } => {
+  if (roleLabel === "visitor") return { pathname: ROUTE_PATHS.landing };
   if (roleLabel === "recruiter") {
     // TODO: Navigate to ROUTE_PATHS.recruiterCandidate when the mandate cardId is available here.
-    return ROUTE_PATHS.recruiterCandidateDetail.replace(
-      ":candidateId",
-      candidateId,
-    );
+    return {
+      pathname: ROUTE_PATHS.recruiterCandidateDetail.replace(
+        ":candidateId",
+        candidateId,
+      ),
+    };
   }
-  return ROUTE_PATHS.candidateDashboard;
+  if (pendingJobId) {
+    return {
+      pathname: ROUTE_PATHS.jobDetails.replace(":jobId", pendingJobId),
+      state: { autoApply: true },
+    };
+  }
+  return { pathname: ROUTE_PATHS.candidateDashboard };
 };
 
 const sanitizeFileNamePart = (value: string): string =>
@@ -56,8 +70,9 @@ const buildResumeFileName = (
   firstName: string,
   lastName: string,
   roleLabel: string,
+  extension: "pdf" | "docx" = "pdf",
 ): string =>
-  `${sanitizeFileNamePart(firstName)}_${sanitizeFileNamePart(lastName)}_${roleLabel}_${formatFileNameTimestamp(new Date())}.pdf`;
+  `${sanitizeFileNamePart(firstName)}_${sanitizeFileNamePart(lastName)}_${roleLabel}_${formatFileNameTimestamp(new Date())}.${extension}`;
 
 const monthNames = [
   "January",
@@ -161,6 +176,7 @@ type UseCvBuilderDoneArgs = {
   hasFormChanges?: boolean;
   userRole?: Role;
   guestApplicationDraft?: GuestApplicationDraft;
+  pendingJobId?: string;
 };
 
 export const buildBuildMyCvRequest = ({
@@ -244,6 +260,7 @@ export const useCvBuilderDone = ({
   hasFormChanges = true,
   userRole,
   guestApplicationDraft,
+  pendingJobId,
 }: UseCvBuilderDoneArgs) => {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
@@ -254,6 +271,7 @@ export const useCvBuilderDone = ({
   const [triggerUpdate, { isLoading: isUpdating }] =
     useUpdateBuildMyCvMutation();
   const [triggerResumeUpload] = useUploadCvResumeDocumentMutation();
+  const [triggerVisitorDocumentUpload] = useUploadVisitorDocumentMutation();
 
   const isSavingCandidateProfile = isCreating || isUpdating;
 
@@ -270,19 +288,113 @@ export const useCvBuilderDone = ({
 
     if (guestApplicationDraft) {
       saveGuestApplicationCv(guestApplicationDraft.jobId, payload);
+
+      let visitorId: string | undefined;
+      let matchScore: number | undefined;
+      let pdfBlob: Blob;
+      let pdfFileName: string;
+      let docxBlob: Blob;
+      let docxFileName: string;
+
+      try {
+        const createdVisitor = await visitorApi.createProfile(payload);
+        visitorId = createdVisitor.visitor_id;
+        if (!visitorId) {
+          throw new Error("Visitor profile creation did not return a visitor id.");
+        }
+      } catch {
+        dispatch(
+          pushNotification({
+            title: "Application failed",
+            message: `We could not submit your application for ${guestApplicationDraft.jobTitle}. Please try again.`,
+            level: "error",
+          }),
+        );
+        return;
+      }
+
+      try {
+        const payloadText = JSON.stringify(payload, null, 2);
+        const [{ generateCvPdfBlobFromText }, { generateCvDocxBlob }, headerImageModule] =
+          await Promise.all([
+            import("../utils/downloadCvPdf"),
+            import("../utils/generateCvDocx"),
+            import("@/assets/cv-builder/skills-mine-cv-hero-img.png"),
+          ]);
+        [pdfBlob, docxBlob] = await Promise.all([
+          generateCvPdfBlobFromText(payloadText),
+          generateCvDocxBlob(payloadText, headerImageModule.default),
+        ]);
+        const firstName = payload.personalDetails?.firstName ?? "";
+        const lastName = payload.personalDetails?.lastName ?? "";
+        pdfFileName = buildResumeFileName(firstName, lastName, "visitor", "pdf");
+        docxFileName = buildResumeFileName(firstName, lastName, "visitor", "docx");
+      } catch {
+        dispatch(
+          pushNotification({
+            title: "CV generation failed",
+            message: "We could not generate your CV documents. Please try again.",
+            level: "error",
+          }),
+        );
+        return;
+      }
+
+      try {
+        const application = await visitorApi.applyToJob({
+          visitorId,
+          jobProfileId:
+            guestApplicationDraft.job.jobProfileId ?? guestApplicationDraft.jobId,
+        });
+        matchScore = application.match_score_latest;
+      } catch {
+        dispatch(
+          pushNotification({
+            title: "Application failed",
+            message: `We could not submit your application for ${guestApplicationDraft.jobTitle}. Please try again.`,
+            level: "error",
+          }),
+        );
+        return;
+      }
+
+      try {
+        await triggerVisitorDocumentUpload({
+          visitorId,
+          file: pdfBlob,
+          fileName: pdfFileName,
+        }).unwrap();
+        await triggerVisitorDocumentUpload({
+          visitorId,
+          file: docxBlob,
+          fileName: docxFileName,
+        }).unwrap();
+      } catch {
+        dispatch(
+          pushNotification({
+            title: "CV upload failed",
+            message: "Your application was submitted, but we could not attach your CV documents. Please try again.",
+            level: "error",
+          }),
+        );
+        return;
+      }
+
       dispatch(
         pushNotification({
-          title: "CV saved",
-          message: `Your application for ${guestApplicationDraft.jobTitle} is ready when you create an account.`,
+          title: "Application submitted",
+          message: `Your application for ${guestApplicationDraft.jobTitle} has been submitted.`,
           level: "success",
         }),
       );
-      navigate(ROUTE_PATHS.landing);
+      navigate(ROUTE_PATHS.landing, {
+        state: { visitorId, matchScore, jobTitle: guestApplicationDraft.jobTitle },
+      });
       return;
     }
 
     const roleLabel = resolveResumeRoleLabel(userId, userRole);
-    const successRoute = resolveSuccessRoute(roleLabel, candidateId);
+    const successRoute = resolveSuccessRoute(roleLabel, candidateId, pendingJobId);
 
     if (buildMyCvExists && !hasFormChanges) {
       dispatch(
@@ -292,23 +404,24 @@ export const useCvBuilderDone = ({
           level: "info",
         }),
       );
-      navigate(successRoute);
+      navigate(successRoute.pathname, { state: successRoute.state });
       return;
     }
 
+    const payloadText = JSON.stringify(payload, null, 2);
+    const firstName = payload.personalDetails?.firstName ?? "";
+    const lastName = payload.personalDetails?.lastName ?? "";
+
+    // ── PDF generation + upload (required) ───────────────────────────────────
     let pdfBlob: Blob;
-    let fileName: string;
+    let pdfFileName: string;
 
     try {
       const { generateCvPdfBlobFromText } = await import(
         "../utils/downloadCvPdf"
       );
-      pdfBlob = await generateCvPdfBlobFromText(JSON.stringify(payload, null, 2));
-      fileName = buildResumeFileName(
-        payload.personalDetails?.firstName ?? "",
-        payload.personalDetails?.lastName ?? "",
-        roleLabel,
-      );
+      pdfBlob = await generateCvPdfBlobFromText(payloadText);
+      pdfFileName = buildResumeFileName(firstName, lastName, roleLabel, "pdf");
     } catch {
       dispatch(
         pushNotification({
@@ -324,7 +437,7 @@ export const useCvBuilderDone = ({
       await triggerResumeUpload({
         candidateId,
         file: pdfBlob,
-        fileName,
+        fileName: pdfFileName,
       }).unwrap();
     } catch {
       dispatch(
@@ -335,6 +448,29 @@ export const useCvBuilderDone = ({
         }),
       );
       return;
+    }
+
+    // ── DOCX generation + upload (best-effort — does not block save) ─────────
+    try {
+      const [{ generateCvDocxBlob }, headerImageModule] = await Promise.all([
+        import("../utils/generateCvDocx"),
+        import("@/assets/cv-builder/skills-mine-cv-hero-img.png"),
+      ]);
+      const docxBlob = await generateCvDocxBlob(payloadText, headerImageModule.default);
+      const docxFileName = buildResumeFileName(firstName, lastName, roleLabel, "docx");
+      await triggerResumeUpload({
+        candidateId,
+        file: docxBlob,
+        fileName: docxFileName,
+      }).unwrap();
+    } catch {
+      dispatch(
+        pushNotification({
+          title: "Word document upload skipped",
+          message: "Your CV was saved as PDF. The Word copy could not be generated.",
+          level: "info",
+        }),
+      );
     }
 
     try {
@@ -367,7 +503,7 @@ export const useCvBuilderDone = ({
         }),
       );
 
-      navigate(successRoute);
+      navigate(successRoute.pathname, { state: successRoute.state });
     } catch (error) {
       const fallbackMessage =
         "We could not save your CV right now. Please try again.";
@@ -391,10 +527,12 @@ export const useCvBuilderDone = ({
     guestApplicationDraft,
     getFormValues,
     hasFormChanges,
+    pendingJobId,
     selectedLanguageEntries,
     triggerCreate,
     triggerUpdate,
     triggerResumeUpload,
+    triggerVisitorDocumentUpload,
     userId,
     userRole,
     navigate,

@@ -45,7 +45,7 @@
 }
 
 .heroInner {
-    width: 50vw;
+    width: min(100%, 836px);
     margin: 0 auto;
     padding-top: 97px;
     color: #ffffff;
@@ -224,6 +224,115 @@
     font-weight: 400;
 }
 
+/* ─── Visitor "Application submitted" hero variant ────────────────────────── */
+
+.applicationSubmittedRow {
+    display: flex;
+    align-items: center;
+    gap: 40px;
+    width: 100%;
+}
+
+.matchBadge {
+    position: relative;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    /* --match-pct set inline per application; donut ring matching the Figma match badge (green arc / light-mint track) */
+    background: conic-gradient(#4baf73 calc(var(--match-pct, 100) * 1%), #dbefe3 0);
+}
+
+.matchBadge::after {
+    content: "";
+    position: absolute;
+    inset: 6px;
+    border-radius: 50%;
+    background: #ffffff;
+}
+
+.matchBadgePercent,
+.matchBadgePercent:global(.MuiTypography-root) {
+    position: relative;
+    z-index: 1;
+    margin: 0;
+    color: #4baf73;
+    font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1px;
+    text-align: center;
+}
+
+.applicationSubmittedText {
+    display: flex;
+    flex-direction: column;
+    color: #ffffff;
+}
+
+.applicationHeading,
+.applicationHeading:global(.MuiTypography-root) {
+    margin: 0;
+    color: #ffffff;
+    font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 48px;
+    font-weight: 600;
+    line-height: 1.5;
+    letter-spacing: 0.1px;
+}
+
+.applicationSubtitle,
+.applicationSubtitle:global(.MuiTypography-root) {
+    margin: 0;
+    color: #ffffff;
+    font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 1.5;
+    letter-spacing: 0.1px;
+}
+
+.retentionText,
+.retentionText:global(.MuiTypography-root) {
+    margin: 0;
+    color: #ffffff;
+    font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 1.5;
+    letter-spacing: 0.1px;
+}
+
+.retentionActions {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.retentionDeclineCta,
+.retentionDeclineCta:global(.MuiButton-root):global(.MuiButton-outlined) {
+    min-height: 48px;
+    padding: 12px 30px;
+    border-radius: 100px;
+    border: 1px solid #ffffff;
+    color: #ffffff;
+    text-transform: none;
+    font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.5;
+    letter-spacing: 0.1px;
+}
+
+.retentionDivider {
+    width: 100%;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.3);
+}
+
 .heroCopy {
     display: flex;
     flex-direction: column;
@@ -250,7 +359,8 @@
 .heroCta,
 .heroCta:global(.MuiButton-root):global(.MuiButton-contained) {
     align-self: flex-start;
-    min-width: 242px;
+    min-width: fit-content;
+    width: max-content;
     min-height: 48px;
     padding: 12px 30px;
     border-radius: 100px;

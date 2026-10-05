@@ -1,5 +1,6 @@
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
+import dayjs from "dayjs";
 import { formatEnumLabel } from "@/app/formatEnumLabel";
 import skillsMineCVHeroImg from "@/assets/cv-builder/skills-mine-cv-hero-img.png";
 import type { SaveBuildMyCvRequest } from "@/types";
@@ -18,6 +19,20 @@ const DEFAULT_OPTIONS: Required<DownloadCvPdfOptions> = {
 };
 
 const pxToMm = (pixels: number) => (pixels * 25.4) / 96;
+const isoMonthOrDatePattern = /^(19|20)\d{2}-(0[1-9]|1[0-2])(?:-(0[1-9]|[12]\d|3[01]))?$/;
+
+const formatCvPeriodDate = (value: unknown): string => {
+  const normalized = typeof value === "string" ? value.trim() : "";
+  if (!isoMonthOrDatePattern.test(normalized)) return normalized;
+
+  return dayjs(`${normalized.slice(0, 7)}-01`).format("MMMM YYYY");
+};
+
+const formatCvPeriod = (startDate: unknown, endDate: unknown): string => {
+  const start = formatCvPeriodDate(startDate);
+  const end = formatCvPeriodDate(endDate) || "Current";
+  return start ? `${start} - ${end}` : end;
+};
 
 const loadImageElement = (src: string): Promise<HTMLImageElement> =>
   new Promise((resolve, reject) => {
@@ -392,10 +407,7 @@ export const generateCvPdfBlobFromText = async (text: string): Promise<Blob> => 
     addSectionTitle("Career Overview");
     for (const entry of careerHistory) {
       addRow("Company", entry.company);
-      addRow(
-        "Period",
-        `${entry.startDate}${entry.endDate ? ` - ${entry.endDate}` : " - Current"}`,
-      );
+      addRow("Period", formatCvPeriod(entry.startDate, entry.endDate));
       addRow("Position Held", entry.jobTitle);
     }
   }
@@ -429,10 +441,7 @@ export const generateCvPdfBlobFromText = async (text: string): Promise<Blob> => 
     for (const entry of careerHistory) {
       addRow("Company Name", entry.company);
       addRow("Position Held", entry.jobTitle);
-      addRow(
-        "Period",
-        `${entry.startDate}${entry.endDate ? ` - ${entry.endDate}` : " - Current"}`,
-      );
+      addRow("Period", formatCvPeriod(entry.startDate, entry.endDate));
       addRow("Description", entry.responsibilities);
     }
   }

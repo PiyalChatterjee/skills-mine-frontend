@@ -58,7 +58,7 @@ describe("useCandidateLayoutViewModel", () => {
       "candidateSavedJobPosts",
       "candidateCvBuilder",
       "candidateSkillsBuild",
-      "candidateBlog",
+      "candidateCareerSupport",
     ]);
     expect(result.current.candidateNavItems[0].isActive).toBe(true);
 

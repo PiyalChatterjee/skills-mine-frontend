@@ -34,6 +34,7 @@ export const apiEndpoints = {
     detail: "/documents/:documentId",
     download: "/documents/:documentId/download",
     upload: "/documents",
+    uploadPublic: "/documents/upload",
     uploadResume: "/documents/resume",
   },
   candidate: {
@@ -62,8 +63,9 @@ export const apiEndpoints = {
   },
   jobs: {
     list: "/view/jobs",
-    details: "/view/jobs/:jobProfileId",
+    details: "/jobs/:jobProfileId",
     profileDetails: "/view/jobs/:jobProfileId",
+    incrementViewCount: "/view/jobs/:jobProfileId",
     listQueryParam: "search",
     listPageParam: "page",
     listLimitParam: "size",
@@ -94,6 +96,9 @@ export const apiEndpoints = {
   },
   visitor: {
     profile: "/visitors",
+    detail: "/visitors/:visitorId",
+    byEmail: "/visitors/by-email",
+    checkEmail: "/visitors/email",
     apply: "/visitors/apply",
   },
   recruiter: {

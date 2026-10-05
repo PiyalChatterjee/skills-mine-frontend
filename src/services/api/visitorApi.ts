@@ -1,12 +1,15 @@
-import { unwrapResponseData, visitorApiClient } from "./axios";
-import { apiEndpoints } from "./endpoints";
-import type { SaveBuildMyCvRequest } from "@/types";
+import {
+  publicDocumentApiClient,
+  unwrapResponseData,
+  visitorApiClient,
+} from "./axios";
+import { apiEndpoints, resolveEndpoint } from "./endpoints";
+import type {
+  ResumeDocumentUploadResult,
+  SaveBuildMyCvRequest,
+} from "@/types";
 
-type VisitorProfilePayload = SaveBuildMyCvRequest & {
-  visitorId: string;
-  email: string;
-  phoneNumber: string;
-};
+type VisitorProfilePayload = SaveBuildMyCvRequest;
 
 type ApplyToJobPayload = {
   visitorId: string;
@@ -29,10 +32,83 @@ type VisitorProfileResponse = {
   visitor_id?: string;
 };
 
+type PublicDocumentRecord = {
+  owner_id_ref?: string;
+  document_id?: string;
+  title?: string;
+  file_name?: string;
+  media_type?: string;
+  size_bytes?: number;
+  lifecycle_status?: string;
+  updated_at?: string;
+};
+
+type PublicDocumentUploadResponse = PublicDocumentRecord & {
+  document?: PublicDocumentRecord;
+};
+
+type VisitorPersonalDetailsRecord = {
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  phone_number?: string;
+  residential_location?: string;
+  race?: string;
+  gender?: string;
+  disability_status?: string;
+};
+
+type VisitorEducationRecord = {
+  education_id?: string;
+  institution_name?: string;
+  qualification?: string;
+  field_of_study?: string;
+  level_code?: string;
+  start_date?: string;
+  end_date?: string;
+  year_completed?: number;
+};
+
+type VisitorExperienceRecord = {
+  position_id?: string;
+  employer_name?: string;
+  role_title?: string;
+  start_date?: string;
+  end_date?: string | null;
+  is_current?: boolean;
+  responsibilities_text?: string;
+};
+
+type VisitorSkillRecord = {
+  skill_id?: string;
+  skill_name?: string;
+};
+
+export type VisitorRecordResponse = {
+  visitor_id?: string;
+  personal_details?: VisitorPersonalDetailsRecord;
+  education?: VisitorEducationRecord[];
+  experience?: VisitorExperienceRecord[];
+  skills?: VisitorSkillRecord[];
+  languages?: string[];
+  created_at?: string;
+  updated_at?: string;
+};
+
+export type CheckVisitorEmailResponse = {
+  email?: string;
+  is_present?: boolean;
+  type?: "VISITOR" | "CANDIDATE" | "NOT_FOUND";
+};
+
+// CV builder joins tasks with "; " into a single string; the API wants an array.
+const splitResponsibilities = (value?: string): string[] =>
+  (value ?? "")
+    .split(/;\s*/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+
 const toVisitorProfileRequest = ({
-  visitorId,
-  email,
-  phoneNumber,
   personalDetails,
   careerHistory,
   skills,
@@ -40,11 +116,10 @@ const toVisitorProfileRequest = ({
   languages,
 }: VisitorProfilePayload) => ({
   personal_details: {
-    visitor_id: visitorId,
     first_name: personalDetails?.firstName ?? "",
     last_name: personalDetails?.lastName ?? "",
-    email,
-    phone_number: phoneNumber,
+    email: personalDetails?.email ?? "",
+    phone_number: personalDetails?.phoneNumber ?? "",
     residential_location: personalDetails?.location,
     nationality: personalDetails?.nationality,
     race: personalDetails?.race,
@@ -54,14 +129,17 @@ const toVisitorProfileRequest = ({
     current_position: personalDetails?.currentPosition,
     notice_period: personalDetails?.noticePeriod,
   },
-  career_history: careerHistory?.map((entry) => ({
-    company_name: entry.company,
-    position_held: entry.jobTitle,
-    start_date: entry.startDate,
-    end_date: entry.endDate,
-    is_current: entry.endDate.toLowerCase() === "present",
-    responsibilities: entry.responsibilities ?? "",
-  })),
+  career_history: careerHistory?.map((entry) => {
+    const isCurrent = entry.endDate.toLowerCase() === "present";
+    return {
+      company_name: entry.company,
+      position_held: entry.jobTitle,
+      start_date: entry.startDate,
+      end_date: isCurrent || !entry.endDate ? null : entry.endDate,
+      is_current: isCurrent,
+      responsibilities: splitResponsibilities(entry.responsibilities),
+    };
+  }),
   skills: skills?.map((skill) => ({ skill_name: skill })),
   education: [
     ...(education?.tertiaryEducation ?? []).map((entry) => ({
@@ -98,6 +176,64 @@ export const visitorApi = {
           visitor_id: payload.visitorId,
           job_profile_id: payload.jobProfileId,
         },
+      ),
+    );
+  },
+
+  async uploadDocument(
+    visitorId: string,
+    file: Blob,
+    fileName: string,
+  ): Promise<ResumeDocumentUploadResult> {
+    const formData = new FormData();
+    formData.append("file", file, fileName);
+    formData.append("owner_type", "VISITOR");
+    formData.append("owner_id", visitorId);
+    formData.append("document_type", "RESUME");
+    formData.append("title", fileName);
+
+    const raw = await unwrapResponseData(
+      publicDocumentApiClient.post<PublicDocumentUploadResponse>(
+        apiEndpoints.documents.uploadPublic,
+        formData,
+      ),
+    );
+    const document = raw.document ?? raw;
+
+    return {
+      ownerId: raw.owner_id_ref ?? document.owner_id_ref ?? visitorId,
+      documentId: document.document_id ?? "",
+      title: document.title ?? fileName,
+      fileName: document.file_name ?? fileName,
+      mediaType: document.media_type ?? file.type,
+      sizeBytes: document.size_bytes ?? file.size,
+      lifecycleStatus: document.lifecycle_status ?? "ACTIVE",
+      uploadedAt:
+        document.updated_at ?? raw.updated_at ?? new Date().toISOString(),
+    };
+  },
+
+  getById(visitorId: string): Promise<VisitorRecordResponse> {
+    return unwrapResponseData(
+      visitorApiClient.get<VisitorRecordResponse>(
+        resolveEndpoint(apiEndpoints.visitor.detail, { visitorId }),
+      ),
+    );
+  },
+
+  getByEmail(email: string): Promise<VisitorRecordResponse> {
+    return unwrapResponseData(
+      visitorApiClient.get<VisitorRecordResponse>(apiEndpoints.visitor.byEmail, {
+        params: { email },
+      }),
+    );
+  },
+
+  checkEmail(email: string): Promise<CheckVisitorEmailResponse> {
+    return unwrapResponseData(
+      visitorApiClient.get<CheckVisitorEmailResponse>(
+        apiEndpoints.visitor.checkEmail,
+        { params: { email } },
       ),
     );
   },

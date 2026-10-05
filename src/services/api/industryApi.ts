@@ -39,6 +39,22 @@ export const resolveIndustryId = async (
   return match?.industryId ?? industryName;
 };
 
+export const resolveIndustryIds = async (
+  industryNames: string[],
+): Promise<string[]> => {
+  if (industryNames.length === 0) {
+    return [];
+  }
+
+  const { data: industries } = await industryApi.getIndustries();
+  return industryNames.map((industryName) => {
+    const match = industries.find(
+      (industry) => industry.name.toLowerCase() === industryName.toLowerCase(),
+    );
+    return match?.industryId ?? industryName;
+  });
+};
+
 export const resolveIndustryName = async (
   industryId?: string,
 ): Promise<string | undefined> => {

@@ -53,6 +53,7 @@ describe("Mandate Service v2 frontend adapters", () => {
 
     expect(mockGet).toHaveBeenCalledWith("/view/jobs", {
       params: { status: "POSTED", search: "software", page: 0, size: 6 },
+      paramsSerializer: { indexes: null },
     });
     expect(result).toMatchObject({ total: 1, page: 0, pageSize: 6 });
     expect(result.jobs[0]).toMatchObject({
@@ -61,6 +62,35 @@ describe("Mandate Service v2 frontend adapters", () => {
       company: "Standard Bank",
       industry: "Technology",
       employmentType: "Full Time",
+    });
+  });
+
+  it("sends global job-search filters using backend industry ids", async () => {
+    mockGet
+      .mockResolvedValueOnce({
+        data: [{ industryId: "industry-1", industryName: "Technology" }],
+      })
+      .mockResolvedValueOnce({ data: { data: [summary], total: 1, page: 0, size: 20 } });
+
+    await jobsApi.list("developer", 1, 20, "POSTED", {
+      industries: ["Technology"],
+      locations: ["Cape Town", "Remote"],
+      datePosted: "LAST_7_DAYS",
+      jobTypes: ["FULL_TIME", "CONTRACT"],
+    });
+
+    expect(mockGet).toHaveBeenNthCalledWith(2, "/view/jobs", {
+      params: {
+        status: "POSTED",
+        search: "developer",
+        industryId: ["industry-1"],
+        locationText: ["Cape Town", "Remote"],
+        datePosted: "LAST_7_DAYS",
+        jobType: ["FULL_TIME", "CONTRACT"],
+        page: 0,
+        size: 20,
+      },
+      paramsSerializer: { indexes: null },
     });
   });
 
@@ -85,7 +115,7 @@ describe("Mandate Service v2 frontend adapters", () => {
     const result = await jobsApi.getJobProfile(summary.jobProfileId);
 
     expect(mockGet).toHaveBeenCalledWith(
-      `/jobs/${summary.jobProfileId}`,
+      `/view/jobs/${summary.jobProfileId}`,
     );
     expect(result).toMatchObject({
       jobId: summary.jobReferenceNumber,

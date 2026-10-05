@@ -36,6 +36,7 @@ type CvBuilderReviewScreenProps = {
   visitorId?: string;
   isVisitor?: boolean;
   showGenerateSkills?: boolean;
+  onEmailBlur?: (email: string) => void;
 };
 
 const CvBuilderReviewScreen = ({
@@ -44,6 +45,7 @@ const CvBuilderReviewScreen = ({
   visitorId,
   isVisitor = false,
   showGenerateSkills = true,
+  onEmailBlur,
 }: CvBuilderReviewScreenProps) => {
   const { control } = useFormContext<CvBuilderFormValues>();
   // Single shared instance so the header's "Generate" action and the list stay in sync.
@@ -55,7 +57,7 @@ const CvBuilderReviewScreen = ({
       label: "Personal Details",
       icon: userIcon,
       renderContent: () => (
-        <CvBuilderPersonalDetailsForm isVisitor={isVisitor} />
+        <CvBuilderPersonalDetailsForm isVisitor={isVisitor} onEmailBlur={onEmailBlur} />
       ),
     },
     {

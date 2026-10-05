@@ -140,7 +140,7 @@ const UploadDocumentModal = ({ onClose, onDone }: Props) => {
             >
               <UploadAreaIcon />
               <Typography className={styles.dropPrimary}>Choose a file or drag and drop it here</Typography>
-              <Typography className={styles.dropSecondary}>PDF and DOC formats only, up to 5 MB</Typography>
+              <Typography className={styles.dropSecondary}>PDF, DOC and DOCX formats only, up to 5 MB</Typography>
               <ButtonBase className={styles.browseBtn} onClick={handleBrowse} disableRipple>
                 Browse file
               </ButtonBase>

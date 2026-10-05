@@ -44,6 +44,12 @@ const ModalTrashIcon = () => (
   </svg>
 )
 
+// ── Constants ──────────────────────────────────────────────────────────
+
+const MAX_SIZE_BYTES = 5 * 1024 * 1024;
+const ACCEPTED_EXTENSIONS = [".pdf", ".doc", ".docx"] as const;
+const ACCEPT_ATTR = ".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+
 // ── Types ──────────────────────────────────────────────────────────────
 
 export interface UploadDocumentModalProps {
@@ -62,9 +68,23 @@ export const UploadDocumentModal = ({ open, onClose, onDone }: UploadDocumentMod
   const [uploadError, setUploadError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  const validateAndSet = (file: File) => {
+    const ext = ("." + (file.name.split(".").pop()?.toLowerCase() ?? "")) as string;
+    if (!ACCEPTED_EXTENSIONS.includes(ext as never)) {
+      setUploadError("Only PDF, DOC, and DOCX files are accepted.");
+      return;
+    }
+    if (file.size > MAX_SIZE_BYTES) {
+      setUploadError("File exceeds the 5 MB limit.");
+      return;
+    }
+    setUploadError(null);
+    setSelectedFile(file);
+  }
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (file) setSelectedFile(file)
+    if (file) validateAndSet(file)
     e.target.value = ''
   }
 
@@ -72,7 +92,7 @@ export const UploadDocumentModal = ({ open, onClose, onDone }: UploadDocumentMod
     e.preventDefault()
     setDragging(false)
     const file = e.dataTransfer.files?.[0]
-    if (file) setSelectedFile(file)
+    if (file) validateAndSet(file)
   }
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
@@ -157,12 +177,12 @@ export const UploadDocumentModal = ({ open, onClose, onDone }: UploadDocumentMod
                 Choose a file or drag and drop it here
               </Typography>
               <Typography component="p" className={styles.dropHint}>
-                PDF and DOC formats only, up to 5mb
+                PDF, DOC and DOCX formats only, up to 5 MB
               </Typography>
               <input
                 ref={fileInputRef}
                 type="file"
-                accept=".pdf,.doc,.docx"
+                accept={ACCEPT_ATTR}
                 style={{ display: 'none' }}
                 onChange={handleFileChange}
                 aria-label="File input"

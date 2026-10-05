@@ -190,6 +190,43 @@ export const MandatesScreen = ({ onNewJobPost, onEditJobPost }: MandatesScreenPr
     handleClose()
   }
 
+  const activeRowPost = jobPosts.find((p) => p.mandateId === activeRowId)
+  const canTogglePause = activeRowPost
+    ? ['POSTED', 'PAUSED'].includes(activeRowPost.status.toUpperCase())
+    : false
+
+  const handleTogglePause = () => {
+    const idToUpdate = activeRowId
+    const post = jobPosts.find((p) => p.mandateId === idToUpdate)
+    handleClose()
+    if (!idToUpdate || !post) return
+
+    const isPaused = post.status.toUpperCase() === 'PAUSED'
+    const nextStatus = isPaused ? 'POSTED' : 'PAUSED'
+
+    setJobPosts((prev) =>
+      prev.map((p) => (p.mandateId === idToUpdate ? { ...p, status: nextStatus } : p)),
+    )
+    mandateApi.updateJobStatus(idToUpdate, nextStatus)
+      .then(() => {
+        dispatch(pushNotification({
+          level: 'success',
+          title: isPaused ? 'Job post resumed' : 'Job post paused',
+          message: post.title ? `"${post.title}" is now ${toTitleCase(nextStatus)}.` : undefined,
+        }))
+      })
+      .catch(() => {
+        setJobPosts((prev) =>
+          prev.map((p) => (p.mandateId === idToUpdate ? { ...p, status: post.status } : p)),
+        )
+        dispatch(pushNotification({
+          level: 'error',
+          title: 'Status update failed',
+          message: 'Could not update the job post status. Please try again.',
+        }))
+      })
+  }
+
   const handleDelete = () => {
     const idToDelete = activeRowId
     handleClose()
@@ -604,6 +641,25 @@ export const MandatesScreen = ({ onNewJobPost, onEditJobPost }: MandatesScreenPr
           </svg>
           Edit post
         </ButtonBase>
+
+        {canTogglePause && (
+          <ButtonBase className={styles.menuItem} onClick={handleTogglePause} disableRipple>
+            <svg
+              className={styles.menuIcon}
+              viewBox="0 0 20 20"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+            >
+              {activeRowPost?.status.toUpperCase() === 'PAUSED' ? (
+                <path d="M6.667 4.167l8.333 5.833-8.333 5.833V4.167Z" stroke="#4d4d4d" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              ) : (
+                <path d="M7.5 5v10M12.5 5v10" stroke="#4d4d4d" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              )}
+            </svg>
+            {activeRowPost?.status.toUpperCase() === 'PAUSED' ? 'Resume posting' : 'Pause posting'}
+          </ButtonBase>
+        )}
 
         <ButtonBase
           className={`${styles.menuItem} ${styles.menuItemDelete}`}

@@ -74,15 +74,49 @@ describe("useCandidateDashboardViewModel", () => {
       jobId: "job-1",
       title: "Product Designer",
       status: "interview",
-      fillPercent: 63,
+      fillPercent: 58,
       message: "Interview scheduled.",
       offerAccepted: false,
     });
     expect(result.current.applications[0].pipelineStages).toEqual([
-      { key: "applied", label: "Applied", isActive: false },
-      { key: "screening", label: "Screening", isActive: false },
-      { key: "interview", label: "Interview", isActive: true },
-      { key: "offer_accepted", label: "Closed", isActive: false },
+      { key: "APPLIED", label: "Applied", isActive: false },
+      { key: "SCREENING", label: "Screening", isActive: false },
+      { key: "ASSESSMENT", label: "Assessment", isActive: false },
+      { key: "INTERVIEW", label: "Interview", isActive: true },
+      { key: "SHORTLISTED", label: "Shortlisted", isActive: false },
+      { key: "OFFER", label: "Offer", isActive: false },
+    ]);
+  });
+
+  it("keeps the full pipeline when the API returns only the current stage", () => {
+    mocks.useCandidateDashboardQuery.mockReturnValue({
+      data: {
+        applications: [
+          {
+            id: "app-3",
+            job: { id: "job-3", title: "UI/UX Designer" },
+            stage: "INBOUND",
+            pipeline: ["INBOUND"],
+            statusMessage: "Your application has been submitted.",
+          },
+        ],
+      },
+      isLoading: false,
+    });
+
+    const { result } = renderHook(() => useCandidateDashboardViewModel());
+
+    expect(result.current.applications[0]).toMatchObject({
+      status: "applied",
+      fillPercent: 8,
+    });
+    expect(result.current.applications[0].pipelineStages).toEqual([
+      { key: "APPLIED", label: "Applied", isActive: true },
+      { key: "SCREENING", label: "Screening", isActive: false },
+      { key: "ASSESSMENT", label: "Assessment", isActive: false },
+      { key: "INTERVIEW", label: "Interview", isActive: false },
+      { key: "SHORTLISTED", label: "Shortlisted", isActive: false },
+      { key: "OFFER", label: "Offer", isActive: false },
     ]);
   });
 

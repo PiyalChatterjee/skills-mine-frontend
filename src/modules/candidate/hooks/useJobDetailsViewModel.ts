@@ -1,10 +1,11 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@/app/auth/AuthContext";
 import { extractErrorMessage } from "@/app/errorUtils";
 import { formatEnumLabel } from "@/app/formatEnumLabel";
 import { useJobs } from "@/modules/public/hooks/useJobs";
 import { ROUTE_PATHS } from "@/routes/routePaths";
+import { jobsApi } from "@/services/api/jobsApi";
 import {
   useApplyToJobMutation,
   useGetJobByIdQuery,
@@ -21,6 +22,9 @@ import { useOptimisticSaveJob } from "./useOptimisticSaveJob";
 type LocationState = {
   job?: Job;
   from?: string;
+  // Set by LoginPage when the user was redirected here from the visitor
+  // "candidate already exists" flow, so the pending application completes automatically.
+  autoApply?: boolean;
 };
 
 const allowedBackRoutes = new Set<string>([
@@ -66,6 +70,7 @@ export const useJobDetailsViewModel = () => {
   const { isJobApplied } = useAppliedJobIds();
   const [applyToJob, { isLoading: isApplying }] = useApplyToJobMutation();
   const [hasJustApplied, setHasJustApplied] = useState(false);
+  const [isApplySuccessModalOpen, setIsApplySuccessModalOpen] = useState(false);
   const [applyError, setApplyError] = useState<string | null>(null);
 
   const { data, isLoading } = useJobs(undefined, true, 50);
@@ -89,6 +94,7 @@ export const useJobDetailsViewModel = () => {
     return allJobs.find((job) => job.jobId === jobId) ?? stateJob;
   }, [allJobs, jobId, stateJob]);
 
+  // Job routes may start with a reference number; resolve the canonical profile id before detail/apply requests.
   const knownJobProfileId = resolvedJob?.jobProfileId;
   const { data: jobById } = useGetJobByIdQuery(jobId ?? "", {
     skip: !jobId || Boolean(knownJobProfileId),
@@ -112,6 +118,7 @@ export const useJobDetailsViewModel = () => {
   }, [jobById, jobProfile, resolvedJob, stateJob]);
 
   const effectiveJob = resolvedJob ?? jobById;
+  // Saved-job state uses the same canonical identifier as save, remove, and apply mutations.
   const savedJobKey = effectiveJob ? getJobOperationId(effectiveJob) : "";
   const savedJobKeysFromCollection = useMemo(
     () =>
@@ -128,7 +135,17 @@ export const useJobDetailsViewModel = () => {
     ? hasJustApplied || isJobApplied(effectiveJob.jobId)
     : false;
 
-  const handleApply = async () => {
+  // Best-effort view tracking, once per job per page load.
+  const hasTrackedViewRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!jobProfileId || hasTrackedViewRef.current === jobProfileId) return;
+    hasTrackedViewRef.current = jobProfileId;
+    void jobsApi.incrementViewCount(jobProfileId).catch(() => {
+      // Non-critical — view count tracking failures shouldn't affect the candidate.
+    });
+  }, [jobProfileId]);
+
+  const handleApply = useCallback(async () => {
     if (!effectiveJob || isApplied || isApplying) return;
     setApplyError(null);
 
@@ -148,10 +165,28 @@ export const useJobDetailsViewModel = () => {
     try {
       await applyToJob({ jobProfileId: effectiveJob.jobProfileId ?? effectiveJob.jobId }).unwrap();
       setHasJustApplied(true);
+      setIsApplySuccessModalOpen(true);
     } catch (error) {
       setApplyError(extractErrorMessage(error, "Unable to submit your application."));
     }
-  };
+  }, [applyToJob, effectiveJob, isApplied, isApplying, isAuthenticated, navigate, user?.role]);
+
+  // Auto-submits the pending application once, after login redirected here with autoApply state.
+  const hasAutoAppliedRef = useRef(false);
+  useEffect(() => {
+    if (
+      !locationState?.autoApply ||
+      hasAutoAppliedRef.current ||
+      !effectiveJob ||
+      isApplied ||
+      isApplying
+    ) {
+      return;
+    }
+
+    hasAutoAppliedRef.current = true;
+    void handleApply();
+  }, [effectiveJob, handleApply, isApplied, isApplying, locationState?.autoApply]);
 
   const handleToggleSave = () => {
     if (!effectiveJob) return;
@@ -188,9 +223,12 @@ export const useJobDetailsViewModel = () => {
     handleApply,
     handleBack: () => navigate(backRoute),
     handleBackToLatest: () => navigate(ROUTE_PATHS.latestJobs),
+    handleApplySuccessClose: () => setIsApplySuccessModalOpen(false),
+    handleApplySuccessDashboard: () => navigate(ROUTE_PATHS.candidateDashboard),
     handleToggleSave,
     industry,
     isApplied,
+    isApplySuccessModalOpen,
     isApplying,
     isAuthenticated,
     isInitialLoading: (isLoading || isJobProfileLoading) && !effectiveJob,

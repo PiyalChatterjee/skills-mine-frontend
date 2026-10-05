@@ -1,4 +1,4 @@
-import { Box } from "@mui/material";
+import { Box, CircularProgress } from "@mui/material";
 import { FormProvider } from "react-hook-form";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import CvBuilderFooterActions from "../components/CvBuilderFooterActions";
@@ -7,6 +7,7 @@ import CvBuilderLauncher from "../components/CvBuilderLauncher";
 import CvBuilderReviewScreen from "../components/CvBuilderReviewScreen";
 import styles from "./CvBuilderPage.module.css";
 import CvBuilderUploadModal from "../components/CvBuilderUploadModal";
+import CvBuilderCandidateExistsModal from "../components/CvBuilderCandidateExistsModal";
 import { useCvBuilderPageViewModel } from "../hooks/useCvBuilderPageViewModel";
 
 const CvBuilderPage = () => {
@@ -35,6 +36,12 @@ const CvBuilderPage = () => {
     uploadModalOpen,
     guestJobTags,
     visitorId,
+    onEmailBlur,
+    isCandidateExistsModalOpen,
+    existingCandidateEmail,
+    isCheckingEmail,
+    closeCandidateExistsModal,
+    goToLoginFromCandidateExistsModal,
   } = useCvBuilderPageViewModel();
 
   usePageTitle("CV Builder");
@@ -70,21 +77,27 @@ const CvBuilderPage = () => {
               cards={actionCards}
               heading={isGuestApplication ? "Upload your CV" : undefined}
             />
+          ) : isCheckingEmail ? (
+            <Box className={styles.checkingEmailLoader}>
+              <CircularProgress />
+            </Box>
           ) : reviewSource === "upload" || buildMyCvExists ? (
             <CvBuilderReviewScreen
               title="Review your CV."
               description="Your CV has been uploaded, we have highlighted potential gaps in your CV."
               visitorId={visitorId}
               isVisitor={isGuestApplication}
+              onEmailBlur={onEmailBlur}
             />
           ) : (
             <CvBuilderReviewScreen
               visitorId={visitorId}
               isVisitor={isGuestApplication}
+              onEmailBlur={onEmailBlur}
             />
           )}
 
-          {activeView === "review" && (
+          {activeView === "review" && !isCheckingEmail && (
             <CvBuilderFooterActions
               onNext={handleDone}
               isNextDisabled={isSavingCandidateProfile}
@@ -107,6 +120,13 @@ const CvBuilderPage = () => {
             submitError={uploadError}
           />
         )}
+
+        <CvBuilderCandidateExistsModal
+          open={isCandidateExistsModalOpen}
+          email={existingCandidateEmail}
+          onClose={closeCandidateExistsModal}
+          onGoToLogin={goToLoginFromCandidateExistsModal}
+        />
       </Box>
     </FormProvider>
   );

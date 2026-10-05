@@ -189,7 +189,17 @@ describe('buildCvBuilderPrefillData', () => {
 const mockSaveBuildMyCv = vi.hoisted(() => vi.fn())
 const mockUpdateBuildMyCv = vi.hoisted(() => vi.fn())
 const mockUploadResumeDocument = vi.hoisted(() => vi.fn())
+const mockUploadVisitorDocument = vi.hoisted(() => vi.fn())
 const mockNavigate = vi.hoisted(() => vi.fn())
+const mockCreateVisitorProfile = vi.hoisted(() => vi.fn())
+const mockApplyToJob = vi.hoisted(() => vi.fn())
+
+vi.mock('@/services/api/visitorApi', () => ({
+  visitorApi: {
+    createProfile: mockCreateVisitorProfile,
+    applyToJob: mockApplyToJob,
+  },
+}))
 
 vi.mock('@/store/api/apiSlice', async () => {
   const actual = await vi.importActual<typeof import('@/store/api/apiSlice')>(
@@ -206,6 +216,7 @@ vi.mock('@/store/api/apiSlice', async () => {
       { isLoading: false },
     ],
     useUploadCvResumeDocumentMutation: () => [mockUploadResumeDocument, { isLoading: false }],
+    useUploadVisitorDocumentMutation: () => [mockUploadVisitorDocument, { isLoading: false }],
   }
 })
 
@@ -227,6 +238,14 @@ vi.mock('@/app/auth/AuthContext', async () => {
 vi.mock('../utils/downloadCvPdf', () => ({
   generateCvPdfBlobFromText: vi.fn().mockResolvedValue(
     new Blob(['test-pdf'], { type: 'application/pdf' }),
+  ),
+}))
+
+vi.mock('../utils/generateCvDocx', () => ({
+  generateCvDocxBlob: vi.fn().mockResolvedValue(
+    new Blob(['test-docx'], {
+      type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    }),
   ),
 }))
 
@@ -301,6 +320,7 @@ describe('useCvBuilderDone', () => {
     vi.clearAllMocks()
     sessionStorage.clear()
     mockUploadResumeDocument.mockReturnValue({ unwrap: () => Promise.resolve({}) })
+    mockUploadVisitorDocument.mockReturnValue({ unwrap: () => Promise.resolve({}) })
   })
 
   it('calls save mutation when buildMyCvExists is false', async () => {
@@ -329,9 +349,12 @@ describe('useCvBuilderDone', () => {
     expect(store.getState().candidate.buildMyCv.personalDetails.currentCompany).toBe('Acme')
   })
 
-  it('stores a guest CV locally and does not call authenticated APIs', async () => {
+  it('creates a visitor, applies, uploads both CV documents, then navigates home', async () => {
+    mockCreateVisitorProfile.mockResolvedValue({ visitor_id: 'visitor-1' })
+    mockApplyToJob.mockResolvedValue({ application_id: 'app-1', match_score_latest: 80 })
     const guestApplicationDraft = createGuestApplicationDraft({
       jobId: 'j001',
+      jobProfileId: 'jp-001',
       title: 'Senior Engineer',
       company: 'SkillsMine',
       employmentType: 'Permanent',
@@ -360,11 +383,75 @@ describe('useCvBuilderDone', () => {
 
     expect(mockSaveBuildMyCv).not.toHaveBeenCalled()
     expect(mockUploadResumeDocument).not.toHaveBeenCalled()
+    expect(mockCreateVisitorProfile).toHaveBeenCalledTimes(1)
+    expect(mockApplyToJob).toHaveBeenCalledWith({
+      visitorId: 'visitor-1',
+      jobProfileId: 'jp-001',
+    })
+    expect(mockUploadVisitorDocument).toHaveBeenCalledTimes(2)
+    expect(mockUploadVisitorDocument).toHaveBeenNthCalledWith(1, {
+      visitorId: 'visitor-1',
+      file: expect.any(Blob),
+      fileName: expect.stringMatching(/\.pdf$/),
+    })
+    expect(mockUploadVisitorDocument).toHaveBeenNthCalledWith(2, {
+      visitorId: 'visitor-1',
+      file: expect.any(Blob),
+      fileName: expect.stringMatching(/\.docx$/),
+    })
+    expect(mockCreateVisitorProfile.mock.invocationCallOrder[0]).toBeLessThan(
+      mockApplyToJob.mock.invocationCallOrder[0],
+    )
+    expect(mockApplyToJob.mock.invocationCallOrder[0]).toBeLessThan(
+      mockUploadVisitorDocument.mock.invocationCallOrder[0],
+    )
     expect(getGuestApplicationDrafts()[0]).toMatchObject({
       applicationStatus: 'cv-completed',
       cvData: expect.objectContaining({ skills: ['React'] }),
     })
-    expect(mockNavigate).toHaveBeenCalledWith('/')
+    expect(mockNavigate).toHaveBeenCalledWith('/', {
+      state: { visitorId: 'visitor-1', matchScore: 80, jobTitle: 'Senior Engineer' },
+    })
+  })
+
+  it('dispatches an error and stays in the flow when visitor application fails', async () => {
+    mockCreateVisitorProfile.mockRejectedValue(new Error('Visitor request failed'))
+    const guestApplicationDraft = createGuestApplicationDraft({
+      jobId: 'j001',
+      title: 'Senior Engineer',
+      company: 'SkillsMine',
+      employmentType: 'Permanent',
+      workType: 'Hybrid',
+      salaryRange: 'Negotiable',
+      responsibilities: [],
+      status: 'Open',
+      applicationCount: 0,
+      postedDate: '2026-01-01',
+    })
+    const store = makeTestStore()
+    const { result } = renderHook(
+      () =>
+        useCvBuilderDone({
+          getFormValues: () => defaultFormValues,
+          selectedLanguageEntries: ['English'],
+          buildMyCvExists: false,
+          guestApplicationDraft,
+        }),
+      { wrapper: makeWrapper(store) },
+    )
+
+    await act(async () => {
+      await result.current.handleDone()
+    })
+
+    expect(mockApplyToJob).not.toHaveBeenCalled()
+    expect(mockUploadVisitorDocument).not.toHaveBeenCalled()
+    expect(mockNavigate).not.toHaveBeenCalled()
+    expect(store.getState().notification.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ title: 'Application failed', level: 'error' }),
+      ]),
+    )
   })
 
   it('calls update mutation when buildMyCvExists is true', async () => {

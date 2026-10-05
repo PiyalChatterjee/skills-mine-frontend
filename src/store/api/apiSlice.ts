@@ -1,5 +1,7 @@
 import { createApi, fakeBaseQuery } from "@reduxjs/toolkit/query/react";
 import { candidateApi, industryApi, jobsApi, locationApi } from "@/services/api";
+import { visitorApi } from "@/services/api/visitorApi";
+import type { JobsSearchFilters } from "@/services/api/jobsApi";
 import type {
   CandidateDashboardData,
   CandidateDashboardQuery,
@@ -37,6 +39,7 @@ type JobsListArgs = {
   searchQuery?: string;
   page: number;
   pageSize: number;
+  filters?: JobsSearchFilters;
 };
 
 type CandidateProfileArgs = { candidateId: string; userId?: string };
@@ -49,12 +52,23 @@ type CreateSimpleProfileArgs = {
   candidateId: string;
   payload: SimpleCandidateProfileInput;
 };
-type UploadCvResumeArgs = { candidateId: string; file: Blob; fileName: string };
+type UploadCvResumeArgs = {
+  candidateId: string;
+  file: Blob;
+  fileName: string;
+  ownerType?: "CANDIDATE" | "VISITOR";
+};
+type UploadVisitorDocumentArgs = {
+  visitorId: string;
+  file: Blob;
+  fileName: string;
+};
 type UploadDocumentArgs = {
   candidateId: string;
   file: Blob;
   fileName: string;
   documentType: string;
+  ownerType?: "CANDIDATE" | "VISITOR";
 };
 
 type UpdateCandidateProfileArgs = {
@@ -148,12 +162,12 @@ export const apiSlice = createApi({
       ],
     }),
     listJobsPage: build.query<JobsResponse, JobsListArgs>({
-      queryFn: ({ searchQuery, page, pageSize }) =>
-        withMappedApiError(() => jobsApi.list(searchQuery, page, pageSize)),
+      queryFn: ({ searchQuery, page, pageSize, filters }) =>
+        withMappedApiError(() => jobsApi.list(searchQuery, page, pageSize, "POSTED", filters)),
       providesTags: (_result, _error, args) => [
         {
           type: "Jobs",
-          id: `${args.searchQuery ?? ""}:${args.page}:${args.pageSize}`,
+          id: `${args.searchQuery ?? ""}:${JSON.stringify(args.filters ?? {})}:${args.page}:${args.pageSize}`,
         },
       ],
     }),
@@ -287,22 +301,37 @@ export const apiSlice = createApi({
       ResumeDocumentUploadResult,
       UploadCvResumeArgs
     >({
-      queryFn: ({ candidateId, file, fileName }) =>
+      queryFn: ({ candidateId, file, fileName, ownerType }) =>
         withMappedApiError(() =>
-          candidateApi.uploadResumeDocument(candidateId, file, fileName),
+          candidateApi.uploadResumeDocument(
+            candidateId,
+            file,
+            fileName,
+            ownerType,
+          ),
+        ),
+    }),
+    uploadVisitorDocument: build.mutation<
+      ResumeDocumentUploadResult,
+      UploadVisitorDocumentArgs
+    >({
+      queryFn: ({ visitorId, file, fileName }) =>
+        withMappedApiError(() =>
+          visitorApi.uploadDocument(visitorId, file, fileName),
         ),
     }),
     uploadDocument: build.mutation<
       ResumeDocumentUploadResult,
       UploadDocumentArgs
     >({
-      queryFn: ({ candidateId, file, fileName, documentType }) =>
+      queryFn: ({ candidateId, file, fileName, documentType, ownerType }) =>
         withMappedApiError(() =>
           candidateApi.uploadDocument(
             candidateId,
             file,
             fileName,
             documentType,
+            ownerType,
           ),
         ),
     }),
@@ -317,6 +346,7 @@ export const {
   useGetCandidateLandingQuery,
   useGetCandidateStatisticsQuery,
   useUpdateCandidateProfileMutation,
+  useListJobsPageQuery,
   useLazyListJobsPageQuery,
   useGetJobProfileQuery,
   useGetJobByIdQuery,
@@ -334,5 +364,6 @@ export const {
   useUpdateBuildMyCvMutation,
   useCreateSimpleProfileMutation,
   useUploadCvResumeDocumentMutation,
+  useUploadVisitorDocumentMutation,
   useUploadDocumentMutation,
 } = apiSlice;

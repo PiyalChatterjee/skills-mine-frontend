@@ -77,6 +77,15 @@ const LoginPage = () => {
         return;
       }
 
+      const pendingJobId = searchParams.get("job");
+
+      if (!isPostSignupCandidate && pendingJobId) {
+        navigate(`${ROUTE_PATHS.candidateDashboard}?job=${encodeURIComponent(pendingJobId)}`, {
+          replace: true,
+        });
+        return;
+      }
+
       navigate(
         isPostSignupCandidate
           ? ROUTE_PATHS.profileCreation
@@ -90,7 +99,7 @@ const LoginPage = () => {
     return () => {
       isActive = false;
     };
-  }, [isAuthenticated, isPostSignupCandidate, navigate, user]);
+  }, [isAuthenticated, isPostSignupCandidate, navigate, searchParams, user]);
 
   const handleGoogleSignIn = async () => {
     try {

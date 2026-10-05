@@ -25,6 +25,8 @@ export const useOptimisticSaveJob = () => {
     if (!user?.userId) return
 
     const isCurrentlySaved = savedJobIds.has(jobId)
+
+    // Update the local card immediately, then restore the prior state if the API rejects the change.
     if (isCurrentlySaved) {
       dispatch(removeSavedJob(jobId))
     } else {

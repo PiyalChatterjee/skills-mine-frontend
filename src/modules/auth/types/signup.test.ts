@@ -30,6 +30,25 @@ describe('inviteSignupSchema', () => {
     expect(result.success).toBe(false)
   })
 
+  it('rejects names containing only special characters', () => {
+    expect(
+      inviteSignupSchema.safeParse({ ...validPayload, firstName: '!!!' }).success,
+    ).toBe(false)
+    expect(
+      inviteSignupSchema.safeParse({ ...validPayload, lastName: '---' }).success,
+    ).toBe(false)
+  })
+
+  it('accepts names with spaces, apostrophes, and hyphens', () => {
+    expect(
+      inviteSignupSchema.safeParse({
+        ...validPayload,
+        firstName: 'Mary Jane',
+        lastName: "O'Neil-Smith",
+      }).success,
+    ).toBe(true)
+  })
+
   it('allows an empty staffNumber for self-service candidate registration', () => {
     const result = inviteSignupSchema.safeParse({ ...validPayload, staffNumber: '' })
     expect(result.success).toBe(true)
@@ -43,6 +62,26 @@ describe('inviteSignupSchema', () => {
     }
   })
 
+  it('accepts common special characters in the email name', () => {
+    expect(
+      inviteSignupSchema.safeParse({
+        ...validPayload,
+        email: 'jane.doe+work_2%3@example.com',
+      }).success,
+    ).toBe(true)
+  })
+
+  it('rejects unsupported special characters in the email name', () => {
+    const result = inviteSignupSchema.safeParse({
+      ...validPayload,
+      email: "jane.o'neil@example.com",
+    })
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.issues.some((issue) => issue.path.includes('email'))).toBe(true)
+    }
+  })
+
   it('rejects phone number that is not exactly 10 digits', () => {
     const result = inviteSignupSchema.safeParse({
       ...validPayload,
@@ -51,6 +90,17 @@ describe('inviteSignupSchema', () => {
     expect(result.success).toBe(false)
     if (!result.success) {
       expect(result.error.issues.some((i) => i.path.includes('mobileNumber'))).toBe(true)
+    }
+  })
+
+  it('rejects a phone number containing only zeros', () => {
+    const result = inviteSignupSchema.safeParse({
+      ...validPayload,
+      mobileNumber: '0000000000',
+    })
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.issues.some((issue) => issue.path.includes('mobileNumber'))).toBe(true)
     }
   })
 

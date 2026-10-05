@@ -41,6 +41,7 @@ const SignupPage = () => {
     watch,
     formState: { errors, isSubmitting },
   } = useZodForm(inviteSignupSchema, {
+    mode: "onBlur",
     defaultValues: {
       firstName: "",
       lastName: "",

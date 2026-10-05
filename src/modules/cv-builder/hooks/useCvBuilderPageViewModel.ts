@@ -26,6 +26,7 @@ import {
   isoToMonthName,
   useCvBuilderDone,
 } from "./useCvBuilderDone";
+import { useVisitorEmailCheck } from "./useVisitorEmailCheck";
 import { extractResumeText } from "../utils/extractResumeText";
 import { focusFirstErrorField } from "../utils/focusFirstError";
 import { buildResumePrefillData } from "../utils/resumePrefill";
@@ -170,6 +171,21 @@ export const useCvBuilderPageViewModel = () => {
   }, [guestApplicationJobId, userId]);
   const isGuestApplication = Boolean(guestApplicationDraft);
 
+  const {
+    isCandidateExistsModalOpen,
+    existingCandidateEmail,
+    isCheckingEmail,
+    checkEmail,
+    closeModal: closeCandidateExistsModal,
+    goToLogin: goToLoginFromCandidateExistsModal,
+  } = useVisitorEmailCheck(guestApplicationJobId ?? undefined);
+
+  const handleEmailBlur = (email: string) => {
+    if (isGuestApplication) {
+      void checkEmail(email);
+    }
+  };
+
   const guestJobTags = useMemo(() => {
     const job = guestApplicationDraft?.job;
     if (!job) return [];
@@ -218,6 +234,8 @@ export const useCvBuilderPageViewModel = () => {
   } = useCvBuilder(
     cvBuilderPrefillData,
     buildMyCvLoaded && Boolean(buildMyCvData),
+    undefined,
+    isGuestApplication,
   );
   const hasFormChanges = form.formState.isDirty;
 
@@ -242,6 +260,7 @@ export const useCvBuilderPageViewModel = () => {
     hasFormChanges,
     userRole: user?.role,
     guestApplicationDraft,
+    pendingJobId: guestApplicationJobId ?? undefined,
   });
 
   const handleUploadDone = async () => {
@@ -273,6 +292,10 @@ export const useCvBuilderPageViewModel = () => {
         },
       };
 
+      if (isGuestApplication && mergedPrefillData.personalDetails?.email) {
+        void checkEmail(mergedPrefillData.personalDetails.email);
+      }
+
       if (isGuestApplication) {
         setUploadModalOpen(false);
         openReviewFlowBlank(mergedPrefillData);
@@ -298,7 +321,7 @@ export const useCvBuilderPageViewModel = () => {
       setUploadError(
         hasStartedParsing
           ? "We could not process your CV. Please try again."
-          : "We could not read your CV. Please use a text-based PDF or DOCX file and try again.",
+          : "We could not read your CV. Please use a text-based PDF, DOC, or DOCX file and try again.",
       );
     } finally {
       setIsReadingResume(false);
@@ -377,5 +400,11 @@ export const useCvBuilderPageViewModel = () => {
     uploadModalOpen,
     visitorId,
     guestJobTags: isGuestApplication ? guestJobTags : undefined,
+    onEmailBlur: handleEmailBlur,
+    isCandidateExistsModalOpen,
+    existingCandidateEmail,
+    isCheckingEmail,
+    closeCandidateExistsModal,
+    goToLoginFromCandidateExistsModal,
   };
 };

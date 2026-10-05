@@ -1,11 +1,12 @@
 import { useMemo } from "react";
-import { useJobs, type Job } from "@/modules/public/hooks/useJobs";
+import {
+  useJobs,
+  type Job,
+  type JobsResponse,
+} from "@/modules/public/hooks/useJobs";
 import { DEFAULT_JOBS_PAGE_SIZE } from "../constants/landingPage.constants";
 
-const filterByTitle = (items: Job[], normalizedSearchTerm: string) => {
-  const term = normalizedSearchTerm.toLowerCase();
-  return items.filter((job) => job.title.toLowerCase().includes(term));
-};
+const EMPTY_PAGES: JobsResponse[] = [];
 
 type UseJobsSearchOptions = {
   normalizedSearchTerm: string;
@@ -28,7 +29,7 @@ export const useJobsSearch = ({
 
   const jobsQuery = useJobs(activeSearchQuery, enabled, DEFAULT_JOBS_PAGE_SIZE);
 
-  const pages = jobsQuery.data?.pages ?? [];
+  const pages = jobsQuery.data?.pages ?? EMPTY_PAGES;
 
   const allJobs = useMemo(() => {
     const seenJobIds = new Set<string>();
@@ -53,12 +54,13 @@ export const useJobsSearch = ({
   }, [pages]);
 
   const visibleJobs = useMemo(() => {
-    if (!shouldFilter) {
+    if (!shouldFilter || shouldUseDebouncedQuery) {
       return allJobs;
     }
 
-    return filterByTitle(allJobs, normalizedSearchTerm);
-  }, [allJobs, normalizedSearchTerm, shouldFilter]);
+    const term = normalizedSearchTerm.toLowerCase();
+    return allJobs.filter((job) => job.title.toLowerCase().includes(term));
+  }, [allJobs, normalizedSearchTerm, shouldFilter, shouldUseDebouncedQuery]);
 
   return {
     jobsResponse: pages.at(-1),

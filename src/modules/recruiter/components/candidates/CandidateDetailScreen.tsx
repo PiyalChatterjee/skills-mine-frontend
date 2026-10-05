@@ -293,19 +293,19 @@ export const CandidateDetailScreen = () => {
             {/* ── Column 1 ── */}
             <Box className={styles.heroInfoColGroup}>
               <Box className={styles.heroInfoBlock}>
-                <Typography component="p" className={styles.heroInfoLabel}>Full name</Typography>
+                <Typography component="p" className={styles.heroInfoLabel}>Full Name</Typography>
                 <Typography component="p" className={styles.heroInfoValue}>{candidate.fullName || '—'}</Typography>
               </Box>
               <Box className={styles.heroInfoBlock}>
-                <Typography component="p" className={styles.heroInfoLabel}>Email address</Typography>
+                <Typography component="p" className={styles.heroInfoLabel}>Email Address</Typography>
                 <Typography component="p" className={styles.heroInfoValue}>{candidate.email || '—'}</Typography>
               </Box>
               <Box className={styles.heroInfoBlock}>
-                <Typography component="p" className={styles.heroInfoLabel}>Phone number</Typography>
+                <Typography component="p" className={styles.heroInfoLabel}>Phone Number</Typography>
                 <Typography component="p" className={styles.heroInfoValue}>{candidate.phone || '—'}</Typography>
               </Box>
               <Box className={styles.heroInfoBlock}>
-                <Typography component="p" className={styles.heroInfoLabel}>Residential location</Typography>
+                <Typography component="p" className={styles.heroInfoLabel}>Residential Location</Typography>
                 <Typography component="p" className={styles.heroInfoValue}>{candidate.location || '—'}</Typography>
               </Box>
             </Box>
@@ -313,11 +313,11 @@ export const CandidateDetailScreen = () => {
             {/* ── Column 2 ── */}
             <Box className={styles.heroInfoColGroup}>
               <Box className={styles.heroInfoBlock}>
-                <Typography component="p" className={styles.heroInfoLabel}>Alternative Email address</Typography>
+                <Typography component="p" className={styles.heroInfoLabel}>Alternative Email Address</Typography>
                 <Typography component="p" className={styles.heroInfoValue}>{candidate.alternateEmail || '—'}</Typography>
               </Box>
               <Box className={styles.heroInfoBlock}>
-                <Typography component="p" className={styles.heroInfoLabel}>Alternative Phone number</Typography>
+                <Typography component="p" className={styles.heroInfoLabel}>Alternative Phone Number</Typography>
                 <Typography component="p" className={styles.heroInfoValue}>{candidate.alternatePhone || '—'}</Typography>
               </Box>
             </Box>
@@ -325,7 +325,7 @@ export const CandidateDetailScreen = () => {
             {/* ── Column 3 ── */}
             <Box className={styles.heroInfoColGroup}>
               <Box className={styles.heroInfoBlock}>
-                <Typography component="p" className={styles.heroInfoLabel}>Job title</Typography>
+                <Typography component="p" className={styles.heroInfoLabel}>Job Title</Typography>
                 <Typography component="p" className={styles.heroInfoValue}>{candidate.currentTitle || '—'}</Typography>
               </Box>
               <Box className={styles.heroInfoBlock}>
@@ -471,12 +471,23 @@ export const CandidateDetailScreen = () => {
               documents.map((doc) => {
                 const displayName = doc.title || doc.fileName
 
+                const isWordDocument =
+                  doc.mediaType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+                  doc.mediaType === 'application/msword' ||
+                  /\.(docx?)\s*$/i.test(doc.fileName)
+
                 const openDocument = (forDownload: boolean) => {
                   recruiterCandidatesApi
                     .fetchDocumentPresignedUrl(doc.documentId, forDownload ? 'attachment' : 'inline')
                     .then((presignedUrl) => {
                       const a = document.createElement('a')
-                      a.href = presignedUrl
+                      // For Word files opened as preview, route through Microsoft Office Online
+                      // viewer so the browser can render the document instead of downloading it.
+                      if (!forDownload && isWordDocument) {
+                        a.href = `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(presignedUrl)}`
+                      } else {
+                        a.href = presignedUrl
+                      }
                       if (forDownload) {
                         a.download = displayName
                       } else {

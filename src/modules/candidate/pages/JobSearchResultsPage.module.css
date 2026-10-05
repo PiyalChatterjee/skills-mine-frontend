@@ -1,0 +1,155 @@
+.pageRoot {
+  flex: 1;
+  min-height: 100vh;
+  background: #ffffff;
+}
+
+.hero {
+  position: relative;
+  height: 380px;
+  overflow: hidden;
+  background: linear-gradient(75.22deg, #2b96d9 0%, #32abbf 100%);
+}
+
+.patternLeft,
+.patternRight {
+  position: absolute;
+  width: 907px;
+  height: 569px;
+  pointer-events: none;
+}
+
+.patternLeft {
+  left: -551px;
+  top: -542px;
+  transform: rotate(-120deg);
+}
+
+.patternRight {
+  left: calc(50% + 347px);
+  top: -220px;
+}
+
+.heroInner {
+  position: relative;
+  z-index: 1;
+  width: min(721px, calc(100% - 32px));
+  margin: 0 auto;
+  padding-top: 65px;
+}
+
+.results {
+  width: min(721px, calc(100% - 32px));
+  margin: 45px auto 80px;
+}
+
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.resultCard:global(.MuiCard-root) {
+  min-height: 0;
+}
+
+.loading,
+.feedback {
+  min-height: 240px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #03478c;
+  text-align: center;
+}
+
+.loading :global(.MuiCircularProgress-root) {
+  color: #03478c;
+}
+
+.feedback:global(.MuiTypography-root) {
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 16px;
+}
+
+.paginationBar {
+  margin-top: 48px;
+  padding-top: 16px;
+  border-top: 1px solid #e1e3e6;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.resultCount,
+.resultCount:global(.MuiTypography-root) {
+  color: #2a3132;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.pageArrow:global(.MuiIconButton-root) {
+  width: 40px;
+  height: 40px;
+  padding: 8px;
+  border: 1px solid #e1e3e6;
+  border-radius: 8px;
+}
+
+.pageArrow img {
+  width: 24px;
+  height: 24px;
+}
+
+.previousIcon {
+  transform: rotate(180deg);
+}
+
+.pageNumber,
+.activePage {
+  width: 40px;
+  height: 40px;
+  border: 0;
+  background: transparent;
+  color: #2a3132;
+  cursor: pointer;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.activePage {
+  color: #2b96d9;
+  text-decoration: underline;
+}
+
+@media (max-width: 760px) {
+  .hero {
+    height: auto;
+    min-height: 380px;
+  }
+
+  .heroInner {
+    padding: 40px 0;
+  }
+
+  .paginationBar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .pagination {
+    align-self: center;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+}
