@@ -1,8 +1,8 @@
 export const heroContent = {
   findJob: {
     badge: "AI-Powered Matching",
-    titleStrong: "Your perfect role,",
-    titleLight: "matched to you.",
+    titleStrong: "Your Perfect Role,",
+    titleLight: "Matched To You.",
     copy: [
       "Upload your CV once.",
       "Get matched with bespoke opportunities.",
