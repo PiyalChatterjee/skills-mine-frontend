@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { API_ERROR_MESSAGES, extractErrorCode, extractErrorMessage } from "./errorUtils";
+import { API_ERROR_MESSAGES } from "@/enums/apiErrorMessages";
+import { extractErrorCode, extractErrorMessage } from "./errorUtils";
 
 describe("extractErrorMessage", () => {
   it.each(Object.entries(API_ERROR_MESSAGES))("maps %s to a readable message", (code, message) => {
