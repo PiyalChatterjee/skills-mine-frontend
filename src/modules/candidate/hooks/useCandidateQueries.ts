@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useDispatch } from 'react-redux'
 import { useAuth } from '@/app/auth/AuthContext'
+import { mapQueryError as mapApiError } from '@/app/queryErrorHandler'
 import {
   useGetCandidateDashboardQuery,
   useGetCandidateProfileQuery,
@@ -17,7 +18,7 @@ import {
 } from '@/store/api/apiSlice'
 import { setSavedJobs, setRecommendedJobs, setAvailableSkills, setBuildMyCv } from '@/store/slices/candidateSlice'
 import type { CandidateProfileUpdatePayload } from '@/modules/candidate/types'
-import type { ApiError, BuildMyCvData, BuildMyCvState, SaveBuildMyCvRequest, UpdateBuildMyCvRequest } from '@/types'
+import type { BuildMyCvData, BuildMyCvState, SaveBuildMyCvRequest, UpdateBuildMyCvRequest } from '@/types'
 import type { AppDispatch } from '@/store'
 import { getJobOperationId } from '@/modules/candidate/utils/jobIdentifier'
 
@@ -81,20 +82,6 @@ export const useUpdateCandidateProfileMutation = () => {
         throw mappedError
       }
     },
-  }
-}
-
-const mapApiError = (error: unknown): ApiError => {
-  if (typeof error === 'object' && error !== null && 'message' in error) {
-    return {
-      message: String((error as { message?: unknown }).message ?? 'Unknown error'),
-      details: error,
-    }
-  }
-
-  return {
-    message: 'Unexpected query error',
-    details: error,
   }
 }
 

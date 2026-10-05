@@ -1,4 +1,4 @@
-import { getErrorStatus } from '@/app/errorUtils'
+import { extractErrorCode, extractErrorMessage, getErrorStatus } from '@/app/errorUtils'
 import type { ApiError } from '@/types/api'
 
 export const mapQueryError = (error: unknown): ApiError => {
@@ -6,13 +6,14 @@ export const mapQueryError = (error: unknown): ApiError => {
     const e = error as {
       message?: unknown
       code?: unknown
+      details?: unknown
       response?: { data?: unknown }
     }
     return {
-      message: String(e.message ?? 'Unknown error'),
-      code: e.code != null ? String(e.code) : undefined,
+      message: extractErrorMessage(error, 'Unknown error'),
+      code: extractErrorCode(error) ?? (e.code != null ? String(e.code) : undefined),
       status: getErrorStatus(error),
-      details: e.response?.data ?? null,
+      details: e.response?.data ?? e.details ?? null,
     }
   }
 

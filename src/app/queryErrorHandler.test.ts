@@ -44,8 +44,22 @@ describe('mapQueryError', () => {
       message: 'Request failed with status code 401',
       response: { status: 401, data: { error: 'Unauthorized' } },
     })
-    expect(result.message).toBe('Request failed with status code 401')
+    expect(result.message).toBe('Unknown error')
     expect(result.status).toBe(401)
     expect(result.details).toEqual({ error: 'Unauthorized' })
+  })
+
+  it('maps backend codes while preserving status and diagnostic details', () => {
+    const data = { code: 'INVALID_CREDENTIALS', message: 'Authentication failed internally' }
+    const result = mapQueryError({
+      code: 'ERR_BAD_REQUEST',
+      message: 'Request failed with status code 401',
+      response: { status: 401, data },
+    })
+    expect(result.message).toBe('The email address or password is incorrect. Please try again.')
+    expect(result.code).toBe('INVALID_CREDENTIALS')
+    expect(result.status).toBe(401)
+    expect(result.details).toEqual(data)
+    expect(mapQueryError(result)).toEqual(result)
   })
 })

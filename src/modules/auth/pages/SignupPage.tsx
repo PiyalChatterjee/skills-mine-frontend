@@ -19,6 +19,7 @@ import {
 } from "@/app/validation.schema";
 import { normalizePhoneNumberInput } from "@/app/phoneNumber";
 import { PASSWORD_PLACEHOLDER } from "@/app/passwordPolicy";
+import { extractErrorMessage } from "@/app/errorUtils";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { authApi } from "@/services/api/authApi";
 import { ROUTE_PATHS } from "@/routes/routePaths";
@@ -101,10 +102,7 @@ const SignupPage = () => {
       // Redirect to login after a short moment so the user sees the success message
       setTimeout(() => navigate(ROUTE_PATHS.login), 1500);
     } catch (err: unknown) {
-      const message =
-        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
-        "Something went wrong. Please try again.";
-      setSubmitError(message);
+      setSubmitError(extractErrorMessage(err, "Something went wrong. Please try again."));
     }
   };
 
