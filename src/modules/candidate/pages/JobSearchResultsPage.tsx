@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
 import { Box, CircularProgress, IconButton, Typography } from "@mui/material";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useOutletContext, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/app/auth/AuthContext";
+import type { PublicLayoutOutletContext } from "@/layouts/PublicLayout";
 import patternLeft from "@/assets/landing-page/pattern-two.svg";
 import patternRight from "@/assets/landing-page/pattern-one.svg";
 import paginationArrow from "@/assets/opportunities/figma-pagination-next.svg";
@@ -63,6 +64,7 @@ const SearchHero = ({
 const JobSearchResultsPage = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
+  const publicLayoutContext = useOutletContext<PublicLayoutOutletContext>();
   const { isJobSaved, isJobSaving, toggleJobSaved } = useOptimisticSaveJob();
   const [searchParams, setSearchParams] = useSearchParams();
   const query = useMemo(() => parseJobSearchParams(searchParams), [searchParams]);
@@ -123,8 +125,14 @@ const JobSearchResultsPage = () => {
                   title={job.title}
                   description={job.description ?? ""}
                   tags={getJobTags(job)}
-                  actionLabel="View"
-                  onAction={() => viewJob(job)}
+                  actionLabel={isAuthenticated ? "View" : "Sign Up to View"}
+                  onAction={() => {
+                    if (isAuthenticated) {
+                      viewJob(job);
+                    } else {
+                      publicLayoutContext.openSignUpDrawer();
+                    }
+                  }}
                   showSaveButton={isAuthenticated}
                   isSaved={saved}
                   isSaving={isJobSaving(operationId)}
