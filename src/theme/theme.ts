@@ -79,26 +79,5 @@ export const appTheme = createTheme({
         },
       },
     },
-    MuiTypography: {
-      styleOverrides: {
-        root: {
-          '@media (max-width: 767px)': {
-            '&.MuiTypography-h1': { fontSize: 'calc(2rem - 2px)' },
-            '&.MuiTypography-h2': { fontSize: 'calc(1.5rem - 2px)' },
-            '&.MuiTypography-h3': { fontSize: 'calc(3rem - 2px)' },
-            '&.MuiTypography-h4': { fontSize: 'calc(2.125rem - 2px)' },
-            '&.MuiTypography-h5': { fontSize: 'calc(1.5rem - 2px)' },
-            '&.MuiTypography-h6': { fontSize: 'calc(1.25rem - 2px)' },
-            '&.MuiTypography-subtitle1': { fontSize: 'calc(1rem - 2px)' },
-            '&.MuiTypography-subtitle2': { fontSize: 'calc(0.875rem - 2px)' },
-            '&.MuiTypography-body1': { fontSize: 'calc(1rem - 2px)' },
-            '&.MuiTypography-body2': { fontSize: 'calc(0.875rem - 2px)' },
-            '&.MuiTypography-button': { fontSize: 'calc(0.875rem - 2px)' },
-            '&.MuiTypography-caption': { fontSize: 'calc(0.75rem - 2px)' },
-            '&.MuiTypography-overline': { fontSize: 'calc(0.75rem - 2px)' },
-          },
-        },
-      },
-    },
   },
 })
