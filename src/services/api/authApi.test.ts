@@ -43,6 +43,23 @@ describe('authApi v3', () => {
     expect(mockPost).toHaveBeenCalledWith('/api/auth-service/v1/auth/login', { email: 'test@example.com', password: 'pass' })
   })
 
+  it.each([
+    ['TEST@EXAMPLE.COM', 'test@example.com'],
+    ['Test.User+Tag@Example.COM', 'test.user+tag@example.com'],
+    ['  TEST@EXAMPLE.COM  ', 'test@example.com'],
+  ])('normalizes sign-in email %s without modifying the password', async (email, expectedEmail) => {
+    mockPost.mockResolvedValue({ data: loginResponse })
+    const payload = { email, password: ' CaseSensitivePassword1! ', rememberMe: true }
+
+    await expect(authApi.login(payload)).resolves.toEqual(loginResponse)
+
+    expect(mockPost).toHaveBeenCalledWith('/api/auth-service/v1/auth/login', {
+      ...payload,
+      email: expectedEmail,
+    })
+    expect(payload.email).toBe(email)
+  })
+
   it('uses v3 candidate, visitor-conversion, Google, and staff registration routes', async () => {
     mockPost.mockResolvedValue({ data: {} })
     await authApi.candidateRegister({ firstName: 'Jane', lastName: 'Doe', email: 'jane@example.com', mobileNumber: '0821234567', password: 'Password1!' })
