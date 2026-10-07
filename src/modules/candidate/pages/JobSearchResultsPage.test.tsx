@@ -36,10 +36,6 @@ vi.mock("@/modules/candidate/hooks/useLocationOptions", () => ({
   useLocationOptions: () => ["Cape Town", "Remote"],
 }));
 
-vi.mock("@/modules/candidate/components/OpportunitySearchControls", () => ({
-  OpportunitySearchControls: () => <div>Search controls</div>,
-}));
-
 vi.mock("@/components/jobs", () => ({
   getJobTags: () => [],
   OpportunityJobCard: ({
@@ -130,6 +126,46 @@ describe("JobSearchResultsPage", () => {
     expect(mocks.isJobSaved).toHaveBeenCalledWith("job-6");
     expect(mocks.isJobSaving).toHaveBeenCalledWith("job-6");
     expect(mocks.toggleJobSaved).toHaveBeenCalledWith("job-6");
+  });
+
+  it.each([
+    { label: "Industry", options: ["Technology", "Finance"], filter: "industries" },
+    { label: "Location", options: ["Cape Town", "Remote"], filter: "locations" },
+  ])("commits multiple $label selections only when the dropdown closes", ({ label, options, filter }) => {
+    renderSearchResults("/jobs/search?page=2");
+    const initialQueryCalls = mocks.useListJobsPageQuery.mock.calls.length;
+
+    fireEvent.mouseDown(screen.getByRole("combobox", { name: label }));
+    for (const option of options) {
+      fireEvent.click(screen.getByRole("option", { name: option }));
+      expect(screen.getByRole("option", { name: option })).toHaveAttribute("aria-selected", "true");
+    }
+
+    expect(screen.getByRole("listbox")).toBeInTheDocument();
+    expect(mocks.useListJobsPageQuery).toHaveBeenCalledTimes(initialQueryCalls);
+
+    fireEvent.keyDown(screen.getByRole("listbox"), { key: "Escape" });
+
+    expect(mocks.useListJobsPageQuery).toHaveBeenLastCalledWith({
+      searchQuery: undefined,
+      page: 1,
+      pageSize: 5,
+      filters: { industries: [], locations: [], datePosted: undefined, jobTypes: [], [filter]: options },
+    });
+    expect(screen.getByRole("combobox", { name: label })).toHaveTextContent(`${label} (2)`);
+  });
+
+  it("does not update the query when a dropdown closes without net selection changes", () => {
+    renderSearchResults("/jobs/search?industry=Technology");
+    const initialQueryCalls = mocks.useListJobsPageQuery.mock.calls.length;
+
+    fireEvent.mouseDown(screen.getByRole("combobox", { name: "Industry" }));
+    fireEvent.click(screen.getByRole("option", { name: "Finance" }));
+    fireEvent.click(screen.getByRole("option", { name: "Finance" }));
+    fireEvent.keyDown(screen.getByRole("listbox"), { key: "Escape" });
+
+    expect(mocks.useListJobsPageQuery).toHaveBeenCalledTimes(initialQueryCalls);
+    expect(screen.getByRole("combobox", { name: "Industry" })).toHaveTextContent("Industry (1)");
   });
 
   it("opens signup instead of job details for a signed-out user", () => {
