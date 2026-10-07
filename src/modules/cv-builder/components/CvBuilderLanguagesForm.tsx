@@ -94,9 +94,10 @@ const CvBuilderLanguagesForm = () => {
           <Controller
             name="otherLanguage"
             control={control}
-            render={({ field, fieldState }) => (
+            render={({ field: { ref, ...field }, fieldState }) => (
               <TextField
                 {...field}
+                inputRef={ref}
                 error={Boolean(fieldState.error)}
                 helperText={fieldState.error?.message}
                 placeholder="Enter language"

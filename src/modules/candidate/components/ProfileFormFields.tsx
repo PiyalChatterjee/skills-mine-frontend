@@ -197,6 +197,7 @@ export const ProfileSelectField = <TFieldValues extends FieldValues>({
                 select: {
                   displayEmpty: true,
                   multiple,
+                  "aria-label": formatProfileLabel(label),
                   IconComponent: DropdownIcon,
                   MenuProps: {
                     slotProps: {

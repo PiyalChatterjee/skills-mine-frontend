@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/app/auth/AuthContext";
 import { extractErrorMessage } from "@/app/errorUtils";
+import { validateAndFocusForm } from "@/app/formValidation";
 import { useZodForm } from "@/hooks/useZodForm";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import { useIndustryOptions } from "@/modules/candidate/hooks/useIndustryOptions";
@@ -40,6 +41,7 @@ export const useCandidateProfileViewModel = () => {
     control,
     formState: { isDirty },
     getValues,
+    getFieldState,
     reset,
     trigger,
   } = useZodForm(profileFormSchema, {
@@ -133,7 +135,7 @@ export const useCandidateProfileViewModel = () => {
     }
 
     if (isDirty) {
-      const isFormValid = await trigger();
+      const isFormValid = await validateAndFocusForm({ trigger, getValues, getFieldState });
       if (!isFormValid) {
         return;
       }

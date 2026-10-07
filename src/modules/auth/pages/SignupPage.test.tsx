@@ -45,6 +45,7 @@ describe('SignupPage', () => {
     fireEvent.click(screen.getByRole('button', { name: /submit/i }))
     await waitFor(() => {
       expect(screen.getByText(/first name is required/i)).toBeInTheDocument()
+      expect(screen.getByPlaceholderText('First name')).toHaveFocus()
     })
   })
 
@@ -126,6 +127,7 @@ describe('SignupPage', () => {
     fireEvent.click(screen.getByRole('button', { name: /submit/i }))
     await waitFor(() => {
       expect(screen.getByText(/accept the terms/i)).toBeInTheDocument()
+      expect(screen.getByRole('checkbox')).toHaveFocus()
     })
   })
 })

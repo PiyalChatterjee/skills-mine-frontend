@@ -90,6 +90,7 @@ const CvBuilderPersonalDetailsForm = ({
             <CvBuilderSelectField
               label="Race"
               name="personalDetails.race"
+              inputRef={field.ref}
               value={field.value}
               onChange={field.onChange}
               onBlur={field.onBlur}
@@ -107,6 +108,7 @@ const CvBuilderPersonalDetailsForm = ({
             <CvBuilderSelectField
               label="Gender"
               name="personalDetails.gender"
+              inputRef={field.ref}
               value={field.value}
               onChange={field.onChange}
               onBlur={field.onBlur}
@@ -124,6 +126,7 @@ const CvBuilderPersonalDetailsForm = ({
             <CvBuilderSelectField
               label="Disability status"
               name="personalDetails.disabilityStatus"
+              inputRef={field.ref}
               value={field.value}
               onChange={field.onChange}
               onBlur={field.onBlur}
@@ -174,6 +177,7 @@ const CvBuilderPersonalDetailsForm = ({
             <CvBuilderSelectField
               label="Notice period"
               name="personalDetails.noticePeriod"
+              inputRef={field.ref}
               value={field.value}
               onChange={field.onChange}
               onBlur={field.onBlur}

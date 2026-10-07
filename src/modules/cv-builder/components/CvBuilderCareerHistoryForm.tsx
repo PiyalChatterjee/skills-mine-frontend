@@ -72,9 +72,10 @@ const DynamicListSection = ({
           <Controller
             name={`careerHistory.${entryIndex}.${sectionKey}.${idx}` as never}
             control={control}
-            render={({ field }) => (
+            render={({ field: { ref, ...field } }) => (
               <TextField
                 {...field}
+                inputRef={ref}
                 placeholder={`${itemLabel} ${idx + 1}`}
                 className={`${styles.fieldControl} ${styles.dynamicListField}`}
                 variant="outlined"
@@ -135,9 +136,10 @@ const CvBuilderPositionCard = ({ entryIndex }: { entryIndex: number }) => {
         <Controller
           name={`careerHistory.${entryIndex}.companyName`}
           control={control}
-          render={({ field, fieldState }) => (
+          render={({ field: { ref, ...field }, fieldState }) => (
             <TextField
               {...field}
+              inputRef={ref}
               error={Boolean(fieldState.error)}
               helperText={fieldState.error?.message}
               placeholder="Company name"
@@ -157,9 +159,10 @@ const CvBuilderPositionCard = ({ entryIndex }: { entryIndex: number }) => {
           <Controller
             name={`careerHistory.${entryIndex}.positionHeld`}
             control={control}
-            render={({ field, fieldState }) => (
+            render={({ field: { ref, ...field }, fieldState }) => (
               <TextField
                 {...field}
+                inputRef={ref}
                 error={Boolean(fieldState.error)}
                 helperText={fieldState.error?.message}
                 placeholder="Position held"

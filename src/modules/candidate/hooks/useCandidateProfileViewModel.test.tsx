@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   getCandidateProfileUpdatePayload: vi.fn(),
   getProfileFormValues: vi.fn(),
   getValues: vi.fn(),
+  getFieldState: vi.fn(),
   navigate: vi.fn(),
   reset: vi.fn(),
   trigger: vi.fn(),
@@ -81,11 +82,13 @@ describe("useCandidateProfileViewModel", () => {
     });
     mocks.getCandidateProfileUpdatePayload.mockReturnValue({ personalDetails: { firstName: "Jane" } });
     mocks.getValues.mockReturnValue({ fullName: "Jane Doe" });
+    mocks.getFieldState.mockReturnValue({ error: undefined });
     mocks.trigger.mockResolvedValue(true);
     mocks.useZodForm.mockReturnValue({
       control: { name: "control" },
       formState: { isDirty: false },
       getValues: mocks.getValues,
+      getFieldState: mocks.getFieldState,
       reset: mocks.reset,
       trigger: mocks.trigger,
     });
@@ -147,6 +150,7 @@ describe("useCandidateProfileViewModel", () => {
       control: { name: "control" },
       formState: { isDirty: true },
       getValues: mocks.getValues,
+      getFieldState: mocks.getFieldState,
       reset: mocks.reset,
       trigger: mocks.trigger,
     });
@@ -157,7 +161,7 @@ describe("useCandidateProfileViewModel", () => {
       await result.current.handleDashboard();
     });
 
-    expect(mocks.trigger).toHaveBeenCalled();
+    expect(mocks.trigger).toHaveBeenCalledWith(undefined, { shouldFocus: true });
     expect(mocks.getCandidateProfileUpdatePayload).toHaveBeenCalledWith(
       { fullName: "Jane Doe" },
       candidateProfile,
@@ -168,6 +172,28 @@ describe("useCandidateProfileViewModel", () => {
       payload: { personalDetails: { firstName: "Jane" } },
     });
     expect(mocks.navigate).toHaveBeenCalledWith("/candidate/dashboard");
+  });
+
+  it("requests focus on invalid profile fields and blocks saving and navigation", async () => {
+    mocks.trigger.mockResolvedValue(false);
+    mocks.useZodForm.mockReturnValue({
+      control: { name: "control" },
+      formState: { isDirty: true },
+      getValues: mocks.getValues,
+      getFieldState: mocks.getFieldState,
+      reset: mocks.reset,
+      trigger: mocks.trigger,
+    });
+    const { result } = renderHook(() => useCandidateProfileViewModel());
+
+    await act(async () => {
+      await result.current.handleDashboard();
+    });
+
+    expect(mocks.trigger).toHaveBeenCalledWith(undefined, { shouldFocus: true });
+    expect(mocks.getCandidateProfileUpdatePayload).not.toHaveBeenCalled();
+    expect(mocks.useUpdateCandidateProfileMutation().mutateAsync).not.toHaveBeenCalled();
+    expect(mocks.navigate).not.toHaveBeenCalled();
   });
 
   it("exposes missing-user and loading derived states", () => {

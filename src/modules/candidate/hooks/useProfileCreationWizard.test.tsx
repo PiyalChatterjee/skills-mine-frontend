@@ -163,6 +163,7 @@ describe('useProfileCreationWizard', () => {
 
   it('blocks progression when the current step is invalid', async () => {
     const { result } = renderHook(() => useProfileCreationWizard())
+    const trigger = vi.spyOn(result.current.form, 'trigger')
 
     await act(async () => {
       await result.current.handleNext()
@@ -171,6 +172,7 @@ describe('useProfileCreationWizard', () => {
     expect(mocks.mutateAsync).not.toHaveBeenCalled()
     expect(mocks.navigate).not.toHaveBeenCalled()
     expect(result.current.currentStepIndex).toBe(0)
+    expect(trigger).toHaveBeenCalledWith(expect.any(Array), { shouldFocus: true })
   })
 
   it('exposes a recoverable error when profile persistence fails', async () => {

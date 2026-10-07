@@ -3,6 +3,7 @@ import { useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/app/auth/AuthContext";
 import { formatEnumLabel } from "@/app/formatEnumLabel";
+import { validateAndFocusForm } from "@/app/formValidation";
 import settingsIcon from "@/assets/cv-builder/settings-4-line.svg";
 import uploadIcon from "@/assets/cv-builder/upload-2-line.svg";
 import {
@@ -28,7 +29,6 @@ import {
 } from "./useCvBuilderDone";
 import { useVisitorEmailCheck } from "./useVisitorEmailCheck";
 import { extractResumeText } from "../utils/extractResumeText";
-import { focusFirstErrorField } from "../utils/focusFirstError";
 import { buildResumePrefillData } from "../utils/resumePrefill";
 import { LANGUAGES_LIST, type CvActionCard } from "../types/cvBuilder";
 import type { CvBuilderFormValues } from "@/app/validation.schema";
@@ -239,15 +239,7 @@ export const useCvBuilderPageViewModel = () => {
   );
   const hasFormChanges = form.formState.isDirty;
 
-  // Scroll to and focus the first invalid field so the user immediately sees
-  // what needs fixing when validation fails on submit.
-  const validateForm = async () => {
-    const isValid = await form.trigger();
-    if (!isValid) {
-      focusFirstErrorField(form.formState.errors);
-    }
-    return isValid;
-  };
+  const validateForm = () => validateAndFocusForm(form);
 
   const { handleDone, isSavingCandidateProfile } = useCvBuilderDone({
     candidateId,

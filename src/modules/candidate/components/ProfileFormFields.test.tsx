@@ -1,7 +1,10 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi } from 'vitest'
 import { useForm, useWatch } from 'react-hook-form'
+import { z } from 'zod'
+import { useZodForm } from '@/hooks/useZodForm'
+import { validateAndFocusForm } from '@/app/formValidation'
 import { ProfileTextField, ProfileSelectField } from './ProfileFormFields'
 
 vi.mock('@/assets/icons/dropdown-chevron.svg', () => ({ default: 'chevron.svg' }))
@@ -145,6 +148,33 @@ describe('ProfileTextField', () => {
   it('renders as disabled when disabled prop is true', () => {
     render(<TextFieldWrapper disabled />)
     expect(screen.getByPlaceholderText('Enter first name')).toBeDisabled()
+  })
+})
+
+const ValidationWrapper = ({ firstName }: { firstName: string }) => {
+  const form = useZodForm(z.object({
+    firstName: z.string().min(1, 'First name is required'),
+    role: z.string().min(1, 'Role is required'),
+  }), { defaultValues: { firstName, role: '' } })
+  const { control } = form
+  return (
+    <>
+      <ProfileTextField control={control} name="firstName" label="First name" />
+      <ProfileSelectField control={control} name="role" label="Role" options={['Engineer']} />
+      <button onClick={() => void validateAndFocusForm(form)}>Save profile</button>
+    </>
+  )
+}
+
+describe('profile validation focus', () => {
+  it.each([
+    { firstName: '', role: 'textbox', label: 'First Name' },
+    { firstName: 'Jane', role: 'combobox', label: 'Role' },
+  ])('focuses the first invalid $role on submission', async ({ firstName, role, label }) => {
+    const user = userEvent.setup()
+    render(<ValidationWrapper firstName={firstName} />)
+    await user.click(screen.getByRole('button', { name: 'Save profile' }))
+    await waitFor(() => expect(screen.getByRole(role, { name: label })).toHaveFocus())
   })
 })
 

@@ -1,4 +1,4 @@
-import { Box, MenuItem, TextField, Typography } from "@mui/material";
+import { Box, MenuItem, TextField, Typography, type TextFieldProps } from "@mui/material";
 import type { ChangeEvent, ReactNode } from "react";
 import {
   Controller,
@@ -46,6 +46,7 @@ type CvBuilderSelectFieldProps = {
   error?: boolean;
   helperText?: string;
   name?: string;
+  inputRef?: TextFieldProps["inputRef"];
 };
 
 type CvBuilderControlledTextFieldProps<TFieldValues extends FieldValues> = {
@@ -144,6 +145,7 @@ export const CvBuilderSelectField = ({
   error = false,
   helperText,
   name,
+  inputRef,
 }: CvBuilderSelectFieldProps) => (
   <CvBuilderLabeledField label={label} span={span} fieldName={name}>
     <TextField
@@ -151,6 +153,7 @@ export const CvBuilderSelectField = ({
       value={value}
       onChange={onChange}
       onBlur={onBlur}
+      inputRef={inputRef}
       error={error}
       helperText={helperText}
       className={styles.fieldControl}
@@ -158,6 +161,7 @@ export const CvBuilderSelectField = ({
       fullWidth
       slotProps={{
         select: {
+          "aria-label": label,
           IconComponent: SelectChevronIcon,
           ...(displayEmpty
             ? {
@@ -200,9 +204,10 @@ export const CvBuilderControlledTextField = <TFieldValues extends FieldValues>({
       name={name}
       control={control}
       rules={rules}
-      render={({ field, fieldState }) => (
+      render={({ field: { ref, ...field }, fieldState }) => (
         <TextField
           {...field}
+          inputRef={ref}
           type={type}
           onChange={(event) => {
             const value = transformValue ? transformValue(event.target.value) : event.target.value;
