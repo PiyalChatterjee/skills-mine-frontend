@@ -36,14 +36,14 @@ const signupEmailSchema = z
 const requiredField = (label: string) =>
   z.string().trim().min(1, `${label} is required`);
 
-const signupNamePattern = /^[\p{L}\p{M}]+(?:[ '\u2019-][\p{L}\p{M}]+)*$/u;
+const signupNamePattern = /^\p{L}[\p{L}\p{M}]*(?:[ '\u2019-]\p{L}[\p{L}\p{M}]*)*$/u;
 const signupName = (label: string) =>
   z
     .string()
     .trim()
     .min(1, `${label} is required`)
     .refine((value) => value === "" || signupNamePattern.test(value), {
-      message: `${label} can only include letters, spaces, apostrophes, or hyphens`,
+      message: `${label} must include at least one letter and can only include letters, spaces, apostrophes, or hyphens`,
     });
 
 const passwordMismatchIssue = {
