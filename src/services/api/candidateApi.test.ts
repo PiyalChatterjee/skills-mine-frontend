@@ -631,6 +631,43 @@ describe('candidateApi', () => {
     })
   })
 
+  describe('profile email mapping', () => {
+    it('keeps primary and alternate emails separate in snake-case API responses', async () => {
+      mockGet.mockResolvedValue({ data: { status: 'success', data: { personal_details: {
+        email: 'primary@example.com',
+        alternate_email: 'alternate@example.com',
+      } } } })
+
+      const result = await candidateApi.getById('u-1')
+
+      expect(result.personalDetails.email).toBe('primary@example.com')
+      expect(result.personalDetails.alternateEmail).toBe('alternate@example.com')
+    })
+
+    it('does not use an alternate email as the primary email when email is absent', async () => {
+      mockGet.mockResolvedValue({ data: { status: 'success', data: { personal_details: {
+        alternate_email: 'alternate@example.com',
+      } } } })
+
+      const result = await candidateApi.getById('u-1')
+
+      expect(result.personalDetails.email).toBe('')
+      expect(result.personalDetails.alternateEmail).toBe('alternate@example.com')
+    })
+
+    it('supports the legacy alternate email address response key without changing primary email', async () => {
+      mockGet.mockResolvedValue({ data: { status: 'success', data: { personal_details: {
+        email: 'primary@example.com',
+        alternate_email_address: 'legacy-alternate@example.com',
+      } } } })
+
+      const result = await candidateApi.getById('u-1')
+
+      expect(result.personalDetails.email).toBe('primary@example.com')
+      expect(result.personalDetails.alternateEmail).toBe('legacy-alternate@example.com')
+    })
+  })
+
   describe('updateById', () => {
     it('creates the profile then re-fetches it', async () => {
       mockPut.mockResolvedValue({ data: {} })
@@ -655,6 +692,7 @@ describe('candidateApi', () => {
           firstName: 'Piyal',
           lastName: 'Chatterjee',
           email: 'piyal.ibm0226@gmail.com',
+          alternateEmail: 'alternate@example.com',
           mobileNumber: '+279007257812',
           location: 'Cape Town',
         },
@@ -672,7 +710,8 @@ describe('candidateApi', () => {
         personal_details: expect.objectContaining({
           first_name: 'Piyal',
           last_name: 'Chatterjee',
-          alternate_email: 'piyal.ibm0226@gmail.com',
+          email: 'piyal.ibm0226@gmail.com',
+          alternate_email: 'alternate@example.com',
           phone_number: '+279007257812',
           residential_location: 'Cape Town',
         }),
@@ -681,6 +720,7 @@ describe('candidateApi', () => {
           targeted_industry_id: 'b44765ae-4107-4b2a-9339-2f6e42f2e9b2',
         }),
       })
+      expect(mockPut.mock.calls[0][1].personal_details).not.toHaveProperty('alternate_email_address')
     })
   })
 
