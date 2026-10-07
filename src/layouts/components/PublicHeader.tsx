@@ -19,6 +19,7 @@ import type { HeaderNavItem } from "@/layouts/headerNav";
 import { roleToDefaultRoute } from "@/routes/roleDefaultRoutes";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import { authApi } from "@/services/api/authApi";
+import { PublicSocialLinks } from "./PublicSocialLinks";
 import styles from "../PublicLayout.module.css";
 
 type PublicHeaderProps = {
@@ -586,6 +587,7 @@ export const PublicHeader = ({
                   ) : null}
                 </Box>
               ) : null}
+              <PublicSocialLinks className={styles.mobileSocialLinks} />
             </Box>
           </>
         )}

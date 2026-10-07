@@ -1,5 +1,6 @@
 import { Box, Typography } from "@mui/material";
 import skillsMineLogo from "@/assets/skillsMine-logo.svg";
+import { PublicSocialLinks } from "./PublicSocialLinks";
 import styles from "../PublicLayout.module.css";
 
 type PublicFooterProps = {
@@ -24,6 +25,7 @@ export const PublicFooter = ({ showContactLink = true }: PublicFooterProps) => {
             © 2026
           </Typography>
         </Box>
+        <PublicSocialLinks className={styles.footerSocialLinks} />
         <Box className={styles.footerLinks}>
           <Typography component="p" className={styles.footerLinkText}>
             Privacy
