@@ -42,8 +42,20 @@ const signupName = (label: string) =>
     .string()
     .trim()
     .min(1, `${label} is required`)
-    .refine((value) => value === "" || signupNamePattern.test(value), {
-      message: `${label} must include at least one letter and can only include letters, spaces, apostrophes, or hyphens`,
+    .superRefine((value, context) => {
+      if (value === "" || signupNamePattern.test(value)) return;
+
+      let message: string;
+      if (!/\p{L}/u.test(value)) {
+        message = `${label} must include at least one letter`;
+      } else if (!/^[\p{L}\p{M} '\u2019-]+$/u.test(value)) {
+        message = `${label} can only contain letters, spaces, apostrophes, or hyphens`;
+      } else if (!/^\p{L}/u.test(value) || !/[\p{L}\p{M}]$/u.test(value)) {
+        message = `${label} must start and end with a letter`;
+      } else {
+        message = `Use only one space, apostrophe, or hyphen between letters in ${label.toLowerCase()}`;
+      }
+      context.addIssue({ code: "custom", message });
     });
 
 const passwordMismatchIssue = {
