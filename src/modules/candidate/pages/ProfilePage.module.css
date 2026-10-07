@@ -265,6 +265,17 @@
   letter-spacing: 0.1px;
 }
 
+.requiredHint,
+.requiredHint:global(.MuiTypography-root) {
+  margin: 0;
+  color: #000000;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
+}
+
 .readonlyInput {
   margin: 0;
 }

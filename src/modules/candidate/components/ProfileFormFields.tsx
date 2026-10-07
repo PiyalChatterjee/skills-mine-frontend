@@ -132,6 +132,7 @@ export const ProfileTextField = <TFieldValues extends FieldValues>({
               ...slotProps,
               htmlInput: {
                 ...slotProps?.htmlInput,
+                "aria-required": label.trim().endsWith("*") || undefined,
                 ...(type === "tel" ? { inputMode: "tel", autoComplete: "tel-national" } : maxLength !== undefined ? { maxLength } : {}),
               },
             }}
@@ -198,6 +199,9 @@ export const ProfileSelectField = <TFieldValues extends FieldValues>({
                   displayEmpty: true,
                   multiple,
                   "aria-label": formatProfileLabel(label),
+                  SelectDisplayProps: {
+                    "aria-required": label.trim().endsWith("*") || undefined,
+                  },
                   IconComponent: DropdownIcon,
                   MenuProps: {
                     slotProps: {

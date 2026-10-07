@@ -141,20 +141,20 @@ const ProfilePage = () => {
               <ProfileTextField
                 control={control}
                 name="fullName"
-                label="Full name"
+                label="Full name*"
                 fullWidth
                 disabled={!isPersonalEditing}
               />
               <ProfileTextField
                 control={control}
                 name="email"
-                label="Email address"
+                label="Email address*"
                 disabled={!isPersonalEditing}
               />
               <ProfileTextField
                 control={control}
                 name="phoneNumber"
-                label="Phone number"
+                label="Phone number*"
                 disabled={!isPersonalEditing}
                 type="tel"
               />
@@ -174,11 +174,14 @@ const ProfilePage = () => {
               <ProfileTextField
                 control={control}
                 name="residentialLocation"
-                label="Residential location"
+                label="Residential location*"
                 fullWidth
                 disabled={!isPersonalEditing}
               />
             </Box>
+            <Typography component="p" className={styles.requiredHint}>
+              *Required fields
+            </Typography>
           </SectionCard>
 
           <SectionCard
@@ -190,7 +193,7 @@ const ProfilePage = () => {
               <ProfileTextField
                 control={control}
                 name="preferredJobTitle"
-                label="Preferred job title"
+                label="Preferred job title*"
                 disabled={!isDesiredEditing}
               />
               <ProfileSelectField
@@ -222,6 +225,9 @@ const ProfilePage = () => {
                 disabled={!isDesiredEditing}
               />
             </Box>
+            <Typography component="p" className={styles.requiredHint}>
+              *Required fields
+            </Typography>
           </SectionCard>
 
           <Box className={styles.footerAction}>

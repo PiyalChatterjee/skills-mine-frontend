@@ -29,16 +29,18 @@ type TestForm = {
 const TextFieldWrapper = ({
   disabled = false,
   fullWidth = false,
+  label = 'First Name',
 }: {
   disabled?: boolean
   fullWidth?: boolean
+  label?: string
 }) => {
   const { control } = useForm<TestForm>({ defaultValues: { firstName: 'Jane', role: '' } })
   return (
     <ProfileTextField
       control={control}
       name="firstName"
-      label="First Name"
+      label={label}
       placeholder="Enter first name"
       disabled={disabled}
       fullWidth={fullWidth}
@@ -49,16 +51,18 @@ const TextFieldWrapper = ({
 const SelectFieldWrapper = ({
   disabled = false,
   options = ['Engineer', 'Designer', 'Manager'],
+  label = 'Role',
 }: {
   disabled?: boolean
   options?: string[]
+  label?: string
 }) => {
   const { control } = useForm<TestForm>({ defaultValues: { firstName: '', role: '' } })
   return (
     <ProfileSelectField
       control={control}
       name="role"
-      label="Role"
+      label={label}
       placeholder="Select a role"
       options={options}
       disabled={disabled}
@@ -130,6 +134,11 @@ describe('phone fields', () => {
 })
 
 describe('ProfileTextField', () => {
+  it('marks asterisk-labelled fields as required for assistive technology', () => {
+    render(<TextFieldWrapper label="First Name*" />)
+    expect(screen.getByRole('textbox', { name: 'First Name*' })).toHaveAttribute('aria-required', 'true')
+  })
+
   it('renders the label', () => {
     render(<TextFieldWrapper />)
     expect(screen.getByText('First Name')).toBeInTheDocument()
@@ -179,6 +188,11 @@ describe('profile validation focus', () => {
 })
 
 describe('ProfileSelectField', () => {
+  it('marks asterisk-labelled dropdowns as required for assistive technology', () => {
+    render(<SelectFieldWrapper label="Role*" />)
+    expect(screen.getByRole('combobox', { name: 'Role*' })).toHaveAttribute('aria-required', 'true')
+  })
+
   it('renders the label', () => {
     render(<SelectFieldWrapper />)
     expect(screen.getByText('Role')).toBeInTheDocument()
