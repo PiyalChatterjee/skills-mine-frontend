@@ -14,6 +14,7 @@ import {
 } from "react-hook-form";
 import { type ReactNode, useId } from "react";
 import { formatEnumLabel } from "@/app/formatEnumLabel";
+import { getPhoneNumberInputProps } from "@/app/phoneNumber";
 import dropdownChevronIconSrc from "@/assets/icons/dropdown-chevron.svg";
 import styles from "@/modules/candidate/pages/ProfilePage.module.css";
 
@@ -115,6 +116,7 @@ export const ProfileTextField = <TFieldValues extends FieldValues>({
             type={type}
             value={typeof field.value === "string" ? field.value : ""}
             onChange={field.onChange}
+            {...(type === "tel" ? getPhoneNumberInputProps(field.value ?? "", field.onChange) : {})}
             onBlur={field.onBlur}
             inputRef={field.ref}
             placeholder={placeholder ?? label}
@@ -130,7 +132,7 @@ export const ProfileTextField = <TFieldValues extends FieldValues>({
               ...slotProps,
               htmlInput: {
                 ...slotProps?.htmlInput,
-                ...(maxLength !== undefined ? { maxLength } : {}),
+                ...(type === "tel" ? { inputMode: "tel", autoComplete: "tel-national" } : maxLength !== undefined ? { maxLength } : {}),
               },
             }}
           />

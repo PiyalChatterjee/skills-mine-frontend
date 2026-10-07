@@ -156,7 +156,7 @@ const ProfilePage = () => {
                 name="phoneNumber"
                 label="Phone number"
                 disabled={!isPersonalEditing}
-                maxLength={10}
+                type="tel"
               />
               <ProfileTextField
                 control={control}
@@ -169,7 +169,7 @@ const ProfilePage = () => {
                 name="alternatePhoneNumber"
                 label="Alternative number"
                 disabled={!isPersonalEditing}
-                maxLength={10}
+                type="tel"
               />
               <ProfileTextField
                 control={control}

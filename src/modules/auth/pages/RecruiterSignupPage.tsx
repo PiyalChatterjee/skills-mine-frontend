@@ -18,6 +18,7 @@ import {
   type RecruiterInviteSignupFormValues,
 } from "@/app/validation.schema";
 import { authApi } from "@/services/api/authApi";
+import { getPhoneNumberInputProps } from "@/app/phoneNumber";
 import { extractErrorMessage } from "@/app/errorUtils";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import styles from "./SignupPage.module.css";
@@ -52,12 +53,6 @@ const RecruiterSignupPage = () => {
 
   const passwordValue = watch("password");
   const confirmPasswordValue = watch("confirmPassword");
-  const phoneNumberRegistration = register("mobileNumber", {
-    onChange: (event) => {
-      const digitsOnly = event.target.value.replace(/\D/g, "").slice(0, 10);
-      event.target.value = digitsOnly;
-    },
-  });
 
   const onSubmit = async (values: RecruiterInviteSignupFormValues) => {
     setSubmitError(null);
@@ -141,18 +136,22 @@ const RecruiterSignupPage = () => {
 
           <Box className={styles.fieldGroup}>
             <Typography className={styles.fieldLabel}>Phone number</Typography>
-            <TextField
-              placeholder="Phone number"
-              error={Boolean(errors.mobileNumber)}
-              helperText={errors.mobileNumber?.message}
-              slotProps={{
-                htmlInput: {
-                  inputMode: "numeric",
-                  maxLength: 10,
-                },
-              }}
-              {...phoneNumberRegistration}
-              className={styles.inputField}
+            <Controller
+              name="mobileNumber"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  placeholder="Phone number"
+                  error={Boolean(errors.mobileNumber)}
+                  helperText={errors.mobileNumber?.message}
+                  name={field.name}
+                  inputRef={field.ref}
+                  onBlur={field.onBlur}
+                  {...getPhoneNumberInputProps(field.value, field.onChange)}
+                  slotProps={{ htmlInput: { inputMode: "tel", autoComplete: "tel-national", "aria-label": "Phone number" } }}
+                  className={styles.inputField}
+                />
+              )}
             />
           </Box>
 

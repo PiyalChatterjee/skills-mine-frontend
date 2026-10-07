@@ -90,6 +90,7 @@ describe('SignupPage', () => {
     await userEvent.type(screen.getByPlaceholderText('Last name'), 'Doe')
     await userEvent.type(screen.getByPlaceholderText('Email'), 'jane@test.com')
     await userEvent.type(screen.getByPlaceholderText('Phone number'), '0821234567')
+    expect(screen.getByPlaceholderText('Phone number')).toHaveValue('082 123 4567')
     await userEvent.type(screen.getByPlaceholderText('8+ characters, uppercase, number & special character'), 'Password1!')
     await userEvent.type(screen.getByPlaceholderText('Re-enter your password'), 'Password1!')
 

@@ -2,7 +2,7 @@ import { Box, Button, Checkbox, Link, Stack, TextField, Typography } from "@mui/
 import { Controller, useWatch, type Control, type FieldErrors, type UseFormRegister } from "react-hook-form";
 import { useState } from "react";
 import { PasswordVisibilityAdornment } from "@/components/PasswordVisibilityAdornment";
-import { normalizePhoneNumberInput } from "@/app/phoneNumber";
+import { getPhoneNumberInputProps } from "@/app/phoneNumber";
 import type { CandidateSignUpFormValues } from "@/modules/public/components/CandidateSignUpDrawer.types";
 import styles from "./CandidateSignUpDrawer.module.css";
 
@@ -29,11 +29,6 @@ export const CandidateSignUpForm = ({
   const confirmPasswordValue = useWatch({ control, name: "confirmPassword" });
   const hasPasswordValue = Boolean(passwordValue?.length);
   const hasConfirmPasswordValue = Boolean(confirmPasswordValue?.length);
-  const phoneNumberRegistration = register("mobileNumber", {
-    onChange: (event) => {
-      event.target.value = normalizePhoneNumberInput(event.target.value);
-    },
-  });
 
   return (
     <Stack
@@ -98,22 +93,25 @@ export const CandidateSignUpForm = ({
         <Typography component="label" className={styles.fieldLabel} htmlFor="phone-number">
           Phone number
         </Typography>
-        <TextField
-          id="phone-number"
-          className={styles.fieldInput}
-          placeholder="Phone number"
-          variant="outlined"
-          type="tel"
-          fullWidth
-          error={Boolean(errors.mobileNumber)}
-          helperText={errors.mobileNumber?.message}
-          slotProps={{
-            htmlInput: {
-              inputMode: "tel",
-              maxLength: 10,
-            },
-          }}
-          {...phoneNumberRegistration}
+        <Controller
+          name="mobileNumber"
+          control={control}
+          render={({ field }) => (
+            <TextField
+              id="phone-number"
+              className={styles.fieldInput}
+              placeholder="Phone number"
+              variant="outlined"
+              fullWidth
+              error={Boolean(errors.mobileNumber)}
+              helperText={errors.mobileNumber?.message}
+              name={field.name}
+              inputRef={field.ref}
+              onBlur={field.onBlur}
+              {...getPhoneNumberInputProps(field.value, field.onChange)}
+              slotProps={{ htmlInput: { inputMode: "tel", autoComplete: "tel-national" } }}
+            />
+          )}
         />
       </Box>
 

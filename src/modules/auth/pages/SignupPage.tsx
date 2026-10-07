@@ -17,7 +17,7 @@ import {
   inviteSignupSchema,
   type InviteSignupFormValues,
 } from "@/app/validation.schema";
-import { normalizePhoneNumberInput } from "@/app/phoneNumber";
+import { getPhoneNumberInputProps } from "@/app/phoneNumber";
 import { PASSWORD_PLACEHOLDER } from "@/app/passwordPolicy";
 import { extractErrorMessage } from "@/app/errorUtils";
 import { usePageTitle } from "@/hooks/usePageTitle";
@@ -57,11 +57,6 @@ const SignupPage = () => {
 
   const passwordValue = watch("password");
   const confirmPasswordValue = watch("confirmPassword");
-  const phoneNumberRegistration = register("mobileNumber", {
-    onChange: (event) => {
-      event.target.value = normalizePhoneNumberInput(event.target.value);
-    },
-  });
 
   const onSubmit = async (values: InviteSignupFormValues) => {
     setSubmitError(null);
@@ -160,18 +155,22 @@ const SignupPage = () => {
 
           <Box className={styles.fieldGroup}>
             <Typography className={styles.fieldLabel}>Phone number</Typography>
-            <TextField
-              placeholder="Phone number"
-              error={Boolean(errors.mobileNumber)}
-              helperText={errors.mobileNumber?.message}
-              slotProps={{
-                htmlInput: {
-                  inputMode: "tel",
-                  maxLength: 10,
-                },
-              }}
-              {...phoneNumberRegistration}
-              className={styles.inputField}
+            <Controller
+              name="mobileNumber"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  placeholder="Phone number"
+                  error={Boolean(errors.mobileNumber)}
+                  helperText={errors.mobileNumber?.message}
+                  name={field.name}
+                  inputRef={field.ref}
+                  onBlur={field.onBlur}
+                  {...getPhoneNumberInputProps(field.value, field.onChange)}
+                  slotProps={{ htmlInput: { inputMode: "tel", autoComplete: "tel-national", "aria-label": "Phone number" } }}
+                  className={styles.inputField}
+                />
+              )}
             />
           </Box>
 

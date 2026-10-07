@@ -8,6 +8,7 @@ import {
   type RegisterOptions,
 } from "react-hook-form";
 import chevronDownIcon from "@/assets/cv-builder/chevron-down.svg";
+import { getPhoneNumberInputProps } from "@/app/phoneNumber";
 import styles from "../pages/CvBuilderPage.module.css";
 
 export type FieldSpan = "full" | "two" | "one";
@@ -57,6 +58,7 @@ type CvBuilderControlledTextFieldProps<TFieldValues extends FieldValues> = {
   rules?: RegisterOptions<TFieldValues>;
   onBlur?: (value: string) => void;
   transformValue?: (value: string) => string;
+  type?: "text" | "tel";
 };
 
 const spanClassNameMap: Record<FieldSpan, string> = {
@@ -191,6 +193,7 @@ export const CvBuilderControlledTextField = <TFieldValues extends FieldValues>({
   rules,
   onBlur,
   transformValue,
+  type = "text",
 }: CvBuilderControlledTextFieldProps<TFieldValues>) => (
   <CvBuilderLabeledField label={label} span={span} fieldName={name}>
     <Controller
@@ -200,10 +203,13 @@ export const CvBuilderControlledTextField = <TFieldValues extends FieldValues>({
       render={({ field, fieldState }) => (
         <TextField
           {...field}
+          type={type}
           onChange={(event) => {
             const value = transformValue ? transformValue(event.target.value) : event.target.value;
             field.onChange(value);
           }}
+          {...(type === "tel" ? getPhoneNumberInputProps(field.value ?? "", field.onChange) : {})}
+          slotProps={{ htmlInput: { "aria-label": label, ...(type === "tel" ? { inputMode: "tel", autoComplete: "tel-national" } : {}) } }}
           onBlur={(event) => {
             field.onBlur();
             onBlur?.(event.target.value);
