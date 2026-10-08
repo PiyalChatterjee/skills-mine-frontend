@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { Box, ButtonBase, CircularProgress, Typography } from '@mui/material'
 import { RecruiterSidebar } from '@/modules/recruiter/components/RecruiterSidebar'
 import { jobProfileApi, type JobProfile, type TopCandidate } from '@/services/api/recruiterCandidatesApi'
+import { mandateApi } from '@/services/api/mandateApi'
 import { ROUTE_PATHS } from '@/routes/routePaths'
 import { formatPhoneNumberDisplay } from '@/app/phoneNumber'
 import styles from './MandateDetailPage.module.css'
@@ -57,6 +58,7 @@ const MandateDetailPage = () => {
   const [copied, setCopied] = useState(false)
   const [topCandidates, setTopCandidates] = useState<TopCandidate[]>([])
   const [candidatesLoading, setCandidatesLoading] = useState(false)
+  const [pipelineLoading, setPipelineLoading] = useState(false)
 
   // Resolve the id — comes as :jobProfileId from candidate flow, :cardId from mandate flow
   const resolvedId = jobProfileId ?? cardId
@@ -431,13 +433,19 @@ const MandateDetailPage = () => {
             <ButtonBase
               className={styles.pipelineBtn}
               disableRipple
-              onClick={() =>
+              disabled={pipelineLoading}
+              onClick={() => {
+                if (!resolvedId) return
+                setPipelineLoading(true)
+                mandateApi
+                  .listPipelines({ jobProfileId: resolvedId })
+                  .finally(() => setPipelineLoading(false))
                 navigate(
-                  ROUTE_PATHS.recruiterCandidatePipeline.replace(':cardId', resolvedId ?? '')
+                  ROUTE_PATHS.recruiterCandidatePipeline.replace(':cardId', resolvedId)
                 )
-              }
+              }}
             >
-              View Candidate Pipeline
+              {pipelineLoading ? 'Loading…' : 'View Candidate Pipeline'}
             </ButtonBase>
 
           </Box>

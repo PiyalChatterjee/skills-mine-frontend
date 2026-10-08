@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Box, ButtonBase, CircularProgress, Typography } from '@mui/material'
 import { mandateApi } from '@/services/api/mandateApi'
+import RejectConfirmModal from './RejectConfirmModal'
 import styles from './ShortlistStageModal.module.css'
 
 // ── Icons ──────────────────────────────────────────────────────────────
@@ -29,6 +30,8 @@ export interface ShortlistStageModalProps {
   dueDate?: string
   onClose: () => void
   onAdvance?: (applicationId: string) => void
+  onMoveBack?: (applicationId: string) => void
+  onRejected?: (applicationId: string) => void
 }
 
 // ── Component ──────────────────────────────────────────────────────────
@@ -42,20 +45,45 @@ const ShortlistStageModal = ({
   dueDate = 'Jan 20, 2026',
   onClose,
   onAdvance,
+  onMoveBack,
+  onRejected,
 }: ShortlistStageModalProps) => {
-  const [offerDate, setOfferDate] = useState('17 August 2026')
-  const [ctcTotal, setCtcTotal]   = useState('850000')
-  const [advancing, setAdvancing] = useState(false)
+  const [offerDate, setOfferDate]     = useState('')
+  const [validUntil, setValidUntil]   = useState('')
+  const [ctcTotal, setCtcTotal]       = useState('')
+  const [advancing, setAdvancing]     = useState(false)
+  const [movingBack, setMovingBack]   = useState(false)
+  const [rejectOpen, setRejectOpen]   = useState(false)
 
-  const canAdvance = offerDate.trim().length > 0 && ctcTotal.trim().length > 0
+  const canAdvance = offerDate.trim().length > 0 && validUntil.trim().length > 0 && ctcTotal.trim().length > 0
+
+  const handleMoveBack = async () => {
+    if (movingBack) return
+    setMovingBack(true)
+    try {
+      await mandateApi.advanceJobStage(jobId, {
+        applicationId: [applicationId],
+        toStageCode: 'ASSESSMENT',
+      })
+      onMoveBack?.(applicationId)
+      onClose()
+    } finally {
+      setMovingBack(false)
+    }
+  }
 
   const handleAdvance = async () => {
     if (!canAdvance || advancing) return
     setAdvancing(true)
     try {
-      await mandateApi.advanceJobStage(jobId, {
-        applicationIds: [applicationId],
-        targetStage: 'Interview',
+      await mandateApi.advanceToInterview(applicationId, {
+        toStageCode: 'INTERVIEW',
+        shortListDetails: {
+          offeredSalary: Number(ctcTotal.replace(/\D/g, '')) || 0,
+          currencyCode: 'ZAR',
+          offerDate,
+          validUntil,
+        },
       })
       onAdvance?.(applicationId)
       onClose()
@@ -65,7 +93,8 @@ const ShortlistStageModal = ({
   }
 
   return (
-    <Box className={styles.backdrop} onClick={onClose}>
+    <>
+    {!rejectOpen && <Box className={styles.backdrop} onClick={onClose}>
       <Box
         className={styles.modal}
         onClick={e => e.stopPropagation()}
@@ -119,21 +148,32 @@ const ShortlistStageModal = ({
                 <Typography component="label" className={styles.fieldLabel} htmlFor="offer-ext-date">
                   Offer Extension Date *
                 </Typography>
-                <Box className={styles.inputWrapper}>
-                  <input
-                    id="offer-ext-date"
-                    type="text"
-                    className={styles.input}
-                    value={offerDate}
-                    onChange={e => setOfferDate(e.target.value)}
-                  />
-                  <Box className={styles.inputIcon}>
-                    <CalendarIcon />
-                  </Box>
-                </Box>
+                <input
+                  id="offer-ext-date"
+                  type="date"
+                  className={styles.input}
+                  value={offerDate}
+                  onChange={e => setOfferDate(e.target.value)}
+                />
               </Box>
 
-              {/* Cost-to-Company Total */}
+              {/* Valid Until */}
+              <Box className={styles.fieldGroup}>
+                <Typography component="label" className={styles.fieldLabel} htmlFor="valid-until">
+                  Valid Until *
+                </Typography>
+                <input
+                  id="valid-until"
+                  type="date"
+                  className={styles.input}
+                  value={validUntil}
+                  onChange={e => setValidUntil(e.target.value)}
+                />
+              </Box>
+            </Box>
+
+            {/* Cost-to-Company Total */}
+            <Box className={styles.formRow} style={{ marginTop: 12 }}>
               <Box className={styles.fieldGroup}>
                 <Typography component="label" className={styles.fieldLabel} htmlFor="ctc-total">
                   Cost-to-Company Total (ZAR) *
@@ -154,10 +194,10 @@ const ShortlistStageModal = ({
 
           {/* ── Action buttons ── */}
           <Box className={styles.actionRow}>
-            <ButtonBase className={styles.moveBackBtn} disableRipple disabled>
-              Move back
+            <ButtonBase className={styles.moveBackBtn} disableRipple onClick={handleMoveBack} disabled={movingBack}>
+              {movingBack ? <CircularProgress size={14} sx={{ color: '#1E5FA8' }} /> : 'Move back'}
             </ButtonBase>
-            <ButtonBase className={styles.rejectBtn} disableRipple>
+            <ButtonBase className={styles.rejectBtn} disableRipple onClick={() => setRejectOpen(true)}>
               Reject
             </ButtonBase>
             <ButtonBase
@@ -171,7 +211,21 @@ const ShortlistStageModal = ({
           </Box>
         </Box>
       </Box>
-    </Box>
+    </Box>}
+      {rejectOpen && (
+        <RejectConfirmModal
+          stageName="Shortlist"
+          candidateName={candidateName}
+          candidateTitle={candidateTitle}
+          company={company}
+          applicationId={applicationId}
+          jobId={jobId}
+          dueDate={dueDate}
+          onClose={() => setRejectOpen(false)}
+          onRejected={onRejected}
+        />
+      )}
+    </>
   )
 }
 

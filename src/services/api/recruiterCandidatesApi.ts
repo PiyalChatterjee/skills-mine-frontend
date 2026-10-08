@@ -12,8 +12,12 @@ import type {
 
 // ── List response shape ───────────────────────────────────────────────────
 type CandidateRow = {
+  applicantType: "CANDIDATE" | "VISITOR";
+  source: "TOP_SCORED" | "APPLIED" | string;
   applicationId: string | null;
-  candidateId: string;
+  applicantId: string;
+  firstName: string;
+  lastName: string;
   fullName: string;
   title: string;
   companyName: string;
@@ -31,8 +35,8 @@ type CandidatePage = {
 };
 
 const toCandidateListItem = (candidate: CandidateRow): CandidateListItem => ({
-  candidateId: candidate.candidateId,
-  fullName: candidate.fullName,
+  candidateId: candidate.applicantId,
+  fullName: candidate.fullName || [candidate.firstName, candidate.lastName].filter(Boolean).join(" "),
   email: "",
   phone: "",
   location: candidate.locationText,
@@ -46,6 +50,8 @@ const toCandidateListItem = (candidate: CandidateRow): CandidateListItem => ({
   languages: [],
   profileComplete: 0,
   applications: candidate.applicationId ? [candidate.applicationId] : [],
+  applicantType: candidate.applicantType,
+  source: candidate.source,
 });
 
 // ── GET /candidates/profile/:candidateId  (candidate-service) ────────────
@@ -596,6 +602,8 @@ const mapJobProfile = (raw: RawJobProfileResponse): JobProfile => ({
 
 export type TopCandidate = {
   candidateId: string;
+  applicantType: "CANDIDATE" | "VISITOR";
+  source: string;
   fullName: string;
   title: string;
   matchPercentage: number | null;
@@ -619,8 +627,10 @@ export const jobProfileApi = {
       )
       .then((res) =>
         (res.data.data ?? []).map((row) => ({
-          candidateId:     row.candidateId,
-          fullName:        row.fullName,
+          candidateId:     row.applicantId,
+          applicantType:   row.applicantType,
+          source:          row.source,
+          fullName:        row.fullName || [row.firstName, row.lastName].filter(Boolean).join(" "),
           title:           row.title,
           matchPercentage: row.matchPercentage,
           status:          row.status,

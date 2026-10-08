@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Box, ButtonBase, CircularProgress, Typography } from '@mui/material'
 import { mandateApi } from '@/services/api/mandateApi'
+import RejectConfirmModal from './RejectConfirmModal'
 import styles from './InterviewStageModal.module.css'
 
 // ── Icons ──────────────────────────────────────────────────────────────
@@ -29,6 +30,8 @@ export interface InterviewStageModalProps {
   dueDate?: string
   onClose: () => void
   onAdvance?: (applicationId: string) => void
+  onMoveBack?: (applicationId: string) => void
+  onRejected?: (applicationId: string) => void
 }
 
 // ── Component ──────────────────────────────────────────────────────────
@@ -42,21 +45,40 @@ const InterviewStageModal = ({
   dueDate = 'Jan 20, 2026',
   onClose,
   onAdvance,
+  onMoveBack,
+  onRejected,
 }: InterviewStageModalProps) => {
   const [notes, setNotes]         = useState(
     'Andrew performed exceptionally well during the interview and is a strong candidate.'
   )
   const [advancing, setAdvancing] = useState(false)
+  const [movingBack, setMovingBack] = useState(false)
+  const [rejectOpen, setRejectOpen] = useState(false)
 
   const canAdvance = notes.trim().length > 0
+
+  const handleMoveBack = async () => {
+    if (movingBack) return
+    setMovingBack(true)
+    try {
+      await mandateApi.advanceJobStage(jobId, {
+        applicationId: [applicationId],
+        toStageCode: 'SHORTLISTED',
+      })
+      onMoveBack?.(applicationId)
+      onClose()
+    } finally {
+      setMovingBack(false)
+    }
+  }
 
   const handleAdvance = async () => {
     if (!canAdvance || advancing) return
     setAdvancing(true)
     try {
       await mandateApi.advanceJobStage(jobId, {
-        applicationIds: [applicationId],
-        targetStage: 'Shortlisted',
+        applicationId: [applicationId],
+        toStageCode: 'OFFER',
         notes,
       })
       onAdvance?.(applicationId)
@@ -67,7 +89,8 @@ const InterviewStageModal = ({
   }
 
   return (
-    <Box className={styles.backdrop} onClick={onClose}>
+    <>
+    {!rejectOpen && <Box className={styles.backdrop} onClick={onClose}>
       <Box
         className={styles.modal}
         onClick={e => e.stopPropagation()}
@@ -128,10 +151,10 @@ const InterviewStageModal = ({
 
           {/* ── Action buttons ── */}
           <Box className={styles.actionRow}>
-            <ButtonBase className={styles.moveBackBtn} disableRipple disabled>
-              Move back
+            <ButtonBase className={styles.moveBackBtn} disableRipple onClick={handleMoveBack} disabled={movingBack}>
+              {movingBack ? <CircularProgress size={14} sx={{ color: '#1E5FA8' }} /> : 'Move back'}
             </ButtonBase>
-            <ButtonBase className={styles.rejectBtn} disableRipple>
+            <ButtonBase className={styles.rejectBtn} disableRipple onClick={() => setRejectOpen(true)}>
               Reject
             </ButtonBase>
             <ButtonBase
@@ -145,7 +168,21 @@ const InterviewStageModal = ({
           </Box>
         </Box>
       </Box>
-    </Box>
+    </Box>}
+      {rejectOpen && (
+        <RejectConfirmModal
+          stageName="Interview"
+          candidateName={candidateName}
+          candidateTitle={candidateTitle}
+          company={company}
+          applicationId={applicationId}
+          jobId={jobId}
+          dueDate={dueDate}
+          onClose={() => setRejectOpen(false)}
+          onRejected={onRejected}
+        />
+      )}
+    </>
   )
 }
 

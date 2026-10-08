@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Box, ButtonBase, CircularProgress, Typography } from '@mui/material'
 import { mandateApi } from '@/services/api/mandateApi'
+import RejectConfirmModal from './RejectConfirmModal'
 import styles from './OfferStageModal.module.css'
 
 // ── Icons ──────────────────────────────────────────────────────────────
@@ -29,6 +30,8 @@ export interface OfferStageModalProps {
   dueDate?: string
   onClose: () => void
   onAdvance?: (applicationId: string) => void
+  onMoveBack?: (applicationId: string) => void
+  onRejected?: (applicationId: string) => void
 }
 
 // ── Component ──────────────────────────────────────────────────────────
@@ -42,20 +45,43 @@ const OfferStageModal = ({
   dueDate = 'Jan 20, 2026',
   onClose,
   onAdvance,
+  onMoveBack,
+  onRejected,
 }: OfferStageModalProps) => {
   const [offerDate, setOfferDate] = useState('17 August 2026')
   const [ctcTotal, setCtcTotal]   = useState('850000')
   const [advancing, setAdvancing] = useState(false)
+  const [movingBack, setMovingBack] = useState(false)
+  const [rejectOpen, setRejectOpen] = useState(false)
 
   const canAdvance = offerDate.trim().length > 0 && ctcTotal.trim().length > 0
+
+  const handleMoveBack = async () => {
+    if (movingBack) return
+    setMovingBack(true)
+    try {
+      await mandateApi.advanceJobStage(jobId, {
+        applicationId: [applicationId],
+        toStageCode: 'INTERVIEW',
+      })
+      onMoveBack?.(applicationId)
+      onClose()
+    } finally {
+      setMovingBack(false)
+    }
+  }
 
   const handleAdvance = async () => {
     if (!canAdvance || advancing) return
     setAdvancing(true)
     try {
-      await mandateApi.advanceJobStage(jobId, {
-        applicationIds: [applicationId],
-        targetStage: 'Placed',
+      await mandateApi.advanceOfferToClose(applicationId, {
+        toStageCode: 'CLOSED',
+        offerDetails: {
+          actualSalaryAccepted: Number(ctcTotal),
+          currencyCode: 'ZAR',
+          offerDate,
+        },
       })
       onAdvance?.(applicationId)
       onClose()
@@ -65,7 +91,8 @@ const OfferStageModal = ({
   }
 
   return (
-    <Box className={styles.backdrop} onClick={onClose}>
+    <>
+    {!rejectOpen && <Box className={styles.backdrop} onClick={onClose}>
       <Box
         className={styles.modal}
         onClick={e => e.stopPropagation()}
@@ -154,10 +181,10 @@ const OfferStageModal = ({
 
           {/* ── Action buttons ── */}
           <Box className={styles.actionRow}>
-            <ButtonBase className={styles.moveBackBtn} disableRipple disabled>
-              Move back
+            <ButtonBase className={styles.moveBackBtn} disableRipple onClick={handleMoveBack} disabled={movingBack}>
+              {movingBack ? <CircularProgress size={14} sx={{ color: '#1E5FA8' }} /> : 'Move back'}
             </ButtonBase>
-            <ButtonBase className={styles.rejectBtn} disableRipple>
+            <ButtonBase className={styles.rejectBtn} disableRipple onClick={() => setRejectOpen(true)}>
               Reject
             </ButtonBase>
             <ButtonBase
@@ -171,7 +198,21 @@ const OfferStageModal = ({
           </Box>
         </Box>
       </Box>
-    </Box>
+    </Box>}
+      {rejectOpen && (
+        <RejectConfirmModal
+          stageName="Offer"
+          candidateName={candidateName}
+          candidateTitle={candidateTitle}
+          company={company}
+          applicationId={applicationId}
+          jobId={jobId}
+          dueDate={dueDate}
+          onClose={() => setRejectOpen(false)}
+          onRejected={onRejected}
+        />
+      )}
+    </>
   )
 }
 

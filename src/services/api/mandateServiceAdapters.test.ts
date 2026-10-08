@@ -187,8 +187,12 @@ describe("Mandate Service v2 frontend adapters", () => {
     mockGet.mockResolvedValue({
       data: {
         data: [{
+          applicantType: "CANDIDATE",
+          source: "APPLIED",
           applicationId: "00000007-0000-4000-8000-000000000001",
-          candidateId: "00000004-0000-4000-8000-000000000001",
+          applicantId: "00000004-0000-4000-8000-000000000001",
+          firstName: "Ayanda",
+          lastName: "Maseko",
           fullName: "Ayanda Maseko",
           title: "Software Engineer",
           companyName: "Standard Bank",
@@ -205,7 +209,7 @@ describe("Mandate Service v2 frontend adapters", () => {
 
     const result = await recruiterCandidatesApi.listCandidates();
 
-    expect(mockGet).toHaveBeenCalledWith("/candidates", {
+    expect(mockGet).toHaveBeenCalledWith("/applicants", {
       params: { page: 0, size: 100, search: undefined, locationText: undefined },
     });
     expect(result.data.candidates[0]).toMatchObject({
