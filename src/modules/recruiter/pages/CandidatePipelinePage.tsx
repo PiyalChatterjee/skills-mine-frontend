@@ -75,7 +75,7 @@ const STAGE_CARD_BG: Record<PipelineStage, string> = {
   Interview:   '#D3E5E8',
   Offer:       '#DBEFE3',
   Placed:      '#DBEFE3',
-  Closed:      '#f2f4f6',
+  Closed:      '#4BAF73',
 }
 
 const STAGE_AVATAR_BG: Record<PipelineStage, string> = {
@@ -86,7 +86,7 @@ const STAGE_AVATAR_BG: Record<PipelineStage, string> = {
   Interview:   '#257C8A',
   Offer:       '#4BAF73',
   Placed:      '#4BAF73',
-  Closed:      '#90a4ae',
+  Closed:      '#DBEFE3',
 }
 
 // Avatar icon per stage (simple user silhouette, coloured)
@@ -111,8 +111,14 @@ interface CardProps {
 }
 
 const CandidateCard = ({ name, title, company, stage, onView, onExpand, isOverlay, isRejected }: CardProps) => {
+<<<<<<< HEAD
+  const isClosed = stage === 'Closed'
+  const bg     = isRejected ? '#E05252' : STAGE_CARD_BG[stage]
+  const txtCol = (isRejected || isClosed) ? '#ffffff' : undefined
+=======
   const bg     = isRejected ? '#E05252' : STAGE_CARD_BG[stage]
   const txtCol = isRejected ? '#ffffff' : undefined
+>>>>>>> 917624d23fcdea1694ff924c2241b856245ed52e
   const dotCol = isRejected ? '#ffffff' : '#03478C'
   const avatarBg = isRejected ? 'rgba(255,255,255,0.25)' : STAGE_AVATAR_BG[stage]
   return (
@@ -696,10 +702,10 @@ const CandidatePipelinePage = () => {
             setPipelineStages(prev =>
               prev.map(sg => {
                 if (sg.label === 'Offer') return { ...sg, cards: sg.cards.filter(c => c.applicationId !== advancedId) }
-                if (sg.label === 'Placed') {
+                if (sg.label === 'Closed') {
                   const moved = prev.find(s => s.label === 'Offer')?.cards.find(c => c.applicationId === advancedId)
                   if (!moved) return sg
-                  return { ...sg, cards: [...sg.cards, { ...moved, stage: 'Placed' }] }
+                  return { ...sg, cards: [...sg.cards, { ...moved, stage: 'Closed' }] }
                 }
                 return sg
               })
