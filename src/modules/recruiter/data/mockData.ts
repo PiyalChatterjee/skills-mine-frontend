@@ -1037,6 +1037,5 @@ export const INITIAL_STAGE_COUNTS: StageCounts = {
   Interview:  7,
   Shortlisted:  3,
   Offer:      4,
-  Placed:     0,
   Closed:     50,
 }

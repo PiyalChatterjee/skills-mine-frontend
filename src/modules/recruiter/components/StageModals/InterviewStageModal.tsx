@@ -49,7 +49,7 @@ const InterviewStageModal = ({
   onRejected,
 }: InterviewStageModalProps) => {
   const [notes, setNotes]         = useState(
-    'Andrew performed exceptionally well during the interview and is a strong candidate.'
+    ''
   )
   const [advancing, setAdvancing] = useState(false)
   const [movingBack, setMovingBack] = useState(false)
