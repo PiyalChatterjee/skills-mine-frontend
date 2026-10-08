@@ -600,12 +600,12 @@
   transition: width 0.3s ease;
 }
 
-.pipelineFillClosed {
-  background: #b0b4b8;
-}
-
 .pipelineFill {
   background: #2b96d9;
+}
+
+.pipelineFill.pipelineFillClosed {
+  background: #b0b4b8;
 }
 
 .pipelineFillOfferExtended {
