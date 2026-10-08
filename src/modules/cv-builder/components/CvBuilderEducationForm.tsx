@@ -74,6 +74,7 @@ const EducationSection = ({
           <Box className={styles.educationGrid}>
             <CvBuilderLabeledField
               label="Institution name"
+              required
               span="full"
               fieldName={`${sectionName}.${index}.institutionName`}
             >
@@ -97,6 +98,7 @@ const EducationSection = ({
 
             <CvBuilderLabeledField
               label={middleFieldLabel}
+              required
               span="two"
               fieldName={`${sectionName}.${index}.${middleFieldKey}`}
             >
@@ -120,6 +122,7 @@ const EducationSection = ({
 
             <CvBuilderLabeledField
               label="Year completed"
+              required
               span="one"
               fieldName={`${sectionName}.${index}.yearCompleted`}
             >

@@ -236,12 +236,6 @@ const useCvBuilder = (
         languages: languages ?? DEFAULT_FORM_VALUES.languages,
         otherLanguage: otherLanguage ?? DEFAULT_FORM_VALUES.otherLanguage,
       });
-      // Surface incomplete prefilled fields, but do not validate optional career history.
-      void form.trigger().then(() => {
-        if (!form.getValues("personalDetails.currentCompany").trim()) {
-          form.clearErrors("careerHistory");
-        }
-      });
       return;
     }
 
@@ -301,12 +295,6 @@ const useCvBuilder = (
     ) {
       form.setValue("otherLanguage", otherLanguage);
     }
-    // Surface incomplete prefilled fields, but do not validate optional career history.
-    void form.trigger().then(() => {
-      if (!form.getValues("personalDetails.currentCompany").trim()) {
-        form.clearErrors("careerHistory");
-      }
-    });
   }, [prefillData, forceApply]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const personalDetailsValues = useWatch({
@@ -336,10 +324,7 @@ const useCvBuilder = (
   });
 
   useEffect(() => {
-    if (personalDetailsValues?.currentCompany?.trim()) {
-      void form.trigger("careerHistory");
-      return;
-    }
+    if (personalDetailsValues?.currentCompany?.trim()) return;
 
     form.clearErrors("careerHistory");
   }, [form, personalDetailsValues?.currentCompany]);

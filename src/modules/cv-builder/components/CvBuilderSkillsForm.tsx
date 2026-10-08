@@ -76,7 +76,7 @@ const CvBuilderSkillsForm = ({ skillsFieldArray }: CvBuilderSkillsFormProps) => 
         )}
 
         <Typography className={styles.skillsSubHeading}>
-          List Your Skills
+          List Your Skills*
         </Typography>
 
       <Box className={styles.skillsList}>

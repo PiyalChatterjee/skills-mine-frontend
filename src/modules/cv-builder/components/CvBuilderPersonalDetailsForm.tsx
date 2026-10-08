@@ -1,5 +1,5 @@
 ﻿import { Box } from "@mui/material";
-import { Controller, useFormContext } from "react-hook-form";
+import { Controller, useFormContext, useWatch } from "react-hook-form";
 import userIcon from "@/assets/public-layout/user-icon.svg";
 import { formatEnumLabel } from "@/app/formatEnumLabel";
 import styles from "../pages/CvBuilderPage.module.css";
@@ -29,6 +29,8 @@ const CvBuilderPersonalDetailsForm = ({
   onEmailBlur,
 }: CvBuilderPersonalDetailsFormProps) => {
   const { control } = useFormContext<CvBuilderFormValues>();
+  const currentCompany = useWatch({ control, name: "personalDetails.currentCompany" });
+  const hasCurrentCompany = Boolean(currentCompany?.trim());
 
   return (
     <CvBuilderFormPanel>
@@ -39,6 +41,7 @@ const CvBuilderPersonalDetailsForm = ({
           name="personalDetails.fullName"
           control={control}
           label="Full name"
+          required
           span="full"
           placeholder="Full name"
         />
@@ -48,6 +51,7 @@ const CvBuilderPersonalDetailsForm = ({
             name="personalDetails.email"
             control={control}
             label="Email address"
+            required
             span="two"
             placeholder="Email address"
             onBlur={onEmailBlur}
@@ -65,6 +69,7 @@ const CvBuilderPersonalDetailsForm = ({
             name="personalDetails.phoneNumber"
             control={control}
             label="Phone number"
+            required
             span="one"
             placeholder="Phone number"
             type="tel"
@@ -89,6 +94,7 @@ const CvBuilderPersonalDetailsForm = ({
           render={({ field, fieldState }) => (
             <CvBuilderSelectField
               label="Race"
+              required
               name="personalDetails.race"
               inputRef={field.ref}
               value={field.value}
@@ -107,6 +113,7 @@ const CvBuilderPersonalDetailsForm = ({
           render={({ field, fieldState }) => (
             <CvBuilderSelectField
               label="Gender"
+              required
               name="personalDetails.gender"
               inputRef={field.ref}
               value={field.value}
@@ -125,6 +132,7 @@ const CvBuilderPersonalDetailsForm = ({
           render={({ field, fieldState }) => (
             <CvBuilderSelectField
               label="Disability status"
+              required
               name="personalDetails.disabilityStatus"
               inputRef={field.ref}
               value={field.value}
@@ -141,6 +149,7 @@ const CvBuilderPersonalDetailsForm = ({
           name="personalDetails.nationality"
           control={control}
           label="Nationality"
+          required
           span="full"
           placeholder="Nationality"
         />
@@ -149,6 +158,7 @@ const CvBuilderPersonalDetailsForm = ({
           name="personalDetails.residentialLocation"
           control={control}
           label="Residential location"
+          required
           span="full"
           placeholder="Residential location"
         />
@@ -166,6 +176,7 @@ const CvBuilderPersonalDetailsForm = ({
           name="personalDetails.currentPosition"
           control={control}
           label="Current position"
+          required={hasCurrentCompany}
           span="two"
           placeholder="Current position"
         />
@@ -176,6 +187,7 @@ const CvBuilderPersonalDetailsForm = ({
           render={({ field, fieldState }) => (
             <CvBuilderSelectField
               label="Notice period"
+              required={isVisitor || hasCurrentCompany}
               name="personalDetails.noticePeriod"
               inputRef={field.ref}
               value={field.value}

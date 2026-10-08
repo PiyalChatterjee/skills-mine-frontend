@@ -15,6 +15,7 @@ export type FieldSpan = "full" | "two" | "one";
 
 type CvBuilderFormPanelProps = {
   children: ReactNode;
+  requiredHint?: string;
 };
 
 type CvBuilderSectionHeaderProps = {
@@ -25,6 +26,7 @@ type CvBuilderSectionHeaderProps = {
 type CvBuilderLabeledFieldProps = {
   label: string;
   span?: FieldSpan;
+  required?: boolean;
   children: ReactNode;
   // Path matching the react-hook-form field name, used to scroll/focus this
   // field when it's the first error after a failed validation.
@@ -40,6 +42,7 @@ type CvBuilderSelectFieldProps = {
   // Formats an option's raw (submitted) value into a human-readable label.
   getOptionLabel?: (option: string) => string;
   span?: FieldSpan;
+  required?: boolean;
   allowEmptyOption?: boolean;
   emptyLabel?: string;
   displayEmpty?: boolean;
@@ -54,6 +57,7 @@ type CvBuilderControlledTextFieldProps<TFieldValues extends FieldValues> = {
   control: Control<TFieldValues>;
   label: string;
   span?: FieldSpan;
+  required?: boolean;
   placeholder?: string;
   showError?: boolean;
   rules?: RegisterOptions<TFieldValues>;
@@ -96,8 +100,16 @@ export const SelectChevronIcon = ({ className }: SelectChevronIconProps) => (
   />
 );
 
-export const CvBuilderFormPanel = ({ children }: CvBuilderFormPanelProps) => (
-  <Box className={styles.formPanel}>{children}</Box>
+export const CvBuilderFormPanel = ({
+  children,
+  requiredHint = "*Required fields",
+}: CvBuilderFormPanelProps) => (
+  <Box className={styles.formPanel}>
+    {children}
+    <Typography component="p" className={styles.requiredHint}>
+      {requiredHint}
+    </Typography>
+  </Box>
 );
 
 export const CvBuilderSectionHeader = ({
@@ -117,6 +129,7 @@ export const CvBuilderSectionHeader = ({
 export const CvBuilderLabeledField = ({
   label,
   span = "one",
+  required = false,
   children,
   fieldName,
 }: CvBuilderLabeledFieldProps) => (
@@ -126,6 +139,7 @@ export const CvBuilderLabeledField = ({
   >
     <Typography component="label" className={styles.fieldLabel}>
       {toTitleCase(label)}
+      {required ? "*" : null}
     </Typography>
     {children}
   </Box>
@@ -139,6 +153,7 @@ export const CvBuilderSelectField = ({
   options,
   getOptionLabel = (option) => option,
   span = "one",
+  required = false,
   allowEmptyOption = true,
   emptyLabel = "Select",
   displayEmpty = true,
@@ -147,7 +162,7 @@ export const CvBuilderSelectField = ({
   name,
   inputRef,
 }: CvBuilderSelectFieldProps) => (
-  <CvBuilderLabeledField label={label} span={span} fieldName={name}>
+  <CvBuilderLabeledField label={label} span={span} required={required} fieldName={name}>
     <TextField
       select
       value={value}
@@ -162,6 +177,7 @@ export const CvBuilderSelectField = ({
       slotProps={{
         select: {
           "aria-label": label,
+          "aria-required": required || undefined,
           IconComponent: SelectChevronIcon,
           ...(displayEmpty
             ? {
@@ -192,6 +208,7 @@ export const CvBuilderControlledTextField = <TFieldValues extends FieldValues>({
   control,
   label,
   span = "one",
+  required = false,
   placeholder,
   showError = true,
   rules,
@@ -199,7 +216,7 @@ export const CvBuilderControlledTextField = <TFieldValues extends FieldValues>({
   transformValue,
   type = "text",
 }: CvBuilderControlledTextFieldProps<TFieldValues>) => (
-  <CvBuilderLabeledField label={label} span={span} fieldName={name}>
+  <CvBuilderLabeledField label={label} span={span} required={required} fieldName={name}>
     <Controller
       name={name}
       control={control}
@@ -214,7 +231,7 @@ export const CvBuilderControlledTextField = <TFieldValues extends FieldValues>({
             field.onChange(value);
           }}
           {...(type === "tel" ? getPhoneNumberInputProps(field.value ?? "", field.onChange) : {})}
-          slotProps={{ htmlInput: { "aria-label": label, ...(type === "tel" ? { inputMode: "tel", autoComplete: "tel-national" } : {}) } }}
+          slotProps={{ htmlInput: { "aria-label": label, "aria-required": required || undefined, ...(type === "tel" ? { inputMode: "tel", autoComplete: "tel-national" } : {}) } }}
           onBlur={(event) => {
             field.onBlur();
             onBlur?.(event.target.value);

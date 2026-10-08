@@ -208,6 +208,8 @@ describe("useCvBuilderPageViewModel", () => {
         otherLanguage: "Klingon",
       }),
       true,
+      undefined,
+      false,
     );
     expect(result.current.heroHeading).toBe("CV Builder");
     expect(result.current.actionCards[0]).toMatchObject({
@@ -276,6 +278,8 @@ describe("useCvBuilderPageViewModel", () => {
         }),
       }),
       true,
+      undefined,
+      false,
     );
   });
 
@@ -297,6 +301,8 @@ describe("useCvBuilderPageViewModel", () => {
           currentPosition: "Engineer",
         }),
       }),
+      false,
+      undefined,
       false,
     );
   });

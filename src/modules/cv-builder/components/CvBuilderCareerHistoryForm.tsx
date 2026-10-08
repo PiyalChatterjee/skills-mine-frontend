@@ -105,6 +105,11 @@ const DynamicListSection = ({
 
 const CvBuilderPositionCard = ({ entryIndex }: { entryIndex: number }) => {
   const { control, trigger } = useFormContext<CvBuilderFormValues>();
+  const currentCompany = useWatch({
+    control,
+    name: "personalDetails.currentCompany",
+  });
+  const isRequired = Boolean(currentCompany?.trim());
   const startDateValue = useWatch({
     control,
     name: `careerHistory.${entryIndex}.startDate`,
@@ -131,6 +136,7 @@ const CvBuilderPositionCard = ({ entryIndex }: { entryIndex: number }) => {
 
       <CvBuilderLabeledField
         label="Company name"
+        required={isRequired}
         fieldName={`careerHistory.${entryIndex}.companyName`}
       >
         <Controller
@@ -154,6 +160,7 @@ const CvBuilderPositionCard = ({ entryIndex }: { entryIndex: number }) => {
       <Box className={styles.positionRowGrid}>
         <CvBuilderLabeledField
           label="Position held"
+          required={isRequired}
           fieldName={`careerHistory.${entryIndex}.positionHeld`}
         >
           <Controller
@@ -176,6 +183,7 @@ const CvBuilderPositionCard = ({ entryIndex }: { entryIndex: number }) => {
 
         <CvBuilderLabeledField
           label="Employment start date"
+          required={isRequired}
           fieldName={`careerHistory.${entryIndex}.startDate`}
         >
           <Controller

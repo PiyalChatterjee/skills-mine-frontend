@@ -38,6 +38,7 @@ export const ProfileCreationPersonalDetailsSection = ({
           control={control}
           name="email"
           label="Email address*"
+          disabled
         />
         <ProfileTextField
           control={control}

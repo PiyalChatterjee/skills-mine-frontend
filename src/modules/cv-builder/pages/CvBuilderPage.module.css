@@ -652,6 +652,17 @@
   width: 100%;
 }
 
+.requiredHint,
+.requiredHint:global(.MuiTypography-root) {
+  margin: 24px 0 0;
+  color: #000000;
+  font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
+}
+
 .monthYearField {
   width: 100%;
   min-width: 0;

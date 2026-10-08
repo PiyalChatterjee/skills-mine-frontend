@@ -42,7 +42,7 @@ const CvBuilderLanguagesForm = () => {
   };
 
   return (
-    <CvBuilderFormPanel>
+    <CvBuilderFormPanel requiredHint="*Select at least one language">
       <CvBuilderSectionHeader iconSrc={languagesIcon} title="Languages" />
 
       {formError && (
@@ -89,7 +89,7 @@ const CvBuilderLanguagesForm = () => {
       {languages.includes("Other") && (
         <Box sx={{ marginTop: 2 }}>
           <Typography component="label" className={styles.fieldLabel}>
-            Other language
+            Other language*
           </Typography>
           <Controller
             name="otherLanguage"
