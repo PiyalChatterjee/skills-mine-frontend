@@ -55,10 +55,15 @@ export const DASHBOARD_APPLICATION_STATUS_CONFIG: Record<
     color: "#D64545",
     caption: "You have declined the offer.",
   },
+  rejected: {
+    label: "Closed",
+    color: "#D64545",
+    caption: "Your application was not successful.",
+  },
   unknown: { label: "Unknown stage", color: "#7a8694" },
 };
 
-const CLOSED_STAGES = new Set(["closed", "offer_accepted", "offer_declined"]);
+const CLOSED_STAGES = new Set(["closed", "offer_accepted", "offer_declined", "reject", "rejected"]);
 const DEFAULT_PIPELINE = [
   "APPLIED",
   "SCREENING",

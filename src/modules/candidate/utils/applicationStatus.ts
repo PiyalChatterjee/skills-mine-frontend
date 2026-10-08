@@ -31,6 +31,8 @@ const APPLICATION_STATUS_KEYS = {
   offer_extended: 'offer_extended',
   offer_accepted: 'offer_accepted',
   offer_declined: 'offer_declined',
+  reject: 'rejected',
+  rejected: 'rejected',
 } as const
 
 export type ApplicationStatusKey =

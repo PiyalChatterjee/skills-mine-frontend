@@ -437,7 +437,7 @@
 }
 
 .statusPill[data-status='rejected'] {
-  background: #e07070;
+  background: #D64545;
 }
 
 .statusPill[data-status='offer_extended'] {

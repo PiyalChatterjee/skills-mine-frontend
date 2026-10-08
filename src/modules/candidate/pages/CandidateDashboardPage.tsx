@@ -382,7 +382,7 @@ const CandidateDashboardPage = () => {
                       </Box>
                       <Box className={styles.pipelineTrack}>
                         <Box
-                          className={`${styles.pipelineFill} ${(app.status === "offer_declined" || app.status === "offer_accepted") && styles.pipelineFillClosed}`}
+                          className={`${styles.pipelineFill} ${(app.status === "offer_declined" || app.status === "offer_accepted" || app.status === "rejected") && styles.pipelineFillClosed}`}
                           style={{ width: `${app.fillPercent}%` }}
                         />
                       </Box>

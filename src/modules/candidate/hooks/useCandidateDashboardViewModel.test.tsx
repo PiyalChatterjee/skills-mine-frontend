@@ -158,4 +158,26 @@ describe("useCandidateDashboardViewModel", () => {
     expect(result.current.applications[0].fillPercent).toBe(100);
     expect(DASHBOARD_APPLICATION_STATUS_CONFIG.offer_declined.label).toBe("Closed");
   });
+
+  it("maps backend REJECT stage to a closed rejected status", () => {
+    mocks.useCandidateDashboardQuery.mockReturnValue({
+      data: {
+        applications: [
+          {
+            id: "app-3",
+            job: { id: "job-3", title: "Application Developer" },
+            stage: "REJECT",
+            pipeline: [],
+          },
+        ],
+      },
+      isLoading: false,
+    });
+
+    const { result } = renderHook(() => useCandidateDashboardViewModel());
+
+    expect(result.current.applications[0].status).toBe("rejected");
+    expect(result.current.applications[0].fillPercent).toBe(100);
+    expect(DASHBOARD_APPLICATION_STATUS_CONFIG.rejected.label).toBe("Closed");
+  });
 });
