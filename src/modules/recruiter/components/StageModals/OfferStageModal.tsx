@@ -48,7 +48,8 @@ const OfferStageModal = ({
   onMoveBack,
   onRejected,
 }: OfferStageModalProps) => {
-  const [offerDate, setOfferDate] = useState('17 August 2026')
+  const [offerDate, setOfferDate] = useState(new Date().toISOString().split('T')[0])
+  const [validUntil, setValidUntil] = useState('')
   const [ctcTotal, setCtcTotal]   = useState('850000')
   const [advancing, setAdvancing] = useState(false)
   const [movingBack, setMovingBack] = useState(false)
@@ -77,10 +78,12 @@ const OfferStageModal = ({
     try {
       await mandateApi.advanceOfferToClose(applicationId, {
         toStageCode: 'CLOSED',
+        offerResponseStatus: 'ACCEPTED',
         offerDetails: {
           actualSalaryAccepted: Number(ctcTotal),
           currencyCode: 'ZAR',
           offerDate,
+          validUntil: validUntil.trim() || null,
         },
       })
       onAdvance?.(applicationId)
@@ -172,6 +175,24 @@ const OfferStageModal = ({
                   value={ctcTotal}
                   onChange={e => setCtcTotal(e.target.value)}
                 />
+              </Box>
+            </Box>
+
+            <Box className={styles.formRow}>
+              {/* Valid Until */}
+              <Box className={styles.fieldGroup}>
+                <Typography component="label" className={styles.fieldLabel} htmlFor="valid-until-offer">
+                  Offer Valid Until
+                </Typography>
+                <Box className={styles.inputWrapper}>
+                  <input
+                    id="valid-until-offer"
+                    type="date"
+                    className={styles.input}
+                    value={validUntil}
+                    onChange={e => setValidUntil(e.target.value)}
+                  />
+                </Box>
               </Box>
             </Box>
           </Box>

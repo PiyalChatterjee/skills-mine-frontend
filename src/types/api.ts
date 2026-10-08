@@ -815,18 +815,18 @@ export interface PipelineJobStageAdvanceData {
 }
 
 export interface OfferClosedOfferDetails {
-  actualSalaryAccepted?: number;
+  actualSalaryAccepted?: number | null;
   currencyCode?: string;
   offerDate?: string;
-  validUntil?: string;
+  validUntil: string | null;
 }
 
 export interface OfferClosedRequest {
   toStageCode: 'CLOSED';
   reasonCode?: string;
   notes?: string;
-  offerResponseStatus?: 'ACCEPTED' | 'DECLINED' | 'WITHDRAWN';
-  offerDetails?: OfferClosedOfferDetails;
+  offerResponseStatus: 'ACCEPTED' | 'DECLINED' | 'WITHDRAWN';
+  offerDetails: OfferClosedOfferDetails;
 }
 
 export interface RecruiterCandidateSearchItem {
