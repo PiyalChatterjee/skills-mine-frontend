@@ -111,14 +111,9 @@ interface CardProps {
 }
 
 const CandidateCard = ({ name, title, company, stage, onView, onExpand, isOverlay, isRejected }: CardProps) => {
-<<<<<<< HEAD
   const isClosed = stage === 'Closed'
   const bg     = isRejected ? '#E05252' : STAGE_CARD_BG[stage]
   const txtCol = (isRejected || isClosed) ? '#ffffff' : undefined
-=======
-  const bg     = isRejected ? '#E05252' : STAGE_CARD_BG[stage]
-  const txtCol = isRejected ? '#ffffff' : undefined
->>>>>>> 917624d23fcdea1694ff924c2241b856245ed52e
   const dotCol = isRejected ? '#ffffff' : '#03478C'
   const avatarBg = isRejected ? 'rgba(255,255,255,0.25)' : STAGE_AVATAR_BG[stage]
   return (
