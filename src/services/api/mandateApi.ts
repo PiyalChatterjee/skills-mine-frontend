@@ -1,16 +1,22 @@
-import { apiClient, mandateApiClient } from "@/services/api/axios";
+import { apiClient, mandateApiClient, pipelineApiClient } from "@/services/api/axios";
 import { apiEndpoints, resolveEndpoint } from "@/services/api/endpoints";
 import { formatEnumLabel } from "@/app/formatEnumLabel";
 import type {
+  AdvanceToInterviewRequest,
   AtsCandidateProfileData,
+  OfferClosedRequest,
   JobPost,
   JobPostsParams,
   MancoDashboardData,
   MandateDetail,
   ManualStageUpdateData,
   ManualStageUpdateRequest,
+  PipelineDashboardStats,
   PipelineJobStageAdvanceData,
   PipelineJobStageAdvanceRequest,
+  PipelinesListData,
+  PipelinesListParams,
+  UniversalPipelinesData,
   PipelineStageUpdateData,
   PipelineStageUpdateRequest,
   RecruiterCandidateSearchData,
@@ -332,6 +338,41 @@ export const mandateApi = {
       .then((response) => response.data);
   },
 
+  getPipelineDashboard() {
+    return pipelineApiClient
+      .get<PipelineDashboardStats>(apiEndpoints.pipeline.dashboard)
+      .then((response) => response.data);
+  },
+
+  listPipelines(params?: PipelinesListParams) {
+    return pipelineApiClient
+      .get<PipelinesListData>(apiEndpoints.pipeline.list, {
+        params: {
+          jobProfileId: params?.jobProfileId,
+          stageCode: params?.stageCode,
+          recruiterId: params?.recruiterId,
+          q: params?.q,
+          sourceCode: params?.sourceCode,
+          scoreMin: params?.scoreMin,
+          scoreMax: params?.scoreMax,
+          page: params?.page ?? 1,
+          size: params?.size ?? 20,
+        },
+      })
+      .then((response) => response.data);
+  },
+
+  listUniversalPipelines(params?: { page?: number; size?: number }) {
+    return pipelineApiClient
+      .get<UniversalPipelinesData>(apiEndpoints.pipeline.universalPipelines, {
+        params: {
+          page: params?.page ?? 1,
+          size: params?.size ?? 20,
+        },
+      })
+      .then((response) => response.data);
+  },
+
   getPipeline() {
     return apiClient
       .get<SuccessEnvelope<RecruiterPipelineData>>(apiEndpoints.recruiter.pipeline)
@@ -436,10 +477,34 @@ export const mandateApi = {
     jobId: string,
     payload: PipelineJobStageAdvanceRequest,
   ) {
-    return apiClient
+    return pipelineApiClient
       .put<
         SuccessEnvelope<PipelineJobStageAdvanceData>
       >(resolveEndpoint(apiEndpoints.pipeline.jobStageAdvance, { jobId }), payload)
+      .then((response) => response.data);
+  },
+
+  advanceToInterview(
+    applicationId: string,
+    payload: AdvanceToInterviewRequest,
+  ) {
+    return pipelineApiClient
+      .post<SuccessEnvelope<PipelineJobStageAdvanceData>>(
+        resolveEndpoint(apiEndpoints.pipeline.advanceToInterview, { applicationId }),
+        payload,
+      )
+      .then((response) => response.data);
+  },
+
+  advanceOfferToClose(
+    applicationId: string,
+    payload: OfferClosedRequest,
+  ) {
+    return pipelineApiClient
+      .post<SuccessEnvelope<PipelineJobStageAdvanceData>>(
+        resolveEndpoint(apiEndpoints.pipeline.offerClosed, { applicationId }),
+        payload,
+      )
       .then((response) => response.data);
   },
 
@@ -544,4 +609,27 @@ export const mandateApi = {
         data: { mandateId, status },
       }));
   },
+
+  getApplicationStageHistory(applicationId: string) {
+    return pipelineApiClient
+      .get<StageHistoryItem[]>(
+        resolveEndpoint(apiEndpoints.pipeline.stageHistory, { applicationId }),
+      )
+      .then((response) => response.data);
+  },
+};
+
+export type StageHistoryItem = {
+  stageHistoryId: string;
+  applicationId: string;
+  fromStageCode: string | null;
+  toStageCode: string;
+  changedAt: string;
+  changedByUserId: string | null;
+  reasonCode: string;
+  notes: string;
+  applicant?: {
+    candidateId: string | null;
+    visitorId: string | null;
+  };
 };

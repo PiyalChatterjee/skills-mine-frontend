@@ -79,7 +79,7 @@
   font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
   font-size: 24px;
   font-weight: 500;
-  color: #1E5FA8;
+  color: #03478C;
   margin: 14px 0 0;
   line-height: 1.3;
 }
@@ -87,9 +87,9 @@
 /* ── Job info ────────────────────────────────────────────────────────── */
 .jobInfo {
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 13px;
-  font-weight: 600;
-  color: #1f2328;
+  font-size: 16px;
+  font-weight: 500;
+  color: #2A3132;
   margin: 4px 0 0;
   line-height: 1.4;
 }
@@ -106,7 +106,7 @@
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
   font-size: 14px;
   font-weight: 400;
-  color: #6B7280;
+  color: #5A5E63;
   line-height: 1.4;
 }
 
@@ -122,10 +122,15 @@
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #B0B4B8;
   border-radius: 8px;
   padding: 14px 14px;
   background: #ffffff;
+}
+
+.checklistItemChecked {
+  background: #D6EEF2;
+  border-color: #B2E4DE;
 }
 
 /* ── Checkbox ────────────────────────────────────────────────────────── */
@@ -152,8 +157,8 @@
 }
 
 .checkboxChecked {
-  background: #D4900A;
-  border-color: #D4900A;
+  background: #32ABBF;
+  border-color: #32ABBF;
 }
 
 .checkboxChecked::after {
@@ -172,20 +177,20 @@
   min-width: 0;
 }
 
-.checklistTitle {
+.checklistTitle:global(.MuiTypography-root) {
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 700;
-  color: #1f2328;
+  color: #000000;
   margin: 0;
   line-height: 1.4;
 }
 
-.checklistDesc {
+.checklistDesc:global(.MuiTypography-root) {
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 12px;
+  font-size: 16px;
   font-weight: 400;
-  color: #6B7280;
+  color: #2A3132;
   margin: 4px 0 0;
   line-height: 1.45;
 }
@@ -208,7 +213,7 @@
 /* Move back — outlined (white bg, grey border) */
 .moveBackBtn:global(.MuiButtonBase-root) {
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 400;
   color: #6B7280;
   background: #ffffff;
@@ -217,19 +222,25 @@
   padding: 10px 0;
   flex: 1;
   min-width: 0;
-  cursor: default;
+  cursor: pointer;
   text-transform: none;
-  transition: none;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
   height: 42px;
+}
+
+.moveBackBtn:global(.MuiButtonBase-root):hover {
+  background: #32ABBF;
+  color: #ffffff;
+  border-color: #32ABBF;
 }
 
 /* Reject — solid red */
 .rejectBtn:global(.MuiButtonBase-root) {
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 16px;
+  font-weight: 400;
   color: #ffffff;
-  background: #E05252;
+  background: #D64545;
   border: none;
   border-radius: 100px;
   padding: 10px 0;
@@ -248,7 +259,7 @@
 /* Advance — filled grey (disabled state) */
 .actionBtn:global(.MuiButtonBase-root) {
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 400;
   color: #9ca3af;
   background: #e5e7eb;
@@ -266,13 +277,13 @@
 /* Active Advance button — enabled when checkbox is checked */
 .actionBtnActive:global(.MuiButtonBase-root) {
   color: #ffffff;
-  background: #E8A82A;
+  background: #03478C;
   cursor: pointer;
   transition: background 0.15s;
 }
 
 .actionBtnActive:global(.MuiButtonBase-root):hover {
-  background: #c98e1e;
+  background: #32ABBF;
 }
 
 .actionBtnActive:global(.MuiButtonBase-root):active {

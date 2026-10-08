@@ -20,6 +20,7 @@ import ShortlistStageModal from '@/modules/recruiter/components/StageModals/Shor
 import InterviewStageModal from '@/modules/recruiter/components/StageModals/InterviewStageModal'
 import OfferStageModal from '@/modules/recruiter/components/StageModals/OfferStageModal'
 import ClosedStageModal from '@/modules/recruiter/components/StageModals/ClosedStageModal'
+import CandidateHistoryModal from '@/modules/recruiter/components/StageModals/CandidateHistoryModal'
 import { ROUTE_PATHS } from '@/routes/routePaths'
 import { mandateApi } from '@/services/api/mandateApi'
 import type { PipelineStage } from '@/modules/recruiter/types'
@@ -105,42 +106,48 @@ interface CardProps {
   stage: PipelineStage
   onView: () => void
   onExpand?: () => void
-  /** When true the card is the drag ghost — rendered inside DragOverlay */
   isOverlay?: boolean
+  isRejected?: boolean
 }
 
-const CandidateCard = ({ name, title, company, stage, onView, onExpand, isOverlay }: CardProps) => (
-  <Box
-    className={styles.card}
-    style={{
-      background: STAGE_CARD_BG[stage],
-      opacity: isOverlay ? 0.95 : 1,
-      boxShadow: isOverlay ? '0 6px 20px rgba(0,0,0,0.18)' : undefined,
-    }}
-  >
-    <Box className={styles.cardTop}>
-      <Box className={styles.cardAvatar} style={{ background: STAGE_AVATAR_BG[stage] }}>
-        <AvatarIcon />
-      </Box>
-      <Box className={styles.cardInfo}>
-        <Typography component="p" className={styles.cardName} style={{ fontSize: '12px' }}>{name}</Typography>
-        <Typography component="p" className={styles.cardTitle} style={{ fontSize: '10px' }}>{title}</Typography>
-        <Box className={styles.cardCompanyRow}>
-          <Box className={styles.companyDot} style={{ background: '#03478C' }} />
-          <Typography component="span" className={styles.cardCompany} style={{ fontSize: '9px' }}>{company}</Typography>
+const CandidateCard = ({ name, title, company, stage, onView, onExpand, isOverlay, isRejected }: CardProps) => {
+  const bg     = isRejected ? '#E05252' : STAGE_CARD_BG[stage]
+  const txtCol = isRejected ? '#ffffff' : undefined
+  const dotCol = isRejected ? '#ffffff' : '#03478C'
+  const avatarBg = isRejected ? 'rgba(255,255,255,0.25)' : STAGE_AVATAR_BG[stage]
+  return (
+    <Box
+      className={styles.card}
+      style={{
+        background: bg,
+        opacity: isOverlay ? 0.95 : 1,
+        boxShadow: isOverlay ? '0 6px 20px rgba(0,0,0,0.18)' : undefined,
+      }}
+    >
+      <Box className={styles.cardTop}>
+        <Box className={styles.cardAvatar} style={{ background: avatarBg }}>
+          <AvatarIcon />
+        </Box>
+        <Box className={styles.cardInfo}>
+          <Typography component="p" className={styles.cardName} style={{ fontSize: '12px', color: txtCol }}>{name}</Typography>
+          <Typography component="p" className={styles.cardTitle} style={{ fontSize: '10px', color: txtCol }}>{title}</Typography>
+          <Box className={styles.cardCompanyRow}>
+            <Box className={styles.companyDot} style={{ background: dotCol }} />
+            <Typography component="span" className={styles.cardCompany} style={{ fontSize: '9px', color: txtCol }}>{company}</Typography>
+          </Box>
         </Box>
       </Box>
+      <Box className={styles.cardFooter}>
+        <ButtonBase className={styles.cardIconBtn} style={{ background: bg }} disableRipple onClick={onView} aria-label="View candidate">
+          <EyeIcon />
+        </ButtonBase>
+        <ButtonBase className={styles.cardIconBtn} style={{ background: bg }} disableRipple onClick={onExpand} aria-label="Expand stage details">
+          <ExpandIcon />
+        </ButtonBase>
+      </Box>
     </Box>
-    <Box className={styles.cardFooter}>
-      <ButtonBase className={styles.cardIconBtn} style={{ background: STAGE_CARD_BG[stage] }} disableRipple onClick={onView} aria-label="View candidate">
-        <EyeIcon />
-      </ButtonBase>
-      <ButtonBase className={styles.cardIconBtn} style={{ background: STAGE_CARD_BG[stage] }} disableRipple onClick={onExpand} aria-label="Expand stage details">
-        <ExpandIcon />
-      </ButtonBase>
-    </Box>
-  </Box>
-)
+  )
+}
 
 // ── Draggable card wrapper ──────────────────────────────────────────────
 
@@ -148,16 +155,15 @@ interface DraggableCardProps extends CardProps {
   applicationId: string
 }
 
-const DraggableCard = ({ applicationId, ...cardProps }: DraggableCardProps) => {
+const DraggableCard = ({ applicationId, isRejected, ...cardProps }: DraggableCardProps) => {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: applicationId })
   return (
     <div
       ref={setNodeRef}
-      {...listeners}
-      {...attributes}
-      style={{ opacity: isDragging ? 0.35 : 1, cursor: 'grab', outline: 'none' }}
+      {...(isRejected ? {} : { ...listeners, ...attributes })}
+      style={{ opacity: isDragging ? 0.35 : 1, cursor: isRejected ? 'default' : 'grab', outline: 'none' }}
     >
-      <CandidateCard {...cardProps} />
+      <CandidateCard {...cardProps} isRejected={isRejected} />
     </div>
   )
 }
@@ -198,8 +204,19 @@ function candidateName(card: RecruiterPipelineCard): string {
   return `${card.candidate.firstName} ${card.candidate.lastName}`
 }
 
+const STAGE_CODE_MAP: Record<string, PipelineStage> = {
+  INBOUND:    'Inbound',
+  SCREENING:  'Screening',
+  ASSESSMENT: 'Assessment',
+  SHORTLIST:  'Shortlisted',
+  SHORTLISTED:'Shortlisted',
+  INTERVIEW:  'Interview',
+  OFFER:      'Offer',
+  CLOSED:     'Closed',
+}
+
 function cardStage(card: RecruiterPipelineCard): PipelineStage {
-  return card.stage as PipelineStage
+  return STAGE_CODE_MAP[card.currentStageCode?.toUpperCase()] ?? 'Inbound'
 }
 
 // ── Main Component ─────────────────────────────────────────────────────
@@ -215,17 +232,67 @@ const CandidatePipelinePage = () => {
   const [offerModal, setOfferModal] = useState<ModalCandidateState | null>(null)
   const [closedModal, setClosedModal] = useState<ModalCandidateState | null>(null)
 
+  const [historyModal, setHistoryModal] = useState<{ candidateName: string; candidateTitle: string; applicationId: string; candidateId: string; visitorId?: string } | null>(null)
+
+  const [rejectedIds, setRejectedIds] = useState<Set<string>>(new Set())
+
   const [pipelineStages, setPipelineStages] = useState<RecruiterPipelineStage[]>([])
   const [loading, setLoading] = useState(true)
   const [activeCard, setActiveCard] = useState<RecruiterPipelineCard | null>(null)
+  const [apiStageCounts, setApiStageCounts] = useState<Record<string, number> | null>(null)
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }))
 
   useEffect(() => {
-    mandateApi.getPipeline()
-      .then(res => { setPipelineStages(res.data) })
+    if (!cardId) return
+    mandateApi.listPipelines({ jobProfileId: cardId, page: 1, size: 100 })
+      .then(res => {
+        const grouped = STAGES.map(s => ({
+          label: s.key,
+          colorClass: '',
+          cards: res.data
+            .filter(app => STAGE_CODE_MAP[app.currentStageCode?.toUpperCase()] === s.key)
+            .map((app): RecruiterPipelineCard => ({
+              applicationId:       app.applicationId,
+              applicationPartyId:  app.applicationPartyId,
+              assignedRecruiterId: app.assignedRecruiterId,
+              currentStageCode:    app.currentStageCode,
+              sourceCode:          app.sourceCode,
+              matchScoreLatest:    app.matchScoreLatest ?? 0,
+              createdAt:           app.createdAt,
+              applicationStatus:   '',
+              offerDetails:        null,
+              closedAt:            null,
+              companyIcon:         '',
+              tone:                '',
+              stage:               s.key,
+              jobProfile: {
+                jobProfileId:   app.jobProfile.jobProfileId,
+                positionTitle:  app.jobProfile.positionTitle,
+                clientId:       app.jobProfile.clientId,
+                clientName:     app.jobProfile.clientName,
+                fillByDate:     app.jobProfile.fillByDate,
+                workType:       app.jobProfile.workType,
+                employmentType: app.jobProfile.employmentType,
+                status:         '',
+              },
+              candidate: {
+                candidateId:   app.candidate.candidateId ?? app.candidate.candidate_id ?? '',
+                visitorId:     app.candidate.visitorId,
+                firstName:     app.candidate.firstName,
+                lastName:      app.candidate.lastName,
+                email:         '',
+                phone:         '',
+                profileStatus: '',
+              },
+            })),
+        }))
+        setPipelineStages(grouped)
+        // Use stageCounters from the API response for the tab badges
+        setApiStageCounts(res.stageCounters ?? null)
+      })
       .finally(() => setLoading(false))
-  }, [])
+  }, [cardId])
 
   const handleDragStart = ({ active }: DragStartEvent) => {
     for (const stage of pipelineStages) {
@@ -258,11 +325,9 @@ const CandidatePipelinePage = () => {
     })
   }
 
-  const handleViewCandidate = (candidateId: string) => {
-    const path = ROUTE_PATHS.recruiterCandidate
-      .replace(':cardId', cardId ?? '')
-      .replace(':candidateId', candidateId)
-    navigate(path)
+  const handleViewCandidate = (candidateId: string, visitorId?: string) => {
+    const id = candidateId || visitorId || ''
+    if (id) navigate(ROUTE_PATHS.recruiterCandidateDetail.replace(':candidateId', id))
   }
 
   const handleBack = () => {
@@ -271,10 +336,15 @@ const CandidatePipelinePage = () => {
     )
   }
 
-  // Count per stage from API data
+  // Prefer stageCounters from the API response; fall back to grouped card counts
   const stageCounts = STAGES.reduce<Record<string, number>>((acc, s) => {
-    const stageData = pipelineStages.find(p => p.label === s.key)
-    acc[s.key] = stageData?.cards.length ?? 0
+    if (apiStageCounts) {
+      // Map PipelineStage key back to the uppercase code the API uses
+      const codeKey = Object.entries(STAGE_CODE_MAP).find(([, v]) => v === s.key)?.[0] ?? s.key.toUpperCase()
+      acc[s.key] = apiStageCounts[codeKey] ?? 0
+    } else {
+      acc[s.key] = pipelineStages.find(p => p.label === s.key)?.cards.length ?? 0
+    }
     return acc
   }, {})
 
@@ -354,7 +424,7 @@ const CandidatePipelinePage = () => {
                       const name    = candidateName(card)
                       const title   = card.jobProfile.positionTitle
                       const company = card.jobProfile.clientName
-                      const stage   = cardStage(card)
+                      const stage   = s.key
                       const makeModal = (setter: (v: ModalCandidateState) => void) =>
                         () => setter({
                           candidateName: name,
@@ -371,7 +441,14 @@ const CandidatePipelinePage = () => {
                           title={title}
                           company={company}
                           stage={stage}
-                          onView={() => handleViewCandidate(card.candidate.candidateId)}
+                          isRejected={rejectedIds.has(card.applicationId)}
+                          onView={() => setHistoryModal({
+                            candidateName:  name,
+                            candidateTitle: title,
+                            applicationId:  card.applicationId,
+                            candidateId:    card.candidate.candidateId,
+                            visitorId:      card.candidate.visitorId,
+                          })}
                           onExpand={
                             s.key === 'Inbound'     ? makeModal(setInboundModal)    :
                             s.key === 'Screening'   ? makeModal(setScreeningModal)  :
@@ -405,6 +482,21 @@ const CandidatePipelinePage = () => {
         )}
 
       </Box>
+
+      {/* ── Candidate history modal ── */}
+      {historyModal && (
+        <CandidateHistoryModal
+          candidateName={historyModal.candidateName}
+          candidateTitle={historyModal.candidateTitle}
+          applicationId={historyModal.applicationId}
+          candidateId={historyModal.candidateId}
+          onClose={() => setHistoryModal(null)}
+          onViewProfile={() => {
+            handleViewCandidate(historyModal.candidateId, historyModal.visitorId)
+            setHistoryModal(null)
+          }}
+        />
+      )}
 
       {/* ── Inbound stage modal ── */}
       {inboundModal && (
@@ -457,6 +549,20 @@ const CandidatePipelinePage = () => {
               })
             )
           }}
+          onMoveBack={(movedId) => {
+            setPipelineStages(prev =>
+              prev.map(sg => {
+                if (sg.label === 'Screening') return { ...sg, cards: sg.cards.filter(c => c.applicationId !== movedId) }
+                if (sg.label === 'Inbound') {
+                  const moved = prev.find(s => s.label === 'Screening')?.cards.find(c => c.applicationId === movedId)
+                  if (!moved) return sg
+                  return { ...sg, cards: [...sg.cards, { ...moved, stage: 'Inbound' }] }
+                }
+                return sg
+              })
+            )
+          }}
+          onRejected={(id) => { setRejectedIds(prev => new Set(prev).add(id)); setScreeningModal(null) }}
         />
       )}
 
@@ -482,6 +588,20 @@ const CandidatePipelinePage = () => {
               })
             )
           }}
+          onMoveBack={(movedId) => {
+            setPipelineStages(prev =>
+              prev.map(sg => {
+                if (sg.label === 'Assessment') return { ...sg, cards: sg.cards.filter(c => c.applicationId !== movedId) }
+                if (sg.label === 'Screening') {
+                  const moved = prev.find(s => s.label === 'Assessment')?.cards.find(c => c.applicationId === movedId)
+                  if (!moved) return sg
+                  return { ...sg, cards: [...sg.cards, { ...moved, stage: 'Screening' }] }
+                }
+                return sg
+              })
+            )
+          }}
+          onRejected={(id) => { setRejectedIds(prev => new Set(prev).add(id)); setAssessmentModal(null) }}
         />
       )}
 
@@ -507,6 +627,20 @@ const CandidatePipelinePage = () => {
               })
             )
           }}
+          onMoveBack={(movedId) => {
+            setPipelineStages(prev =>
+              prev.map(sg => {
+                if (sg.label === 'Shortlisted') return { ...sg, cards: sg.cards.filter(c => c.applicationId !== movedId) }
+                if (sg.label === 'Assessment') {
+                  const moved = prev.find(s => s.label === 'Shortlisted')?.cards.find(c => c.applicationId === movedId)
+                  if (!moved) return sg
+                  return { ...sg, cards: [...sg.cards, { ...moved, stage: 'Assessment' }] }
+                }
+                return sg
+              })
+            )
+          }}
+          onRejected={(id) => { setRejectedIds(prev => new Set(prev).add(id)); setShortlistModal(null) }}
         />
       )}
 
@@ -532,6 +666,20 @@ const CandidatePipelinePage = () => {
               })
             )
           }}
+          onMoveBack={(movedId) => {
+            setPipelineStages(prev =>
+              prev.map(sg => {
+                if (sg.label === 'Interview') return { ...sg, cards: sg.cards.filter(c => c.applicationId !== movedId) }
+                if (sg.label === 'Shortlisted') {
+                  const moved = prev.find(s => s.label === 'Interview')?.cards.find(c => c.applicationId === movedId)
+                  if (!moved) return sg
+                  return { ...sg, cards: [...sg.cards, { ...moved, stage: 'Shortlisted' }] }
+                }
+                return sg
+              })
+            )
+          }}
+          onRejected={(id) => { setRejectedIds(prev => new Set(prev).add(id)); setInterviewModal(null) }}
         />
       )}
 
@@ -557,6 +705,20 @@ const CandidatePipelinePage = () => {
               })
             )
           }}
+          onMoveBack={(movedId) => {
+            setPipelineStages(prev =>
+              prev.map(sg => {
+                if (sg.label === 'Offer') return { ...sg, cards: sg.cards.filter(c => c.applicationId !== movedId) }
+                if (sg.label === 'Interview') {
+                  const moved = prev.find(s => s.label === 'Offer')?.cards.find(c => c.applicationId === movedId)
+                  if (!moved) return sg
+                  return { ...sg, cards: [...sg.cards, { ...moved, stage: 'Interview' }] }
+                }
+                return sg
+              })
+            )
+          }}
+          onRejected={(id) => { setRejectedIds(prev => new Set(prev).add(id)); setOfferModal(null) }}
         />
       )}
 

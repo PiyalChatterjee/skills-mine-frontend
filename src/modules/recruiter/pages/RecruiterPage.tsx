@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
 import {
   Alert,
   Box,
@@ -24,10 +23,11 @@ import { usePageTitle } from "@/hooks/usePageTitle";
 import { useAuth } from "@/app/auth/AuthContext";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import { mandateApi } from "@/services/api/mandateApi";
-import { selectMandate } from "@/store/slices/recruiterPipelineSlice";
 import type {
+  PipelineDashboardStats,
   RecruiterDashboardData,
   RecruiterMandatesData,
+  UniversalPipelineItem,
 } from "@/types/api";
 import styles from "./RecruiterPage.module.css";
 
@@ -54,6 +54,7 @@ type CardTone =
 
 type PipelineCard = {
   id: string;
+  jobProfileId: string;
   title: string;
   company: string;
   companyIcon: string;
@@ -69,305 +70,15 @@ type PipelineColumn = {
 
 // ── Constants ─────────────────────────────────────────────────────────
 
+/** Column skeleton — no cards; cards are loaded from the API. */
 const PIPELINE_COLUMNS: PipelineColumn[] = [
-  {
-    label: "Inbound",
-    colorClass: styles.colInbound,
-    cards: [
-      {
-        id: "c1",
-        title: "Senior Develop...",
-        company: "Standard Bank",
-        companyIcon: "🛡",
-        tone: "cream",
-        stage: "Inbound",
-      },
-      {
-        id: "c2",
-        title: "Accounts Paya...",
-        company: "Wexford Searc...",
-        companyIcon: "♨",
-        tone: "cream",
-        stage: "Inbound",
-      },
-      {
-        id: "c3",
-        title: "Head of Transp...",
-        company: "GIBB Pty Ltd",
-        companyIcon: "◉",
-        tone: "cream",
-        stage: "Inbound",
-      },
-      {
-        id: "c4",
-        title: "Academic: Bac...",
-        company: "MANCOSA",
-        companyIcon: "♜",
-        tone: "cream",
-        stage: "Inbound",
-      },
-      {
-        id: "c5",
-        title: "Banking and Tr...",
-        company: "Corporate Place...",
-        companyIcon: "✉",
-        tone: "cream",
-        stage: "Inbound",
-      },
-    ],
-  },
-  {
-    label: "Screening",
-    colorClass: styles.colScreening,
-    cards: [
-      {
-        id: "s1",
-        title: "Associate Prof...",
-        company: "University of Pret...",
-        companyIcon: "♟",
-        tone: "lilac",
-        stage: "Screening",
-      },
-      {
-        id: "s2",
-        title: "QC Analyst - F...",
-        company: "Pronto Labour Te...",
-        companyIcon: "◉",
-        tone: "lilac",
-        stage: "Screening",
-      },
-      {
-        id: "s3",
-        title: "Chemistry Ana...",
-        company: "Microchem Speci...",
-        companyIcon: "〽",
-        tone: "lilac",
-        stage: "Screening",
-      },
-      {
-        id: "s4",
-        title: "Junior Mechan...",
-        company: "Network Enginee...",
-        companyIcon: "◉",
-        tone: "lilac",
-        stage: "Screening",
-      },
-      {
-        id: "s5",
-        title: "Human Resour...",
-        company: "University of Kwa...",
-        companyIcon: "♟",
-        tone: "lilac",
-        stage: "Screening",
-      },
-    ],
-  },
-  {
-    label: "Assessment",
-    colorClass: styles.colAssessment,
-    cards: [
-      {
-        id: "a1",
-        title: "Associate Prof...",
-        company: "University of Pret...",
-        companyIcon: "♟",
-        tone: "yellow",
-        stage: "Assessment",
-      },
-      {
-        id: "a2",
-        title: "Driver",
-        company: "CYA Global",
-        companyIcon: "⚑",
-        tone: "yellow",
-        stage: "Assessment",
-      },
-      {
-        id: "a3",
-        title: "Mechanical En...",
-        company: "Ashton Personnel",
-        companyIcon: "♙",
-        tone: "yellow",
-        stage: "Assessment",
-      },
-      {
-        id: "a4",
-        title: "Sales Represen...",
-        company: "Professional Field...",
-        companyIcon: "⚑",
-        tone: "yellow",
-        stage: "Assessment",
-      },
-      {
-        id: "a5",
-        title: "KYC Administra...",
-        company: "Moladita Manage...",
-        companyIcon: "⚑",
-        tone: "yellow",
-        stage: "Assessment",
-      },
-    ],
-  },
-  {
-    label: "Interview",
-    colorClass: styles.colInterview,
-    cards: [
-      {
-        id: "i1",
-        title: "Logistics Contr...",
-        company: "TC Construction",
-        companyIcon: "▣",
-        tone: "blush",
-        stage: "Interview",
-      },
-      {
-        id: "i2",
-        title: "Associate Prof...",
-        company: "University of Pret...",
-        companyIcon: "♟",
-        tone: "blush",
-        stage: "Interview",
-      },
-      {
-        id: "i3",
-        title: "Operations Sys...",
-        company: "Network IT",
-        companyIcon: "◉",
-        tone: "blush",
-        stage: "Interview",
-      },
-      {
-        id: "i4",
-        title: "Property Valua...",
-        company: "Somewhere",
-        companyIcon: "S",
-        tone: "blush",
-        stage: "Interview",
-      },
-      {
-        id: "i5",
-        title: "University Degr...",
-        company: "Life Healthcare G...",
-        companyIcon: "▣",
-        tone: "blush",
-        stage: "Interview",
-      },
-    ],
-  },
-  {
-    label: "Shortlisted",
-    colorClass: styles.colShortlist,
-    cards: [
-      {
-        id: "sh1",
-        title: "Water Treatme...",
-        company: "MayFly Agri (pty)...",
-        companyIcon: "▣",
-        tone: "ice",
-        stage: "Shortlisted",
-      },
-      {
-        id: "sh2",
-        title: "Experience Acc...",
-        company: "Full Service Carto...",
-        companyIcon: "⌁",
-        tone: "ice",
-        stage: "Shortlisted",
-      },
-      {
-        id: "sh3",
-        title: "Work Integrate...",
-        company: "ATS Testing",
-        companyIcon: "◉",
-        tone: "ice",
-        stage: "Shortlisted",
-      },
-    ],
-  },
-  {
-    label: "Offer",
-    colorClass: styles.colOffer,
-    cards: [
-      {
-        id: "o1",
-        title: "Accounts Paya...",
-        company: "Communicate Fin...",
-        companyIcon: "▣",
-        tone: "mint",
-        stage: "Offer",
-      },
-      {
-        id: "o2",
-        title: "Portfolio Mana...",
-        company: "Humankind Group",
-        companyIcon: "▣",
-        tone: "mint",
-        stage: "Offer",
-      },
-      {
-        id: "o3",
-        title: "Graduates (Ba...",
-        company: "Unique Personnel",
-        companyIcon: "♙",
-        tone: "mint",
-        stage: "Offer",
-      },
-      {
-        id: "o4",
-        title: "Banking Adviso...",
-        company: "FNB (Private Seg...",
-        companyIcon: "▣",
-        tone: "mint",
-        stage: "Offer",
-      },
-    ],
-  },
-  {
-    label: "Closed",
-    colorClass: styles.colClosed,
-    cards: [
-      {
-        id: "cl1",
-        title: "Sales Represen...",
-        company: "MASA Outsourc...",
-        companyIcon: "▣",
-        tone: "success",
-        stage: "Closed",
-      },
-      {
-        id: "cl2",
-        title: "Sales Represen...",
-        company: "MASA Outsourc...",
-        companyIcon: "▣",
-        tone: "danger",
-        stage: "Closed",
-      },
-      {
-        id: "cl3",
-        title: "Export Sales S...",
-        company: "Luma Consulting",
-        companyIcon: "▣",
-        tone: "success",
-        stage: "Closed",
-      },
-      {
-        id: "cl4",
-        title: "Production Eng...",
-        company: "Lascom Manage...",
-        companyIcon: "▣",
-        tone: "success",
-        stage: "Closed",
-      },
-      {
-        id: "cl5",
-        title: "X3 Junior Grou...",
-        company: "Medipost Pharm...",
-        companyIcon: "▣",
-        tone: "danger",
-        stage: "Closed",
-      },
-    ],
-  },
+  { label: "Inbound",    colorClass: styles.colInbound,    cards: [] },
+  { label: "Screening",  colorClass: styles.colScreening,  cards: [] },
+  { label: "Assessment", colorClass: styles.colAssessment, cards: [] },
+  { label: "Interview",  colorClass: styles.colInterview,  cards: [] },
+  { label: "Shortlisted",colorClass: styles.colShortlist,  cards: [] },
+  { label: "Offer",      colorClass: styles.colOffer,      cards: [] },
+  { label: "Closed",     colorClass: styles.colClosed,     cards: [] },
 ];
 
 // ── Sub-components ────────────────────────────────────────────────────
@@ -448,7 +159,6 @@ type KpiCardProps = {
   label: string;
   icon: React.ReactNode;
   colorClass: string;
-  onView: () => void;
 };
 
 const KpiCard = ({ value, label, icon, colorClass }: KpiCardProps) => (
@@ -470,7 +180,7 @@ const KpiCard = ({ value, label, icon, colorClass }: KpiCardProps) => (
 
 type PipelineCardProps = {
   card: PipelineCard;
-  onView: (id: string, stage: PipelineStageLabel) => void;
+  onView: (id: string, jobProfileId: string, stage: PipelineStageLabel) => void;
 };
 
 const PipelineCardItem = ({ card, onView }: PipelineCardProps) => {
@@ -500,7 +210,7 @@ const PipelineCardItem = ({ card, onView }: PipelineCardProps) => {
       <Box className={styles.pipelineCardActions}>
         <ButtonBase
           className={styles.pipelineCardViewBtn}
-          onClick={() => onView(card.id, card.stage)}
+          onClick={() => onView(card.id, card.jobProfileId, card.stage)}
           disableRipple
           aria-label="View"
         >
@@ -547,15 +257,82 @@ const PipelineColumnDrop = ({ label, children }: PipelineColumnDropProps) => {
   );
 };
 
+// ── Pipeline helpers ──────────────────────────────────────────────────
+
+const STAGE_CODE_MAP: Record<string, PipelineStageLabel> = {
+  INBOUND: "Inbound",
+  SCREENING: "Screening",
+  ASSESSMENT: "Assessment",
+  INTERVIEW: "Interview",
+  SHORTLIST: "Shortlisted",
+  OFFER: "Offer",
+  CLOSED: "Closed",
+};
+
+const STAGE_TONE_MAP: Record<PipelineStageLabel, CardTone> = {
+  Inbound: "cream",
+  Screening: "lilac",
+  Assessment: "yellow",
+  Interview: "blush",
+  Shortlisted: "ice",
+  Offer: "mint",
+  Closed: "success",
+};
+
+const truncate = (text: string, max = 16) =>
+  text.length > max ? `${text.slice(0, max)}…` : text;
+
+const mapUniversalItemToCard = (item: UniversalPipelineItem): PipelineCard | null => {
+  const stage = STAGE_CODE_MAP[item.pipelineStatus.toUpperCase()];
+  if (!stage) return null;
+  return {
+    id: item.jobProfileId,
+    jobProfileId: item.jobProfileId,
+    title: truncate(item.positionTitle),
+    company: truncate(item.clientName, 18),
+    companyIcon: item.clientName.charAt(0).toUpperCase(),
+    tone: STAGE_TONE_MAP[stage],
+    stage,
+  };
+};
+
+const buildColumnsFromApi = (
+  items: UniversalPipelineItem[],
+  baseColumns: PipelineColumn[],
+): PipelineColumn[] => {
+  const cardsByStage: Record<PipelineStageLabel, PipelineCard[]> = {
+    Inbound: [],
+    Screening: [],
+    Assessment: [],
+    Interview: [],
+    Shortlisted: [],
+    Offer: [],
+    Closed: [],
+  };
+
+  for (const item of items) {
+    const card = mapUniversalItemToCard(item);
+    if (card) {
+      cardsByStage[card.stage].push(card);
+    }
+  }
+
+  return baseColumns.map((col) => ({
+    ...col,
+    cards: cardsByStage[col.label],
+  }));
+};
+
 // ── Main Component ────────────────────────────────────────────────────
 
 const RecruiterPage = () => {
   usePageTitle("Recruiter Dashboard");
   const navigate = useNavigate();
-  const dispatch = useDispatch();
   const { isFirstLogin } = useAuth();
   const [dashboardData, setDashboardData] =
     useState<RecruiterDashboardData | null>(null);
+  const [pipelineDashboardStats, setPipelineDashboardStats] =
+    useState<PipelineDashboardStats | null>(null);
   const [mandatesData, setMandatesData] =
     useState<RecruiterMandatesData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -573,8 +350,15 @@ const RecruiterPage = () => {
         setLoading(true);
         setErrorMessage(null);
 
-        const [dashboardResponse, mandatesResponse] = await Promise.all([
+        const [
+          dashboardResponse,
+          pipelineDashboardResponse,
+          universalPipelinesResponse,
+          mandatesResponse,
+        ] = await Promise.all([
           mandateApi.getRecruiterDashboard(),
+          mandateApi.getPipelineDashboard(),
+          mandateApi.listUniversalPipelines({ page: 1, size: 100 }),
           mandateApi.listRecruiterMandates({ page: 1, limit: 12 }),
         ]);
 
@@ -583,7 +367,9 @@ const RecruiterPage = () => {
         }
 
         setDashboardData(dashboardResponse.data);
+        setPipelineDashboardStats(pipelineDashboardResponse);
         setMandatesData(mandatesResponse.data);
+        setColumns(buildColumnsFromApi(universalPipelinesResponse.data, PIPELINE_COLUMNS));
       } catch (error) {
         if (!isActive) {
           return;
@@ -636,38 +422,16 @@ const RecruiterPage = () => {
     return counts;
   }, [dashboardData]);
 
-  const defaultMandateId = PIPELINE_COLUMNS[0]?.cards[0]?.id ?? "c1";
-
   const handleNewJobPost = () => {
     navigate(ROUTE_PATHS.recruiterNewJobPost);
-  };
-
-  const handleViewCvsDue = () => {
-    dispatch(selectMandate(defaultMandateId));
-    navigate(ROUTE_PATHS.recruiterMandate.replace(":cardId", defaultMandateId));
-  };
-
-  const handleViewInterviews = () => {
-    dispatch(selectMandate(defaultMandateId));
-    navigate(ROUTE_PATHS.recruiterMandate.replace(":cardId", defaultMandateId));
-  };
-
-  const handleViewOfferLetters = () => {
-    dispatch(selectMandate(defaultMandateId));
-    navigate(ROUTE_PATHS.recruiterMandate.replace(":cardId", defaultMandateId));
   };
 
   const handleViewMore = () => {
     navigate(ROUTE_PATHS.recruiterDashboard);
   };
 
-  const handleCardView = (cardId: string, stage: PipelineStageLabel) => {
-    // For Inbound stage, navigate to Mandate Details with full data
-    if (stage === "Inbound") {
-      dispatch(selectMandate(cardId));
-      navigate(ROUTE_PATHS.recruiterMandate.replace(":cardId", cardId));
-    }
-    // Other stages: future implementation
+  const handleCardView = (_cardId: string, jobProfileId: string, _stage: PipelineStageLabel) => {
+    navigate(ROUTE_PATHS.recruiterMandate.replace(":cardId", jobProfileId));
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -759,25 +523,22 @@ const RecruiterPage = () => {
           </Box>
           <Box className={styles.kpiRow}>
             <KpiCard
-              value={stageCounts.Inbound}
+              value={pipelineDashboardStats?.cvsDue ?? stageCounts.Inbound}
               label="CVs due"
               icon={<CvsDueIcon />}
               colorClass={styles.kpiBlue}
-              onView={handleViewCvsDue}
             />
             <KpiCard
-              value={stageCounts.Interview}
+              value={pipelineDashboardStats?.interviewsToSchedule ?? stageCounts.Interview}
               label="Interviews to schedule"
               icon={<InterviewsIcon />}
               colorClass={styles.kpiPurple}
-              onView={handleViewInterviews}
             />
             <KpiCard
-              value={stageCounts.Offer}
+              value={pipelineDashboardStats?.offerLetterAcceptanceDeadline ?? stageCounts.Offer}
               label="Offer Letter Acceptance Deadlines"
               icon={<OfferLetterIcon />}
               colorClass={styles.kpiAmber}
-              onView={handleViewOfferLetters}
             />
           </Box>
         </Box>
@@ -785,7 +546,9 @@ const RecruiterPage = () => {
         {/* ── Recruitment Pipeline ── */}
         <Box component="section" className={styles.pipelineSection}>
           <Typography component="p" className={styles.sectionSubtitle}>
-            {`${mandatesData?.pagination.total ?? 0} active Job Post${(mandatesData?.pagination.total ?? 0) !== 1 ? 's' : ''} across ${new Set(mandatesData?.mandates.map((m) => m.client) ?? []).size} ${new Set(mandatesData?.mandates.map((m) => m.client) ?? []).size !== 1 ? 'companies' : 'company'}`}
+            {pipelineDashboardStats
+              ? `${pipelineDashboardStats.activeJobs} active Job Post${pipelineDashboardStats.activeJobs !== 1 ? "s" : ""} across ${pipelineDashboardStats.companiesCount} ${pipelineDashboardStats.companiesCount !== 1 ? "companies" : "company"}`
+              : `${mandatesData?.pagination.total ?? 0} active Job Post${(mandatesData?.pagination.total ?? 0) !== 1 ? "s" : ""} across ${new Set(mandatesData?.mandates.map((m) => m.client) ?? []).size} ${new Set(mandatesData?.mandates.map((m) => m.client) ?? []).size !== 1 ? "companies" : "company"}`}
           </Typography>
 
           <Box className={styles.pipelineWrapper}>

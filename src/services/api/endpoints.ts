@@ -53,7 +53,7 @@ export const apiEndpoints = {
     byEmail: "/candidates/by-email",
   },
   candidates: {
-    list: "/candidates",
+    list: "/applicants",
     dashboard: "/candidates/dashboard/:candidateId",
   },
   applications: {
@@ -111,7 +111,13 @@ export const apiEndpoints = {
   },
   pipeline: {
     stageUpdate: "https://13-245-120-61.nip.io/pipeline/:pipelineId/stage",
-    jobStageAdvance: "https://13-245-120-61.nip.io/pipelines/jobs/:jobId/stage",
+    jobStageAdvance: "/pipelines/jobs/:jobId/stage",
+    advanceToInterview: "/pipelines/:applicationId/interview",
+    offerClosed: "/pipelines/:applicationId/offer-closed",
+    dashboard: "/pipelines/dashboard",
+    list: "/pipelines",
+    universalPipelines: "/pipelines/universal-pipelines",
+    stageHistory: "/pipelines/:applicationId/stage-history",
   },
   manco: {
     dashboard: "/manco/:mancoId/dashboard",

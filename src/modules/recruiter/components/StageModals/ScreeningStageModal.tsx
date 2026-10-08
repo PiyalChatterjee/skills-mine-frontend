@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Box, ButtonBase, CircularProgress, Typography } from '@mui/material'
 import { mandateApi } from '@/services/api/mandateApi'
+import RejectConfirmModal from './RejectConfirmModal'
 import styles from './ScreeningStageModal.module.css'
 
 // ── Icons ──────────────────────────────────────────────────────────────
@@ -29,6 +30,8 @@ export interface ScreeningStageModalProps {
   dueDate?: string
   onClose: () => void
   onAdvance?: (applicationId: string) => void
+  onMoveBack?: (applicationId: string) => void
+  onRejected?: (applicationId: string) => void
 }
 
 // ── Component ──────────────────────────────────────────────────────────
@@ -42,22 +45,41 @@ const ScreeningStageModal = ({
   dueDate = 'Jan 20, 2026',
   onClose,
   onAdvance,
+  onMoveBack,
+  onRejected,
 }: ScreeningStageModalProps) => {
   const [checked, setChecked]     = useState([false, false])
   const [advancing, setAdvancing] = useState(false)
+  const [movingBack, setMovingBack] = useState(false)
+  const [rejectOpen, setRejectOpen] = useState(false)
 
   const allChecked = checked.every(Boolean)
 
   const toggle = (i: number) =>
     setChecked(prev => prev.map((v, idx) => (idx === i ? !v : v)))
 
+  const handleMoveBack = async () => {
+    if (movingBack) return
+    setMovingBack(true)
+    try {
+      await mandateApi.advanceJobStage(jobId, {
+        applicationId: [applicationId],
+        toStageCode: 'INBOUND',
+      })
+      onMoveBack?.(applicationId)
+      onClose()
+    } finally {
+      setMovingBack(false)
+    }
+  }
+
   const handleAdvance = async () => {
     if (!allChecked || advancing) return
     setAdvancing(true)
     try {
       await mandateApi.advanceJobStage(jobId, {
-        applicationIds: [applicationId],
-        targetStage: 'Assessment',
+        applicationId: [applicationId],
+        toStageCode: 'ASSESSMENT',
       })
       onAdvance?.(applicationId)
       onClose()
@@ -67,7 +89,8 @@ const ScreeningStageModal = ({
   }
 
   return (
-    <Box className={styles.backdrop} onClick={onClose}>
+    <>
+    {!rejectOpen && <Box className={styles.backdrop} onClick={onClose}>
       <Box
         className={styles.modal}
         onClick={e => e.stopPropagation()}
@@ -116,7 +139,7 @@ const ScreeningStageModal = ({
 
           {/* ── Checklist ── */}
           <Box className={styles.checklist}>
-            <Box className={styles.checklistItem}>
+            <Box className={`${styles.checklistItem} ${checked[0] ? styles.checklistItemChecked : ''}`}>
               <Box
                 component="button"
                 className={`${styles.checkbox} ${checked[0] ? styles.checkboxChecked : ''}`}
@@ -135,7 +158,7 @@ const ScreeningStageModal = ({
               </Box>
             </Box>
 
-            <Box className={styles.checklistItem}>
+            <Box className={`${styles.checklistItem} ${checked[1] ? styles.checklistItemChecked : ''}`}>
               <Box
                 component="button"
                 className={`${styles.checkbox} ${checked[1] ? styles.checkboxChecked : ''}`}
@@ -160,10 +183,10 @@ const ScreeningStageModal = ({
 
           {/* ── Action buttons ── */}
           <Box className={styles.actionRow}>
-            <ButtonBase className={styles.actionBtn} disableRipple disabled>
-              Move back
+            <ButtonBase className={styles.moveBackBtn} disableRipple onClick={handleMoveBack} disabled={movingBack}>
+              {movingBack ? <CircularProgress size={14} sx={{ color: '#1E5FA8' }} /> : 'Move back'}
             </ButtonBase>
-            <ButtonBase className={styles.rejectBtn} disableRipple>
+            <ButtonBase className={styles.rejectBtn} disableRipple onClick={() => setRejectOpen(true)}>
               Reject
             </ButtonBase>
             <ButtonBase
@@ -177,7 +200,21 @@ const ScreeningStageModal = ({
           </Box>
         </Box>
       </Box>
-    </Box>
+    </Box>}
+      {rejectOpen && (
+        <RejectConfirmModal
+          stageName="Screening"
+          candidateName={candidateName}
+          candidateTitle={candidateTitle}
+          company={company}
+          applicationId={applicationId}
+          jobId={jobId}
+          dueDate={dueDate}
+          onClose={() => setRejectOpen(false)}
+          onRejected={onRejected}
+        />
+      )}
+    </>
   )
 }
 

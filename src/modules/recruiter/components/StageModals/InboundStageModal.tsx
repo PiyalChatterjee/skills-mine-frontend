@@ -52,8 +52,8 @@ const InboundStageModal = ({
     setAdvancing(true)
     try {
       await mandateApi.advanceJobStage(jobId, {
-        applicationIds: [applicationId],
-        targetStage: 'Screening',
+        applicationId: [applicationId],
+        toStageCode: 'SCREENING',
       })
       onAdvance?.(applicationId)
       onClose()
@@ -107,7 +107,7 @@ const InboundStageModal = ({
 
           {/* ── Checklist ── */}
           <Box className={styles.checklist}>
-            <Box className={styles.checklistItem}>
+            <Box className={`${styles.checklistItem} ${checked ? styles.checklistItemChecked : ''}`}>
               <Box
                 component="button"
                 className={`${styles.checkbox} ${checked ? styles.checkboxChecked : ''}`}

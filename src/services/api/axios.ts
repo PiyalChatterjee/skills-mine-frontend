@@ -31,7 +31,8 @@ const serviceBaseUrls = {
   document:  `${gateway}/api/document-service`,
   crm:       `${gateway}/api/crm-service`,
   ai:        `${gateway}/api/ai-service`,
-  visitor:  `${gateway}/api/visitor-service`,
+  visitor:   `${gateway}/api/visitor-service`,
+  pipeline:  `${gateway}/api/pipeline-service`,
 } as const;
 
 // Tune here — no .env variable needed.
@@ -90,7 +91,8 @@ export const aiApiClient        = createApiClient(
   serviceBaseUrls.ai,
   AI_REQUEST_TIMEOUT_MS,
 );
-export const visitorApiClient = createApiClient(serviceBaseUrls.visitor);
+export const visitorApiClient  = createApiClient(serviceBaseUrls.visitor);
+export const pipelineApiClient = createApiClient(serviceBaseUrls.pipeline);
 
 export const unwrapResponseData = async <T>(
   responsePromise: Promise<AxiosResponse<T>>,

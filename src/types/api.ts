@@ -541,6 +541,86 @@ export interface RecruiterDashboardData {
   }>;
 }
 
+export interface PipelineDashboardStats {
+  cvsDue: number;
+  interviewsToSchedule: number;
+  offerLetterAcceptanceDeadline: number;
+  activeJobs: number;
+  companiesCount: number;
+}
+
+export interface PipelineApplicationJobProfile {
+  jobProfileId: string;
+  positionTitle: string;
+  clientId: string;
+  clientName: string;
+  fillByDate: string;
+  workType: string;
+  employmentType: string;
+}
+
+export interface PipelineApplicationCandidate {
+  candidateId: string | null;
+  candidate_id?: string | null;
+  visitorId: string;
+  firstName: string;
+  lastName: string;
+}
+
+export interface PipelineApplication {
+  applicationId: string;
+  applicationPartyId: string;
+  jobProfile: PipelineApplicationJobProfile;
+  candidate: PipelineApplicationCandidate;
+  assignedRecruiterId: string;
+  currentStageCode: string;
+  sourceCode: string;
+  matchScoreLatest: number;
+  createdAt: string;
+}
+
+export interface PipelinesListData {
+  data: PipelineApplication[];
+  total: number;
+  page: number;
+  size: number;
+  stageCounters: {
+    INBOUND: number;
+    SCREENING: number;
+    ASSESSMENT: number;
+    INTERVIEW: number;
+    SHORTLIST: number;
+    OFFER: number;
+    CLOSED: number;
+  };
+}
+
+export interface PipelinesListParams {
+  jobProfileId?: string;
+  stageCode?: string;
+  recruiterId?: string;
+  q?: string;
+  sourceCode?: string;
+  scoreMin?: number;
+  scoreMax?: number;
+  page?: number;
+  size?: number;
+}
+
+export interface UniversalPipelineItem {
+  jobProfileId: string;
+  positionTitle: string;
+  clientName: string;
+  pipelineStatus: string;
+}
+
+export interface UniversalPipelinesData {
+  data: UniversalPipelineItem[];
+  total: number;
+  page: number;
+  size: number;
+}
+
 export interface RecruiterPipelineJobProfile {
   jobProfileId: string;
   positionTitle: string;
@@ -690,12 +770,29 @@ export interface PipelineStageUpdateData {
   };
 }
 
+// ── Advance to Interview stage  (POST /pipelines/:applicationId/interview) ────
+
+export interface AdvanceToInterviewRequest {
+  toStageCode: 'INTERVIEW';
+  reasonCode?: string;
+  notes?: string;
+  shortListDetails: {
+    offeredSalary: number;
+    currencyCode: string;
+    offerDate: string;
+    validUntil: string;
+  };
+}
+
 // ── Bulk-move pipeline stage  (PUT /pipelines/jobs/:jobId/stage) ─────────────
 
 export interface PipelineJobStageAdvanceRequest {
-  applicationIds: string[];
-  targetStage: string;
+  applicationId: string[];
+  toStageCode: string;
+  reasonCode?: string;
   notes?: string;
+  offerResponseStatus?: string;
+  outcomeCode?: string;
 }
 
 export interface PipelineJobStageAdvanceSucceeded {
@@ -715,6 +812,21 @@ export interface PipelineJobStageAdvanceData {
   targetStage: string;
   succeeded: PipelineJobStageAdvanceSucceeded[];
   failed: PipelineJobStageAdvanceFailed[];
+}
+
+export interface OfferClosedOfferDetails {
+  actualSalaryAccepted?: number;
+  currencyCode?: string;
+  offerDate?: string;
+  validUntil?: string;
+}
+
+export interface OfferClosedRequest {
+  toStageCode: 'CLOSED';
+  reasonCode?: string;
+  notes?: string;
+  offerResponseStatus?: 'ACCEPTED' | 'DECLINED' | 'WITHDRAWN';
+  offerDetails?: OfferClosedOfferDetails;
 }
 
 export interface RecruiterCandidateSearchItem {
@@ -884,6 +996,8 @@ export interface CandidateListDocument {
 
 export interface CandidateListItem {
   candidateId: string
+  applicantType?: "CANDIDATE" | "VISITOR"
+  source?: string
   fullName: string
   email: string
   phone: string

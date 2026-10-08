@@ -112,14 +112,21 @@ export const CandidateDetailScreen = () => {
     setLoading(true)
     setError(null)
 
-    // Load candidate profile
+    // Load candidate profile — visitors may not have a full profile; treat 404 as empty
     recruiterCandidatesApi
       .getCandidateProfile(candidateId)
       .then((profile) => {
         if (!cancelled) setCandidate(profile)
       })
-      .catch(() => {
-        if (!cancelled) setError('Failed to load candidate. Please try again.')
+      .catch((err) => {
+        const status = err?.response?.status
+        if (!cancelled) {
+          if (status === 404) {
+            setError('Candidate not found.')
+          } else {
+            setError('Failed to load candidate. Please try again.')
+          }
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
