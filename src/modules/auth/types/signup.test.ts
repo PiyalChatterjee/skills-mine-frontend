@@ -71,10 +71,10 @@ describe('inviteSignupSchema', () => {
     ).toBe(true)
   })
 
-  it('rejects unsupported special characters in the email name', () => {
+  it('rejects unsupported characters in the email name', () => {
     const result = inviteSignupSchema.safeParse({
       ...validPayload,
-      email: "jane.o'neil@example.com",
+      email: 'jane(doe)@example.com',
     })
     expect(result.success).toBe(false)
     if (!result.success) {
