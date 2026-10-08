@@ -41,16 +41,16 @@ const ChevronRightIcon = () => (
   </svg>
 )
 
-const EyeIcon = () => (
+const EyeIcon = ({ color = '#2B96D9' }: { color?: string }) => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z" stroke="#2B96D9" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/>
-    <circle cx="12" cy="12" r="3" stroke="#2B96D9" strokeWidth="1.7"/>
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z" stroke={color} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/>
+    <circle cx="12" cy="12" r="3" stroke={color} strokeWidth="1.7"/>
   </svg>
 )
 
-const ExpandIcon = () => (
+const ExpandIcon = ({ color = '#2B96D9' }: { color?: string }) => (
   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" stroke="#2B96D9" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
 )
 
@@ -74,18 +74,16 @@ const STAGE_CARD_BG: Record<PipelineStage, string> = {
   Shortlisted: '#F4DBE8',
   Interview:   '#D3E5E8',
   Offer:       '#DBEFE3',
-  Placed:      '#DBEFE3',
   Closed:      '#4BAF73',
 }
 
 const STAGE_AVATAR_BG: Record<PipelineStage, string> = {
-  Inbound:     '#E6A83B',
-  Screening:   '#7A5DC7',
-  Assessment:  '#F2D64B',
-  Shortlisted: '#C64B8C',
-  Interview:   '#257C8A',
-  Offer:       '#4BAF73',
-  Placed:      '#4BAF73',
+  Inbound:     '#F0CB89',
+  Screening:   '#AF9EDD',
+  Assessment:  '#F5DE6F',
+  Shortlisted: '#DD93BA',
+  Interview:   '#7CB0B9',
+  Offer:       '#6FBF8F',
   Closed:      '#DBEFE3',
 }
 
@@ -111,15 +109,10 @@ interface CardProps {
 }
 
 const CandidateCard = ({ name, title, company, stage, onView, onExpand, isOverlay, isRejected }: CardProps) => {
-<<<<<<< HEAD
   const isClosed = stage === 'Closed'
-  const bg     = isRejected ? '#E05252' : STAGE_CARD_BG[stage]
+  const bg     = isRejected ? '#D64545' : STAGE_CARD_BG[stage]
   const txtCol = (isRejected || isClosed) ? '#ffffff' : undefined
-=======
-  const bg     = isRejected ? '#E05252' : STAGE_CARD_BG[stage]
-  const txtCol = isRejected ? '#ffffff' : undefined
->>>>>>> 917624d23fcdea1694ff924c2241b856245ed52e
-  const dotCol = isRejected ? '#ffffff' : '#03478C'
+  const dotCol = '#03478C'
   const avatarBg = isRejected ? 'rgba(255,255,255,0.25)' : STAGE_AVATAR_BG[stage]
   return (
     <Box
@@ -145,10 +138,10 @@ const CandidateCard = ({ name, title, company, stage, onView, onExpand, isOverla
       </Box>
       <Box className={styles.cardFooter}>
         <ButtonBase className={styles.cardIconBtn} style={{ background: bg }} disableRipple onClick={onView} aria-label="View candidate">
-          <EyeIcon />
+          <EyeIcon color={(isRejected || isClosed) ? '#ffffff' : '#2B96D9'} />
         </ButtonBase>
         <ButtonBase className={styles.cardIconBtn} style={{ background: bg }} disableRipple onClick={onExpand} aria-label="Expand stage details">
-          <ExpandIcon />
+          <ExpandIcon color={(isRejected || isClosed) ? '#ffffff' : '#2B96D9'} />
         </ButtonBase>
       </Box>
     </Box>
@@ -202,6 +195,7 @@ interface ModalCandidateState {
   company: string
   applicationId: string
   jobId: string
+  matchScoreLatest?: number
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────
@@ -221,8 +215,25 @@ const STAGE_CODE_MAP: Record<string, PipelineStage> = {
   CLOSED:     'Closed',
 }
 
+function getCardStageKey(app: {
+  currentStageCode?: string
+  fromStageCode?: string
+  previousStageCode?: string
+  lastStageCode?: string
+}): PipelineStage {
+  const code = app.currentStageCode?.toUpperCase() ?? ''
+  if (STAGE_CODE_MAP[code]) {
+    return STAGE_CODE_MAP[code]
+  }
+  const fallbackCode = (app.fromStageCode || app.previousStageCode || app.lastStageCode)?.toUpperCase() ?? ''
+  if (STAGE_CODE_MAP[fallbackCode]) {
+    return STAGE_CODE_MAP[fallbackCode]
+  }
+  return 'Inbound'
+}
+
 function cardStage(card: RecruiterPipelineCard): PipelineStage {
-  return STAGE_CODE_MAP[card.currentStageCode?.toUpperCase()] ?? 'Inbound'
+  return (card.stage as PipelineStage) || STAGE_CODE_MAP[card.currentStageCode?.toUpperCase()] || 'Inbound'
 }
 
 // ── Main Component ─────────────────────────────────────────────────────
@@ -245,57 +256,87 @@ const CandidatePipelinePage = () => {
   const [pipelineStages, setPipelineStages] = useState<RecruiterPipelineStage[]>([])
   const [loading, setLoading] = useState(true)
   const [activeCard, setActiveCard] = useState<RecruiterPipelineCard | null>(null)
-  const [apiStageCounts, setApiStageCounts] = useState<Record<string, number> | null>(null)
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }))
+
+  const handleCandidateRejected = (rejectedId: string) => {
+    setRejectedIds(prev => new Set(prev).add(rejectedId))
+    setPipelineStages(prev =>
+      prev.map(stageGroup => ({
+        ...stageGroup,
+        cards: stageGroup.cards.map(card =>
+          card.applicationId === rejectedId
+            ? { ...card, applicationStatus: 'REJECTED' }
+            : card
+        ),
+      }))
+    )
+  }
 
   useEffect(() => {
     if (!cardId) return
     mandateApi.listPipelines({ jobProfileId: cardId, page: 1, size: 100 })
       .then(res => {
+        const rejected = new Set<string>()
+        res.data.forEach(app => {
+          const code = app.currentStageCode?.toUpperCase()
+          const status = (app as unknown as { status?: string; applicationStatus?: string }).status?.toUpperCase() ||
+            (app as unknown as { status?: string; applicationStatus?: string }).applicationStatus?.toUpperCase()
+          if (code === 'REJECT' || code === 'REJECTED' || status === 'REJECTED') {
+            rejected.add(app.applicationId)
+          }
+        })
+        setRejectedIds(rejected)
+
         const grouped = STAGES.map(s => ({
           label: s.key,
           colorClass: '',
           cards: res.data
-            .filter(app => STAGE_CODE_MAP[app.currentStageCode?.toUpperCase()] === s.key)
-            .map((app): RecruiterPipelineCard => ({
-              applicationId:       app.applicationId,
-              applicationPartyId:  app.applicationPartyId,
-              assignedRecruiterId: app.assignedRecruiterId,
-              currentStageCode:    app.currentStageCode,
-              sourceCode:          app.sourceCode,
-              matchScoreLatest:    app.matchScoreLatest ?? 0,
-              createdAt:           app.createdAt,
-              applicationStatus:   '',
-              offerDetails:        null,
-              closedAt:            null,
-              companyIcon:         '',
-              tone:                '',
-              stage:               s.key,
-              jobProfile: {
-                jobProfileId:   app.jobProfile.jobProfileId,
-                positionTitle:  app.jobProfile.positionTitle,
-                clientId:       app.jobProfile.clientId,
-                clientName:     app.jobProfile.clientName,
-                fillByDate:     app.jobProfile.fillByDate,
-                workType:       app.jobProfile.workType,
-                employmentType: app.jobProfile.employmentType,
-                status:         '',
-              },
-              candidate: {
-                candidateId:   app.candidate.candidateId ?? app.candidate.candidate_id ?? '',
-                visitorId:     app.candidate.visitorId,
-                firstName:     app.candidate.firstName,
-                lastName:      app.candidate.lastName,
-                email:         '',
-                phone:         '',
-                profileStatus: '',
-              },
-            })),
+            .filter(app => getCardStageKey(app as unknown as { currentStageCode?: string; fromStageCode?: string; previousStageCode?: string; lastStageCode?: string }) === s.key)
+            .map((app): RecruiterPipelineCard => {
+              const isAppRejected =
+                app.currentStageCode?.toUpperCase() === 'REJECT' ||
+                app.currentStageCode?.toUpperCase() === 'REJECTED' ||
+                (app as unknown as { status?: string; applicationStatus?: string }).status?.toUpperCase() === 'REJECTED' ||
+                (app as unknown as { status?: string; applicationStatus?: string }).applicationStatus?.toUpperCase() === 'REJECTED'
+
+              return {
+                applicationId:       app.applicationId,
+                applicationPartyId:  app.applicationPartyId,
+                assignedRecruiterId: app.assignedRecruiterId,
+                currentStageCode:    app.currentStageCode,
+                sourceCode:          app.sourceCode,
+                matchScoreLatest:    app.matchScoreLatest ?? 0,
+                createdAt:           app.createdAt,
+                applicationStatus:   isAppRejected ? 'REJECTED' : '',
+                offerDetails:        null,
+                closedAt:            null,
+                companyIcon:         '',
+                tone:                '',
+                stage:               s.key,
+                jobProfile: {
+                  jobProfileId:   app.jobProfile.jobProfileId,
+                  positionTitle:  app.jobProfile.positionTitle,
+                  clientId:       app.jobProfile.clientId,
+                  clientName:     app.jobProfile.clientName,
+                  fillByDate:     app.jobProfile.fillByDate,
+                  workType:       app.jobProfile.workType,
+                  employmentType: app.jobProfile.employmentType,
+                  status:         '',
+                },
+                candidate: {
+                  candidateId:   app.candidate.candidateId ?? app.candidate.candidate_id ?? '',
+                  visitorId:     app.candidate.visitorId,
+                  firstName:     app.candidate.firstName,
+                  lastName:      app.candidate.lastName,
+                  email:         '',
+                  phone:         '',
+                  profileStatus: '',
+                },
+              }
+            }),
         }))
         setPipelineStages(grouped)
-        // Use stageCounters from the API response for the tab badges
-        setApiStageCounts(res.stageCounters ?? null)
       })
       .finally(() => setLoading(false))
   }, [cardId])
@@ -342,15 +383,11 @@ const CandidatePipelinePage = () => {
     )
   }
 
-  // Prefer stageCounters from the API response; fall back to grouped card counts
+  // Always derive counts from the live pipelineStages so that drag-and-drop
+  // moves are reflected immediately. apiStageCounts is only used to seed the
+  // initial state via setPipelineStages, so we no longer need it here.
   const stageCounts = STAGES.reduce<Record<string, number>>((acc, s) => {
-    if (apiStageCounts) {
-      // Map PipelineStage key back to the uppercase code the API uses
-      const codeKey = Object.entries(STAGE_CODE_MAP).find(([, v]) => v === s.key)?.[0] ?? s.key.toUpperCase()
-      acc[s.key] = apiStageCounts[codeKey] ?? 0
-    } else {
-      acc[s.key] = pipelineStages.find(p => p.label === s.key)?.cards.length ?? 0
-    }
+    acc[s.key] = pipelineStages.find(p => p.label === s.key)?.cards.length ?? 0
     return acc
   }, {})
 
@@ -438,6 +475,7 @@ const CandidatePipelinePage = () => {
                           company,
                           applicationId: card.applicationId,
                           jobId: card.jobProfile.jobProfileId,
+                          matchScoreLatest: card.matchScoreLatest,
                         })
                       return (
                         <DraggableCard
@@ -541,6 +579,7 @@ const CandidatePipelinePage = () => {
           company={screeningModal.company}
           applicationId={screeningModal.applicationId}
           jobId={screeningModal.jobId}
+          matchScoreLatest={screeningModal.matchScoreLatest}
           onClose={() => setScreeningModal(null)}
           onAdvance={(advancedId) => {
             setPipelineStages(prev =>
@@ -568,7 +607,7 @@ const CandidatePipelinePage = () => {
               })
             )
           }}
-          onRejected={(id) => { setRejectedIds(prev => new Set(prev).add(id)); setScreeningModal(null) }}
+          onRejected={(id) => { handleCandidateRejected(id); setScreeningModal(null) }}
         />
       )}
 
@@ -607,7 +646,7 @@ const CandidatePipelinePage = () => {
               })
             )
           }}
-          onRejected={(id) => { setRejectedIds(prev => new Set(prev).add(id)); setAssessmentModal(null) }}
+          onRejected={(id) => { handleCandidateRejected(id); setAssessmentModal(null) }}
         />
       )}
 
@@ -646,7 +685,7 @@ const CandidatePipelinePage = () => {
               })
             )
           }}
-          onRejected={(id) => { setRejectedIds(prev => new Set(prev).add(id)); setShortlistModal(null) }}
+          onRejected={(id) => { handleCandidateRejected(id); setShortlistModal(null) }}
         />
       )}
 
@@ -685,7 +724,7 @@ const CandidatePipelinePage = () => {
               })
             )
           }}
-          onRejected={(id) => { setRejectedIds(prev => new Set(prev).add(id)); setInterviewModal(null) }}
+          onRejected={(id) => { handleCandidateRejected(id); setInterviewModal(null) }}
         />
       )}
 
@@ -699,6 +738,7 @@ const CandidatePipelinePage = () => {
           jobId={offerModal.jobId}
           onClose={() => setOfferModal(null)}
           onAdvance={(advancedId) => {
+            const advancing = offerModal
             setPipelineStages(prev =>
               prev.map(sg => {
                 if (sg.label === 'Offer') return { ...sg, cards: sg.cards.filter(c => c.applicationId !== advancedId) }
@@ -710,6 +750,14 @@ const CandidatePipelinePage = () => {
                 return sg
               })
             )
+            setOfferModal(null)
+            setClosedModal({
+              candidateName:  advancing.candidateName,
+              candidateTitle: advancing.candidateTitle,
+              company:        advancing.company,
+              applicationId:  advancedId,
+              jobId:          advancing.jobId,
+            })
           }}
           onMoveBack={(movedId) => {
             setPipelineStages(prev =>
@@ -724,7 +772,7 @@ const CandidatePipelinePage = () => {
               })
             )
           }}
-          onRejected={(id) => { setRejectedIds(prev => new Set(prev).add(id)); setOfferModal(null) }}
+          onRejected={(id) => { handleCandidateRejected(id); setOfferModal(null) }}
         />
       )}
 

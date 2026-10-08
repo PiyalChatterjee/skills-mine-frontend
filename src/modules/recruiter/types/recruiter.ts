@@ -6,7 +6,6 @@ export type PipelineStage =
   | 'Interview'
   | 'Shortlisted'
   | 'Offer'
-  | 'Placed'
   | 'Closed'
 
 export type ClosedReason = 'Hired' | 'Rejected' | null

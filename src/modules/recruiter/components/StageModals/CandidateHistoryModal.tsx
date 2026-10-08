@@ -23,13 +23,15 @@ const PersonIcon = () => (
 // ── Stage dot colour map ────────────────────────────────────────────────
 
 const STAGE_DOT_COLOR: Record<string, string> = {
-  INBOUND:    '#E6A83B',
-  SCREENING:  '#7A5DC7',
-  ASSESSMENT: '#F2D64B',
-  SHORTLIST:  '#C64B8C',
-  INTERVIEW:  '#4BA6B8',
-  OFFER:      '#4BAF73',
-  CLOSED:     '#90a4ae',
+  INBOUND:    '#F0CB89',
+  SCREENING:  '#AF9EDD',
+  ASSESSMENT: '#F5DE6F',
+  SHORTLIST:  '#DD93BA',
+  INTERVIEW:  '#7CB0B9',
+  OFFER:      '#6FBF8F',
+  CLOSED:     '#DBEFE3',
+  REJECT:     '#D64545',
+  REJECTED:   '#D64545',
 }
 
 const STAGE_LABEL: Record<string, string> = {
@@ -40,6 +42,8 @@ const STAGE_LABEL: Record<string, string> = {
   INTERVIEW:  'Interview Scheduled',
   OFFER:      'Offer Extended',
   CLOSED:     'Closed',
+  REJECT:     'Rejected',
+  REJECTED:   'Rejected',
 }
 
 function formatDate(iso: string): string {

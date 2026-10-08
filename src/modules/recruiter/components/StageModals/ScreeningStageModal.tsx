@@ -27,6 +27,7 @@ export interface ScreeningStageModalProps {
   company: string
   applicationId: string
   jobId: string
+  matchScoreLatest?: number
   dueDate?: string
   onClose: () => void
   onAdvance?: (applicationId: string) => void
@@ -42,6 +43,7 @@ const ScreeningStageModal = ({
   company,
   applicationId,
   jobId,
+  matchScoreLatest,
   dueDate = 'Jan 20, 2026',
   onClose,
   onAdvance,
@@ -134,7 +136,7 @@ const ScreeningStageModal = ({
 
           {/* ── Suitability note ── */}
           <Typography component="p" className={styles.suitabilityNote}>
-            CV Suitability score over 85%
+            CV Suitability score over {matchScoreLatest ?? 85}%
           </Typography>
 
           {/* ── Checklist ── */}
