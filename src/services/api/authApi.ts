@@ -200,7 +200,10 @@ export const mapLoginResponseToSession = async (
 export const authApi = {
   async login(payload: LoginRequest): Promise<LoginResponse> {
     return unwrapResponseData(
-      authApiClient.post<LoginResponse>(apiEndpoints.auth.login, payload),
+      authApiClient.post<LoginResponse>(apiEndpoints.auth.login, {
+        ...payload,
+        email: payload.email.trim().toLowerCase(),
+      }),
     );
   },
 

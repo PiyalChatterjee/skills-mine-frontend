@@ -101,6 +101,7 @@ describe('LoginPage', () => {
     fireEvent.submit(screen.getByRole('button', { name: /sign in/i }).closest('form')!)
     await waitFor(() => {
       expect(screen.getByText(/valid email/i)).toBeInTheDocument()
+      expect(screen.getByPlaceholderText('Email')).toHaveFocus()
     })
   })
 
@@ -110,6 +111,7 @@ describe('LoginPage', () => {
     fireEvent.submit(screen.getByRole('button', { name: /sign in/i }).closest('form')!)
     await waitFor(() => {
       expect(screen.getByText(/password is required/i)).toBeInTheDocument()
+      expect(screen.getByPlaceholderText('Password')).toHaveFocus()
     })
   })
 

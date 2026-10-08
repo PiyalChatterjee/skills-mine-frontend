@@ -9,6 +9,7 @@ import type {
   RecruiterCandidateProfile,
 } from '@/services/api/recruiterCandidatesApi'
 import { ROUTE_PATHS } from '@/routes/routePaths'
+import { formatPhoneNumberDisplay } from '@/app/phoneNumber'
 import styles from './CandidateDetailScreen.module.css'
 
 // ── Stage badge colors ─────────────────────────────────────────────────
@@ -309,7 +310,7 @@ export const CandidateDetailScreen = () => {
               </Box>
               <Box className={styles.heroInfoBlock}>
                 <Typography component="p" className={styles.heroInfoLabel}>Phone Number</Typography>
-                <Typography component="p" className={styles.heroInfoValue}>{candidate.phone || '—'}</Typography>
+                <Typography component="p" className={styles.heroInfoValue}>{formatPhoneNumberDisplay(candidate.phone) || '—'}</Typography>
               </Box>
               <Box className={styles.heroInfoBlock}>
                 <Typography component="p" className={styles.heroInfoLabel}>Residential Location</Typography>
@@ -325,7 +326,7 @@ export const CandidateDetailScreen = () => {
               </Box>
               <Box className={styles.heroInfoBlock}>
                 <Typography component="p" className={styles.heroInfoLabel}>Alternative Phone Number</Typography>
-                <Typography component="p" className={styles.heroInfoValue}>{candidate.alternatePhone || '—'}</Typography>
+                <Typography component="p" className={styles.heroInfoValue}>{formatPhoneNumberDisplay(candidate.alternatePhone) || '—'}</Typography>
               </Box>
             </Box>
 

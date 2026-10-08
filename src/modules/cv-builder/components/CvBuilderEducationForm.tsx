@@ -80,9 +80,10 @@ const EducationSection = ({
               <Controller
                 name={`${sectionName}.${index}.institutionName` as never}
                 control={control}
-                render={({ field, fieldState }) => (
+                render={({ field: { ref, ...field }, fieldState }) => (
                   <TextField
                     {...field}
+                    inputRef={ref}
                     error={Boolean(fieldState.error)}
                     helperText={fieldState.error?.message}
                     placeholder="Institution name"
@@ -102,9 +103,10 @@ const EducationSection = ({
               <Controller
                 name={`${sectionName}.${index}.${middleFieldKey}` as never}
                 control={control}
-                render={({ field, fieldState }) => (
+                render={({ field: { ref, ...field }, fieldState }) => (
                   <TextField
                     {...field}
+                    inputRef={ref}
                     error={Boolean(fieldState.error)}
                     helperText={fieldState.error?.message}
                     placeholder={middleFieldPlaceholder}
@@ -124,9 +126,10 @@ const EducationSection = ({
               <Controller
                 name={`${sectionName}.${index}.yearCompleted` as never}
                 control={control}
-                render={({ field, fieldState }) => (
+                render={({ field: { ref, ...field }, fieldState }) => (
                   <TextField
                     {...field}
+                    inputRef={ref}
                     onChange={(e) =>
                       field.onChange(
                         e.target.value.replace(/\D/g, "").slice(0, 4),

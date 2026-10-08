@@ -48,6 +48,31 @@ const renderHeader = () =>
   );
 
 describe("PublicHeader career support dropdown", () => {
+  it("shows social links in mobile navigation without redirecting", () => {
+    renderHeader();
+
+    const mobileNavPanel = document.getElementById("mobile-nav-menu");
+    expect(mobileNavPanel).not.toBeNull();
+    const links = Array.from(
+      mobileNavPanel!.querySelectorAll<HTMLAnchorElement>("a[aria-label]"),
+    );
+
+    expect(links.map((link) => link.getAttribute("aria-label"))).toEqual([
+      "Facebook",
+      "Twitter",
+      "LinkedIn",
+      "Instagram",
+    ]);
+    links.forEach((link) => {
+      expect(link).toHaveAttribute("href", "#");
+      expect(
+        link.dispatchEvent(
+          new MouseEvent("click", { bubbles: true, cancelable: true }),
+        ),
+      ).toBe(false);
+    });
+  });
+
   it("opens a menu of external career support links", async () => {
     const user = userEvent.setup();
     renderHeader();

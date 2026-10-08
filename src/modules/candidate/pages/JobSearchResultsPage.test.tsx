@@ -1,10 +1,11 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, Outlet, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import JobSearchResultsPage from "./JobSearchResultsPage";
 
 const mocks = vi.hoisted(() => ({
   isAuthenticated: false,
+  openSignUpDrawer: vi.fn(),
   isJobSaved: vi.fn(),
   isJobSaving: vi.fn(),
   toggleJobSaved: vi.fn(),
@@ -35,29 +36,42 @@ vi.mock("@/modules/candidate/hooks/useLocationOptions", () => ({
   useLocationOptions: () => ["Cape Town", "Remote"],
 }));
 
-vi.mock("@/modules/candidate/components/OpportunitySearchControls", () => ({
-  OpportunitySearchControls: () => <div>Search controls</div>,
-}));
-
 vi.mock("@/components/jobs", () => ({
   getJobTags: () => [],
   OpportunityJobCard: ({
     title,
+    actionLabel,
+    onAction,
     showSaveButton,
     onToggleSave,
     saveLabel,
   }: {
     title: string;
+    actionLabel: string;
+    onAction: () => void;
     showSaveButton: boolean;
     onToggleSave: () => void;
     saveLabel: string;
   }) => (
     <article>
       {title}
+      <button onClick={onAction}>{actionLabel}</button>
       {showSaveButton ? <button onClick={onToggleSave}>{saveLabel}</button> : null}
     </article>
   ),
 }));
+
+const renderSearchResults = (entry = "/jobs/search?search=developer") =>
+  render(
+    <MemoryRouter initialEntries={[entry]}>
+      <Routes>
+        <Route element={<Outlet context={{ openSignUpDrawer: mocks.openSignUpDrawer }} />}>
+          <Route path="/jobs/search" element={<JobSearchResultsPage />} />
+        </Route>
+        <Route path="/jobs/:jobId" element={<div>Job details</div>} />
+      </Routes>
+    </MemoryRouter>,
+  );
 
 describe("JobSearchResultsPage", () => {
   beforeEach(() => {
@@ -85,15 +99,7 @@ describe("JobSearchResultsPage", () => {
   });
 
   it("loads the requested page using URL search and filter parameters", () => {
-    render(
-      <MemoryRouter
-        initialEntries={[
-          "/jobs/search?search=developer&industry=Technology&industry=Finance&location=Cape+Town&datePosted=LAST_7_DAYS&jobType=FULL_TIME&page=2",
-        ]}
-      >
-        <JobSearchResultsPage />
-      </MemoryRouter>,
-    );
+    renderSearchResults("/jobs/search?search=developer&industry=Technology&industry=Finance&location=Cape+Town&datePosted=LAST_7_DAYS&jobType=FULL_TIME&page=2");
 
     expect(mocks.useListJobsPageQuery).toHaveBeenCalledWith({
       searchQuery: "developer",
@@ -113,16 +119,74 @@ describe("JobSearchResultsPage", () => {
 
   it("shows a functional bookmark for an authenticated candidate", () => {
     mocks.isAuthenticated = true;
-    render(
-      <MemoryRouter initialEntries={["/jobs/search?search=developer"]}>
-        <JobSearchResultsPage />
-      </MemoryRouter>,
-    );
+    renderSearchResults();
 
     fireEvent.click(screen.getByRole("button", { name: "Save Developer" }));
 
     expect(mocks.isJobSaved).toHaveBeenCalledWith("job-6");
     expect(mocks.isJobSaving).toHaveBeenCalledWith("job-6");
     expect(mocks.toggleJobSaved).toHaveBeenCalledWith("job-6");
+  });
+
+  it.each([
+    { label: "Industry", options: ["Technology", "Finance"], filter: "industries" },
+    { label: "Location", options: ["Cape Town", "Remote"], filter: "locations" },
+  ])("commits multiple $label selections only when the dropdown closes", ({ label, options, filter }) => {
+    renderSearchResults("/jobs/search?page=2");
+    const initialQueryCalls = mocks.useListJobsPageQuery.mock.calls.length;
+
+    fireEvent.mouseDown(screen.getByRole("combobox", { name: label }));
+    for (const option of options) {
+      fireEvent.click(screen.getByRole("option", { name: option }));
+      expect(screen.getByRole("option", { name: option })).toHaveAttribute("aria-selected", "true");
+    }
+
+    expect(screen.getByRole("listbox")).toBeInTheDocument();
+    expect(mocks.useListJobsPageQuery).toHaveBeenCalledTimes(initialQueryCalls);
+
+    fireEvent.keyDown(screen.getByRole("listbox"), { key: "Escape" });
+
+    expect(mocks.useListJobsPageQuery).toHaveBeenLastCalledWith({
+      searchQuery: undefined,
+      page: 1,
+      pageSize: 5,
+      filters: { industries: [], locations: [], datePosted: undefined, jobTypes: [], [filter]: options },
+    });
+    expect(screen.getByRole("combobox", { name: label })).toHaveTextContent(`${label} (2)`);
+  });
+
+  it("does not update the query when a dropdown closes without net selection changes", () => {
+    renderSearchResults("/jobs/search?industry=Technology");
+    const initialQueryCalls = mocks.useListJobsPageQuery.mock.calls.length;
+
+    fireEvent.mouseDown(screen.getByRole("combobox", { name: "Industry" }));
+    fireEvent.click(screen.getByRole("option", { name: "Finance" }));
+    fireEvent.click(screen.getByRole("option", { name: "Finance" }));
+    fireEvent.keyDown(screen.getByRole("listbox"), { key: "Escape" });
+
+    expect(mocks.useListJobsPageQuery).toHaveBeenCalledTimes(initialQueryCalls);
+    expect(screen.getByRole("combobox", { name: "Industry" })).toHaveTextContent("Industry (1)");
+  });
+
+  it("opens signup instead of job details for a signed-out user", () => {
+    renderSearchResults();
+
+    expect(screen.queryByRole("button", { name: "View" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Sign Up to View" }));
+
+    expect(mocks.openSignUpDrawer).toHaveBeenCalledTimes(1);
+    expect(screen.getByText("Developer")).toBeInTheDocument();
+    expect(screen.queryByText("Job details")).not.toBeInTheDocument();
+  });
+
+  it("keeps the view action for an authenticated user", () => {
+    mocks.isAuthenticated = true;
+    renderSearchResults();
+
+    expect(screen.queryByRole("button", { name: "Sign Up to View" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "View" }));
+
+    expect(screen.getByText("Job details")).toBeInTheDocument();
+    expect(mocks.openSignUpDrawer).not.toHaveBeenCalled();
   });
 });

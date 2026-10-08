@@ -1,4 +1,4 @@
-import { Box, MenuItem, TextField, Typography } from "@mui/material";
+import { Box, MenuItem, TextField, Typography, type TextFieldProps } from "@mui/material";
 import type { ChangeEvent, ReactNode } from "react";
 import {
   Controller,
@@ -8,6 +8,7 @@ import {
   type RegisterOptions,
 } from "react-hook-form";
 import chevronDownIcon from "@/assets/cv-builder/chevron-down.svg";
+import { getPhoneNumberInputProps } from "@/app/phoneNumber";
 import styles from "../pages/CvBuilderPage.module.css";
 
 export type FieldSpan = "full" | "two" | "one";
@@ -45,6 +46,7 @@ type CvBuilderSelectFieldProps = {
   error?: boolean;
   helperText?: string;
   name?: string;
+  inputRef?: TextFieldProps["inputRef"];
 };
 
 type CvBuilderControlledTextFieldProps<TFieldValues extends FieldValues> = {
@@ -57,6 +59,7 @@ type CvBuilderControlledTextFieldProps<TFieldValues extends FieldValues> = {
   rules?: RegisterOptions<TFieldValues>;
   onBlur?: (value: string) => void;
   transformValue?: (value: string) => string;
+  type?: "text" | "tel";
 };
 
 const spanClassNameMap: Record<FieldSpan, string> = {
@@ -142,6 +145,7 @@ export const CvBuilderSelectField = ({
   error = false,
   helperText,
   name,
+  inputRef,
 }: CvBuilderSelectFieldProps) => (
   <CvBuilderLabeledField label={label} span={span} fieldName={name}>
     <TextField
@@ -149,6 +153,7 @@ export const CvBuilderSelectField = ({
       value={value}
       onChange={onChange}
       onBlur={onBlur}
+      inputRef={inputRef}
       error={error}
       helperText={helperText}
       className={styles.fieldControl}
@@ -156,6 +161,7 @@ export const CvBuilderSelectField = ({
       fullWidth
       slotProps={{
         select: {
+          "aria-label": label,
           IconComponent: SelectChevronIcon,
           ...(displayEmpty
             ? {
@@ -191,19 +197,24 @@ export const CvBuilderControlledTextField = <TFieldValues extends FieldValues>({
   rules,
   onBlur,
   transformValue,
+  type = "text",
 }: CvBuilderControlledTextFieldProps<TFieldValues>) => (
   <CvBuilderLabeledField label={label} span={span} fieldName={name}>
     <Controller
       name={name}
       control={control}
       rules={rules}
-      render={({ field, fieldState }) => (
+      render={({ field: { ref, ...field }, fieldState }) => (
         <TextField
           {...field}
+          inputRef={ref}
+          type={type}
           onChange={(event) => {
             const value = transformValue ? transformValue(event.target.value) : event.target.value;
             field.onChange(value);
           }}
+          {...(type === "tel" ? getPhoneNumberInputProps(field.value ?? "", field.onChange) : {})}
+          slotProps={{ htmlInput: { "aria-label": label, ...(type === "tel" ? { inputMode: "tel", autoComplete: "tel-national" } : {}) } }}
           onBlur={(event) => {
             field.onBlur();
             onBlur?.(event.target.value);

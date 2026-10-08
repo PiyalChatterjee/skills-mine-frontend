@@ -1,4 +1,4 @@
-import { act, renderHook } from "@testing-library/react";
+import { act, render, renderHook, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useCvBuilderPageViewModel } from "./useCvBuilderPageViewModel";
 
@@ -91,6 +91,8 @@ const selectedUploadFile = new File(["cv"], "jane-cv.pdf", { type: "application/
 const form = {
   formState: { isDirty: false },
   getValues: vi.fn(),
+  getFieldState: vi.fn(),
+  trigger: vi.fn(),
 };
 
 const savedCv = {
@@ -213,6 +215,30 @@ describe("useCvBuilderPageViewModel", () => {
       description: "Upload your CV directly from your computer.",
       tone: "coral",
     });
+  });
+
+  it("focuses the current invalid CV field even when rendered form errors are stale", async () => {
+    form.trigger.mockResolvedValue(false);
+    form.getValues.mockReturnValue({ personalDetails: { fullName: "" } });
+    form.getFieldState.mockReturnValue({
+      error: { fullName: { type: "required", message: "Full name is required" } },
+    });
+    render(
+      <div data-field="personalDetails.fullName" data-testid="cv-field">
+        <input aria-label="Full name" />
+      </div>,
+    );
+    screen.getByTestId("cv-field").scrollIntoView = vi.fn();
+    renderHook(() => useCvBuilderPageViewModel());
+    const { validateForm } = mocks.useCvBuilderDone.mock.calls.at(-1)![0];
+
+    await act(async () => {
+      expect(await validateForm()).toBe(false);
+    });
+
+    expect(form.trigger).toHaveBeenCalledWith(undefined, { shouldFocus: true });
+    expect(form.getFieldState).toHaveBeenCalledWith("personalDetails");
+    expect(screen.getByRole("textbox", { name: "Full name" })).toHaveFocus();
   });
 
   it("derives current employment fields from the current saved CV experience", () => {

@@ -5,6 +5,7 @@ import axios, {
 } from "axios";
 import { authEvents } from "@/app/auth/authEvents";
 import { tokenStorage } from "@/app/auth/tokenStorage";
+import { extractErrorCode, extractErrorMessage } from "@/app/errorUtils";
 import type { SuccessEnvelope } from "@/types/api";
 
 // Set on a request's config to opt out of the global "401 -> log the user out"
@@ -57,6 +58,9 @@ const createApiClient = (
   client.interceptors.response.use(
     (response) => response,
     (error: AxiosError) => {
+      if (extractErrorCode(error)) {
+        error.message = extractErrorMessage(error, error.message);
+      }
       // Only react to 401s that end an active session; otherwise a 401 from an
       // already-logged-out/public request would keep re-triggering clearSession
       // -> resetApiState() -> refetch -> 401 in an infinite loop.

@@ -5,6 +5,7 @@ import { RecruiterSidebar } from '@/modules/recruiter/components/RecruiterSideba
 import { jobProfileApi, type JobProfile, type TopCandidate } from '@/services/api/recruiterCandidatesApi'
 import { mandateApi } from '@/services/api/mandateApi'
 import { ROUTE_PATHS } from '@/routes/routePaths'
+import { formatPhoneNumberDisplay } from '@/app/phoneNumber'
 import styles from './MandateDetailPage.module.css'
 import lineChartIcon from '@/assets/recruiter/line-chart-line.svg'
 import userLineIcon from '@/assets/recruiter/user-line.svg'
@@ -245,7 +246,7 @@ const MandateDetailPage = () => {
                         </a>
                       ) : '—'}
                     </td>
-                    <td>{jobProfile.contactPhone || '—'}</td>
+                    <td>{formatPhoneNumberDisplay(jobProfile.contactPhone) || '—'}</td>
                   </tr>
                 </tbody>
               </table>

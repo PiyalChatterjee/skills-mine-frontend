@@ -4,6 +4,7 @@ import { useForm, useWatch } from 'react-hook-form'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/app/auth/AuthContext'
 import { extractErrorMessage, isNotFoundError } from '@/app/errorUtils'
+import { validateAndFocusForm } from '@/app/formValidation'
 import {
   profileCreationBasicDetailsSchema,
   profileCreationSchema,
@@ -142,7 +143,7 @@ export const useProfileCreationWizard = () => {
     setSubmitError(null)
 
     const stepFields = PROFILE_CREATION_STEP_FIELDS[activeStepId] as never
-    const isStepValid = await form.trigger(stepFields)
+    const isStepValid = await validateAndFocusForm(form, stepFields)
     if (!isStepValid) {
       return
     }

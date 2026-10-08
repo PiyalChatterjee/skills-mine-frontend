@@ -5,6 +5,7 @@ import { Box, ButtonBase, Typography } from '@mui/material'
 import { RecruiterSidebar } from '@/modules/recruiter/components/RecruiterSidebar'
 import UploadDocumentModal from '@/modules/recruiter/components/UploadDocumentModal'
 import { ROUTE_PATHS } from '@/routes/routePaths'
+import { formatPhoneNumberDisplay } from '@/app/phoneNumber'
 import { pushNotification } from '@/store/slices/notificationSlice'
 import { addDocument } from '@/store/slices/recruiterPipelineSlice'
 import type { RootState } from '@/store'
@@ -261,7 +262,7 @@ const CandidateProfilePage = () => {
             <Box className={styles.heroInfoRow}>
               <Box className={styles.heroInfoBlock}>
                 <Typography component="p" className={styles.heroInfoLabel}>Phone number</Typography>
-                <Typography component="p" className={`${styles.heroInfoValue} ${styles.heroInfoLink}`}>{candidate.phone}</Typography>
+                <Typography component="p" className={`${styles.heroInfoValue} ${styles.heroInfoLink}`}>{formatPhoneNumberDisplay(candidate.phone)}</Typography>
               </Box>
             </Box>
             <Box className={styles.heroInfoRow}>

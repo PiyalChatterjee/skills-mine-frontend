@@ -434,15 +434,15 @@
 }
 
 .metricCardWideLeft {
-    width: 213px;
+    width: min-content;
 }
 
 .metricCardNarrow {
-    width: 213px;
+    width: min-content;
 }
 
 .metricCardWideRight {
-    width: 213px;
+    width: min-content;
     height: 165px;
 }
 
@@ -1128,6 +1128,26 @@
 
 /* ── Mobile (600px) ───────────────────────────────────────────────────── */
 @media (max-width: 600px) {
+    .metricValue,
+    .metricValue:global(.MuiTypography-root) {
+        font-size: 46px;
+    }
+
+    .metricCardWideRight .metricValue,
+    .metricCardWideRight .metricValue:global(.MuiTypography-root) {
+        font-size: 40px;
+    }
+
+    .metricLabel,
+    .metricLabel:global(.MuiTypography-root) {
+        font-size: 16px;
+    }
+
+    .metricCardWideRight .metricLabel,
+    .metricCardWideRight .metricLabel:global(.MuiTypography-root) {
+        font-size: 13px;
+    }
+
     .heroInner {
         padding-top: 40px;
         padding-bottom: 40px;
@@ -1135,12 +1155,14 @@
         padding-right: 16px;
     }
 
-    .heroTitle {
-        font-size: 28px;
+    .heroTitle,
+    .heroTitle:global(.MuiTypography-root) {
+        font-size: 36px;
     }
 
-    .heroText {
-        font-size: 17px;
+    .heroText,
+    .heroText:global(.MuiTypography-root) {
+        font-size: 18px;
     }
 
     .featureBarInner,

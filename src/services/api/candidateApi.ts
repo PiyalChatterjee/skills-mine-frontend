@@ -864,14 +864,10 @@ const mapProfileResponse = (
         personal.last_name ??
         personal.full_name?.split(" ").slice(1).join(" ") ??
         "",
-      email:
-        personal.email ??
-        personal.alternate_email ??
-        personal.alternate_email_address ??
-        "",
+      email: personal.email ?? "",
       mobileNumber: personal.mobileNumber ?? personal.phone_number,
       alternateEmail:
-        personal.alternateEmail ?? personal.alternate_email_address,
+        personal.alternateEmail ?? personal.alternate_email ?? personal.alternate_email_address,
       alternateMobileNumber:
         personal.alternateMobileNumber ?? personal.alternate_phone_number,
       race: personal.race,
@@ -1025,10 +1021,10 @@ export const candidateApi = {
         personal_details: omitUndefined({
           first_name: personalDetails.firstName,
           last_name: personalDetails.lastName,
-          alternate_email: personalDetails.email,
+          email: personalDetails.email,
           phone_number: personalDetails.mobileNumber,
           residential_location: personalDetails.location,
-          alternate_email_address: personalDetails.alternateEmail,
+          alternate_email: personalDetails.alternateEmail,
           alternate_phone_number: personalDetails.alternateMobileNumber,
         }),
         job_details: omitUndefined({

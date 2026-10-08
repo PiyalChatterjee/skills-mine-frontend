@@ -3,6 +3,7 @@ import type { Control, UseFormSetValue } from 'react-hook-form'
 import { Controller, useFormState } from 'react-hook-form'
 import type { MandateFormValues } from './types'
 import { mandateApi } from '@/services/api/mandateApi'
+import { getPhoneNumberInputProps } from '@/app/phoneNumber'
 import styles from './form.module.css'
 
 interface Props {
@@ -239,15 +240,12 @@ export const BasicInformationSection = ({ control, setValue }: Props) => {
             render={({ field }) => (
               <input
                 {...field}
-                type="tel"
+                {...getPhoneNumberInputProps(field.value, field.onChange)}
                 inputMode="numeric"
-                maxLength={10}
+                autoComplete="tel-national"
+                aria-label="Contact Person Phone Number"
                 className={`${styles.input} ${errors.contactPersonPhone ? styles.hasError : ''}`}
                 placeholder="Contact Person Phone Number"
-                onChange={(e) => {
-                  const digitsOnly = e.target.value.replace(/\D/g, '').slice(0, 10)
-                  field.onChange(digitsOnly)
-                }}
                 onBlur={field.onBlur}
               />
             )}

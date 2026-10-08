@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Box,
   Checkbox,
@@ -60,21 +61,35 @@ const FilterSelect = ({
   multiple = false,
   variant,
 }: FilterSelectProps) => {
+  const [open, setOpen] = useState(false);
+  const [draftValue, setDraftValue] = useState(value);
   const selectClassName = [styles.filterSelect, variant === "hero" ? styles.heroFilterSelect : ""]
     .filter(Boolean)
     .join(" ");
 
   if (multiple) {
+    const selectedValue = open ? draftValue : value;
     const handleChange = (event: SelectChangeEvent<string[]>) => {
       const nextValue = event.target.value;
-      onChange(typeof nextValue === "string" ? nextValue.split(",") : nextValue);
+      setDraftValue(typeof nextValue === "string" ? nextValue.split(",") : nextValue);
     };
 
     return (
       <Select
         multiple
         displayEmpty
-        value={value}
+        open={open}
+        onOpen={() => {
+          setDraftValue(value);
+          setOpen(true);
+        }}
+        onClose={() => {
+          setOpen(false);
+          if (draftValue.length !== value.length || draftValue.some((selected) => !value.includes(selected))) {
+            onChange(draftValue);
+          }
+        }}
+        value={selectedValue}
         onChange={handleChange}
         IconComponent={FilterDropdownIcon}
         className={selectClassName}
@@ -84,7 +99,7 @@ const FilterSelect = ({
       >
         {options.map((option) => (
           <MenuItem key={option.value} value={option.value}>
-            <Checkbox checked={value.includes(option.value)} />
+            <Checkbox checked={selectedValue.includes(option.value)} />
             {option.label}
           </MenuItem>
         ))}

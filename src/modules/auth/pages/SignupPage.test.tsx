@@ -45,6 +45,7 @@ describe('SignupPage', () => {
     fireEvent.click(screen.getByRole('button', { name: /submit/i }))
     await waitFor(() => {
       expect(screen.getByText(/first name is required/i)).toBeInTheDocument()
+      expect(screen.getByPlaceholderText('First name')).toHaveFocus()
     })
   })
 
@@ -90,6 +91,7 @@ describe('SignupPage', () => {
     await userEvent.type(screen.getByPlaceholderText('Last name'), 'Doe')
     await userEvent.type(screen.getByPlaceholderText('Email'), 'jane@test.com')
     await userEvent.type(screen.getByPlaceholderText('Phone number'), '0821234567')
+    expect(screen.getByPlaceholderText('Phone number')).toHaveValue('082 123 4567')
     await userEvent.type(screen.getByPlaceholderText('8+ characters, uppercase, number & special character'), 'Password1!')
     await userEvent.type(screen.getByPlaceholderText('Re-enter your password'), 'Password1!')
 
@@ -125,6 +127,7 @@ describe('SignupPage', () => {
     fireEvent.click(screen.getByRole('button', { name: /submit/i }))
     await waitFor(() => {
       expect(screen.getByText(/accept the terms/i)).toBeInTheDocument()
+      expect(screen.getByRole('checkbox')).toHaveFocus()
     })
   })
 })

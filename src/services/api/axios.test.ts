@@ -60,9 +60,9 @@ describe('API client interceptors', () => {
   })
 
   it('registers one request and response interceptor for each service client', () => {
-    expect(mocks.create).toHaveBeenCalledTimes(8)
-    expect(mocks.requestHandlers).toHaveLength(8)
-    expect(mocks.responseErrorHandlers).toHaveLength(8)
+    expect(mocks.create).toHaveBeenCalledTimes(9)
+    expect(mocks.requestHandlers).toHaveLength(9)
+    expect(mocks.responseErrorHandlers).toHaveLength(9)
   })
 
   it('adds the bearer token to authenticated requests', () => {
@@ -116,5 +116,25 @@ describe('API client interceptors', () => {
 
     expect(mocks.clearAuth).not.toHaveBeenCalled()
     expect(mocks.authEventsEmitUnauthorized).not.toHaveBeenCalled()
+  })
+
+  it('normalizes known backend codes without replacing the error or response', async () => {
+    const data = { code: 'EMAIL_ALREADY_REGISTERED', message: 'Provisioning conflict' }
+    const error = {
+      message: 'Request failed with status code 409',
+      code: 'ERR_BAD_REQUEST',
+      response: { status: 409, data },
+      config: {},
+    }
+    await expect(Promise.resolve(getResponseErrorHandler()(error))).rejects.toBe(error)
+    expect(error.message).toBe('This email address is already registered. Please sign in or use a different email address.')
+    expect(error.code).toBe('ERR_BAD_REQUEST')
+    expect(error.response.data).toBe(data)
+  })
+
+  it('preserves messages for errors without a known backend code', async () => {
+    const error = { message: 'Network timeout', config: {} }
+    await expect(Promise.resolve(getResponseErrorHandler()(error))).rejects.toBe(error)
+    expect(error.message).toBe('Network timeout')
   })
 })
