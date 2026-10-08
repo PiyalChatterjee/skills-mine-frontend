@@ -24,7 +24,6 @@ import {
   OpportunitiesSearchInput,
   OpportunityJobCard,
 } from "@/components/jobs";
-import { useInfiniteScrollTrigger } from "@/hooks/useInfiniteScrollTrigger";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { useJobsSearch } from "@/modules/public/hooks/useJobsSearch";
 import { useSearchQueryState } from "@/hooks/useSearchQueryState";
@@ -117,13 +116,6 @@ const LandingPage = () => {
     shouldFilter: shouldFilterOpportunities,
     shouldUseDebouncedQuery: shouldUseApiSearch,
     debouncedSearchTerm,
-  });
-  const jobsLoadTriggerRef = useInfiniteScrollTrigger({
-    hasNextPage,
-    isFetchingNextPage,
-    isError: isJobsError,
-    itemCount: visibleJobs.length,
-    onLoadMore: fetchNextPage,
   });
 
   useEffect(() => {
@@ -467,10 +459,17 @@ const LandingPage = () => {
                 </Box>
                 {hasNextPage ? (
                   <Box className={styles.jobsLoadTriggerWrap} aria-live="polite">
-                    <Box ref={jobsLoadTriggerRef} className={styles.jobsLoadTrigger} aria-hidden="true" />
-                    <Typography component="p" className={styles.jobsLoadText} sx={{ m: 0 }}>
-                      {isFetchingNextPage ? "Loading more opportunities..." : "Scroll to load more opportunities"}
-                    </Typography>
+                    <Button
+                      type="button"
+                      variant="outlined"
+                      className={styles.loadMoreButton}
+                      onClick={() => void fetchNextPage()}
+                      disabled={isFetchingNextPage}
+                      aria-busy={isFetchingNextPage}
+                      disableRipple
+                    >
+                      {isFetchingNextPage ? "Loading..." : "Load more"}
+                    </Button>
                   </Box>
                 ) : null}
               </>

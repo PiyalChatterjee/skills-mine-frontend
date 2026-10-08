@@ -11,6 +11,7 @@ import { SkillsInput } from './SkillsInput'
 import { IndustriesInput } from './IndustriesInput'
 import { StickyFooter } from './StickyFooter'
 import type { MandateFormValues } from './types'
+import { emailSchema } from '@/app/validation.schema'
 import styles from '@/modules/recruiter/pages/NewMandatePage.module.css'
 
 // ── Validation schema ──────────────────────────────────────────────────
@@ -20,10 +21,7 @@ export const mandateSchema = z
     companyName:          z.string().min(1, 'Company name is required'),
     clientRate:           z.string().min(1, 'Client rate is required'),
     contactPerson:        z.string().min(1, 'Contact person is required'),
-    contactPersonEmail:   z
-      .string()
-      .min(1, 'Email is required')
-      .email('Please enter a valid email address'),
+    contactPersonEmail:   emailSchema,
     contactPersonPhone:   z
       .string()
       .min(1, 'Phone number is required')

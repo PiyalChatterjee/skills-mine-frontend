@@ -16,7 +16,7 @@ import {
   RACE_OPTIONS,
 } from "../types/cvBuilder";
 import type { CvBuilderFormValues } from "@/app/validation.schema";
-import { emailSchema } from "@/app/validation.schema";
+import { INVALID_EMAIL_MESSAGE, isValidEmail } from "@/app/validation.schema";
 import { isValidLocalPhoneNumber } from "@/app/phoneNumber";
 
 type CvBuilderPersonalDetailsFormProps = {
@@ -58,8 +58,7 @@ const CvBuilderPersonalDetailsForm = ({
             rules={{
               required: "Email address is required",
               validate: (value) =>
-                emailSchema.safeParse(value).success ||
-                "Enter a valid email address",
+                isValidEmail(String(value ?? "")) || INVALID_EMAIL_MESSAGE,
             }}
           />
         ) : null}

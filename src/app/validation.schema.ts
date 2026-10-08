@@ -7,31 +7,25 @@ import { strongPasswordSchema } from "@/app/passwordPolicy";
 
 export const idSchema = z.string().min(1);
 
+const emailPattern =
+  /^[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z]{2,}$/;
+
+export const INVALID_EMAIL_MESSAGE = "Enter a valid email address";
+
+export const isValidEmail = (value: string) => emailPattern.test(value.trim());
+
 export const emailSchema = z
   .string()
   .trim()
   .min(1, "Email address is required")
-  .refine((value) => z.email().safeParse(value).success, {
-    message: "Enter a valid email address",
-  });
+  .refine(isValidEmail, { message: INVALID_EMAIL_MESSAGE });
 
 // Blank is allowed since this backs optional "alternate contact" fields.
 export const optionalEmailSchema = z
   .string()
   .trim()
-  .refine((value) => value === "" || z.email().safeParse(value).success, {
-    message: "Enter a valid email address",
-  });
-
-const signupEmailPattern =
-  /^[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z]{2,}$/;
-
-const signupEmailSchema = z
-  .string()
-  .trim()
-  .min(1, "Email address is required")
-  .refine((value) => signupEmailPattern.test(value), {
-    message: "Enter a valid email address",
+  .refine((value) => value === "" || isValidEmail(value), {
+    message: INVALID_EMAIL_MESSAGE,
   });
 
 const requiredField = (label: string) =>
@@ -73,7 +67,7 @@ const passwordsMatch = (values: {
 const baseSignupShape = {
   firstName: signupName("First name"),
   lastName: signupName("Last name"),
-  email: signupEmailSchema,
+  email: emailSchema,
   mobileNumber: localPhoneNumberSchema,
   password: strongPasswordSchema,
   confirmPassword: z.string().min(1, "Please confirm your password"),
@@ -116,7 +110,7 @@ export const loginSchema = z.object({
     .string()
     .trim()
     .min(1, "Email is required")
-    .pipe(z.email("Enter a valid email")),
+    .refine(isValidEmail, { message: INVALID_EMAIL_MESSAGE }),
   password: z.string().min(1, "Password is required"),
   rememberMe: z.boolean().optional(),
 });

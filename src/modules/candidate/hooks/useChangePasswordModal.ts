@@ -5,6 +5,7 @@ import { authApi } from "@/services/api";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import type { AppDispatch } from "@/store";
 import { pushNotification } from "@/store/slices/notificationSlice";
+import { INVALID_EMAIL_MESSAGE, isValidEmail } from "@/app/validation.schema";
 
 type UseChangePasswordModalArgs = {
   open: boolean;
@@ -23,16 +24,27 @@ export const useChangePasswordModal = ({
   const navigate = useNavigate();
   const [email, setEmail] = useState(prefillEmail);
   const [isSending, setIsSending] = useState(false);
+  const [isTouched, setIsTouched] = useState(false);
 
   useEffect(() => {
     if (open) {
       setEmail(prefillEmail);
+      setIsTouched(false);
     }
   }, [open, prefillEmail]);
+
+  const emailError =
+    isTouched && email.trim() && !isValidEmail(email) ? INVALID_EMAIL_MESSAGE : "";
+
+  const handleBlur = () => setIsTouched(true);
 
   const handleSend = async () => {
     const trimmed = email.trim();
     if (!trimmed) return;
+    if (!isValidEmail(trimmed)) {
+      setIsTouched(true);
+      return;
+    }
 
     setIsSending(true);
     try {
@@ -66,6 +78,8 @@ export const useChangePasswordModal = ({
   return {
     email,
     setEmail,
+    emailError,
+    handleBlur,
     isSending,
     handleSend,
   };

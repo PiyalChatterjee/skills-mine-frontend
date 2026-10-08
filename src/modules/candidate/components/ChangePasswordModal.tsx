@@ -25,7 +25,7 @@ const ChangePasswordModal = ({
   onClose,
   mode = "reset",
 }: ChangePasswordModalProps) => {
-  const { email, setEmail, isSending, handleSend } = useChangePasswordModal({
+  const { email, setEmail, emailError, handleBlur, isSending, handleSend } = useChangePasswordModal({
     open,
     prefillEmail,
     mode,
@@ -65,8 +65,12 @@ const ChangePasswordModal = ({
                 placeholder="Email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                onBlur={handleBlur}
+                error={Boolean(emailError)}
+                helperText={emailError || undefined}
                 disabled={isSending}
                 className={styles.emailInput}
+                slotProps={{ htmlInput: { "aria-label": "Email address" } }}
               />
             </Box>
 
