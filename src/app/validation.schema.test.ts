@@ -14,28 +14,35 @@ const validSignup = {
 describe("candidateSignUpSchema email validation", () => {
   it.each([
     "piyal+-_.chatterjee@email.com",
-    "piyal+chatterjee@email.com",
-    "piyal-chatterjee@email.com",
-    "piyal..chatterjee@email.com",
-    ".piyal@email.com",
-    "piyal_@email.com",
-  ])(
-    "rejects a signup email with an unsupported or misplaced local-part character: %s",
-    (email) => {
+    "piyal+chatterjee@sub-domain.email.com",
+    "!#$%&'*+/=?^_`{|}~-@email.com",
+  ])("accepts valid dot-atom and domain syntax in %s", (email) => {
       expect(
         candidateSignUpSchema.safeParse({ ...validSignup, email }).success,
-      ).toBe(false);
-    },
-  );
+      ).toBe(true);
+  });
 
-  it.each(["piyal.chatterjee@email.com", "piyal_chatterjee@email.com"])(
-    "accepts a supported single local-part separator in %s",
-    (email) => {
-      expect(candidateSignUpSchema.safeParse({ ...validSignup, email }).success).toBe(
-        true,
-      );
-    },
-  );
+  it.each([
+    ".piyal@email.com",
+    "piyal.@email.com",
+    "piyal..chatterjee@email.com",
+  ])("rejects invalid local-part dot placement in %s", (email) => {
+    expect(
+      candidateSignUpSchema.safeParse({ ...validSignup, email }).success,
+    ).toBe(false);
+  });
+
+  it.each([
+    "piyal@email..com",
+    "piyal@-email.com",
+    "piyal@email-.com",
+    "piyal@email.c",
+    "piyal@email.123",
+  ])("rejects invalid domain syntax in %s", (email) => {
+    expect(
+      candidateSignUpSchema.safeParse({ ...validSignup, email }).success,
+    ).toBe(false);
+  });
 
   it("accepts a local part without separators", () => {
     expect(

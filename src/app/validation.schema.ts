@@ -24,7 +24,8 @@ export const optionalEmailSchema = z
   });
 
 const signupEmailPattern =
-  /^[A-Za-z0-9]+(?:[._][A-Za-z0-9]+)*@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*$/;
+  /^[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z]{2,}$/;
+
 const signupEmailSchema = z
   .string()
   .trim()
@@ -36,7 +37,8 @@ const signupEmailSchema = z
 const requiredField = (label: string) =>
   z.string().trim().min(1, `${label} is required`);
 
-const signupNamePattern = /^\p{L}[\p{L}\p{M}]*(?:[ '\u2019-]\p{L}[\p{L}\p{M}]*)*$/u;
+const signupNamePattern =
+  /^\p{L}[\p{L}\p{M}]*(?:[ '\u2019-]\p{L}[\p{L}\p{M}]*)*$/u;
 const signupName = (label: string) =>
   z
     .string()
@@ -333,7 +335,8 @@ export const createPersonalDetailsSchema = (isVisitor = false) =>
         if (!isVisitor && !data.noticePeriod.trim()) {
           ctx.addIssue({
             code: "custom",
-            message: "Notice period is required when current company is provided",
+            message:
+              "Notice period is required when current company is provided",
             path: ["noticePeriod"],
           });
         }
