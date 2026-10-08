@@ -11,6 +11,42 @@ const validSignup = {
   acceptTerms: true,
 };
 
+describe("candidateSignUpSchema email validation", () => {
+  it.each([
+    "piyal+-_.chatterjee@email.com",
+    "piyal+chatterjee@email.com",
+    "piyal-chatterjee@email.com",
+    "piyal..chatterjee@email.com",
+    ".piyal@email.com",
+    "piyal_@email.com",
+  ])(
+    "rejects a signup email with an unsupported or misplaced local-part character: %s",
+    (email) => {
+      expect(
+        candidateSignUpSchema.safeParse({ ...validSignup, email }).success,
+      ).toBe(false);
+    },
+  );
+
+  it.each(["piyal.chatterjee@email.com", "piyal_chatterjee@email.com"])(
+    "accepts a supported single local-part separator in %s",
+    (email) => {
+      expect(candidateSignUpSchema.safeParse({ ...validSignup, email }).success).toBe(
+        true,
+      );
+    },
+  );
+
+  it("accepts a local part without separators", () => {
+    expect(
+      candidateSignUpSchema.safeParse({
+        ...validSignup,
+        email: "piyalchatterjee@email.com",
+      }).success,
+    ).toBe(true);
+  });
+});
+
 describe("candidateSignUpSchema name validation", () => {
   it.each(["'", "---", " ' - ", "\u0301"])(
     "rejects first names without a letter: %j",
