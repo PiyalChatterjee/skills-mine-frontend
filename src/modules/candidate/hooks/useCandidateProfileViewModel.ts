@@ -46,6 +46,8 @@ export const useCandidateProfileViewModel = () => {
     trigger,
   } = useZodForm(profileFormSchema, {
     defaultValues: getProfileFormValues(null),
+    mode: "onChange",
+    reValidateMode: "onChange",
   });
   const [isPersonalEditing, setIsPersonalEditing] = useState(false);
   const [isDesiredEditing, setIsDesiredEditing] = useState(false);
