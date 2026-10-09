@@ -199,7 +199,7 @@ const ProfilePage = () => {
               <ProfileSelectField
                 control={control}
                 name="targetedIndustries"
-                label="Targeted industries"
+                label="Targeted industries*"
                 options={industryOptions}
                 disabled={!isDesiredEditing}
               />

@@ -156,6 +156,7 @@ export const ProfileSelectField = <TFieldValues extends FieldValues>({
   multiple = false,
 }: SelectFieldProps<TFieldValues>) => {
   const inputId = useId();
+  const isRequired = label.trim().endsWith("*");
 
   return (
     <ProfileFieldBlock label={label} fullWidth={fullWidth} htmlFor={inputId}>
@@ -170,6 +171,7 @@ export const ProfileSelectField = <TFieldValues extends FieldValues>({
             .split(",")
             .map((value) => value.trim())
             .filter(Boolean);
+          const showNoneOption = !isRequired && selectedValues.length > 0;
 
           return (
             <TextField
@@ -179,10 +181,13 @@ export const ProfileSelectField = <TFieldValues extends FieldValues>({
               select
               value={multiple ? selectedValues : selectedValue}
               onChange={(event) => {
-                const nextValue = event.target.value;
-                field.onChange(
-                  Array.isArray(nextValue) ? nextValue.join(", ") : nextValue,
-                );
+                const nextValue = event.target.value as string | string[];
+                if (Array.isArray(nextValue)) {
+                  // The None option clears every selection in multi-select mode.
+                  field.onChange(nextValue.includes("") ? "" : nextValue.join(", "));
+                  return;
+                }
+                field.onChange(nextValue);
               }}
               onBlur={field.onBlur}
               inputRef={field.ref}
@@ -200,7 +205,7 @@ export const ProfileSelectField = <TFieldValues extends FieldValues>({
                   multiple,
                   "aria-label": formatProfileLabel(label),
                   SelectDisplayProps: {
-                    "aria-required": label.trim().endsWith("*") || undefined,
+                    "aria-required": isRequired || undefined,
                   },
                   IconComponent: DropdownIcon,
                   MenuProps: {
@@ -231,11 +236,13 @@ export const ProfileSelectField = <TFieldValues extends FieldValues>({
                 },
               }}
             >
-              {!multiple && (
+              {showNoneOption ? (
+                <MenuItem value="">None</MenuItem>
+              ) : !multiple ? (
                 <MenuItem value="" disabled>
                   {placeholderText}
                 </MenuItem>
-              )}
+              ) : null}
               {options.map((option) => (
                 <MenuItem key={option} value={option}>
                   {multiple ? (

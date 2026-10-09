@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { candidateSignUpSchema } from "@/app/validation.schema";
+import {
+  candidateSignUpSchema,
+  jobTitleSchema,
+  residentialLocationSchema,
+} from "@/app/validation.schema";
 
 const validSignup = {
   firstName: "Jane",
@@ -115,4 +119,57 @@ describe("candidateSignUpSchema name validation", () => {
       expect(candidateSignUpSchema.safeParse({ ...validSignup, firstName }).success).toBe(true);
     },
   );
+});
+describe("jobTitleSchema", () => {
+  it.each([
+    "Software Engineer",
+    "UI/UX Designer",
+    "C++ / C# Developer",
+    "R&D Manager",
+    "Sr. Engineer, Platform",
+    "Full-Stack Developer (Contract)",
+    "Head of O'Brien Operations",
+  ])("accepts %s", (value) => {
+    expect(jobTitleSchema.safeParse(value).success).toBe(true);
+  });
+
+  it.each([
+    ["Engineer@Home", "can only contain"],
+    ["Dev <script>", "can only contain"],
+    ["Engineer; DROP", "can only contain"],
+    ["Engineer!", "can only contain"],
+    ["123 / 456", "must include at least one letter"],
+    ["   ", "is required"],
+  ])("rejects %s", (value, message) => {
+    const result = jobTitleSchema.safeParse(value);
+    expect(result.success).toBe(false);
+    expect(result.error?.issues[0].message).toContain(message);
+  });
+});
+
+describe("residentialLocationSchema", () => {
+  it.each([
+    "Cape Town",
+    "Cape Town, Western Cape",
+    "12 Main Rd, Sandton",
+    "Port Elizabeth/Gqeberha",
+    "St. Francis Bay",
+    "Bloemfontein-Central",
+    "KwaZulu-Natal",
+  ])("accepts %s", (value) => {
+    expect(residentialLocationSchema.safeParse(value).success).toBe(true);
+  });
+
+  it.each([
+    ["Cape Town #1", "can only contain"],
+    ["Durban & Umhlanga", "can only contain"],
+    ["Sandton (North)", "can only contain"],
+    ["Pretoria!", "can only contain"],
+    ["1234", "must include at least one letter"],
+    ["", "is required"],
+  ])("rejects %s", (value, message) => {
+    const result = residentialLocationSchema.safeParse(value);
+    expect(result.success).toBe(false);
+    expect(result.error?.issues[0].message).toContain(message);
+  });
 });

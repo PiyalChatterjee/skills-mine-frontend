@@ -159,12 +159,37 @@ const profilePhoneNumberSchema = z
   .max(10, "Phone number must be at most 10 digits")
   .regex(/^\d+$/, "Phone number must contain digits only");
 
+const restrictedTextField = (
+  label: string,
+  allowedPattern: RegExp,
+  allowedDescription: string,
+) =>
+  requiredField(label)
+    .refine((value) => value === "" || allowedPattern.test(value), {
+      message: `${label} can only contain letters, numbers, spaces and ${allowedDescription}`,
+    })
+    .refine((value) => value === "" || /\p{L}/u.test(value), {
+      message: `${label} must include at least one letter`,
+    });
+
+export const jobTitleSchema = restrictedTextField(
+  "Preferred job title",
+  /^[\p{L}\p{M}\d\s\-,./&'()+#]+$/u,
+  "- , . / & ' ( ) + #",
+);
+
+export const residentialLocationSchema = restrictedTextField(
+  "Residential location",
+  /^[\p{L}\p{M}\d\s\-,.'/]+$/u,
+  "- , . ' /",
+);
+
 const profileCommonShape = {
   fullName: requiredField("Full name"),
   email: emailSchema,
   alternateEmail: optionalEmailSchema,
   alternatePhoneNumber: optionalLocalPhoneNumberSchema,
-  residentialLocation: requiredField("Residential location"),
+  residentialLocation: residentialLocationSchema,
   preferredJobTitle: z.string(),
   targetedIndustries: z.string(),
   employmentType: z.string().trim(),
@@ -174,7 +199,7 @@ const profileCommonShape = {
 export const profileCreationSchema = z.object({
   ...profileCommonShape,
   phoneNumber: profilePhoneNumberSchema,
-  preferredJobTitle: requiredField("Preferred job title"),
+  preferredJobTitle: jobTitleSchema,
   targetedIndustries: requiredField("Targeted industries"),
   preferredLocations: z.string().trim(),
   employmentType: z.string().trim(),
@@ -223,7 +248,8 @@ export const profileCreationEducationExperienceSchema =
 export const profileFormSchema = z.object({
   ...profileCommonShape,
   phoneNumber: localPhoneNumberSchema,
-  preferredJobTitle: requiredField("Preferred job title"),
+  preferredJobTitle: jobTitleSchema,
+  targetedIndustries: requiredField("Targeted industries"),
   preferredWorkType: z.string(),
   password: z.string(),
 });

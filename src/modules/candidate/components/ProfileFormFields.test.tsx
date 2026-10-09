@@ -208,3 +208,81 @@ describe('ProfileSelectField', () => {
     expect(screen.getByText('Role')).toBeInTheDocument()
   })
 })
+
+const ClearableSelectWrapper = ({
+  label,
+  initialRole = '',
+  multiple = false,
+}: {
+  label: string
+  initialRole?: string
+  multiple?: boolean
+}) => {
+  const { control } = useForm<TestForm>({ defaultValues: { firstName: '', role: initialRole } })
+  const role = useWatch({ control, name: 'role' })
+  return (
+    <>
+      <ProfileSelectField
+        control={control}
+        name="role"
+        label={label}
+        placeholder="Select a role"
+        options={['Engineer', 'Designer']}
+        multiple={multiple}
+      />
+      <output data-testid="role-value">{role}</output>
+    </>
+  )
+}
+
+describe('ProfileSelectField None option', () => {
+  it('does not offer None until an optional dropdown has a value', async () => {
+    const user = userEvent.setup()
+    render(<ClearableSelectWrapper label="Role" />)
+
+    await user.click(screen.getByRole('combobox', { name: 'Role' }))
+
+    expect(screen.queryByRole('option', { name: 'None' })).not.toBeInTheDocument()
+    expect(screen.getByRole('option', { name: 'Select a role' })).toHaveAttribute('aria-disabled', 'true')
+  })
+
+  it('clears an optional dropdown when None is chosen', async () => {
+    const user = userEvent.setup()
+    render(<ClearableSelectWrapper label="Role" initialRole="Engineer" />)
+
+    await user.click(screen.getByRole('combobox', { name: 'Role' }))
+    await user.click(screen.getByRole('option', { name: 'None' }))
+
+    expect(screen.getByTestId('role-value')).toBeEmptyDOMElement()
+    expect(screen.getByText('Select a role')).toBeInTheDocument()
+  })
+
+  it('never offers None on a required dropdown', async () => {
+    const user = userEvent.setup()
+    render(<ClearableSelectWrapper label="Role*" initialRole="Engineer" />)
+
+    await user.click(screen.getByRole('combobox', { name: 'Role*' }))
+
+    expect(screen.queryByRole('option', { name: 'None' })).not.toBeInTheDocument()
+  })
+
+  it('clears every selection of an optional multi-select when None is chosen', async () => {
+    const user = userEvent.setup()
+    render(<ClearableSelectWrapper label="Role" initialRole="Engineer, Designer" multiple />)
+
+    await user.click(screen.getByRole('combobox', { name: 'Role' }))
+    await user.click(screen.getByRole('option', { name: 'None' }))
+
+    expect(screen.getByTestId('role-value')).toBeEmptyDOMElement()
+  })
+
+  it('joins multi-select values when options are toggled', async () => {
+    const user = userEvent.setup()
+    render(<ClearableSelectWrapper label="Role" initialRole="Engineer" multiple />)
+
+    await user.click(screen.getByRole('combobox', { name: 'Role' }))
+    await user.click(screen.getByRole('option', { name: 'Designer' }))
+
+    expect(screen.getByTestId('role-value')).toHaveTextContent('Engineer, Designer')
+  })
+})
