@@ -47,32 +47,15 @@ const OfferStageModal = ({
   isRejected = false,
   onClose,
   onAdvance,
-  onMoveBack,
   onRejected,
 }: OfferStageModalProps) => {
   const [offerDate, setOfferDate] = useState(new Date().toISOString().split('T')[0])
   const [validUntil, setValidUntil] = useState('')
   const [ctcTotal, setCtcTotal]   = useState('850000')
   const [advancing, setAdvancing] = useState(false)
-  const [movingBack, setMovingBack] = useState(false)
   const [rejectOpen, setRejectOpen] = useState(false)
 
   const canAdvance = offerDate.trim().length > 0 && ctcTotal.trim().length > 0
-
-  const handleMoveBack = async () => {
-    if (movingBack) return
-    setMovingBack(true)
-    try {
-      await mandateApi.advanceJobStage(jobId, {
-        applicationId: [applicationId],
-        toStageCode: 'INTERVIEW',
-      })
-      onMoveBack?.(applicationId)
-      onClose()
-    } finally {
-      setMovingBack(false)
-    }
-  }
 
   const handleAdvance = async () => {
     if (!canAdvance || advancing) return
