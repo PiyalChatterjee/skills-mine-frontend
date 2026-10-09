@@ -149,7 +149,7 @@ const ProfilePage = () => {
                 control={control}
                 name="email"
                 label="Email address*"
-                disabled={!isPersonalEditing}
+                disabled
               />
               <ProfileTextField
                 control={control}
