@@ -1,5 +1,5 @@
 import { Box, MenuItem, TextField, Typography, type TextFieldProps } from "@mui/material";
-import type { ChangeEvent, ReactNode } from "react";
+import type { ChangeEvent, HTMLAttributes, ReactNode } from "react";
 import {
   Controller,
   type Control,
@@ -177,7 +177,10 @@ export const CvBuilderSelectField = ({
       slotProps={{
         select: {
           "aria-label": label,
-          "aria-required": required || undefined,
+          // MUI only forwards aria-required to the combobox via SelectDisplayProps.
+          SelectDisplayProps: {
+            "aria-required": required || undefined,
+          } as HTMLAttributes<HTMLDivElement>,
           IconComponent: SelectChevronIcon,
           ...(displayEmpty
             ? {

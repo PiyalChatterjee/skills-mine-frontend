@@ -1,16 +1,26 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router-dom";
-import { describe, expect, it, vi } from "vitest";
+import { MemoryRouter, useLocation } from "react-router-dom";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { buildHeaderNavItems } from "@/layouts/headerNav";
 import { PublicHeader } from "./PublicHeader";
 
+const mocks = vi.hoisted(() => ({
+  logoutApi: vi.fn(),
+  logout: vi.fn(),
+  beginLogoutNavigation: vi.fn(),
+}));
+
 vi.mock("@/app/auth/AuthContext", () => ({
-  useAuth: () => ({ user: null, tokens: null, logout: vi.fn() }),
+  useAuth: () => ({ user: null, tokens: null, logout: mocks.logout }),
 }));
 
 vi.mock("@/services/api/authApi", () => ({
-  authApi: { logout: vi.fn() },
+  authApi: { logout: mocks.logoutApi },
+}));
+
+vi.mock("@/app/auth/logoutNavigation", () => ({
+  beginLogoutNavigation: mocks.beginLogoutNavigation,
 }));
 
 const CAREER_SUPPORT_LINKS = [
@@ -119,5 +129,123 @@ describe("PublicHeader career support dropdown", () => {
         .getAllByRole("link", { hidden: true })
         .map((link) => link.getAttribute("href")),
     ).toEqual(CAREER_SUPPORT_LINKS.map(([, href]) => href));
+  });
+});
+
+const LocationProbe = () => {
+  const location = useLocation();
+  return <span data-testid="location">{`${location.pathname}${location.search}`}</span>;
+};
+
+const renderProfileHeader = (restrictNavigation: boolean) =>
+  render(
+    <MemoryRouter initialEntries={["/profile/create"]}>
+      <PublicHeader
+        canAccessProtectedRoutes
+        navItems={buildHeaderNavItems({
+          keys: ["candidateSkillsBuild", "candidateCareerSupport"],
+          pathname: "/profile/create",
+        })}
+        onProtectedNavClick={vi.fn()}
+        onHelpClick={vi.fn()}
+        showProfileBadge
+        restrictNavigation={restrictNavigation}
+      />
+      <LocationProbe />
+    </MemoryRouter>,
+  );
+
+const openProfileMenu = async (user: ReturnType<typeof userEvent.setup>) => {
+  await user.click(screen.getByRole("button", { name: "Open profile menu" }));
+  return screen.getByRole("menu");
+};
+
+describe("PublicHeader profile menu and onboarding restriction", () => {
+  const originalLocation = window.location;
+
+  afterEach(() => {
+    Object.defineProperty(window, "location", { configurable: true, value: originalLocation });
+    vi.clearAllMocks();
+  });
+
+  it("navigates to profile settings when navigation is not restricted", async () => {
+    const user = userEvent.setup();
+    renderProfileHeader(false);
+
+    const menu = await openProfileMenu(user);
+    await user.click(within(menu).getByRole("menuitem", { name: "Profile settings" }));
+
+    expect(screen.getByTestId("location")).toHaveTextContent("/profile");
+    expect(screen.getByTestId("location")).not.toHaveTextContent("/profile/create");
+  });
+
+  it("navigates to change password when navigation is not restricted", async () => {
+    const user = userEvent.setup();
+    renderProfileHeader(false);
+
+    const menu = await openProfileMenu(user);
+    await user.click(within(menu).getByRole("menuitem", { name: "Change password" }));
+
+    expect(screen.getByTestId("location")).toHaveTextContent("/reset-password?mode=change");
+  });
+
+  it("keeps the user on the current page for account links and the logo while restricted", async () => {
+    const user = userEvent.setup();
+    renderProfileHeader(true);
+
+    let menu = await openProfileMenu(user);
+    await user.click(within(menu).getByRole("menuitem", { name: "Profile settings" }));
+    menu = await openProfileMenu(user);
+    await user.click(within(menu).getByRole("menuitem", { name: "Change password" }));
+    await user.click(screen.getByRole("link", { name: "Go to landing page" }));
+
+    expect(screen.getByTestId("location")).toHaveTextContent("/profile/create");
+  });
+
+  it("still allows logging out while restricted", async () => {
+    const user = userEvent.setup();
+    const replace = vi.fn();
+    Object.defineProperty(window, "location", {
+      configurable: true,
+      value: { ...originalLocation, replace },
+    });
+    mocks.logoutApi.mockResolvedValue(undefined);
+    renderProfileHeader(true);
+
+    const menu = await openProfileMenu(user);
+    await user.click(within(menu).getByRole("menuitem", { name: "Log out" }));
+
+    await waitFor(() => expect(replace).toHaveBeenCalledWith("/"));
+    expect(mocks.logoutApi).toHaveBeenCalled();
+    expect(mocks.beginLogoutNavigation).toHaveBeenCalled();
+    expect(mocks.logout).toHaveBeenCalled();
+  });
+
+  it("logs out locally even when the logout API fails", async () => {
+    const user = userEvent.setup();
+    const replace = vi.fn();
+    Object.defineProperty(window, "location", {
+      configurable: true,
+      value: { ...originalLocation, replace },
+    });
+    mocks.logoutApi.mockRejectedValue(new Error("network"));
+    renderProfileHeader(true);
+
+    const menu = await openProfileMenu(user);
+    await user.click(within(menu).getByRole("menuitem", { name: "Log out" }));
+
+    await waitFor(() => expect(replace).toHaveBeenCalledWith("/"));
+    expect(mocks.logout).toHaveBeenCalled();
+  });
+
+  it("keeps Skills Build and Career Support usable while restricted", async () => {
+    const user = userEvent.setup();
+    renderProfileHeader(true);
+
+    expect(screen.getAllByRole("button", { name: "Skills Build" }).length).toBeGreaterThan(0);
+    await user.click(
+      document.getElementById("nav-menu-candidateCareerSupport-trigger") as HTMLElement,
+    );
+    expect(screen.getByRole("menu", { name: "Career Support" })).toBeInTheDocument();
   });
 });

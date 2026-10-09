@@ -95,6 +95,43 @@ describe("useCandidateLayoutViewModel", () => {
     expect(result.current.isSearchModalOpen).toBe(false);
   });
 
+  it("routes action-based nav items only when onboarding is complete", () => {
+    mocks.useAuth.mockReturnValue({
+      isAuthenticated: true,
+      tokens: { accessToken: "token" },
+      user: { role: "RECRUITER", userId: "u-2" },
+    });
+    const { result, rerender } = renderHook(() => useCandidateLayoutViewModel());
+    const findItem = (id: string) =>
+      result.current.candidateNavItems.find((item) => item.id === id);
+
+    act(() => {
+      findItem("recruiterSavedJobPosts")?.onClick?.();
+      findItem("recruiterCvBuilder")?.onClick?.();
+    });
+    expect(mocks.navigate).toHaveBeenCalledWith("/jobs/saved");
+    expect(mocks.navigate).toHaveBeenCalledWith("/candidate/cv-builder");
+
+    mocks.navigate.mockClear();
+    mocks.isOnboarding = true;
+    rerender();
+    act(() => {
+      findItem("recruiterSavedJobPosts")?.onClick?.();
+      findItem("recruiterCvBuilder")?.onClick?.();
+    });
+    expect(mocks.navigate).not.toHaveBeenCalled();
+  });
+
+  it("allows protected nav clicks through for an authenticated, onboarded user", () => {
+    const preventDefault = vi.fn();
+    const { result } = renderHook(() => useCandidateLayoutViewModel());
+
+    result.current.handleProtectedNavClick({ preventDefault } as never, "/jobs/saved");
+
+    expect(preventDefault).not.toHaveBeenCalled();
+    expect(mocks.navigate).not.toHaveBeenCalled();
+  });
+
   it("opens and closes the search modal through exposed handlers", () => {
     const { result } = renderHook(() => useCandidateLayoutViewModel());
 
