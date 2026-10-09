@@ -196,6 +196,8 @@ interface ModalCandidateState {
   applicationId: string
   jobId: string
   matchScoreLatest?: number
+  isRejected?: boolean
+  isUnsuccessful?: boolean
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────
@@ -273,68 +275,109 @@ const CandidatePipelinePage = () => {
     )
   }
 
+  // Rejected at Offer → move card to Closed with red rejected styling, show unsuccessful modal
+  const handleOfferRejected = (rejectedId: string, info: { candidateName: string; candidateTitle: string; company: string; jobId: string }) => {
+    setRejectedIds(prev => new Set(prev).add(rejectedId))
+    setPipelineStages(prev => {
+      let movedCard: (typeof prev)[0]['cards'][0] | undefined
+      const withoutCard = prev.map(sg => {
+        if (sg.label !== 'Offer') return sg
+        movedCard = sg.cards.find(c => c.applicationId === rejectedId)
+        return { ...sg, cards: sg.cards.filter(c => c.applicationId !== rejectedId) }
+      })
+      if (!movedCard) return prev
+      return withoutCard.map(sg => {
+        if (sg.label !== 'Closed') return sg
+        return { ...sg, cards: [...sg.cards, { ...movedCard!, stage: 'Closed', applicationStatus: 'REJECTED' }] }
+      })
+    })
+    setClosedModal({
+      candidateName:  info.candidateName,
+      candidateTitle: info.candidateTitle,
+      company:        info.company,
+      applicationId:  rejectedId,
+      jobId:          info.jobId,
+      isUnsuccessful: true,
+    })
+  }
+
   useEffect(() => {
     if (!cardId) return
+
     mandateApi.listPipelines({ jobProfileId: cardId, page: 1, size: 100 })
-      .then(res => {
-        const rejected = new Set<string>()
-        res.data.forEach(app => {
-          const code = app.currentStageCode?.toUpperCase()
-          const status = (app as unknown as { status?: string; applicationStatus?: string }).status?.toUpperCase() ||
-            (app as unknown as { status?: string; applicationStatus?: string }).applicationStatus?.toUpperCase()
-          if (code === 'REJECT' || code === 'REJECTED' || status === 'REJECTED') {
-            rejected.add(app.applicationId)
-          }
-        })
+      .then(async res => {
+        const isRejectedCode = (code?: string) =>
+          code?.toUpperCase() === 'REJECT' || code?.toUpperCase() === 'REJECTED'
+
+        const rejectedApps = res.data.filter(app => isRejectedCode(app.currentStageCode))
+        const rejected = new Set<string>(rejectedApps.map(a => a.applicationId))
         setRejectedIds(rejected)
+
+        // For each rejected app, fetch its stage history to find the stage it
+        // was in just before rejection (the fromStageCode of the REJECT entry).
+        const rejectedStageMap: Record<string, PipelineStage> = {}
+        await Promise.all(
+          rejectedApps.map(async app => {
+            try {
+              const history = await mandateApi.getApplicationStageHistory(app.applicationId)
+              const rejectEntry = history
+                .filter(h => isRejectedCode(h.toStageCode))
+                .sort((a, b) => new Date(b.changedAt).getTime() - new Date(a.changedAt).getTime())[0]
+              const fromCode = rejectEntry?.fromStageCode?.toUpperCase()
+              if (fromCode && STAGE_CODE_MAP[fromCode]) {
+                // Rejected from Offer → place in Closed (not Offer)
+                rejectedStageMap[app.applicationId] = fromCode === 'OFFER' ? 'Closed' : STAGE_CODE_MAP[fromCode]
+              }
+            } catch {
+              // history unavailable — card will fall back to Inbound
+            }
+          })
+        )
 
         const grouped = STAGES.map(s => ({
           label: s.key,
           colorClass: '',
           cards: res.data
-            .filter(app => getCardStageKey(app as unknown as { currentStageCode?: string; fromStageCode?: string; previousStageCode?: string; lastStageCode?: string }) === s.key)
-            .map((app): RecruiterPipelineCard => {
-              const isAppRejected =
-                app.currentStageCode?.toUpperCase() === 'REJECT' ||
-                app.currentStageCode?.toUpperCase() === 'REJECTED' ||
-                (app as unknown as { status?: string; applicationStatus?: string }).status?.toUpperCase() === 'REJECTED' ||
-                (app as unknown as { status?: string; applicationStatus?: string }).applicationStatus?.toUpperCase() === 'REJECTED'
-
-              return {
-                applicationId:       app.applicationId,
-                applicationPartyId:  app.applicationPartyId,
-                assignedRecruiterId: app.assignedRecruiterId,
-                currentStageCode:    app.currentStageCode,
-                sourceCode:          app.sourceCode,
-                matchScoreLatest:    app.matchScoreLatest ?? 0,
-                createdAt:           app.createdAt,
-                applicationStatus:   isAppRejected ? 'REJECTED' : '',
-                offerDetails:        null,
-                closedAt:            null,
-                companyIcon:         '',
-                tone:                '',
-                stage:               s.key,
-                jobProfile: {
-                  jobProfileId:   app.jobProfile.jobProfileId,
-                  positionTitle:  app.jobProfile.positionTitle,
-                  clientId:       app.jobProfile.clientId,
-                  clientName:     app.jobProfile.clientName,
-                  fillByDate:     app.jobProfile.fillByDate,
-                  workType:       app.jobProfile.workType,
-                  employmentType: app.jobProfile.employmentType,
-                  status:         '',
-                },
-                candidate: {
-                  candidateId:   app.candidate.candidateId ?? app.candidate.candidate_id ?? '',
-                  visitorId:     app.candidate.visitorId,
-                  firstName:     app.candidate.firstName,
-                  lastName:      app.candidate.lastName,
-                  email:         '',
-                  phone:         '',
-                  profileStatus: '',
-                },
+            .filter(app => {
+              if (rejected.has(app.applicationId)) {
+                return (rejectedStageMap[app.applicationId] ?? 'Inbound') === s.key
               }
-            }),
+              return getCardStageKey(app as unknown as { currentStageCode?: string; fromStageCode?: string; previousStageCode?: string; lastStageCode?: string }) === s.key
+            })
+            .map((app): RecruiterPipelineCard => ({
+              applicationId:       app.applicationId,
+              applicationPartyId:  app.applicationPartyId,
+              assignedRecruiterId: app.assignedRecruiterId,
+              currentStageCode:    app.currentStageCode,
+              sourceCode:          app.sourceCode,
+              matchScoreLatest:    app.matchScoreLatest ?? 0,
+              createdAt:           app.createdAt,
+              applicationStatus:   rejected.has(app.applicationId) ? 'REJECTED' : '',
+              offerDetails:        null,
+              closedAt:            null,
+              companyIcon:         '',
+              tone:                '',
+              stage:               rejectedStageMap[app.applicationId] ?? s.key,
+              jobProfile: {
+                jobProfileId:   app.jobProfile.jobProfileId,
+                positionTitle:  app.jobProfile.positionTitle,
+                clientId:       app.jobProfile.clientId,
+                clientName:     app.jobProfile.clientName,
+                fillByDate:     app.jobProfile.fillByDate,
+                workType:       app.jobProfile.workType,
+                employmentType: app.jobProfile.employmentType,
+                status:         '',
+              },
+              candidate: {
+                candidateId:   app.candidate.candidateId ?? app.candidate.candidate_id ?? '',
+                visitorId:     app.candidate.visitorId,
+                firstName:     app.candidate.firstName,
+                lastName:      app.candidate.lastName,
+                email:         '',
+                phone:         '',
+                profileStatus: '',
+              },
+            })),
         }))
         setPipelineStages(grouped)
       })
@@ -391,7 +434,10 @@ const CandidatePipelinePage = () => {
     return acc
   }, {})
 
-  const pageTitle = 'Candidate Pipeline'
+  const jobTitle = pipelineStages
+    .flatMap(s => s.cards)
+    .find(c => c.jobProfile.positionTitle)
+    ?.jobProfile.positionTitle ?? null
 
   // Recruiter contact (static per image — "Zanele Ngcobo")
   const RECRUITER_NAME  = 'Zanele Ngcobo'
@@ -411,12 +457,16 @@ const CandidatePipelinePage = () => {
           </ButtonBase>
           <Box className={styles.breadcrumbDivider} />
           <Typography component="span" className={styles.breadcrumbSection}>
-            Candidate Pipeline
+            Applicant Pipeline
           </Typography>
-          <Box className={styles.breadcrumbArrow}><ChevronRightIcon /></Box>
-          <Typography component="span" className={styles.breadcrumbCurrent}>
-            {pageTitle}
-          </Typography>
+          {jobTitle && (
+            <>
+              <Box className={styles.breadcrumbArrow}><ChevronRightIcon /></Box>
+              <Typography component="span" className={styles.breadcrumbCurrent}>
+                {jobTitle}
+              </Typography>
+            </>
+          )}
         </Box>
 
         {/* ── Recruiter contact strip ── */}
@@ -476,6 +526,7 @@ const CandidatePipelinePage = () => {
                           applicationId: card.applicationId,
                           jobId: card.jobProfile.jobProfileId,
                           matchScoreLatest: card.matchScoreLatest,
+                          isRejected: rejectedIds.has(card.applicationId),
                         })
                       return (
                         <DraggableCard
@@ -550,6 +601,7 @@ const CandidatePipelinePage = () => {
           company={inboundModal.company}
           applicationId={inboundModal.applicationId}
           jobId={inboundModal.jobId}
+          isRejected={inboundModal.isRejected}
           onClose={() => setInboundModal(null)}
           onAdvance={(advancedId) => {
             setPipelineStages(prev =>
@@ -580,6 +632,7 @@ const CandidatePipelinePage = () => {
           applicationId={screeningModal.applicationId}
           jobId={screeningModal.jobId}
           matchScoreLatest={screeningModal.matchScoreLatest}
+          isRejected={screeningModal.isRejected}
           onClose={() => setScreeningModal(null)}
           onAdvance={(advancedId) => {
             setPipelineStages(prev =>
@@ -619,6 +672,7 @@ const CandidatePipelinePage = () => {
           company={assessmentModal.company}
           applicationId={assessmentModal.applicationId}
           jobId={assessmentModal.jobId}
+          isRejected={assessmentModal.isRejected}
           onClose={() => setAssessmentModal(null)}
           onAdvance={(advancedId) => {
             setPipelineStages(prev =>
@@ -658,6 +712,7 @@ const CandidatePipelinePage = () => {
           company={shortlistModal.company}
           applicationId={shortlistModal.applicationId}
           jobId={shortlistModal.jobId}
+          isRejected={shortlistModal.isRejected}
           onClose={() => setShortlistModal(null)}
           onAdvance={(advancedId) => {
             setPipelineStages(prev =>
@@ -697,6 +752,7 @@ const CandidatePipelinePage = () => {
           company={interviewModal.company}
           applicationId={interviewModal.applicationId}
           jobId={interviewModal.jobId}
+          isRejected={interviewModal.isRejected}
           onClose={() => setInterviewModal(null)}
           onAdvance={(advancedId) => {
             setPipelineStages(prev =>
@@ -736,6 +792,7 @@ const CandidatePipelinePage = () => {
           company={offerModal.company}
           applicationId={offerModal.applicationId}
           jobId={offerModal.jobId}
+          isRejected={offerModal.isRejected}
           onClose={() => setOfferModal(null)}
           onAdvance={(advancedId) => {
             const advancing = offerModal
@@ -772,7 +829,15 @@ const CandidatePipelinePage = () => {
               })
             )
           }}
-          onRejected={(id) => { handleCandidateRejected(id); setOfferModal(null) }}
+          onRejected={(id) => {
+            handleOfferRejected(id, {
+              candidateName:  offerModal.candidateName,
+              candidateTitle: offerModal.candidateTitle,
+              company:        offerModal.company,
+              jobId:          offerModal.jobId,
+            })
+            setOfferModal(null)
+          }}
         />
       )}
 
@@ -782,6 +847,7 @@ const CandidatePipelinePage = () => {
           candidateName={closedModal.candidateName}
           candidateTitle={closedModal.candidateTitle}
           company={closedModal.company}
+          isUnsuccessful={closedModal.isUnsuccessful}
           onClose={() => setClosedModal(null)}
         />
       )}

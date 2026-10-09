@@ -69,7 +69,15 @@ const ChevronRightIcon = () => (
 )
 
 // ── Inner component: owns data fetching & renders the recruiter CV layout ─────
-const CandidateCvReviewInner = ({ candidateId }: { candidateId: string }) => {
+const CandidateCvReviewInner = ({
+  candidateId,
+  visitorId,
+}: {
+  candidateId?: string
+  visitorId?: string
+}) => {
+  const ownerId = (candidateId ?? visitorId)!
+  const isVisitor = !candidateId && !!visitorId
   const navigate = useNavigate()
   const [prefill, setPrefill]             = useState<CvBuilderPrefillData | undefined>(undefined)
   const [candidateName, setCandidateName] = useState('')
@@ -82,7 +90,7 @@ const CandidateCvReviewInner = ({ candidateId }: { candidateId: string }) => {
     setLoading(true)
     setError(null)
     recruiterCandidatesApi
-      .getCandidateCvBuild(candidateId)
+      .getCandidateCvBuild(ownerId)
       .then((data) => {
         if (cancelled) return
         const pd = data.personalDetails
@@ -96,11 +104,13 @@ const CandidateCvReviewInner = ({ candidateId }: { candidateId: string }) => {
         if (!cancelled) setLoading(false)
       })
     return () => { cancelled = true }
-  }, [candidateId])
+  }, [ownerId])
 
   const goToCandidates = () => navigate(ROUTE_PATHS.recruiterCandidates)
   const goToCandidate  = () =>
-    navigate(ROUTE_PATHS.recruiterCandidateDetail.replace(':candidateId', candidateId))
+    isVisitor
+      ? navigate(ROUTE_PATHS.recruiterVisitorDetail.replace(':visitorId', ownerId))
+      : navigate(ROUTE_PATHS.recruiterCandidateDetail.replace(':candidateId', ownerId))
 
   const { form, selectedLanguageEntries } = useCvBuilder(prefill, /* forceApply */ true, /* initialView */ 'review')
 
@@ -114,7 +124,7 @@ const CandidateCvReviewInner = ({ candidateId }: { candidateId: string }) => {
       })
 
       // 1. Persist the structured CV data
-      await recruiterCandidatesApi.saveCandidateCvBuild(candidateId, cvRequest)
+      await recruiterCandidatesApi.saveCandidateCvBuild(ownerId, cvRequest)
 
       const payloadText = JSON.stringify(cvRequest, null, 2)
       const pd = cvRequest.personalDetails
@@ -133,8 +143,8 @@ const CandidateCvReviewInner = ({ candidateId }: { candidateId: string }) => {
       const pdfFile = new File([pdfBlob], pdfFileName, { type: 'application/pdf' })
       await recruiterCandidatesApi.uploadDocument({
         file:         pdfFile,
-        ownerType:    'CANDIDATE',
-        ownerId:      candidateId,
+        ownerType:    isVisitor ? 'VISITOR' : 'CANDIDATE',
+        ownerId:      ownerId,
         documentType: 'RESUME',
         title:        pdfFileName,
       })
@@ -154,8 +164,8 @@ const CandidateCvReviewInner = ({ candidateId }: { candidateId: string }) => {
         )
         await recruiterCandidatesApi.uploadDocument({
           file:         docxFile,
-          ownerType:    'CANDIDATE',
-          ownerId:      candidateId,
+          ownerType:    isVisitor ? 'VISITOR' : 'CANDIDATE',
+          ownerId:      ownerId,
           documentType: 'RESUME',
           title:        docxFileName,
         })
@@ -235,12 +245,14 @@ const CandidateCvReviewInner = ({ candidateId }: { candidateId: string }) => {
 // Only ever reached by a RECRUITER (route lives inside RecruiterLayout).
 // The candidate's CvBuilderPage (/candidate/cv-builder) is completely unaffected.
 const CandidateCvReviewPage = () => {
-  const { candidateId } = useParams<{ candidateId: string }>()
+  const { candidateId, visitorId } = useParams<{ candidateId?: string; visitorId?: string }>()
 
   return (
     <Box className={recruiterShell.shell}>
       <RecruiterSidebar />
-      {candidateId ? <CandidateCvReviewInner candidateId={candidateId} /> : null}
+      {(candidateId || visitorId)
+        ? <CandidateCvReviewInner candidateId={candidateId} visitorId={visitorId} />
+        : null}
     </Box>
   )
 }

@@ -55,7 +55,8 @@
   margin: 0 2px;
 }
 
-.breadcrumbSection {
+.breadcrumbSection,
+:global(.MuiTypography-root).breadcrumbSection {
   color: #03478C;
   font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
   font-size: 24px;
@@ -69,7 +70,8 @@
   align-items: center;
 }
 
-.breadcrumbCurrent {
+.breadcrumbCurrent,
+:global(.MuiTypography-root).breadcrumbCurrent {
   color: #03478C;
   font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
   font-size: 24px;

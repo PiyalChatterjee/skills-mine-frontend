@@ -28,6 +28,7 @@ export interface OfferStageModalProps {
   applicationId: string
   jobId: string
   dueDate?: string
+  isRejected?: boolean
   onClose: () => void
   onAdvance?: (applicationId: string) => void
   onMoveBack?: (applicationId: string) => void
@@ -43,34 +44,18 @@ const OfferStageModal = ({
   applicationId,
   jobId,
   dueDate = 'Jan 20, 2026',
+  isRejected = false,
   onClose,
   onAdvance,
-  onMoveBack,
   onRejected,
 }: OfferStageModalProps) => {
   const [offerDate, setOfferDate] = useState(new Date().toISOString().split('T')[0])
   const [validUntil, setValidUntil] = useState('')
   const [ctcTotal, setCtcTotal]   = useState('850000')
   const [advancing, setAdvancing] = useState(false)
-  const [movingBack, setMovingBack] = useState(false)
   const [rejectOpen, setRejectOpen] = useState(false)
 
   const canAdvance = offerDate.trim().length > 0 && ctcTotal.trim().length > 0
-
-  const handleMoveBack = async () => {
-    if (movingBack) return
-    setMovingBack(true)
-    try {
-      await mandateApi.advanceJobStage(jobId, {
-        applicationId: [applicationId],
-        toStageCode: 'INTERVIEW',
-      })
-      onMoveBack?.(applicationId)
-      onClose()
-    } finally {
-      setMovingBack(false)
-    }
-  }
 
   const handleAdvance = async () => {
     if (!canAdvance || advancing) return
@@ -202,16 +187,16 @@ const OfferStageModal = ({
 
           {/* ── Action buttons ── */}
           <Box className={styles.actionRow}>
-            <ButtonBase className={styles.moveBackBtn} disableRipple onClick={handleMoveBack} disabled={movingBack}>
-              {movingBack ? <CircularProgress size={14} sx={{ color: '#1E5FA8' }} /> : 'Move back'}
+            <ButtonBase className={styles.moveBackBtn} disableRipple disabled>
+              Move back
             </ButtonBase>
-            <ButtonBase className={styles.rejectBtn} disableRipple onClick={() => setRejectOpen(true)}>
+            <ButtonBase className={styles.rejectBtn} disableRipple onClick={() => setRejectOpen(true)} disabled={isRejected}>
               Reject
             </ButtonBase>
             <ButtonBase
-              className={`${styles.advanceBtn} ${!canAdvance ? styles.advanceBtnDisabled : ''}`}
+              className={`${styles.advanceBtn} ${!canAdvance || isRejected ? styles.advanceBtnDisabled : ''}`}
               disableRipple
-              disabled={!canAdvance || advancing}
+              disabled={!canAdvance || advancing || isRejected}
               onClick={handleAdvance}
             >
               {advancing ? <CircularProgress size={14} sx={{ color: '#fff' }} /> : 'Advance'}

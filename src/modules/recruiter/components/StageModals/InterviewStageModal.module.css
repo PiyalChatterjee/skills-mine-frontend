@@ -187,6 +187,13 @@
   border-color: #32ABBF;
 }
 
+.moveBackBtn:global(.MuiButtonBase-root):disabled {
+  background: #e5e7eb;
+  color: #9ca3af;
+  border-color: #e5e7eb;
+  cursor: default;
+}
+
 /* Reject — solid red */
 .rejectBtn:global(.MuiButtonBase-root) {
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
@@ -207,6 +214,12 @@
 
 .rejectBtn:global(.MuiButtonBase-root):hover {
   background: #c94040;
+}
+
+.rejectBtn:global(.MuiButtonBase-root):disabled {
+  background: #fde8e8;
+  color: #c97b7b;
+  cursor: default;
 }
 
 /* Advance — solid dark navy */
