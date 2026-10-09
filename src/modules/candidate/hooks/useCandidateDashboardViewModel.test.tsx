@@ -159,6 +159,27 @@ describe("useCandidateDashboardViewModel", () => {
     expect(DASHBOARD_APPLICATION_STATUS_CONFIG.offer_declined.label).toBe("Closed");
   });
 
+  it("maps backend CLOSED stage to an accepted offer", () => {
+    mocks.useCandidateDashboardQuery.mockReturnValue({
+      data: {
+        applications: [
+          {
+            id: "app-4",
+            job: { id: "job-4", title: "Application Developer" },
+            stage: "CLOSED",
+            pipeline: [],
+          },
+        ],
+      },
+      isLoading: false,
+    });
+
+    const { result } = renderHook(() => useCandidateDashboardViewModel());
+
+    expect(result.current.applications[0].status).toBe("offer_accepted");
+    expect(result.current.applications[0].fillPercent).toBe(100);
+  });
+
   it("maps backend REJECT stage to a closed rejected status", () => {
     mocks.useCandidateDashboardQuery.mockReturnValue({
       data: {
@@ -179,5 +200,29 @@ describe("useCandidateDashboardViewModel", () => {
     expect(result.current.applications[0].status).toBe("rejected");
     expect(result.current.applications[0].fillPercent).toBe(100);
     expect(DASHBOARD_APPLICATION_STATUS_CONFIG.rejected.label).toBe("Closed");
+  });
+
+  it("shows rejected progress up to the stage it was rejected at", () => {
+    mocks.useCandidateDashboardQuery.mockReturnValue({
+      data: {
+        applications: [
+          {
+            id: "app-5",
+            job: { id: "job-5", title: "Application Developer" },
+            stage: "REJECT",
+            pipeline: ["SCREENING", "ASSESSMENT", "SCREENING", "REJECT"],
+            rejectedAtStage: "SCREENING",
+          },
+        ],
+      },
+      isLoading: false,
+    });
+
+    const { result } = renderHook(() => useCandidateDashboardViewModel());
+    const [app] = result.current.applications;
+
+    expect(app.status).toBe("rejected");
+    expect(app.fillPercent).toBe(25);
+    expect(app.pipelineStages.find((stage) => stage.isActive)?.key).toBe("SCREENING");
   });
 });

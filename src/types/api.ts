@@ -173,6 +173,7 @@ export interface DashboardApplication {
   stage: string;
   statusMessage: string;
   pipeline: string[];
+  rejectedAtStage?: string;
 }
 
 export interface CandidateDashboardData {

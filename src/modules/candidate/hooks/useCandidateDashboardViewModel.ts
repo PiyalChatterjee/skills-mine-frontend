@@ -132,6 +132,10 @@ const transformApplicationToDisplay = (
     reportUnknownStage(app.stage);
   }
   const pipeline = DEFAULT_PIPELINE;
+  // Rejected applications show progress up to the stage they were rejected at.
+  const progressStage =
+    status === "rejected" && app.rejectedAtStage ? app.rejectedAtStage : app.stage;
+  const progressStatus = getApplicationStatusKey(progressStage);
 
   return {
     id: app.id,
@@ -141,9 +145,9 @@ const transformApplicationToDisplay = (
     pipelineStages: pipeline.map((stageKey) => ({
       key: stageKey,
       label: getApplicationStatusLabel(stageKey),
-      isActive: getApplicationStatusKey(stageKey) === status,
+      isActive: getApplicationStatusKey(stageKey) === progressStatus,
     })),
-    fillPercent: getPipelineFillPercent(app.stage, pipeline),
+    fillPercent: getPipelineFillPercent(progressStage, pipeline),
     message: app.statusMessage || DASHBOARD_APPLICATION_STATUS_CONFIG[status].caption || "",
     offerAccepted: false,
   };

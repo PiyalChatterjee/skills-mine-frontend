@@ -107,7 +107,8 @@
   background: #5bbf8a;
 }
 
-.applicationStatus[data-status='offer_accepted'] {
+.applicationStatus[data-status='offer_accepted'],
+.applicationStatus[data-status='closed'] {
   background: #4baf73;
 }
 

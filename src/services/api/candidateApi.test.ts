@@ -302,6 +302,28 @@ describe('candidateApi', () => {
         pipeline: ['APPLIED', 'SCREENING'],
       })
     })
+
+    it('captures the stage an application was rejected at', async () => {
+      mockGet.mockResolvedValue({
+        data: {
+          applications: [{
+            application_id: 'APP-2',
+            job_title: 'Application Developer',
+            current_stage_code: 'REJECT',
+            stage_progress: [
+              { from_stage_code: 'INBOUND', to_stage_code: 'SCREENING' },
+              { from_stage_code: 'SCREENING', to_stage_code: 'ASSESSMENT' },
+              { from_stage_code: 'ASSESSMENT', to_stage_code: 'SCREENING' },
+              { from_stage_code: 'SCREENING', to_stage_code: 'REJECT' },
+            ],
+          }],
+        },
+      })
+
+      const result = await candidateApi.getDashboard()
+
+      expect(result.applications[0].rejectedAtStage).toBe('SCREENING')
+    })
   })
 
   describe('applyToJob', () => {

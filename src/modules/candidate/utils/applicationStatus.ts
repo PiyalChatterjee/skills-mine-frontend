@@ -30,6 +30,8 @@ const APPLICATION_STATUS_KEYS = {
   offer: 'offer_extended',
   offer_extended: 'offer_extended',
   offer_accepted: 'offer_accepted',
+  // Backend moves an accepted offer to CLOSED.
+  closed: 'offer_accepted',
   offer_declined: 'offer_declined',
   reject: 'rejected',
   rejected: 'rejected',

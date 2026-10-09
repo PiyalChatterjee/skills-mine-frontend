@@ -165,7 +165,7 @@ type RawDashboardPipelineStage =
   | {
       stage_code?: string;
       display_name?: string;
-      from_stage_code?: string;
+      from_stage_code?: string | null;
       to_stage_code?: string;
       stage_history_id?: string;
     };
@@ -222,6 +222,19 @@ const mapDashboardResponse = (
     const progress = Array.isArray(item.stage_progress)
       ? item.stage_progress
       : item.pipeline;
+    const rejectEntry = Array.isArray(progress)
+      ? [...progress]
+          .reverse()
+          .find(
+            (stage) =>
+              typeof stage !== "string" &&
+              stage.to_stage_code?.toUpperCase() === "REJECT",
+          )
+      : undefined;
+    const rejectedAtStage =
+      rejectEntry && typeof rejectEntry !== "string"
+        ? (rejectEntry.from_stage_code ?? undefined)
+        : undefined;
     return {
       id: item.id ?? item.application_id ?? "",
       job: {
@@ -236,6 +249,7 @@ const mapDashboardResponse = (
       },
       stage: item.stage ?? item.current_stage ?? item.current_stage_code ?? "",
       statusMessage: item.statusMessage ?? item.message ?? "",
+      ...(rejectedAtStage ? { rejectedAtStage } : {}),
       pipeline: Array.isArray(progress)
         ? progress.map((stage) =>
             typeof stage === "string"
