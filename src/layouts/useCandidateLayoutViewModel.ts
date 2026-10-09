@@ -8,6 +8,7 @@ import {
   getRoleHeaderNavKeys,
   type HeaderNavActionMap,
 } from "@/layouts/headerNav";
+import { useCandidateOnboardingStatus } from "@/modules/candidate/hooks/useCandidateOnboardingStatus";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import type { AppDispatch } from "@/store";
 import { fetchCandidateProfileThunk } from "@/store/slices/candidateThunks";
@@ -18,6 +19,7 @@ export const useCandidateLayoutViewModel = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { isAuthenticated, tokens, user } = useAuth();
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const { isOnboarding } = useCandidateOnboardingStatus();
 
   useEffect(() => {
     if (user?.role !== "JOB_SEEKER") return;
@@ -44,6 +46,7 @@ export const useCandidateLayoutViewModel = () => {
   };
 
   const handleSearchClick = () => {
+    if (isOnboarding) return;
     setIsSearchModalOpen(true);
   };
 
@@ -52,10 +55,12 @@ export const useCandidateLayoutViewModel = () => {
   };
 
   const handleSavedJobPostsClick = () => {
+    if (isOnboarding) return;
     navigate(ROUTE_PATHS.savedJobs);
   };
 
   const handleCvBuilderClick = () => {
+    if (isOnboarding) return;
     navigate(ROUTE_PATHS.cvBuilder);
   };
 
@@ -67,6 +72,11 @@ export const useCandidateLayoutViewModel = () => {
     event: MouseEvent<HTMLAnchorElement>,
     targetPath: string,
   ) => {
+    // Onboarding keeps the user on the current step without unmounting in-progress forms.
+    if (isOnboarding) {
+      event.preventDefault();
+      return;
+    }
     if (canAccessProtectedRoutes) {
       return;
     }
@@ -89,6 +99,7 @@ export const useCandidateLayoutViewModel = () => {
   return {
     canAccessProtectedRoutes,
     candidateNavItems,
+    isOnboarding,
     handleCloseSearch,
     handleHelpClick,
     handleProtectedNavClick,

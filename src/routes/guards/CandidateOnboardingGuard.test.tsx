@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
   authUser: { userId: 'user-1', candidateId: 'candidate-1' } as {
     userId: string
     candidateId: string
+    role?: string
   } | null,
   persistedUser: null as { userId: string; candidateId: string } | null,
   profileComplete: false,
@@ -54,15 +55,17 @@ vi.mock('@/modules/candidate/hooks/useCandidateQueries', async () => {
   }
 })
 
-const renderGuard = () =>
+const renderGuard = (path = '/candidate/dashboard') =>
   render(
-    <MemoryRouter initialEntries={['/candidate/dashboard']}>
+    <MemoryRouter initialEntries={[path]}>
       <Routes>
         <Route element={<CandidateOnboardingGuard />}>
           <Route path="/candidate/dashboard" element={<div>Dashboard</div>} />
         </Route>
         <Route path="/profile/create" element={<div>Profile creation</div>} />
-        <Route path="/candidate/cv-builder" element={<div>CV builder</div>} />
+        <Route element={<CandidateOnboardingGuard requireCv={false} />}>
+          <Route path="/candidate/cv-builder" element={<div>CV builder</div>} />
+        </Route>
       </Routes>
     </MemoryRouter>,
   )
@@ -116,6 +119,33 @@ describe('CandidateOnboardingGuard', () => {
   it('allows the dashboard when both profile and CV data exist', () => {
     mocks.profileComplete = true
     mocks.cvData = { resumeId: 'RES100001' }
+    renderGuard()
+
+    expect(screen.getByText('Dashboard')).toBeInTheDocument()
+  })
+
+  it('blocks CV builder until the profile is complete', () => {
+    renderGuard('/candidate/cv-builder')
+
+    expect(screen.getByText('Profile creation')).toBeInTheDocument()
+  })
+
+  it('allows CV builder once the profile is complete, before a CV exists', () => {
+    mocks.profileComplete = true
+    renderGuard('/candidate/cv-builder')
+
+    expect(screen.getByText('CV builder')).toBeInTheDocument()
+  })
+
+  it('lets guests through to CV builder', () => {
+    mocks.authUser = null
+    renderGuard('/candidate/cv-builder')
+
+    expect(screen.getByText('CV builder')).toBeInTheDocument()
+  })
+
+  it('does not apply candidate onboarding to other roles', () => {
+    mocks.authUser = { userId: 'user-1', candidateId: '', role: 'RECRUITER' }
     renderGuard()
 
     expect(screen.getByText('Dashboard')).toBeInTheDocument()

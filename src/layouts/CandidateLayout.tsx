@@ -16,6 +16,7 @@ export const CandidateLayout = () => {
     handleSearchClick,
     handleSignUpClick,
     isSearchModalOpen,
+    isOnboarding,
   } = useCandidateLayoutViewModel();
 
   return (
@@ -32,6 +33,7 @@ export const CandidateLayout = () => {
         showNotificationButton={false}
         showProfileBadge={true}
         showSearchButton={true}
+        restrictNavigation={isOnboarding}
       />
 
       <OpportunitySearchModal

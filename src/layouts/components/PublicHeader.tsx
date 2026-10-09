@@ -26,6 +26,8 @@ type PublicHeaderProps = {
   showHelpButton?: boolean;
   showSignUp?: boolean;
   showProfileBadge?: boolean;
+  // Keeps the user on the current page: internal links, logo and account menu entries do nothing.
+  restrictNavigation?: boolean;
   showSearchButton?: boolean;
   showNotificationButton?: boolean;
   canAccessProtectedRoutes: boolean;
@@ -44,6 +46,7 @@ export const PublicHeader = ({
   showHelpButton = false,
   showSignUp = false,
   showProfileBadge = false,
+  restrictNavigation = false,
   showSearchButton = false,
   showNotificationButton = false,
   canAccessProtectedRoutes,
@@ -92,11 +95,13 @@ export const PublicHeader = ({
 
   const handleProfileSettingsClick = () => {
     handleProfileMenuClose();
+    if (restrictNavigation) return;
     navigate(ROUTE_PATHS.profile);
   };
 
   const handleChangePasswordClick = () => {
     handleProfileMenuClose();
+    if (restrictNavigation) return;
     navigate(`${ROUTE_PATHS.resetPassword}?mode=change`);
   };
 
@@ -143,6 +148,9 @@ export const PublicHeader = ({
           to={logoTarget}
           aria-label={logoAriaLabel}
           className={styles.logoLink}
+          onClick={(event: MouseEvent<HTMLAnchorElement>) => {
+            if (restrictNavigation) event.preventDefault();
+          }}
         >
           <Box
             component="img"

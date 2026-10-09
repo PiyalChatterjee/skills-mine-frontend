@@ -1,14 +1,6 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
-import { useAuth } from '@/app/auth/AuthContext'
-import { tokenStorage } from '@/app/auth/tokenStorage'
-import {
-  hasBuildMyCvData,
-  useBuildMyCvQuery,
-  useCandidateProfileQuery,
-} from '@/modules/candidate/hooks/useCandidateQueries'
-import { isCandidateProfileCompleteForOnboarding } from '@/modules/candidate/utils/profileCompleteness'
+import { useCandidateOnboardingStatus } from '@/modules/candidate/hooks/useCandidateOnboardingStatus'
 import { ROUTE_PATHS } from '@/routes/routePaths'
-import type { BuildMyCvState } from '@/types'
 import styles from '@/routes/AppRoutes.module.css'
 
 const OnboardingFallback = ({ message }: { message: string }) => (
@@ -17,26 +9,26 @@ const OnboardingFallback = ({ message }: { message: string }) => (
   </div>
 )
 
-export const CandidateOnboardingGuard = () => {
-  const { user } = useAuth()
+type CandidateOnboardingGuardProps = {
+  // CV builder only needs a completed profile; every other candidate page also needs a CV.
+  requireCv?: boolean
+}
+
+export const CandidateOnboardingGuard = ({
+  requireCv = true,
+}: CandidateOnboardingGuardProps) => {
   const location = useLocation()
-  const effectiveUser = user ?? tokenStorage.getUser()
-  const candidateId = effectiveUser?.candidateId ?? effectiveUser?.userId ?? ''
   // Preserved from the login redirect (e.g. after "candidate already exists" -> login)
   // so onboarding can hand off to the pending job's details page once complete.
   const pendingJobId = new URLSearchParams(location.search).get('job')
-  const profileQuery = useCandidateProfileQuery(
-    effectiveUser?.candidateId,
-    effectiveUser?.userId,
-    Boolean(effectiveUser),
-  )
-  const isProfileComplete = Boolean(
-    profileQuery.data &&
-      isCandidateProfileCompleteForOnboarding(profileQuery.data),
-  )
-  const cvQuery = useBuildMyCvQuery(isProfileComplete, candidateId)
+  const { isApplicable, isProfileLoading, isProfileComplete, isCvLoading, hasCv } =
+    useCandidateOnboardingStatus()
 
-  if (profileQuery.isLoading || profileQuery.isFetching) {
+  if (!isApplicable) {
+    return <Outlet />
+  }
+
+  if (isProfileLoading) {
     return <OnboardingFallback message="Loading your profile..." />
   }
 
@@ -49,11 +41,15 @@ export const CandidateOnboardingGuard = () => {
     )
   }
 
-  if (cvQuery.isLoading || cvQuery.isFetching) {
+  if (!requireCv) {
+    return <Outlet />
+  }
+
+  if (isCvLoading) {
     return <OnboardingFallback message="Loading your CV..." />
   }
 
-  if (!hasBuildMyCvData(cvQuery.data as BuildMyCvState | undefined)) {
+  if (!hasCv) {
     return (
       <Navigate
         to={{ pathname: ROUTE_PATHS.cvBuilder, search: location.search }}

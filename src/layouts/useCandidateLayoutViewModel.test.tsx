@@ -10,6 +10,11 @@ const mocks = vi.hoisted(() => ({
   unsubscribe: vi.fn(),
   useAuth: vi.fn(),
   useLocation: vi.fn(),
+  isOnboarding: false,
+}));
+
+vi.mock("@/modules/candidate/hooks/useCandidateOnboardingStatus", () => ({
+  useCandidateOnboardingStatus: () => ({ isOnboarding: mocks.isOnboarding }),
 }));
 
 vi.mock("react-redux", () => ({
@@ -36,6 +41,7 @@ vi.mock("@/store/slices/candidateThunks", () => ({
 describe("useCandidateLayoutViewModel", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.isOnboarding = false;
     mocks.useLocation.mockReturnValue({ pathname: "/candidate/dashboard" });
     mocks.useAuth.mockReturnValue({
       isAuthenticated: true,
@@ -64,6 +70,29 @@ describe("useCandidateLayoutViewModel", () => {
 
     unmount();
     expect(mocks.unsubscribe).toHaveBeenCalled();
+  });
+
+  it("keeps nav visible but blocks internal navigation while onboarding", () => {
+    mocks.isOnboarding = true;
+    const preventDefault = vi.fn();
+    const { result } = renderHook(() => useCandidateLayoutViewModel());
+
+    expect(result.current.candidateNavItems.map((item) => item.id)).toEqual([
+      "candidateDashboard",
+      "candidateSavedJobPosts",
+      "candidateCvBuilder",
+      "candidateSkillsBuild",
+      "candidateCareerSupport",
+    ]);
+
+    result.current.handleProtectedNavClick({ preventDefault } as never, "/jobs/saved");
+    act(() => {
+      result.current.handleSearchClick();
+    });
+
+    expect(preventDefault).toHaveBeenCalled();
+    expect(mocks.navigate).not.toHaveBeenCalled();
+    expect(result.current.isSearchModalOpen).toBe(false);
   });
 
   it("opens and closes the search modal through exposed handlers", () => {

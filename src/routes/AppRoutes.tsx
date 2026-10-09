@@ -131,13 +131,15 @@ export const AppRoutes = () => {
                 element={<ProfileCreationPage />}
               />
             </Route>
-            <Route path={ROUTE_PATHS.savedJobs} element={<SavedJobsPage />} />
-            <Route path={ROUTE_PATHS.latestJobs} element={<LatestJobsPage />} />
-            <Route
-              path={ROUTE_PATHS.recommendedJobs}
-              element={<RecommendedJobsPage />}
-            />
-            <Route path={ROUTE_PATHS.profile} element={<ProfilePage />} />
+            <Route element={<CandidateOnboardingGuard />}>
+              <Route path={ROUTE_PATHS.savedJobs} element={<SavedJobsPage />} />
+              <Route path={ROUTE_PATHS.latestJobs} element={<LatestJobsPage />} />
+              <Route
+                path={ROUTE_PATHS.recommendedJobs}
+                element={<RecommendedJobsPage />}
+              />
+              <Route path={ROUTE_PATHS.profile} element={<ProfilePage />} />
+            </Route>
           </Route>
 
           <Route element={<RecruiterLayout />}>
@@ -225,7 +227,9 @@ export const AppRoutes = () => {
         <Route element={<OptionalCandidateLayout />}>
           <Route path={ROUTE_PATHS.jobSearch} element={<JobSearchResultsPage />} />
           <Route path={ROUTE_PATHS.jobDetails} element={<JobDetailsPage />} />
-          <Route path={ROUTE_PATHS.cvBuilder} element={<CvBuilderPage />} />
+          <Route element={<CandidateOnboardingGuard requireCv={false} />}>
+            <Route path={ROUTE_PATHS.cvBuilder} element={<CvBuilderPage />} />
+          </Route>
         </Route>
 
         <Route
