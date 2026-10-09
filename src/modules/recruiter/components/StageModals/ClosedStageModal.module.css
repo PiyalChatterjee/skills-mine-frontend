@@ -58,6 +58,10 @@
   background: #DBEFE3;
 }
 
+.stageBannerUnsuccessful {
+  background: #fde8e8;
+}
+
 .stageBannerText:global(.MuiTypography-root) {
   font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
   font-size: 32px;
@@ -67,6 +71,10 @@
   letter-spacing: 0.1px;
   line-height: 1.2;
   margin: 0;
+}
+
+.stageBannerTextUnsuccessful:global(.MuiTypography-root) {
+  color: #D64545;
 }
 
 /* ── Content area (padded) ───────────────────────────────────────────── */
@@ -121,6 +129,10 @@
   margin: 16px 0 0;
 }
 
+.infoCardUnsuccessful {
+  background: #fde8e8;
+}
+
 .infoCardIcon {
   flex-shrink: 0;
   display: flex;
@@ -136,16 +148,20 @@
 
 .infoCardTitle {
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 13px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 500;
   color: #1f2328;
   margin: 0;
   line-height: 1.4;
 }
 
+.infoCardTitleUnsuccessful {
+  color: #D64545;
+}
+
 .infoCardDesc {
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 400;
   color: #374151;
   margin: 4px 0 0;

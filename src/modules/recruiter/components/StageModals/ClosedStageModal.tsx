@@ -23,6 +23,13 @@ const ShieldCheckIcon = () => (
   </svg>
 )
 
+const ShieldXIcon = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path d="M12 2L4 6v6c0 5.25 3.5 10.15 8 11.35C16.5 22.15 20 17.25 20 12V6l-8-4Z" stroke="#D64545" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M9 9l6 6M15 9l-6 6" stroke="#D64545" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+)
+
 // ── Props ──────────────────────────────────────────────────────────────
 
 export interface ClosedStageModalProps {
@@ -30,6 +37,7 @@ export interface ClosedStageModalProps {
   candidateTitle: string
   company: string
   dueDate?: string
+  isUnsuccessful?: boolean
   onClose: () => void
 }
 
@@ -40,6 +48,7 @@ const ClosedStageModal = ({
   candidateTitle,
   company,
   dueDate = 'Jan 20, 2026',
+  isUnsuccessful = false,
   onClose,
 }: ClosedStageModalProps) => {
   return (
@@ -59,8 +68,8 @@ const ClosedStageModal = ({
         </Box>
 
         {/* ── Stage banner ── */}
-        <Box className={styles.stageBanner}>
-          <Typography component="h2" className={styles.stageBannerText}>
+        <Box className={`${styles.stageBanner} ${isUnsuccessful ? styles.stageBannerUnsuccessful : ''}`}>
+          <Typography component="h2" className={`${styles.stageBannerText} ${isUnsuccessful ? styles.stageBannerTextUnsuccessful : ''}`}>
             Closed
           </Typography>
         </Box>
@@ -86,16 +95,18 @@ const ClosedStageModal = ({
           </Box>
 
           {/* ── Placement info card ── */}
-          <Box className={styles.infoCard}>
+          <Box className={`${styles.infoCard} ${isUnsuccessful ? styles.infoCardUnsuccessful : ''}`}>
             <Box className={styles.infoCardIcon}>
-              <ShieldCheckIcon />
+              {isUnsuccessful ? <ShieldXIcon /> : <ShieldCheckIcon />}
             </Box>
             <Box className={styles.infoCardText}>
-              <Typography component="p" className={styles.infoCardTitle}>
-                Successful Placement
+              <Typography component="p" className={`${styles.infoCardTitle} ${isUnsuccessful ? styles.infoCardTitleUnsuccessful : ''}`}>
+                {isUnsuccessful ? 'Unsuccessful Placement' : 'Successful Placement'}
               </Typography>
               <Typography component="p" className={styles.infoCardDesc}>
-                This will be counted as a successful placement for this month
+                {isUnsuccessful
+                  ? 'This will be counted as an unsuccessful placement for this month'
+                  : 'This will be counted as a successful placement for this month'}
               </Typography>
             </Box>
           </Box>

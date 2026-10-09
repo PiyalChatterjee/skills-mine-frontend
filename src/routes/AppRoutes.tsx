@@ -74,6 +74,9 @@ const CandidatesPage = lazy(
 const CandidateDetailPage = lazy(
   () => import("@/modules/recruiter/pages/CandidateDetailPage"),
 );
+const VisitorDetailPage = lazy(
+  () => import("@/modules/recruiter/pages/VisitorDetailPage"),
+);
 const CandidateCvReviewPage = lazy(
   () => import("@/modules/recruiter/pages/CandidateCvReviewPage"),
 );
@@ -178,7 +181,15 @@ export const AppRoutes = () => {
               element={<CandidateDetailPage />}
             />
             <Route
+              path={ROUTE_PATHS.recruiterVisitorDetail}
+              element={<VisitorDetailPage />}
+            />
+            <Route
               path={ROUTE_PATHS.recruiterCandidateCvReview}
+              element={<CandidateCvReviewPage />}
+            />
+            <Route
+              path={ROUTE_PATHS.recruiterVisitorCvReview}
               element={<CandidateCvReviewPage />}
             />
             <Route

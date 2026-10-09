@@ -27,6 +27,7 @@ export interface InboundStageModalProps {
   applicationId: string
   jobId: string
   dueDate?: string
+  isRejected?: boolean
   onClose: () => void
   /** Called after the card has been successfully advanced to Screening */
   onAdvance?: (applicationId: string) => void
@@ -41,6 +42,7 @@ const InboundStageModal = ({
   applicationId,
   jobId,
   dueDate = 'Jan 20, 2026',
+  isRejected = false,
   onClose,
   onAdvance,
 }: InboundStageModalProps) => {
@@ -136,9 +138,9 @@ const InboundStageModal = ({
               Move back
             </ButtonBase>
             <ButtonBase
-              className={`${styles.actionBtn} ${checked ? styles.actionBtnActive : ''}`}
+              className={`${styles.actionBtn} ${checked && !isRejected ? styles.actionBtnActive : ''}`}
               disableRipple
-              disabled={!checked || advancing}
+              disabled={!checked || advancing || isRejected}
               onClick={handleAdvance}
             >
               {advancing ? <CircularProgress size={14} sx={{ color: '#fff' }} /> : 'Advance'}

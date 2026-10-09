@@ -28,6 +28,7 @@ export interface InterviewStageModalProps {
   applicationId: string
   jobId: string
   dueDate?: string
+  isRejected?: boolean
   onClose: () => void
   onAdvance?: (applicationId: string) => void
   onMoveBack?: (applicationId: string) => void
@@ -43,6 +44,7 @@ const InterviewStageModal = ({
   applicationId,
   jobId,
   dueDate = 'Jan 20, 2026',
+  isRejected = false,
   onClose,
   onAdvance,
   onMoveBack,
@@ -151,16 +153,16 @@ const InterviewStageModal = ({
 
           {/* ── Action buttons ── */}
           <Box className={styles.actionRow}>
-            <ButtonBase className={styles.moveBackBtn} disableRipple onClick={handleMoveBack} disabled={movingBack}>
+            <ButtonBase className={styles.moveBackBtn} disableRipple onClick={handleMoveBack} disabled={movingBack || isRejected}>
               {movingBack ? <CircularProgress size={14} sx={{ color: '#1E5FA8' }} /> : 'Move back'}
             </ButtonBase>
-            <ButtonBase className={styles.rejectBtn} disableRipple onClick={() => setRejectOpen(true)}>
+            <ButtonBase className={styles.rejectBtn} disableRipple onClick={() => setRejectOpen(true)} disabled={isRejected}>
               Reject
             </ButtonBase>
             <ButtonBase
-              className={`${styles.advanceBtn} ${!canAdvance ? styles.advanceBtnDisabled : ''}`}
+              className={`${styles.advanceBtn} ${!canAdvance || isRejected ? styles.advanceBtnDisabled : ''}`}
               disableRipple
-              disabled={!canAdvance || advancing}
+              disabled={!canAdvance || advancing || isRejected}
               onClick={handleAdvance}
             >
               {advancing ? <CircularProgress size={14} sx={{ color: '#fff' }} /> : 'Advance'}

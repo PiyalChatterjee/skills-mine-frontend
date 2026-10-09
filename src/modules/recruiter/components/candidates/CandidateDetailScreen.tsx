@@ -229,6 +229,8 @@ export const CandidateDetailScreen = () => {
         <Typography component="span" className={styles.breadcrumbCurrent}>
           {candidate.fullName}
         </Typography>
+        <Box component="span" className={styles.candidateBadge}>Candidate</Box>
+
       </Box>
 
       {/* ── Hero card ── */}

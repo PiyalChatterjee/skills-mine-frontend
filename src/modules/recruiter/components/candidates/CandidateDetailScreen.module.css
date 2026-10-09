@@ -74,6 +74,41 @@
   line-height: 1.5;
 }
 
+
+/* ── Visitor badge (breadcrumb) ──────────────────────────────────────── */
+.visitorBadge {
+  display: inline-flex;
+  align-items: center;
+  background: #f0f0ff;
+  color: #7c5cd8;
+  border: 1px solid #d0c4f7;
+  border-radius: 20px;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 10px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.candidateBadge {
+  display: inline-flex;
+  align-items: center;
+  background: #f0f0ff;
+  color: #7c5cd8;
+  border: 1px solid #d0c4f7;
+  border-radius: 20px;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 10px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+
+
+
 /* ── Hero card ────────────────────────────────────────────────────────── */
 .heroCard {
   background: #bdd8ee;

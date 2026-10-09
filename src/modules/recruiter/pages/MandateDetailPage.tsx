@@ -352,7 +352,7 @@ const MandateDetailPage = () => {
             {/* ── Top Candidates For This Post ── */}
             <Box className={styles.candidatesCard}>
               <Typography component="p" className={styles.topCandidatesHeading}>
-                Top Candidates For This Post
+                Top Applicants For This Post
               </Typography>
               {candidatesLoading ? (
                 <Box style={{ display: 'flex', justifyContent: 'center', padding: '32px 0' }}>
@@ -413,9 +413,13 @@ const MandateDetailPage = () => {
                               className={styles.viewLink}
                               disableRipple
                               onClick={() =>
-                                navigate(
-                                  ROUTE_PATHS.recruiterCandidateDetail.replace(':candidateId', c.candidateId)
-                                )
+                                c.applicantType === 'VISITOR'
+                                  ? navigate(
+                                      ROUTE_PATHS.recruiterVisitorDetail.replace(':visitorId', c.candidateId)
+                                    )
+                                  : navigate(
+                                      ROUTE_PATHS.recruiterCandidateDetail.replace(':candidateId', c.candidateId)
+                                    )
                               }
                             >
                               View <ArrowRightIcon />
@@ -429,7 +433,7 @@ const MandateDetailPage = () => {
               )}
             </Box>
 
-            {/* ── View Candidate Pipeline button ── */}
+            {/* ── View Applicant Pipeline button ── */}
             <ButtonBase
               className={styles.pipelineBtn}
               disableRipple
@@ -445,7 +449,7 @@ const MandateDetailPage = () => {
                 )
               }}
             >
-              {pipelineLoading ? 'Loading…' : 'View Candidate Pipeline'}
+              {pipelineLoading ? 'Loading…' : 'View Applicant Pipeline'}
             </ButtonBase>
 
           </Box>
