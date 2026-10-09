@@ -1,4 +1,4 @@
-import { candidateApiClient, documentApiClient, mandateApiClient } from "@/services/api/axios";
+import { candidateApiClient, documentApiClient, mandateApiClient, visitorApiClient } from "@/services/api/axios";
 import { apiEndpoints, resolveEndpoint } from "@/services/api/endpoints";
 import { toCvPayload } from "@/services/api/candidateApi";
 import type { AxiosProgressEvent } from "axios";
@@ -427,6 +427,14 @@ export const recruiterCandidatesApi = {
       .then((res) => mapCvBuildResponse(res.data));
   },
 
+  // GET /visitors/:visitorId — same CV structure (personal details, experience, skills, education, languages)
+  getVisitorCvBuild(visitorId: string): Promise<RecruiterCandidateCvBuild> {
+    const url = resolveEndpoint(apiEndpoints.visitor.detail, { visitorId });
+    return visitorApiClient
+      .get<RawCvBuildResponse>(url)
+      .then((res) => mapCvBuildResponse(res.data));
+  },
+
   getDocumentsByOwner(
     ownerType: string,
     ownerId: string,
@@ -619,14 +627,15 @@ export const jobProfileApi = {
       .then((res) => mapJobProfile(res.data));
   },
 
-  getTopCandidates(jobProfileId: string): Promise<TopCandidate[]> {
+  getTopCandidates(jobProfileId: string, page = 0, size = 10): Promise<{ data: TopCandidate[]; total: number }> {
     return mandateApiClient
       .get<{ data: CandidateRow[]; total: number; page: number; size: number }>(
         apiEndpoints.candidates.list,
-        { params: { jobProfileId, page: 0, size: 10 } },
+        { params: { jobProfileId, page, size } },
       )
-      .then((res) =>
-        (res.data.data ?? []).map((row) => ({
+      .then((res) => ({
+        total: res.data.total ?? 0,
+        data: (res.data.data ?? []).map((row) => ({
           candidateId:     row.applicantId,
           applicantType:   row.applicantType,
           source:          row.source,
@@ -636,6 +645,6 @@ export const jobProfileApi = {
           status:          row.status,
           applicationId:   row.applicationId,
         })),
-      );
+      }));
   },
 };

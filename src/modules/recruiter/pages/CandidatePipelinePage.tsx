@@ -456,9 +456,9 @@ const CandidatePipelinePage = () => {
             <BackArrowIcon /> Back
           </ButtonBase>
           <Box className={styles.breadcrumbDivider} />
-          <Typography component="span" className={styles.breadcrumbSection}>
+          <ButtonBase className={styles.breadcrumbSection} onClick={handleBack} disableRipple>
             Applicant Pipeline
-          </Typography>
+          </ButtonBase>
           {jobTitle && (
             <>
               <Box className={styles.breadcrumbArrow}><ChevronRightIcon /></Box>

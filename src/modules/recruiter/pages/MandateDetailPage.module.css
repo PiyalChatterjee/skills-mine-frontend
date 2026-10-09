@@ -80,7 +80,8 @@
   color: #374151;
 }
 
-.breadcrumbCurrent {
+.breadcrumbCurrent,
+:global(.MuiTypography-root).breadcrumbCurrent {
   color: #03478C;
   font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
   font-size: 24px;
@@ -357,6 +358,62 @@
   flex-grow: 0;
 }
 
+/* ── Table scroll container ──────────────────────────────────────────── */
+.tableScrollContainer {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.tableScrollContainer::-webkit-scrollbar {
+  width: 4px;
+}
+
+.tableScrollContainer::-webkit-scrollbar-track {
+  background: #f0f4f8;
+}
+
+.tableScrollContainer::-webkit-scrollbar-thumb {
+  background: #c8d5e0;
+  border-radius: 4px;
+}
+
+/* ── Load more row ───────────────────────────────────────────────────── */
+.loadMoreRow {
+  display: flex;
+  justify-content: center;
+  padding: 10px 0 14px;
+  border-top: 1px solid #f0f4f8;
+}
+
+.loadMoreBtn,
+:global(.MuiButtonBase-root).loadMoreBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 14px;
+  border-radius: 20px;
+  border: 1px solid #03478C;
+  color: #03478C;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.5;
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.loadMoreBtn:hover,
+:global(.MuiButtonBase-root).loadMoreBtn:hover {
+  background: #eaf3fb;
+}
+
+.loadMoreBtn:disabled,
+:global(.MuiButtonBase-root).loadMoreBtn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
 .table {
   width: 100%;
   border-collapse: collapse;
@@ -373,6 +430,9 @@
   text-transform: uppercase;
   border-bottom: 1px solid #e5e7eb;
   background: #ffffff;
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
 .tableHead th:first-child {

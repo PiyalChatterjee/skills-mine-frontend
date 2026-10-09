@@ -89,8 +89,10 @@ const CandidateCvReviewInner = ({
     let cancelled = false
     setLoading(true)
     setError(null)
-    recruiterCandidatesApi
-      .getCandidateCvBuild(ownerId)
+    const fetchCv = isVisitor
+      ? recruiterCandidatesApi.getVisitorCvBuild(ownerId)
+      : recruiterCandidatesApi.getCandidateCvBuild(ownerId)
+    fetchCv
       .then((data) => {
         if (cancelled) return
         const pd = data.personalDetails
@@ -104,7 +106,7 @@ const CandidateCvReviewInner = ({
         if (!cancelled) setLoading(false)
       })
     return () => { cancelled = true }
-  }, [ownerId])
+  }, [ownerId, isVisitor])
 
   const goToCandidates = () => navigate(ROUTE_PATHS.recruiterCandidates)
   const goToCandidate  = () =>
