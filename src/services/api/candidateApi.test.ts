@@ -357,7 +357,7 @@ describe('candidateApi', () => {
       mockGet.mockResolvedValue({
         data: {
           candidate_id: 'CAND100001',
-          saved_jobs: [{ job_profile_id: 'JOB-1', job_title: 'Engineer' }],
+          saved_jobs: [{ job_profile_id: 'JOB-1', job_title: 'Engineer', industry: 'Accounting & Auditing' }],
           pagination: { total_items: 1 },
         },
       })
@@ -367,7 +367,7 @@ describe('candidateApi', () => {
       expect(mockGet).toHaveBeenCalledWith('/candidates/saved-jobs')
       expect(result).toMatchObject({
         candidateId: 'CAND100001',
-        jobs: [{ jobId: 'JOB-1', title: 'Engineer' }],
+        jobs: [{ jobId: 'JOB-1', title: 'Engineer', industry: 'Accounting & Auditing' }],
         total: 1,
       })
     })
@@ -376,7 +376,7 @@ describe('candidateApi', () => {
       mockGet.mockResolvedValue({
         data: {
           candidate_id: 'CAND100001',
-          recommended_positions: [{ job_profile_id: 'JOB-2', job_title: 'Designer' }],
+          recommended_positions: [{ job_profile_id: 'JOB-2', job_title: 'Designer', industry: 'Data & Analytics' }],
           pagination: { total_items: 1 },
         },
       })
@@ -386,9 +386,23 @@ describe('candidateApi', () => {
       expect(mockGet).toHaveBeenCalledWith('/candidates/recommended-positions')
       expect(result).toMatchObject({
         candidateId: 'CAND100001',
-        jobs: [{ jobId: 'JOB-2', title: 'Designer' }],
+        jobs: [{ jobId: 'JOB-2', title: 'Designer', industry: 'Data & Analytics' }],
         total: 1,
       })
+    })
+
+    it('maps employmentType on recommended positions using the latest-jobs field name', async () => {
+      mockGet.mockResolvedValue({
+        data: {
+          recommended_positions: [
+            { job_profile_id: 'JOB-3', job_title: 'Engineer', employmentType: 'FULL_TIME' },
+          ],
+        },
+      })
+
+      const result = await candidateApi.getRecommendedPositions('CAND100001')
+
+      expect(result.jobs[0].employmentType).toBe('Full Time')
     })
   })
 

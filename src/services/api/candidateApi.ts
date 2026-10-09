@@ -358,6 +358,7 @@ const mapJobRecord = (job: RawCandidateJobRecord) => ({
   title: job.title ?? job.job_title ?? "",
   company: job.company ?? job.company_name ?? "",
   location: job.location ?? job.location_text ?? "",
+  industry: job.industry ?? "",
   workType: formatEnumLabel(job.workType ?? job.work_type),
   employmentType: formatEnumLabel(job.employmentType ?? job.employment_type),
   salaryRange:

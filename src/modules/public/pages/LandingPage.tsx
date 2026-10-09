@@ -18,6 +18,7 @@ import starIconUrl from "@/assets/landing-page/star-icon.svg";
 import timeIconUrl from "@/assets/landing-page/time-icon.svg";
 import {
   heroContent,
+  LANDING_JOBS_PAGE_SIZE,
   type HeroMode,
 } from "@/modules/public/constants/landingPage.constants";
 import {
@@ -116,6 +117,7 @@ const LandingPage = () => {
     shouldFilter: shouldFilterOpportunities,
     shouldUseDebouncedQuery: shouldUseApiSearch,
     debouncedSearchTerm,
+    pageSize: LANDING_JOBS_PAGE_SIZE,
   });
 
   useEffect(() => {

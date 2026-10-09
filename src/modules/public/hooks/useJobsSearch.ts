@@ -14,6 +14,7 @@ type UseJobsSearchOptions = {
   shouldUseDebouncedQuery: boolean;
   debouncedSearchTerm: string;
   enabled?: boolean;
+  pageSize?: number;
 };
 
 export const useJobsSearch = ({
@@ -22,12 +23,13 @@ export const useJobsSearch = ({
   shouldUseDebouncedQuery,
   debouncedSearchTerm,
   enabled = true,
+  pageSize = DEFAULT_JOBS_PAGE_SIZE,
 }: UseJobsSearchOptions) => {
   const activeSearchQuery = shouldUseDebouncedQuery
     ? debouncedSearchTerm
     : undefined;
 
-  const jobsQuery = useJobs(activeSearchQuery, enabled, DEFAULT_JOBS_PAGE_SIZE);
+  const jobsQuery = useJobs(activeSearchQuery, enabled, pageSize);
 
   const pages = jobsQuery.data?.pages ?? EMPTY_PAGES;
 
