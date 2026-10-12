@@ -176,6 +176,7 @@ export const visitorApi = {
           visitor_id: payload.visitorId,
           job_profile_id: payload.jobProfileId,
         },
+        { timeout: 60000 },
       ),
     );
   },
