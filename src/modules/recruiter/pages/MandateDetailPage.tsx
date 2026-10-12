@@ -58,6 +58,9 @@ const MandateDetailPage = () => {
   const [copied, setCopied] = useState(false)
   const [topCandidates, setTopCandidates] = useState<TopCandidate[]>([])
   const [candidatesLoading, setCandidatesLoading] = useState(false)
+  const [candidatesTotal, setCandidatesTotal] = useState(0)
+  const [candidatesPage, setCandidatesPage] = useState(0)
+  const [loadingMore, setLoadingMore] = useState(false)
   const [pipelineLoading, setPipelineLoading] = useState(false)
 
   // Resolve the id — comes as :jobProfileId from candidate flow, :cardId from mandate flow
@@ -84,10 +87,14 @@ const MandateDetailPage = () => {
 
     // Load top candidates filtered by jobProfileId
     setCandidatesLoading(true)
+    setCandidatesPage(0)
     jobProfileApi
-      .getTopCandidates(resolvedId)
-      .then((data) => {
-        if (!cancelled) setTopCandidates(data)
+      .getTopCandidates(resolvedId, 0, 10)
+      .then((res) => {
+        if (!cancelled) {
+          setTopCandidates(res.data)
+          setCandidatesTotal(res.total)
+        }
       })
       .catch(() => {
         if (!cancelled) setTopCandidates([])
@@ -98,6 +105,20 @@ const MandateDetailPage = () => {
 
     return () => { cancelled = true }
   }, [resolvedId])
+
+  const handleLoadMore = () => {
+    if (!resolvedId || loadingMore) return
+    const nextPage = candidatesPage + 1
+    setLoadingMore(true)
+    jobProfileApi
+      .getTopCandidates(resolvedId, nextPage, 10)
+      .then((res) => {
+        setTopCandidates(prev => [...prev, ...res.data])
+        setCandidatesTotal(res.total)
+        setCandidatesPage(nextPage)
+      })
+      .finally(() => setLoadingMore(false))
+  }
 
   const goBack = () => {
     if (candidateId) {
@@ -359,77 +380,94 @@ const MandateDetailPage = () => {
                   <CircularProgress size={24} />
                 </Box>
               ) : (
-                <table className={styles.table}>
-                  <thead className={styles.tableHead}>
-                    <tr>
-                      <th>Name</th>
-                      <th>Title</th>
-                      <th>Match</th>
-                      <th>Status</th>
-                      <th></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {topCandidates.length === 0 ? (
-                      <tr>
-                        <td colSpan={5}>
-                          <Box className={styles.emptyState}>
-                            <Typography component="p" className={styles.emptyStateText}>
-                              No candidates found for this post.
-                            </Typography>
-                          </Box>
-                        </td>
-                      </tr>
-                    ) : (
-                      topCandidates.map((c) => (
-                        <tr key={c.candidateId} className={styles.tableRow}>
-                          <td>
-                            <Typography component="span" className={styles.candidateName}>
-                              {c.fullName}
-                            </Typography>
-                          </td>
-                          <td>
-                            <Typography component="span" className={styles.candidateTitle}>
-                              {c.title || '—'}
-                            </Typography>
-                          </td>
-                          <td>
-                            <Box className={styles.matchBarTrack}>
-                              <Box
-                                className={styles.matchBarFill}
-                                style={{ width: `${Math.min(c.matchPercentage ?? 0, 100)}%` }}
-                              />
-                            </Box>
-                          </td>
-                          <td>
-                            <Box component="span" className={styles.statusBadge}>
-                              {c.status
-                                ? c.status.charAt(0).toUpperCase() + c.status.slice(1).toLowerCase()
-                                : '—'}
-                            </Box>
-                          </td>
-                          <td>
-                            <ButtonBase
-                              className={styles.viewLink}
-                              disableRipple
-                              onClick={() =>
-                                c.applicantType === 'VISITOR'
-                                  ? navigate(
-                                      ROUTE_PATHS.recruiterVisitorDetail.replace(':visitorId', c.candidateId)
-                                    )
-                                  : navigate(
-                                      ROUTE_PATHS.recruiterCandidateDetail.replace(':candidateId', c.candidateId)
-                                    )
-                              }
-                            >
-                              View <ArrowRightIcon />
-                            </ButtonBase>
-                          </td>
+                <>
+                  <Box className={styles.tableScrollContainer}>
+                    <table className={styles.table}>
+                      <thead className={styles.tableHead}>
+                        <tr>
+                          <th>Name</th>
+                          <th>Title</th>
+                          <th>Match</th>
+                          <th>Status</th>
+                          <th></th>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
+                      </thead>
+                      <tbody>
+                        {topCandidates.length === 0 ? (
+                          <tr>
+                            <td colSpan={5}>
+                              <Box className={styles.emptyState}>
+                                <Typography component="p" className={styles.emptyStateText}>
+                                  No candidates found for this post.
+                                </Typography>
+                              </Box>
+                            </td>
+                          </tr>
+                        ) : (
+                          topCandidates.map((c) => (
+                            <tr key={c.candidateId} className={styles.tableRow}>
+                              <td>
+                                <Typography component="span" className={styles.candidateName}>
+                                  {c.fullName}
+                                </Typography>
+                              </td>
+                              <td>
+                                <Typography component="span" className={styles.candidateTitle}>
+                                  {c.title || '—'}
+                                </Typography>
+                              </td>
+                              <td>
+                                <Box className={styles.matchBarTrack}>
+                                  <Box
+                                    className={styles.matchBarFill}
+                                    style={{ width: `${Math.min(c.matchPercentage ?? 0, 100)}%` }}
+                                  />
+                                </Box>
+                              </td>
+                              <td>
+                                <Box component="span" className={styles.statusBadge}>
+                                  {c.status
+                                    ? c.status.charAt(0).toUpperCase() + c.status.slice(1).toLowerCase()
+                                    : '—'}
+                                </Box>
+                              </td>
+                              <td>
+                                <ButtonBase
+                                  className={styles.viewLink}
+                                  disableRipple
+                                  onClick={() =>
+                                    c.applicantType === 'VISITOR'
+                                      ? navigate(
+                                          ROUTE_PATHS.recruiterVisitorDetail.replace(':visitorId', c.candidateId)
+                                        )
+                                      : navigate(
+                                          ROUTE_PATHS.recruiterCandidateDetail.replace(':candidateId', c.candidateId)
+                                        )
+                                  }
+                                >
+                                  View <ArrowRightIcon />
+                                </ButtonBase>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </Box>
+                  {topCandidates.length < candidatesTotal && (
+                    <Box className={styles.loadMoreRow}>
+                      <ButtonBase
+                        className={styles.loadMoreBtn}
+                        disableRipple
+                        onClick={handleLoadMore}
+                        disabled={loadingMore}
+                      >
+                        {loadingMore ? <CircularProgress size={12} sx={{ color: '#03478C', mr: '6px' }} /> : null}
+                        Load more
+                      </ButtonBase>
+                    </Box>
+                  )}
+                </>
               )}
             </Box>
 

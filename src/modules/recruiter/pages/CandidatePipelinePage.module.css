@@ -56,13 +56,24 @@
 }
 
 .breadcrumbSection,
-:global(.MuiTypography-root).breadcrumbSection {
+.breadcrumbSection:global(.MuiButtonBase-root) {
+  display: inline-flex;
+  align-items: center;
   color: #03478C;
   font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
   font-size: 24px;
   font-weight: 500;
   letter-spacing: 0.1px;
   line-height: 150%;
+  padding: 0;
+  background: none;
+  border: none;
+  text-transform: none;
+  transition: color 0.15s ease;
+}
+
+.breadcrumbSection:global(.MuiButtonBase-root):hover {
+  color: #2470c2;
 }
 
 .breadcrumbArrow {
@@ -322,6 +333,7 @@
   .kanbanBoard { padding: 16px 8px 40px; }
   .kanbanCol { min-width: 145px; }
   .breadcrumbSection,
+  .breadcrumbSection:global(.MuiButtonBase-root),
   .breadcrumbCurrent { font-size: 18px; }
   .stageLabel { font-size: 14px; }
 }
@@ -333,6 +345,7 @@
   .contactStrip { padding: 0 12px 12px; }
   .kanbanCol { min-width: 120px; padding: 6px 4px 0; }
   .breadcrumbSection,
+  .breadcrumbSection:global(.MuiButtonBase-root),
   .breadcrumbCurrent { font-size: 15px; }
   .stageLabel { font-size: 12px; }
   .stageBadge { font-size: 9px; min-width: 18px; height: 18px; }
