@@ -47,7 +47,7 @@ vi.mock('@/app/auth/tokenStorage', () => ({
   },
 }))
 
-import './axios'
+import { publicDocumentApiClient } from './axios'
 
 describe('API client interceptors', () => {
   const getRequestHandler = () => mocks.requestHandlers[0]
@@ -60,9 +60,32 @@ describe('API client interceptors', () => {
   })
 
   it('registers one request and response interceptor for each service client', () => {
-    expect(mocks.create).toHaveBeenCalledTimes(9)
-    expect(mocks.requestHandlers).toHaveLength(9)
-    expect(mocks.responseErrorHandlers).toHaveLength(9)
+    expect(mocks.create).toHaveBeenCalledTimes(10)
+    expect(mocks.requestHandlers).toHaveLength(10)
+    expect(mocks.responseErrorHandlers).toHaveLength(10)
+  })
+
+  it('does not add a bearer token to public document requests', () => {
+    const clientIndex = mocks.create.mock.results.findIndex(
+      (result) => result.value === publicDocumentApiClient,
+    )
+    const config = { headers: {} }
+
+    expect(mocks.requestHandlers[clientIndex](config)).toEqual({ headers: {} })
+  })
+
+  it('does not clear the session for a public document 401 response', async () => {
+    const clientIndex = mocks.create.mock.results.findIndex(
+      (result) => result.value === publicDocumentApiClient,
+    )
+    const error = { response: { status: 401 }, config: {} }
+
+    await expect(
+      Promise.resolve(mocks.responseErrorHandlers[clientIndex](error)),
+    ).rejects.toBe(error)
+
+    expect(mocks.clearAuth).not.toHaveBeenCalled()
+    expect(mocks.authEventsEmitUnauthorized).not.toHaveBeenCalled()
   })
 
   it('adds the bearer token to authenticated requests', () => {
