@@ -31,7 +31,6 @@ import { useSearchQueryState } from "@/hooks/useSearchQueryState";
 import { getJobTags } from "@/components/jobs/jobPresentation";
 import type { PublicLayoutOutletContext } from "@/layouts/PublicLayout";
 import { setLandingMode } from "@/store/slices/uiSlice";
-import { pushNotification } from "@/store/slices/notificationSlice";
 import styles from "./LandingPage.module.css";
 
 type Feature = {
@@ -75,6 +74,93 @@ const metrics: Metric[] = [
   },
 ];
 
+const LandingDefaultHero = ({ onSignUp }: { onSignUp: () => void }) => {
+  const content = heroContent.findJob;
+  return (
+    <>
+      <Box className={styles.heroBadge}>
+        <img src={aiIconUrl} alt="" className={styles.heroBadgeIcon} aria-hidden="true" />
+        <Typography component="span" className={styles.heroBadgeText} sx={{ m: 0 }}>
+          {content.badge}
+        </Typography>
+      </Box>
+      <Box className={styles.heroTextBlock}>
+        <Typography component="h1" className={styles.heroTitle} sx={{ m: 0 }}>
+          <Box component="span" className={styles.heroTitleStrong}>{content.titleStrong}</Box>{" "}
+          <Box component="span" className={styles.heroTitleLight}>{content.titleLight}</Box>
+        </Typography>
+        <Box className={styles.heroCopy}>
+          {content.copy.map((line) => (
+            <Typography key={line} component="p" className={styles.heroText} sx={{ m: 0 }}>{line}</Typography>
+          ))}
+        </Box>
+      </Box>
+      <Box className={styles.heroCtaGroup}>
+        <Button variant="contained" className={styles.heroCta} onClick={onSignUp}>{content.primaryCta}</Button>
+      </Box>
+      <Box className={styles.metricsGrid}>
+        {metrics.map((metric) => (
+          <Card key={metric.id} className={metric.cardClassName} elevation={0}>
+            <Typography component="p" className={styles.metricValue} sx={{ m: 0 }}>{metric.value}</Typography>
+            <Typography component="p" className={styles.metricLabel} sx={{ m: 0 }}>{metric.label}</Typography>
+          </Card>
+        ))}
+      </Box>
+    </>
+  );
+};
+
+type LandingJobResultsProps = {
+  query: ReturnType<typeof useJobsSearch>;
+  shouldFilter: boolean;
+  onSignUp: () => void;
+};
+
+const LandingJobResults = ({ query, shouldFilter, onSignUp }: LandingJobResultsProps) => {
+  if (query.isJobsError) {
+    return <Typography component="p" className={styles.sectionSubtitle} sx={{ mt: 2, mb: 0 }}>{query.jobsError?.message || "Failed to load jobs."}</Typography>;
+  }
+  if (query.isJobsLoading) {
+    return (
+      <Box className={styles.cardGrid} aria-live="polite" aria-busy="true">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <Card key={index} className={styles.jobCardSkeleton} elevation={0}>
+            <Skeleton variant="text" width="70%" height={32} />
+            <Skeleton variant="text" width="40%" height={24} />
+            <Skeleton variant="text" height={20} />
+            <Skeleton variant="text" width="85%" height={20} />
+            <Box className={styles.jobCardSkeletonTags}>
+              <Skeleton variant="rounded" width={70} height={28} />
+              <Skeleton variant="rounded" width={70} height={28} />
+              <Skeleton variant="rounded" width={70} height={28} />
+            </Box>
+          </Card>
+        ))}
+      </Box>
+    );
+  }
+  if (!query.allJobs) return null;
+  if (query.visibleJobs.length === 0) {
+    return <Typography component="p" className={styles.sectionSubtitle} sx={{ mt: 2, mb: 0 }}>{shouldFilter ? "No jobs found for your search." : "No jobs available right now."}</Typography>;
+  }
+  return (
+    <>
+      <Box className={styles.cardGrid}>
+        {query.visibleJobs.map((job) => (
+          <OpportunityJobCard key={job.jobId} title={job.title} description={job.description ?? ""} tags={getJobTags(job)} actionLabel="Sign Up to View" onAction={onSignUp} />
+        ))}
+      </Box>
+      {query.hasNextPage && (
+        <Box className={styles.jobsLoadTriggerWrap} aria-live="polite">
+          <Button type="button" variant="outlined" className={styles.loadMoreButton} onClick={() => void query.fetchNextPage()} disabled={query.isFetchingNextPage} aria-busy={query.isFetchingNextPage} disableRipple>
+            {query.isFetchingNextPage ? "Loading..." : "Load more"}
+          </Button>
+        </Box>
+      )}
+    </>
+  );
+};
+
 const LandingPage = () => {
   usePageTitle("Strategic Recruitment Solutions Home");
   const { openSignUpDrawer } = useOutletContext<PublicLayoutOutletContext>();
@@ -89,6 +175,7 @@ const LandingPage = () => {
   const { visitorId, matchScore } = appliedJobState ?? {};
   const [isApplicationSubmittedDismissed, setIsApplicationSubmittedDismissed] =
     useState(false);
+  const [isDeclineConfirmationVisible, setIsDeclineConfirmationVisible] = useState(false);
   const [activeHeroMode] = useState<HeroMode>("findJob");
   const {
     inputValue: searchInputValue,
@@ -103,16 +190,7 @@ const LandingPage = () => {
     debounceMs: 250,
   });
 
-  const {
-    allJobs,
-    visibleJobs,
-    isJobsError,
-    jobsError,
-    isJobsLoading,
-    hasNextPage,
-    isFetchingNextPage,
-    fetchNextPage,
-  } = useJobsSearch({
+  const jobsQuery = useJobsSearch({
     normalizedSearchTerm,
     shouldFilter: shouldFilterOpportunities,
     shouldUseDebouncedQuery: shouldUseApiSearch,
@@ -132,25 +210,13 @@ const LandingPage = () => {
   // later) shows the normal landing page instead of re-showing "Application submitted."
   useEffect(() => {
     if (appliedJobState) {
-      navigate(location.pathname, { replace: true, state: null });
+      void navigate(location.pathname, { replace: true, state: null });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
- /*  const handleFindJobClick = () => {
-    setActiveHeroMode("findJob");
-  };
-
-  const handleStartHiringClick = () => {
-    setActiveHeroMode("startHiring");
-  }; */
-
   const handleHeroCtaClick = () => {
     openSignUpDrawer();
-  };
-
-  const handleHeroSecondaryCtaClick = () => {
-    // TODO: Implement action
   };
 
   const handleCardCtaClick = () => {
@@ -162,17 +228,17 @@ const LandingPage = () => {
   };
 
   const handleDeclineKeepCvOnFile = () => {
-    setIsApplicationSubmittedDismissed(true);
-    dispatch(
-      pushNotification({
-        title: "No problem",
-        message: "We won't keep your CV on file for future roles.",
-        level: "info",
-      }),
-    );
+    setIsDeclineConfirmationVisible(true);
   };
 
-  const currentHeroContent = heroContent[activeHeroMode];
+  useEffect(() => {
+    if (!isDeclineConfirmationVisible) return;
+    const timer = window.setTimeout(() => {
+      setIsApplicationSubmittedDismissed(true);
+      setIsDeclineConfirmationVisible(false);
+    }, 5000);
+    return () => window.clearTimeout(timer);
+  }, [isDeclineConfirmationVisible]);
 
   return (
     <Box className={styles.pageRoot}>
@@ -196,8 +262,24 @@ const LandingPage = () => {
           aria-hidden="true"
         />
 
-        <Box className={styles.heroInner}>
-          {visitorId && !isApplicationSubmittedDismissed ? (
+        <Box className={`${styles.heroInner} ${isDeclineConfirmationVisible ? styles.declineHeroInner : ""}`}>
+          {isDeclineConfirmationVisible ? (
+            <Box className={styles.declineConfirmation} role="status" aria-live="polite">
+              <Typography component="h1" className={styles.declineHeading}>
+                Thanks For Applying
+              </Typography>
+              <Typography component="p" className={styles.declineMessage}>
+                We will be in touch about the status of your application via email.
+              </Typography>
+              <Typography component="p" className={styles.declineMessage}>
+                We hope to see you again soon, and good luck!
+              </Typography>
+              <Typography component="p" className={styles.declineRedirect}>
+                Redirecting you back home...
+              </Typography>
+            </Box>
+          ) : null}
+          {!isDeclineConfirmationVisible && (visitorId && !isApplicationSubmittedDismissed ? (
             <>
               <Box className={styles.applicationSubmittedRow}>
                 <Box
@@ -274,99 +356,8 @@ const LandingPage = () => {
               </Box>
             </>
           ) : (
-            <>
-              <Box className={styles.heroBadge}>
-                <img
-                  src={aiIconUrl}
-                  alt=""
-                  className={styles.heroBadgeIcon}
-                  aria-hidden="true"
-                />
-                <Typography
-                  component="span"
-                  className={styles.heroBadgeText}
-                  sx={{ m: 0 }}
-                >
-                  {currentHeroContent.badge}
-                </Typography>
-              </Box>
-
-              <Box className={styles.heroTextBlock}>
-                <Typography
-                  component="h1"
-                  className={styles.heroTitle}
-                  sx={{ m: 0 }}
-                >
-                  <Box component="span" className={styles.heroTitleStrong}>
-                    {currentHeroContent.titleStrong}
-                  </Box>{" "}
-                  {"titleLight" in currentHeroContent &&
-                    currentHeroContent.titleLight && (
-                      <Box component="span" className={styles.heroTitleLight}>
-                        {currentHeroContent.titleLight}
-                      </Box>
-                    )}
-                </Typography>
-
-                <Box className={styles.heroCopy}>
-                  {currentHeroContent.copy.map((line) => (
-                    <Typography
-                      key={line}
-                      component="p"
-                      className={styles.heroText}
-                      sx={{ m: 0 }}
-                    >
-                      {line}
-                    </Typography>
-                  ))}
-                </Box>
-              </Box>
-              <Box className={styles.heroCtaGroup}>
-                <Button
-                  variant="contained"
-                  className={styles.heroCta}
-                  onClick={handleHeroCtaClick}
-                >
-                  {currentHeroContent.primaryCta}
-                </Button>
-
-                {activeHeroMode === "startHiring" ? (
-                  <Button
-                    variant="outlined"
-                    className={styles.heroSecondaryCta}
-                    onClick={handleHeroSecondaryCtaClick}
-                  >
-                    {heroContent.startHiring.secondaryCta}
-                  </Button>
-                ) : null}
-              </Box>
-
-              <Box className={styles.metricsGrid}>
-                {metrics.map((metric) => (
-                  <Card
-                    key={metric.id}
-                    className={metric.cardClassName}
-                    elevation={0}
-                  >
-                    <Typography
-                      component="p"
-                      className={styles.metricValue}
-                      sx={{ m: 0 }}
-                    >
-                      {metric.value}
-                    </Typography>
-                    <Typography
-                      component="p"
-                      className={styles.metricLabel}
-                      sx={{ m: 0 }}
-                    >
-                      {metric.label}
-                    </Typography>
-                  </Card>
-                ))}
-              </Box>
-            </>
-          )}
+            <LandingDefaultHero onSignUp={handleHeroCtaClick} />
+          ))}
         </Box>
       </Box>
 
@@ -420,73 +411,7 @@ const LandingPage = () => {
             </Box>
           </Box>
 
-          {isJobsError ? (
-            <Typography
-              component="p"
-              className={styles.sectionSubtitle}
-              sx={{ mt: 2, mb: 0 }}
-            >
-              {jobsError?.message || "Failed to load jobs."}
-            </Typography>
-          ) : isJobsLoading ? (
-            <Box className={styles.cardGrid} aria-live="polite" aria-busy="true">
-              {Array.from({ length: 4 }).map((_, index) => (
-                <Card key={index} className={styles.jobCardSkeleton} elevation={0}>
-                  <Skeleton variant="text" width="70%" height={32} />
-                  <Skeleton variant="text" width="40%" height={24} />
-                  <Skeleton variant="text" height={20} />
-                  <Skeleton variant="text" width="85%" height={20} />
-                  <Box className={styles.jobCardSkeletonTags}>
-                    <Skeleton variant="rounded" width={70} height={28} />
-                    <Skeleton variant="rounded" width={70} height={28} />
-                    <Skeleton variant="rounded" width={70} height={28} />
-                  </Box>
-                </Card>
-              ))}
-            </Box>
-          ) : allJobs ? (
-            visibleJobs.length > 0 ? (
-              <>
-                <Box className={styles.cardGrid}>
-                  {visibleJobs.map((job) => (
-                    <OpportunityJobCard
-                      key={job.jobId}
-                      title={job.title}
-                      description={job.description ?? ""}
-                      tags={getJobTags(job)}
-                      actionLabel="Sign Up to View"
-                      onAction={handleCardCtaClick}
-                    />
-                  ))}
-                </Box>
-                {hasNextPage ? (
-                  <Box className={styles.jobsLoadTriggerWrap} aria-live="polite">
-                    <Button
-                      type="button"
-                      variant="outlined"
-                      className={styles.loadMoreButton}
-                      onClick={() => void fetchNextPage()}
-                      disabled={isFetchingNextPage}
-                      aria-busy={isFetchingNextPage}
-                      disableRipple
-                    >
-                      {isFetchingNextPage ? "Loading..." : "Load more"}
-                    </Button>
-                  </Box>
-                ) : null}
-              </>
-            ) : (
-              <Typography
-                component="p"
-                className={styles.sectionSubtitle}
-                sx={{ mt: 2, mb: 0 }}
-              >
-                {shouldFilterOpportunities
-                  ? "No jobs found for your search."
-                  : "No jobs available right now."}
-              </Typography>
-            )
-          ) : null}
+          <LandingJobResults query={jobsQuery} shouldFilter={shouldFilterOpportunities} onSignUp={handleCardCtaClick} />
         </Box>
       ) : null}
     </Box>

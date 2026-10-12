@@ -333,6 +333,46 @@
     background: rgba(255, 255, 255, 0.3);
 }
 
+.heroInner.declineHeroInner {
+    width: min(100%, 1006px);
+    min-height: 924px;
+    padding: 40px 16px;
+    justify-content: center;
+}
+
+.declineConfirmation {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+    text-align: center;
+}
+
+.declineHeading:global(.MuiTypography-root),
+.declineMessage:global(.MuiTypography-root),
+.declineRedirect:global(.MuiTypography-root) {
+    margin: 0;
+    color: #ffffff;
+    font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+    font-weight: 600;
+    line-height: 1.5;
+    letter-spacing: 0.1px;
+    overflow-wrap: anywhere;
+}
+
+.declineHeading:global(.MuiTypography-root) {
+    font-size: 48px;
+}
+
+.declineMessage:global(.MuiTypography-root) {
+    font-size: 32px;
+}
+
+.declineRedirect:global(.MuiTypography-root) {
+    font-size: 24px;
+    font-weight: 500;
+}
+
 .heroCopy {
     display: flex;
     flex-direction: column;
@@ -692,7 +732,6 @@
     padding: 24px;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 2px 8px rgba(42, 49, 50, 0.08);
 }
 
 .jobCard:global(.MuiCard-root) {
@@ -1136,6 +1175,42 @@
 
 /* ── Mobile (600px) ───────────────────────────────────────────────────── */
 @media (max-width: 600px) {
+
+    .heroSection:has(.declineHeroInner),
+    .heroInner.declineHeroInner {
+        min-height: 520px;
+    }
+
+    .declineHeading:global(.MuiTypography-root),
+    .applicationHeading:global(.MuiTypography-root) {
+        font-size: 32px;
+    }
+
+    .declineMessage:global(.MuiTypography-root) {
+        font-size: 20px;
+    }
+
+    .declineRedirect:global(.MuiTypography-root) {
+        font-size: 16px;
+    }
+
+    .applicationSubmittedRow {
+        gap: 16px;
+        align-items: flex-start;
+    }
+
+    .applicationSubmittedText {
+        min-width: 0;
+    }
+
+    .retentionActions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .retentionDeclineCta:global(.MuiButton-root):global(.MuiButton-outlined) {
+        width: 100%;
+    }
 
     .metricValue,
     .metricValue:global(.MuiTypography-root) {
