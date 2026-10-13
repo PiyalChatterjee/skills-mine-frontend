@@ -5,6 +5,7 @@ import { BrowserRouter } from 'react-router-dom'
 import { GoogleOAuthProvider } from '@react-oauth/google'
 import { AuthProvider } from '@/app/auth/AuthContext'
 import { NotificationToaster } from '@/components/NotificationToaster'
+import { ScrollToTop } from '@/components/ScrollToTop'
 import { store } from '@/store'
 import { appTheme } from '@/theme/theme'
 
@@ -14,6 +15,7 @@ export const AppProviders = ({ children }: PropsWithChildren) => {
   const appTree = (
     <Provider store={store}>
       <BrowserRouter>
+        <ScrollToTop />
         <AuthProvider>
           <ThemeProvider theme={appTheme}>
             <CssBaseline />
