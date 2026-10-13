@@ -193,11 +193,15 @@ const mockUploadVisitorDocument = vi.hoisted(() => vi.fn())
 const mockNavigate = vi.hoisted(() => vi.fn())
 const mockCreateVisitorProfile = vi.hoisted(() => vi.fn())
 const mockApplyToJob = vi.hoisted(() => vi.fn())
+const mockCheckVisitorEmail = vi.hoisted(() => vi.fn())
+const mockGetVisitorByEmail = vi.hoisted(() => vi.fn())
 
 vi.mock('@/services/api/visitorApi', () => ({
   visitorApi: {
     createProfile: mockCreateVisitorProfile,
     applyToJob: mockApplyToJob,
+    checkEmail: mockCheckVisitorEmail,
+    getByEmail: mockGetVisitorByEmail,
   },
 }))
 
@@ -319,6 +323,8 @@ describe('useCvBuilderDone', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     sessionStorage.clear()
+    mockCheckVisitorEmail.mockResolvedValue({ is_present: false, type: 'NOT_FOUND' })
+    mockGetVisitorByEmail.mockReset()
     mockUploadResumeDocument.mockReturnValue({ unwrap: () => Promise.resolve({}) })
     mockUploadVisitorDocument.mockReturnValue({ unwrap: () => Promise.resolve({}) })
   })
@@ -349,8 +355,13 @@ describe('useCvBuilderDone', () => {
     expect(store.getState().candidate.buildMyCv.personalDetails.currentCompany).toBe('Acme')
   })
 
-  it('creates a visitor, applies, uploads both CV documents, then navigates home', async () => {
+  it.each([false, true])('applies and uploads CV documents for an existing visitor: %s', async (existingVisitor) => {
     mockCreateVisitorProfile.mockResolvedValue({ visitor_id: 'visitor-1' })
+    mockCheckVisitorEmail.mockResolvedValue({
+      is_present: existingVisitor,
+      type: existingVisitor ? 'VISITOR' : 'NOT_FOUND',
+    })
+    mockGetVisitorByEmail.mockResolvedValue({ visitor_id: 'visitor-1' })
     mockApplyToJob.mockResolvedValue({ application_id: 'app-1', match_score_latest: 80 })
     const guestApplicationDraft = createGuestApplicationDraft({
       jobId: 'j001',
@@ -377,13 +388,27 @@ describe('useCvBuilderDone', () => {
       { wrapper: makeWrapper(store) },
     )
 
+    let resolveEmailCheck: (value: { is_present: boolean; type: string }) => void = () => {}
+    mockCheckVisitorEmail.mockReturnValueOnce(new Promise((resolve) => {
+      resolveEmailCheck = resolve
+    }))
+    let submission: Promise<void> | undefined
     await act(async () => {
+      submission = result.current.handleDone()
       await result.current.handleDone()
     })
+    expect(result.current.isSavingCandidateProfile).toBe(true)
+    expect(mockCheckVisitorEmail).toHaveBeenCalledTimes(1)
+    await act(async () => {
+      resolveEmailCheck({ is_present: existingVisitor, type: existingVisitor ? 'VISITOR' : 'NOT_FOUND' })
+      await submission
+    })
+    expect(result.current.isSavingCandidateProfile).toBe(false)
 
     expect(mockSaveBuildMyCv).not.toHaveBeenCalled()
     expect(mockUploadResumeDocument).not.toHaveBeenCalled()
-    expect(mockCreateVisitorProfile).toHaveBeenCalledTimes(1)
+    expect(mockCreateVisitorProfile).toHaveBeenCalledTimes(existingVisitor ? 0 : 1)
+    expect(mockGetVisitorByEmail).toHaveBeenCalledTimes(existingVisitor ? 1 : 0)
     expect(mockApplyToJob).toHaveBeenCalledWith({
       visitorId: 'visitor-1',
       jobProfileId: 'jp-001',
@@ -399,7 +424,8 @@ describe('useCvBuilderDone', () => {
       file: expect.any(Blob),
       fileName: expect.stringMatching(/\.docx$/),
     })
-    expect(mockCreateVisitorProfile.mock.invocationCallOrder[0]).toBeLessThan(
+    const visitorLookup = existingVisitor ? mockGetVisitorByEmail : mockCreateVisitorProfile
+    expect(visitorLookup.mock.invocationCallOrder[0]).toBeLessThan(
       mockApplyToJob.mock.invocationCallOrder[0],
     )
     expect(mockApplyToJob.mock.invocationCallOrder[0]).toBeLessThan(
@@ -414,8 +440,28 @@ describe('useCvBuilderDone', () => {
     })
   })
 
-  it('dispatches an error and stays in the flow when visitor application fails', async () => {
-    mockCreateVisitorProfile.mockRejectedValue(new Error('Visitor request failed'))
+  it.each([
+    { failure: 'creation', message: 'Visitor request failed', applyCalls: 0 },
+    { failure: 'lookup', message: 'Visitor lookup failed', applyCalls: 0 },
+    { failure: 'missing-id', message: 'Visitor profile did not return a visitor id.', applyCalls: 0 },
+    { failure: 'candidate', message: 'Please sign in to apply with your candidate account.', applyCalls: 0 },
+    { failure: 'apply', message: 'Job is no longer accepting applications.', applyCalls: 1 },
+  ])('stays in the flow and exposes the error on $failure failure', async ({ failure, message, applyCalls }) => {
+    mockCreateVisitorProfile.mockResolvedValue({ visitor_id: 'visitor-1' })
+    if (failure === 'creation') {
+      mockCreateVisitorProfile.mockRejectedValue(new Error(message))
+    } else if (failure === 'candidate') {
+      mockCheckVisitorEmail.mockResolvedValue({ is_present: true, type: 'CANDIDATE' })
+    } else {
+      mockCheckVisitorEmail.mockResolvedValue({ is_present: true, type: 'VISITOR' })
+      mockGetVisitorByEmail.mockResolvedValue(
+        failure === 'missing-id' ? {} : { visitor_id: 'visitor-1' },
+      )
+      if (failure === 'lookup') mockGetVisitorByEmail.mockRejectedValue(new Error(message))
+      if (failure === 'apply') {
+        mockApplyToJob.mockRejectedValue({ response: { data: { message } } })
+      }
+    }
     const guestApplicationDraft = createGuestApplicationDraft({
       jobId: 'j001',
       title: 'Senior Engineer',
@@ -444,12 +490,12 @@ describe('useCvBuilderDone', () => {
       await result.current.handleDone()
     })
 
-    expect(mockApplyToJob).not.toHaveBeenCalled()
+    expect(mockApplyToJob).toHaveBeenCalledTimes(applyCalls)
     expect(mockUploadVisitorDocument).not.toHaveBeenCalled()
     expect(mockNavigate).not.toHaveBeenCalled()
     expect(store.getState().notification.items).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ title: 'Application failed', level: 'error' }),
+        expect.objectContaining({ title: 'Application failed', level: 'error', message }),
       ]),
     )
   })

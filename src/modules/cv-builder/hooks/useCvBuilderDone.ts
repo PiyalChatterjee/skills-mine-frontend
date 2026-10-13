@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { useCandidateResourceId } from "@/modules/candidate/hooks/useCandidateQueries";
@@ -21,6 +21,7 @@ import type { SaveBuildMyCvRequest } from "@/types";
 import type { Role } from "@/types/auth";
 import type { CvBuilderFormValues } from "@/app/validation.schema";
 import { visitorApi } from "@/services/api/visitorApi";
+import { extractErrorMessage } from "@/app/errorUtils";
 import {
   saveGuestApplicationCv,
   type GuestApplicationDraft,
@@ -276,9 +277,11 @@ export const useCvBuilderDone = ({
   const [triggerResumeUpload] = useUploadCvResumeDocumentMutation();
   const [triggerVisitorDocumentUpload] = useUploadVisitorDocumentMutation();
 
-  const isSavingCandidateProfile = isCreating || isUpdating;
+  const submissionInProgress = useRef(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const isSavingCandidateProfile = isCreating || isUpdating || isSubmitting;
 
-  const handleDone = useCallback(async () => {
+  const submitCv = useCallback(async () => {
     const isFormValid = await validateForm?.();
     if (isFormValid === false) {
       return;
@@ -300,16 +303,23 @@ export const useCvBuilderDone = ({
       let docxFileName: string;
 
       try {
-        const createdVisitor = await visitorApi.createProfile(payload);
-        visitorId = createdVisitor.visitor_id;
-        if (!visitorId) {
-          throw new Error("Visitor profile creation did not return a visitor id.");
+        const email = payload.personalDetails?.email?.trim() ?? "";
+        const emailCheck = await visitorApi.checkEmail(email);
+        if (emailCheck.is_present && emailCheck.type === "CANDIDATE") {
+          throw new Error("Please sign in to apply with your candidate account.");
         }
-      } catch {
+        const visitor = emailCheck.is_present && emailCheck.type === "VISITOR"
+          ? await visitorApi.getByEmail(email)
+          : await visitorApi.createProfile(payload);
+        visitorId = visitor.visitor_id;
+        if (!visitorId) {
+          throw new Error("Visitor profile did not return a visitor id.");
+        }
+      } catch (error) {
         dispatch(
           pushNotification({
             title: "Application failed",
-            message: `We could not submit your application for ${guestApplicationDraft.jobTitle}. Please try again.`,
+            message: extractErrorMessage(error, `We could not submit your application for ${guestApplicationDraft.jobTitle}. Please try again.`),
             level: "error",
           }),
         );
@@ -350,11 +360,11 @@ export const useCvBuilderDone = ({
             guestApplicationDraft.job.jobProfileId ?? guestApplicationDraft.jobId,
         });
         matchScore = application.match_score_latest;
-      } catch {
+      } catch (error) {
         dispatch(
           pushNotification({
             title: "Application failed",
-            message: `We could not submit your application for ${guestApplicationDraft.jobTitle}. Please try again.`,
+            message: extractErrorMessage(error, `We could not submit your application for ${guestApplicationDraft.jobTitle}. Please try again.`),
             level: "error",
           }),
         );
@@ -541,6 +551,18 @@ export const useCvBuilderDone = ({
     navigate,
     validateForm,
   ]);
+
+  const handleDone = useCallback(async () => {
+    if (submissionInProgress.current) return;
+    submissionInProgress.current = true;
+    setIsSubmitting(true);
+    try {
+      await submitCv();
+    } finally {
+      submissionInProgress.current = false;
+      setIsSubmitting(false);
+    }
+  }, [submitCv]);
 
   return {
     handleDone,
