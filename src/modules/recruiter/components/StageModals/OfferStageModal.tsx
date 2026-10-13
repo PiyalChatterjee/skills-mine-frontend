@@ -51,7 +51,7 @@ const OfferStageModal = ({
 }: OfferStageModalProps) => {
   const [offerDate, setOfferDate] = useState(new Date().toISOString().split('T')[0])
   const [validUntil, setValidUntil] = useState('')
-  const [ctcTotal, setCtcTotal]   = useState('850000')
+  const [ctcTotal, setCtcTotal]   = useState('')
   const [advancing, setAdvancing] = useState(false)
   const [rejectOpen, setRejectOpen] = useState(false)
 

@@ -97,6 +97,9 @@ export const CandidateDetailScreen = () => {
   const [candidate, setCandidate] = useState<RecruiterCandidateProfile | null>(null)
   const [applications, setApplications] = useState<CandidateDashboardApplicationItem[]>([])
   const [applicationsLoading, setApplicationsLoading] = useState(true)
+  const [applicationsTotal, setApplicationsTotal] = useState(0)
+  const [applicationsPage, setApplicationsPage] = useState(1)
+  const [loadingMoreApplications, setLoadingMoreApplications] = useState(false)
   const [documents, setDocuments] = useState<CandidateDocument[]>([])
   const [documentsLoading, setDocumentsLoading] = useState(true)
   const [deletingDocumentId, setDeletingDocumentId] = useState<string | null>(null)
@@ -136,12 +139,20 @@ export const CandidateDetailScreen = () => {
     // Load candidate dashboard applications (GET /candidates/dashboard/:candidateId)
     setApplicationsLoading(true)
     recruiterCandidatesApi
-      .getCandidateDashboard(candidateId)
+      .getCandidateDashboard(candidateId, { page: 1, size: 10 })
       .then((res) => {
-        if (!cancelled) setApplications(res.applications ?? [])
+        if (!cancelled) {
+          setApplications(res.applications ?? [])
+          setApplicationsTotal(res.pagination?.totalItems ?? (res.applications ?? []).length)
+          setApplicationsPage(res.pagination?.currentPage ?? 1)
+        }
       })
       .catch(() => {
-        if (!cancelled) setApplications([])
+        if (!cancelled) {
+          setApplications([])
+          setApplicationsTotal(0)
+          setApplicationsPage(1)
+        }
       })
       .finally(() => {
         if (!cancelled) setApplicationsLoading(false)
@@ -179,6 +190,20 @@ export const CandidateDetailScreen = () => {
   }, [candidateId])
 
   const goBack = () => navigate(ROUTE_PATHS.recruiterCandidates)
+
+  const handleLoadMoreApplications = () => {
+    if (!candidateId || loadingMoreApplications) return
+    const nextPage = applicationsPage + 1
+    setLoadingMoreApplications(true)
+    recruiterCandidatesApi
+      .getCandidateDashboard(candidateId, { page: nextPage, size: 10 })
+      .then((res) => {
+        setApplications((prev) => [...prev, ...(res.applications ?? [])])
+        setApplicationsTotal(res.pagination?.totalItems ?? 0)
+        setApplicationsPage(res.pagination?.currentPage ?? nextPage)
+      })
+      .finally(() => setLoadingMoreApplications(false))
+  }
 
   // ── Loading ──
   if (loading) {
@@ -398,38 +423,55 @@ export const CandidateDetailScreen = () => {
                 No applications found for this candidate.
               </Typography>
             ) : (
-              applications.map((app) => (
-                <Box key={app.applicationId} className={styles.applicationRow}>
-                  <Typography component="span" className={styles.appJobTitle}>
-                    {app.jobTitle || '—'}
-                  </Typography>
-                  <Typography component="span" className={styles.appCompany}>
-                    {app.company || '—'}
-                  </Typography>
-                  <Box
-                    component="span"
-                    className={styles.appStageBadge}
-                    style={{ background: STAGE_COLORS[app.currentStage] ?? '#7c5cd8' }}
-                  >
-                    {app.currentStage}
+              <>
+                {applications.map((app) => (
+                  <Box key={app.applicationId} className={styles.applicationRow}>
+                    <Typography component="span" className={styles.appJobTitle}>
+                      {app.jobTitle || '—'}
+                    </Typography>
+                    <Typography component="span" className={styles.appCompany}>
+                      {app.company || '—'}
+                    </Typography>
+                    <Box
+                      component="span"
+                      className={styles.appStageBadge}
+                      style={{ background: STAGE_COLORS[app.currentStage] ?? '#7c5cd8' }}
+                    >
+                      {app.currentStage}
+                    </Box>
+                    <ButtonBase
+                      className={styles.appViewBtn}
+                      disableRipple
+                      onClick={() => {
+                        if (app.jobProfileId) {
+                          navigate(
+                            ROUTE_PATHS.recruiterCandidateJobDetail
+                              .replace(':candidateId', candidateId!)
+                              .replace(':jobProfileId', app.jobProfileId)
+                          )
+                        }
+                      }}
+                    >
+                      View <ArrowRightIcon />
+                    </ButtonBase>
                   </Box>
-                  <ButtonBase
-                    className={styles.appViewBtn}
-                    disableRipple
-                    onClick={() => {
-                      if (app.jobProfileId) {
-                        navigate(
-                          ROUTE_PATHS.recruiterCandidateJobDetail
-                            .replace(':candidateId', candidateId!)
-                            .replace(':jobProfileId', app.jobProfileId)
-                        )
-                      }
-                    }}
-                  >
-                    View <ArrowRightIcon />
-                  </ButtonBase>
-                </Box>
-              ))
+                ))}
+                {applications.length < applicationsTotal && (
+                  <Box className={styles.loadMoreRow}>
+                    <ButtonBase
+                      className={styles.loadMoreBtn}
+                      disableRipple
+                      onClick={handleLoadMoreApplications}
+                      disabled={loadingMoreApplications}
+                    >
+                      {loadingMoreApplications ? (
+                        <CircularProgress size={12} sx={{ color: '#03478C', mr: '6px' }} />
+                      ) : null}
+                      Load more
+                    </ButtonBase>
+                  </Box>
+                )}
+              </>
             )}
           </Box>
         </Box>

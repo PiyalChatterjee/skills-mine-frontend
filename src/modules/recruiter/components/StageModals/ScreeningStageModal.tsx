@@ -182,6 +182,13 @@ const ScreeningStageModal = ({
             </Box>
           </Box>
 
+          {/* ── Offline email notice ── */}
+          <Box className={styles.offlineNotice} role="status">
+            <Typography component="p" className={styles.offlineNoticeText}>
+              Recruiter needs to send the email to the candidate offline.
+            </Typography>
+          </Box>
+
           {/* ── Divider ── */}
           <Box className={styles.footerDivider} />
 

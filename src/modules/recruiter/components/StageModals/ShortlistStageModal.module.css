@@ -14,8 +14,8 @@
   position: relative;
   background: #ffffff;
   border-radius: 16px;
-  width: 100%;
-  max-width: 380px;
+  width: 628px;
+  max-height: 90vh;
   padding: 0 0 20px;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.10);
   display: flex;
@@ -72,6 +72,8 @@
 /* ── Content area (padded) ───────────────────────────────────────────── */
 .content {
   padding: 0 20px;
+  overflow-y: auto;
+  flex: 1;
 }
 
 /* ── Candidate name ──────────────────────────────────────────────────── */
@@ -198,7 +200,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 16px 0 0;
+  padding: 16px 0 16px;
 }
 
 /* Move back — outlined */
