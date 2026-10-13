@@ -485,18 +485,25 @@
 
 /* ── View More Button ────────────────────────────────────────────────── */
 .viewMoreBtn:global(.MuiButtonBase-root) {
-  display: none;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  padding: 10px 0 12px;
+  color: #2B96D9;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 400;
   line-height: 1.4;
-  text-align: center;
-  border-top: 1px solid #e2e8f0;
+  text-decoration: underline;
+  border-top: 1px solid #d4e6f1;
   border-radius: 0;
-  transition: background 0.12s ease;
+  background: transparent;
+  transition: color 0.12s ease, background 0.12s ease;
+  margin-top: 8px;
 }
 
 .viewMoreBtn:global(.MuiButtonBase-root):hover {
+  color: #1a78b4;
   background: #eef4fb;
 }
 

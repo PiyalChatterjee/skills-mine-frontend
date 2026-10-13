@@ -81,6 +81,7 @@ export interface CandidateExperience {
   startDate: string;
   endDate: string;
   responsibilities?: string;
+  projects?: string[];
 }
 
 export interface CandidateLanguage {

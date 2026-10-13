@@ -206,6 +206,9 @@ export const buildBuildMyCvRequest = ({
         .map(normalizeTextEntry)
         .filter(Boolean)
         .join("; "),
+      projects: ((entry.projects ?? []) as unknown[])
+        .map(normalizeTextEntry)
+        .filter(Boolean),
     }));
 
   return {
