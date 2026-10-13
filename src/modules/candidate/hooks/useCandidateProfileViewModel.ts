@@ -136,7 +136,7 @@ export const useCandidateProfileViewModel = () => {
       return;
     }
 
-    if (isDirty) {
+    if (isDirty || isPersonalEditing || isDesiredEditing) {
       const isFormValid = await validateAndFocusForm({ trigger, getValues, getFieldState });
       if (!isFormValid) {
         return;

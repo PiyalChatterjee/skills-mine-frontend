@@ -238,7 +238,7 @@ const ProfilePage = () => {
               onClick={handleDashboard}
               disabled={isLoading || isFetching}
             >
-              {isDirty ? "Save Changes" : "Go to Your Dashboard"}
+              {isDirty || isPersonalEditing || isDesiredEditing ? "Save Changes" : "Go to Your Dashboard"}
             </Button>
           </Box>
         </Stack>

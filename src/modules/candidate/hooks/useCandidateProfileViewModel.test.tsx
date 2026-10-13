@@ -145,6 +145,28 @@ describe("useCandidateProfileViewModel", () => {
     expect(mocks.navigate).toHaveBeenCalledWith("/candidate/dashboard");
   });
 
+  it.each([
+    ["personal", "handleEditPersonal"],
+    ["desired", "handleEditDesired"],
+  ] as const)(
+    "validates and saves when the %s section is in edit mode without field changes",
+    async (_section, handlerName) => {
+      const { result } = renderHook(() => useCandidateProfileViewModel());
+
+      act(() => {
+        result.current[handlerName]();
+      });
+
+      await act(async () => {
+        await result.current.handleDashboard();
+      });
+
+      expect(mocks.trigger).toHaveBeenCalledWith(undefined, { shouldFocus: true });
+      expect(mocks.useUpdateCandidateProfileMutation().mutateAsync).toHaveBeenCalledTimes(1);
+      expect(mocks.navigate).toHaveBeenCalledWith("/candidate/dashboard");
+    },
+  );
+
   it("validates and saves dirty profile changes before navigating", async () => {
     mocks.useZodForm.mockReturnValue({
       control: { name: "control" },
