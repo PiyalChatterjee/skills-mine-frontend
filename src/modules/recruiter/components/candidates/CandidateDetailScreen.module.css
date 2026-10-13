@@ -290,8 +290,31 @@
 .aiActionBtns {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 16px;
   align-items: flex-start;
+}
+
+.aiActionItem {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+.aiActionTitle {
+  margin: 0;
+  color: #1f2328;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.aiActionDescription {
+  margin: 0 0 4px;
+  color: #57606a;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 .aiBtn:global(.MuiButtonBase-root) {

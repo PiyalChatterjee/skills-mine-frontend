@@ -3,6 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { Box, ButtonBase, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Typography } from '@mui/material'
 import { UploadDocumentModal } from './UploadDocumentModal'
 import { recruiterCandidatesApi } from '@/services/api/recruiterCandidatesApi'
+import { aiApi } from '@/services/api/aiApi'
+import type { AiActionResponseItem } from '@/types/ai'
 import type {
   CandidateDashboardApplicationItem,
   CandidateDocument,
@@ -108,6 +110,8 @@ export const CandidateDetailScreen = () => {
   const [error, setError] = useState<string | null>(null)
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null)
   const [profileImagePreviewOpen, setProfileImagePreviewOpen] = useState(false)
+  const [aiActions, setAiActions] = useState<AiActionResponseItem[]>([])
+  const [aiActionsLoading, setAiActionsLoading] = useState(true)
 
   useEffect(() => {
     if (!candidateId) return
@@ -185,6 +189,20 @@ export const CandidateDetailScreen = () => {
         if (!cancelled && url) setProfileImageUrl(url)
       })
       .catch(() => { /* profile image is non-critical — silently ignore */ })
+
+    // Load last saved AI next-actions (GET /candidates/:candidateId/ai-actions)
+    setAiActionsLoading(true)
+    aiApi
+      .getCandidateAiActions(candidateId)
+      .then((res) => {
+        if (!cancelled) setAiActions(res.actions ?? [])
+      })
+      .catch(() => {
+        if (!cancelled) setAiActions([])
+      })
+      .finally(() => {
+        if (!cancelled) setAiActionsLoading(false)
+      })
 
     return () => { cancelled = true }
   }, [candidateId])
@@ -399,14 +417,25 @@ export const CandidateDetailScreen = () => {
                 <AiSparkleIcon  />
               </Box>
             </Box>
-            <Box className={styles.aiActionBtns}>
-              <ButtonBase className={styles.aiBtn} disableRipple>
-                Send Latest Matched Jobs
-              </ButtonBase>
-              <ButtonBase className={styles.aiBtn} disableRipple>
-                Send Outreach Email
-              </ButtonBase>
-            </Box>
+            {aiActionsLoading ? (
+              <Box className={styles.centeredState} sx={{ minHeight: 60 }}>
+                <CircularProgress size={24} />
+              </Box>
+            ) : aiActions.length === 0 ? (
+              <Typography sx={{ color: '#57606a', fontSize: 13 }}>
+                No next actions available for this candidate.
+              </Typography>
+            ) : (
+              <Box className={styles.aiActionBtns}>
+                {aiActions.map((action, index) => (
+                  <Box key={`${action.action_type}-${action.job_profile_id ?? index}`} className={styles.aiActionItem}>
+                    <ButtonBase className={styles.aiBtn} disableRipple>
+                      {action.cta_label}
+                    </ButtonBase>
+                  </Box>
+                ))}
+              </Box>
+            )}
           </Box>
 
           {/* Applications Section */}
