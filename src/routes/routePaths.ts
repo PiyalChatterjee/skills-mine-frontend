@@ -29,6 +29,7 @@ export const ROUTE_PATHS = {
   recruiterCandidateCvReview: '/recruiter/candidates/:candidateId/cv-review',
   recruiterVisitorCvReview: '/recruiter/visitors/:visitorId/cv-review',
   recruiterCandidateJobDetail: '/recruiter/candidates/:candidateId/job/:jobProfileId',
+  recruiterVisitorJobDetail: '/recruiter/visitors/:visitorId/job/:jobProfileId',
   crm: '/crm',
   recruiterCrm: '/recruiter/crm',
   manco: '/manco',

@@ -101,6 +101,44 @@ export type CheckVisitorEmailResponse = {
   type?: "VISITOR" | "CANDIDATE" | "NOT_FOUND";
 };
 
+export type VisitorDashboardApplicationItem = {
+  applicationId: string;
+  jobProfileId: string;
+  jobTitle: string;
+  company: string;
+  currentStage: string;
+};
+
+export type VisitorDashboardStaffResponse = {
+  visitorId: string;
+  applications: VisitorDashboardApplicationItem[];
+  pagination: {
+    currentPage: number;
+    pageSize: number;
+    totalItems: number;
+    totalPages: number;
+  };
+};
+
+type RawVisitorDashboardResponse = {
+  visitor_id: string;
+  applications: Array<{
+    application_id: string;
+    job_profile_id_ref?: string;
+    job_profile_id?: string;
+    job_title?: string;
+    company_name?: string;
+    company?: string;
+    current_stage_code?: string;
+  }>;
+  pagination: {
+    current_page: number;
+    page_size: number;
+    total_items: number;
+    total_pages: number;
+  };
+};
+
 // CV builder joins tasks with "; " into a single string; the API wants an array.
 const splitResponsibilities = (value?: string): string[] =>
   (value ?? "")
@@ -138,6 +176,7 @@ const toVisitorProfileRequest = ({
       end_date: isCurrent || !entry.endDate ? null : entry.endDate,
       is_current: isCurrent,
       responsibilities: splitResponsibilities(entry.responsibilities),
+      projects: entry.projects ?? [],
     };
   }),
   skills: skills?.map((skill) => ({ skill_name: skill })),
@@ -237,5 +276,35 @@ export const visitorApi = {
         { params: { email } },
       ),
     );
+  },
+
+  getDashboard(
+    visitorId: string,
+    params?: { page?: number; size?: number },
+  ): Promise<VisitorDashboardStaffResponse> {
+    const url = resolveEndpoint(apiEndpoints.visitor.dashboard, { visitorId });
+    return unwrapResponseData(
+      visitorApiClient.get<RawVisitorDashboardResponse>(url, { params }),
+    ).then((res) => ({
+      visitorId: res.visitor_id,
+      applications: (res.applications ?? []).map((app) => {
+        const rawStage = app.current_stage_code ?? '';
+        const stageFormatted =
+          rawStage.charAt(0).toUpperCase() + rawStage.slice(1).toLowerCase();
+        return {
+          applicationId: app.application_id,
+          jobProfileId:  app.job_profile_id_ref ?? app.job_profile_id ?? '',
+          jobTitle:      app.job_title ?? '',
+          company:       app.company_name ?? app.company ?? '',
+          currentStage:  stageFormatted || 'Inbound',
+        };
+      }),
+      pagination: {
+        currentPage: res.pagination?.current_page ?? 1,
+        pageSize:    res.pagination?.page_size ?? 10,
+        totalItems:  res.pagination?.total_items ?? 0,
+        totalPages:  res.pagination?.total_pages ?? 1,
+      },
+    }));
   },
 };

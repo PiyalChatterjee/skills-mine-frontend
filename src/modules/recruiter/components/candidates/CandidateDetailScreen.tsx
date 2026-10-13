@@ -3,6 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { Box, ButtonBase, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Typography } from '@mui/material'
 import { UploadDocumentModal } from './UploadDocumentModal'
 import { recruiterCandidatesApi } from '@/services/api/recruiterCandidatesApi'
+import { aiApi } from '@/services/api/aiApi'
+import type { AiActionResponseItem } from '@/types/ai'
 import type {
   CandidateDashboardApplicationItem,
   CandidateDocument,
@@ -97,6 +99,9 @@ export const CandidateDetailScreen = () => {
   const [candidate, setCandidate] = useState<RecruiterCandidateProfile | null>(null)
   const [applications, setApplications] = useState<CandidateDashboardApplicationItem[]>([])
   const [applicationsLoading, setApplicationsLoading] = useState(true)
+  const [applicationsTotal, setApplicationsTotal] = useState(0)
+  const [applicationsPage, setApplicationsPage] = useState(1)
+  const [loadingMoreApplications, setLoadingMoreApplications] = useState(false)
   const [documents, setDocuments] = useState<CandidateDocument[]>([])
   const [documentsLoading, setDocumentsLoading] = useState(true)
   const [deletingDocumentId, setDeletingDocumentId] = useState<string | null>(null)
@@ -105,6 +110,8 @@ export const CandidateDetailScreen = () => {
   const [error, setError] = useState<string | null>(null)
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null)
   const [profileImagePreviewOpen, setProfileImagePreviewOpen] = useState(false)
+  const [aiActions, setAiActions] = useState<AiActionResponseItem[]>([])
+  const [aiActionsLoading, setAiActionsLoading] = useState(true)
 
   useEffect(() => {
     if (!candidateId) return
@@ -136,12 +143,20 @@ export const CandidateDetailScreen = () => {
     // Load candidate dashboard applications (GET /candidates/dashboard/:candidateId)
     setApplicationsLoading(true)
     recruiterCandidatesApi
-      .getCandidateDashboard(candidateId)
+      .getCandidateDashboard(candidateId, { page: 1, size: 10 })
       .then((res) => {
-        if (!cancelled) setApplications(res.applications ?? [])
+        if (!cancelled) {
+          setApplications(res.applications ?? [])
+          setApplicationsTotal(res.pagination?.totalItems ?? (res.applications ?? []).length)
+          setApplicationsPage(res.pagination?.currentPage ?? 1)
+        }
       })
       .catch(() => {
-        if (!cancelled) setApplications([])
+        if (!cancelled) {
+          setApplications([])
+          setApplicationsTotal(0)
+          setApplicationsPage(1)
+        }
       })
       .finally(() => {
         if (!cancelled) setApplicationsLoading(false)
@@ -175,10 +190,38 @@ export const CandidateDetailScreen = () => {
       })
       .catch(() => { /* profile image is non-critical — silently ignore */ })
 
+    // Load last saved AI next-actions (GET /candidates/:candidateId/ai-actions)
+    setAiActionsLoading(true)
+    aiApi
+      .getCandidateAiActions(candidateId)
+      .then((res) => {
+        if (!cancelled) setAiActions(res.actions ?? [])
+      })
+      .catch(() => {
+        if (!cancelled) setAiActions([])
+      })
+      .finally(() => {
+        if (!cancelled) setAiActionsLoading(false)
+      })
+
     return () => { cancelled = true }
   }, [candidateId])
 
   const goBack = () => navigate(ROUTE_PATHS.recruiterCandidates)
+
+  const handleLoadMoreApplications = () => {
+    if (!candidateId || loadingMoreApplications) return
+    const nextPage = applicationsPage + 1
+    setLoadingMoreApplications(true)
+    recruiterCandidatesApi
+      .getCandidateDashboard(candidateId, { page: nextPage, size: 10 })
+      .then((res) => {
+        setApplications((prev) => [...prev, ...(res.applications ?? [])])
+        setApplicationsTotal(res.pagination?.totalItems ?? 0)
+        setApplicationsPage(res.pagination?.currentPage ?? nextPage)
+      })
+      .finally(() => setLoadingMoreApplications(false))
+  }
 
   // ── Loading ──
   if (loading) {
@@ -374,14 +417,25 @@ export const CandidateDetailScreen = () => {
                 <AiSparkleIcon  />
               </Box>
             </Box>
-            <Box className={styles.aiActionBtns}>
-              <ButtonBase className={styles.aiBtn} disableRipple>
-                Send Latest Matched Jobs
-              </ButtonBase>
-              <ButtonBase className={styles.aiBtn} disableRipple>
-                Send Outreach Email
-              </ButtonBase>
-            </Box>
+            {aiActionsLoading ? (
+              <Box className={styles.centeredState} sx={{ minHeight: 60 }}>
+                <CircularProgress size={24} />
+              </Box>
+            ) : aiActions.length === 0 ? (
+              <Typography sx={{ color: '#57606a', fontSize: 13 }}>
+                No next actions available for this candidate.
+              </Typography>
+            ) : (
+              <Box className={styles.aiActionBtns}>
+                {aiActions.map((action, index) => (
+                  <Box key={`${action.action_type}-${action.job_profile_id ?? index}`} className={styles.aiActionItem}>
+                    <ButtonBase className={styles.aiBtn} disableRipple>
+                      {action.cta_label}
+                    </ButtonBase>
+                  </Box>
+                ))}
+              </Box>
+            )}
           </Box>
 
           {/* Applications Section */}
@@ -398,38 +452,55 @@ export const CandidateDetailScreen = () => {
                 No applications found for this candidate.
               </Typography>
             ) : (
-              applications.map((app) => (
-                <Box key={app.applicationId} className={styles.applicationRow}>
-                  <Typography component="span" className={styles.appJobTitle}>
-                    {app.jobTitle || '—'}
-                  </Typography>
-                  <Typography component="span" className={styles.appCompany}>
-                    {app.company || '—'}
-                  </Typography>
-                  <Box
-                    component="span"
-                    className={styles.appStageBadge}
-                    style={{ background: STAGE_COLORS[app.currentStage] ?? '#7c5cd8' }}
-                  >
-                    {app.currentStage}
+              <>
+                {applications.map((app) => (
+                  <Box key={app.applicationId} className={styles.applicationRow}>
+                    <Typography component="span" className={styles.appJobTitle}>
+                      {app.jobTitle || '—'}
+                    </Typography>
+                    <Typography component="span" className={styles.appCompany}>
+                      {app.company || '—'}
+                    </Typography>
+                    <Box
+                      component="span"
+                      className={styles.appStageBadge}
+                      style={{ background: STAGE_COLORS[app.currentStage] ?? '#7c5cd8' }}
+                    >
+                      {app.currentStage}
+                    </Box>
+                    <ButtonBase
+                      className={styles.appViewBtn}
+                      disableRipple
+                      onClick={() => {
+                        if (app.jobProfileId) {
+                          navigate(
+                            ROUTE_PATHS.recruiterCandidateJobDetail
+                              .replace(':candidateId', candidateId!)
+                              .replace(':jobProfileId', app.jobProfileId)
+                          )
+                        }
+                      }}
+                    >
+                      View <ArrowRightIcon />
+                    </ButtonBase>
                   </Box>
-                  <ButtonBase
-                    className={styles.appViewBtn}
-                    disableRipple
-                    onClick={() => {
-                      if (app.jobProfileId) {
-                        navigate(
-                          ROUTE_PATHS.recruiterCandidateJobDetail
-                            .replace(':candidateId', candidateId!)
-                            .replace(':jobProfileId', app.jobProfileId)
-                        )
-                      }
-                    }}
-                  >
-                    View <ArrowRightIcon />
-                  </ButtonBase>
-                </Box>
-              ))
+                ))}
+                {applications.length < applicationsTotal && (
+                  <Box className={styles.loadMoreRow}>
+                    <ButtonBase
+                      className={styles.loadMoreBtn}
+                      disableRipple
+                      onClick={handleLoadMoreApplications}
+                      disabled={loadingMoreApplications}
+                    >
+                      {loadingMoreApplications ? (
+                        <CircularProgress size={12} sx={{ color: '#03478C', mr: '6px' }} />
+                      ) : null}
+                      Load more
+                    </ButtonBase>
+                  </Box>
+                )}
+              </>
             )}
           </Box>
         </Box>

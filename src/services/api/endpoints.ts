@@ -97,6 +97,7 @@ export const apiEndpoints = {
   visitor: {
     profile: "/visitors",
     detail: "/visitors/:visitorId",
+    dashboard: "/visitors/dashboard/:visitorId",
     byEmail: "/visitors/by-email",
     checkEmail: "/visitors/email",
     apply: "/visitors/apply",

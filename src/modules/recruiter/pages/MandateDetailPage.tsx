@@ -49,7 +49,12 @@ const ArrowRightIcon = () => (
 
 const MandateDetailPage = () => {
   const navigate = useNavigate()
-  const { jobProfileId, candidateId, cardId } = useParams<{ jobProfileId: string; candidateId: string; cardId: string }>()
+  const { jobProfileId, candidateId, visitorId, cardId } = useParams<{
+    jobProfileId: string
+    candidateId: string
+    visitorId: string
+    cardId: string
+  }>()
 
   const [jobProfile, setJobProfile] = useState<JobProfile | null>(null)
   const [loading, setLoading] = useState(true)
@@ -121,7 +126,9 @@ const MandateDetailPage = () => {
   }
 
   const goBack = () => {
-    if (candidateId) {
+    if (visitorId) {
+      navigate(ROUTE_PATHS.recruiterVisitorDetail.replace(':visitorId', visitorId))
+    } else if (candidateId) {
       navigate(ROUTE_PATHS.recruiterCandidateDetail.replace(':candidateId', candidateId))
     } else {
       navigate(ROUTE_PATHS.recruiterDashboard)
@@ -199,7 +206,7 @@ const MandateDetailPage = () => {
           </ButtonBase>
           <Box className={styles.breadcrumbDivider} />
           <ButtonBase className={styles.breadcrumbLink} onClick={goBack} disableRipple>
-            {candidateId ? 'Candidates' : 'Job Posts'}
+            {visitorId || candidateId ? 'Candidates' : 'Job Posts'}
           </ButtonBase>
           <Box className={styles.breadcrumbArrow}><ChevronRightIcon /></Box>
           <Typography component="span" className={styles.breadcrumbCurrent}>

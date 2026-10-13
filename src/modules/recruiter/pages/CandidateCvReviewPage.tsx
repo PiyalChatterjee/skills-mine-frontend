@@ -8,6 +8,8 @@ import useCvBuilder, { type CvBuilderPrefillData } from '@/modules/cv-builder/ho
 import { isoToMonthName, buildBuildMyCvRequest } from '@/modules/cv-builder/hooks/useCvBuilderDone'
 import { LANGUAGES_LIST } from '@/modules/cv-builder/types/cvBuilder'
 import { recruiterCandidatesApi, type RecruiterCandidateCvBuild } from '@/services/api/recruiterCandidatesApi'
+import { visitorApi } from '@/services/api/visitorApi'
+import { fromSouthAfricaApiPhoneNumber, toSouthAfricaApiPhoneNumber } from '@/app/phoneNumber'
 import { ROUTE_PATHS } from '@/routes/routePaths'
 import detailStyles from '@/modules/recruiter/components/candidates/CandidateDetailScreen.module.css'
 import recruiterShell from './CandidatesPage.module.css'
@@ -80,6 +82,7 @@ const CandidateCvReviewInner = ({
   const isVisitor = !candidateId && !!visitorId
   const navigate = useNavigate()
   const [prefill, setPrefill]             = useState<CvBuilderPrefillData | undefined>(undefined)
+  const [contact, setContact]             = useState<{ email: string; phoneNumber: string } | null>(null)
   const [candidateName, setCandidateName] = useState('')
   const [loading, setLoading]             = useState(true)
   const [error, setError]                 = useState<string | null>(null)
@@ -97,6 +100,14 @@ const CandidateCvReviewInner = ({
         if (cancelled) return
         const pd = data.personalDetails
         setCandidateName(`${pd.firstName} ${pd.lastName}`.trim())
+        if (isVisitor) {
+          // Form expects a 10-digit local number; API returns +27XXXXXXXXX
+          const local = fromSouthAfricaApiPhoneNumber(pd.phoneNumber)
+          setContact({
+            email:       pd.email,
+            phoneNumber: local.length === 9 ? `0${local}` : local,
+          })
+        }
         setPrefill(toPrefillData(data))
       })
       .catch(() => {
@@ -114,7 +125,14 @@ const CandidateCvReviewInner = ({
       ? navigate(ROUTE_PATHS.recruiterVisitorDetail.replace(':visitorId', ownerId))
       : navigate(ROUTE_PATHS.recruiterCandidateDetail.replace(':candidateId', ownerId))
 
-  const { form, selectedLanguageEntries } = useCvBuilder(prefill, /* forceApply */ true, /* initialView */ 'review')
+  const { form, selectedLanguageEntries } = useCvBuilder(prefill, /* forceApply */ true, /* initialView */ 'review', isVisitor)
+
+  // useCvBuilder's prefill does not apply email/phone — set them for visitors after it resets the form
+  useEffect(() => {
+    if (!prefill || !contact) return
+    form.setValue('personalDetails.email', contact.email)
+    form.setValue('personalDetails.phoneNumber', contact.phoneNumber)
+  }, [prefill, contact]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSave = async () => {
     setSaving(true)
@@ -126,7 +144,18 @@ const CandidateCvReviewInner = ({
       })
 
       // 1. Persist the structured CV data
-      await recruiterCandidatesApi.saveCandidateCvBuild(ownerId, cvRequest)
+      if (isVisitor) {
+        // POST /visitors
+        await visitorApi.createProfile({
+          ...cvRequest,
+          personalDetails: {
+            ...cvRequest.personalDetails,
+            phoneNumber: toSouthAfricaApiPhoneNumber(cvRequest.personalDetails?.phoneNumber ?? ''),
+          },
+        })
+      } else {
+        await recruiterCandidatesApi.saveCandidateCvBuild(ownerId, cvRequest)
+      }
 
       const payloadText = JSON.stringify(cvRequest, null, 2)
       const pd = cvRequest.personalDetails
@@ -222,7 +251,7 @@ const CandidateCvReviewInner = ({
 
             {/* CV review sections */}
             <FormProvider {...form}>
-              <CvBuilderReviewScreen title="" description="" showGenerateSkills={false} />
+              <CvBuilderReviewScreen title="" description="" showGenerateSkills={false} isVisitor={isVisitor} />
             </FormProvider>
 
             {/* ── Save bar ── */}

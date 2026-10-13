@@ -199,6 +199,10 @@ export const AppRoutes = () => {
               element={<MandateDetailPage />}
             />
             <Route
+              path={ROUTE_PATHS.recruiterVisitorJobDetail}
+              element={<MandateDetailPage />}
+            />
+            <Route
               path={ROUTE_PATHS.recruiterCrm}
               element={<RecruiterCrmPage />}
             />

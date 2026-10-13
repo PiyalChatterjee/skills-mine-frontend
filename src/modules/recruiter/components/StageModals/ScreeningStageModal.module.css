@@ -14,8 +14,8 @@
   position: relative;
   background: #ffffff;
   border-radius: 16px;
-  width: 100%;
-  max-width: 380px;
+  width: 572px;
+  height: 595px;
   padding: 0 0 20px;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.10);
   display: flex;
@@ -212,12 +212,30 @@
   margin: 20px 0 0;
 }
 
+/* ── Offline email notice (snackbar style) ───────────────────────────── */
+.offlineNotice {
+  margin: 16px 0 0;
+  padding: 10px 14px;
+  background: #EAF2FB;
+  border: 1px solid #B6D0EE;
+  border-radius: 8px;
+}
+
+.offlineNoticeText {
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: #1E5FA8;
+  line-height: 1.45;
+  margin: 0;
+}
+
 /* ── Action row ──────────────────────────────────────────────────────── */
 .actionRow {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 16px 0 0;
+  padding: 16px 0 16px;
 }
 
 /* Move back — outlined */

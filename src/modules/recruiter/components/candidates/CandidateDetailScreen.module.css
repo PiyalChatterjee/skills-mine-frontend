@@ -290,8 +290,31 @@
 .aiActionBtns {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 16px;
   align-items: flex-start;
+}
+
+.aiActionItem {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+.aiActionTitle {
+  margin: 0;
+  color: #1f2328;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.aiActionDescription {
+  margin: 0 0 4px;
+  color: #57606a;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 .aiBtn:global(.MuiButtonBase-root) {
@@ -427,6 +450,44 @@
 
 .appViewBtn:global(.MuiButtonBase-root):hover {
   color: #2470c2;
+}
+
+/* ── Load more row ───────────────────────────────────────────────────── */
+.loadMoreRow {
+  display: flex;
+  justify-content: center;
+  padding: 12px 0 4px;
+  border-top: 1px solid #e1e3e6;
+  margin-top: 4px;
+}
+
+.loadMoreBtn,
+:global(.MuiButtonBase-root).loadMoreBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 14px;
+  border-radius: 20px;
+  border: 1px solid #03478c;
+  color: #03478c;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.5;
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.loadMoreBtn:hover,
+:global(.MuiButtonBase-root).loadMoreBtn:hover {
+  background: #eaf3fb;
+}
+
+.loadMoreBtn:disabled,
+:global(.MuiButtonBase-root).loadMoreBtn:disabled {
+  opacity: 0.55;
+  cursor: default;
 }
 
 /* ── Documents section ────────────────────────────────────────────────── */

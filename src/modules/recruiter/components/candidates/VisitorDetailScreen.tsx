@@ -5,10 +5,26 @@ import { UploadDocumentModal } from './UploadDocumentModal'
 import { recruiterCandidatesApi } from '@/services/api/recruiterCandidatesApi'
 import type { CandidateDocument } from '@/services/api/recruiterCandidatesApi'
 import { visitorApi } from '@/services/api/visitorApi'
-import type { VisitorRecordResponse } from '@/services/api/visitorApi'
+import type {
+  VisitorDashboardApplicationItem,
+  VisitorRecordResponse,
+} from '@/services/api/visitorApi'
 import { ROUTE_PATHS } from '@/routes/routePaths'
 import { formatPhoneNumberDisplay } from '@/app/phoneNumber'
 import styles from './CandidateDetailScreen.module.css'
+
+// ── Stage badge colors ─────────────────────────────────────────────────
+const STAGE_COLORS: Record<string, string> = {
+  Interview:   '#7c5cd8',
+  Shortlisted: '#2196a8',
+  Screening:   '#2196a8',
+  Inbound:     '#3aafb9',
+  Applied:     '#3aafb9',
+  Assessment:  '#f59e0b',
+  Offer:       '#4baf73',
+  Placed:      '#2f9a5f',
+  Closed:      '#d96b6b',
+}
 
 // ── Icons ──────────────────────────────────────────────────────────────
 
@@ -34,6 +50,12 @@ const DocIcon = () => (
 const UploadIcon = () => (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="#57606a" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+)
+
+const ArrowRightIcon = () => (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path d="M5 12h14M13 6l6 6-6 6" stroke="#03478C" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 )
 
@@ -69,6 +91,11 @@ export const VisitorDetailScreen = () => {
 
   const [uploadModalOpen, setUploadModalOpen] = useState(false)
   const [visitor, setVisitor] = useState<VisitorRecordResponse | null>(null)
+  const [applications, setApplications] = useState<VisitorDashboardApplicationItem[]>([])
+  const [applicationsLoading, setApplicationsLoading] = useState(true)
+  const [applicationsTotal, setApplicationsTotal] = useState(0)
+  const [applicationsPage, setApplicationsPage] = useState(1)
+  const [loadingMoreApplications, setLoadingMoreApplications] = useState(false)
   const [documents, setDocuments] = useState<CandidateDocument[]>([])
   const [documentsLoading, setDocumentsLoading] = useState(true)
   const [deletingDocumentId, setDeletingDocumentId] = useState<string | null>(null)
@@ -102,6 +129,28 @@ export const VisitorDetailScreen = () => {
         if (!cancelled) setLoading(false)
       })
 
+    // Load visitor dashboard applications (GET /visitors/dashboard/:visitorId)
+    setApplicationsLoading(true)
+    visitorApi
+      .getDashboard(visitorId, { page: 1, size: 10 })
+      .then((res) => {
+        if (!cancelled) {
+          setApplications(res.applications ?? [])
+          setApplicationsTotal(res.pagination?.totalItems ?? (res.applications ?? []).length)
+          setApplicationsPage(res.pagination?.currentPage ?? 1)
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setApplications([])
+          setApplicationsTotal(0)
+          setApplicationsPage(1)
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setApplicationsLoading(false)
+      })
+
     // Load documents (GET /documents/owner/VISITOR/:visitorId)
     setDocumentsLoading(true)
     recruiterCandidatesApi
@@ -120,6 +169,20 @@ export const VisitorDetailScreen = () => {
   }, [visitorId])
 
   const goBack = () => navigate(ROUTE_PATHS.recruiterCandidates)
+
+  const handleLoadMoreApplications = () => {
+    if (!visitorId || loadingMoreApplications) return
+    const nextPage = applicationsPage + 1
+    setLoadingMoreApplications(true)
+    visitorApi
+      .getDashboard(visitorId, { page: nextPage, size: 10 })
+      .then((res) => {
+        setApplications((prev) => [...prev, ...(res.applications ?? [])])
+        setApplicationsTotal(res.pagination?.totalItems ?? 0)
+        setApplicationsPage(res.pagination?.currentPage ?? nextPage)
+      })
+      .finally(() => setLoadingMoreApplications(false))
+  }
 
   // ── Loading ──
   if (loading) {
@@ -252,34 +315,70 @@ export const VisitorDetailScreen = () => {
         {/* ── Left column ── */}
         <Box className={styles.leftCol}>
 
-          {/* AI Next Actions */}
-          {/* <Box className={styles.aiActionsSection}>
-            <Box className={styles.aiActionsHeading}>
-              <Typography component="span" className={styles.aiTitle}>
-                Next Actions for this Candidate
-              </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-                <AiSparkleIcon  />
-              </Box>
-            </Box>
-            <Box className={styles.aiActionBtns}>
-              <ButtonBase className={styles.aiBtn} disableRipple>
-                Send Latest Matched Jobs
-              </ButtonBase>
-              <ButtonBase className={styles.aiBtn} disableRipple>
-                Send Outreach Email
-              </ButtonBase>
-            </Box>
-          </Box> */}
-
           {/* Applications Section */}
           <Box className={styles.applicationsSection}>
             <Typography component="h2" className={styles.sectionTitle}>
               Applications
             </Typography>
-            <Typography sx={{ color: '#57606a', fontSize: 13, py: 1 }}>
-              No applications found for this candidate.
-            </Typography>
+            {applicationsLoading ? (
+              <Box className={styles.centeredState} sx={{ minHeight: 80 }}>
+                <CircularProgress size={24} />
+              </Box>
+            ) : applications.length === 0 ? (
+              <Typography sx={{ color: '#57606a', fontSize: 13, py: 1 }}>
+                No applications found for this candidate.
+              </Typography>
+            ) : (
+              <>
+                {applications.map((app) => (
+                  <Box key={app.applicationId} className={styles.applicationRow}>
+                    <Typography component="span" className={styles.appJobTitle}>
+                      {app.jobTitle || '—'}
+                    </Typography>
+                    <Typography component="span" className={styles.appCompany}>
+                      {app.company || '—'}
+                    </Typography>
+                    <Box
+                      component="span"
+                      className={styles.appStageBadge}
+                      style={{ background: STAGE_COLORS[app.currentStage] ?? '#7c5cd8' }}
+                    >
+                      {app.currentStage}
+                    </Box>
+                    <ButtonBase
+                      className={styles.appViewBtn}
+                      disableRipple
+                      onClick={() => {
+                        if (app.jobProfileId) {
+                          navigate(
+                            ROUTE_PATHS.recruiterVisitorJobDetail
+                              .replace(':visitorId', visitorId!)
+                              .replace(':jobProfileId', app.jobProfileId)
+                          )
+                        }
+                      }}
+                    >
+                      View <ArrowRightIcon />
+                    </ButtonBase>
+                  </Box>
+                ))}
+                {applications.length < applicationsTotal && (
+                  <Box className={styles.loadMoreRow}>
+                    <ButtonBase
+                      className={styles.loadMoreBtn}
+                      disableRipple
+                      onClick={handleLoadMoreApplications}
+                      disabled={loadingMoreApplications}
+                    >
+                      {loadingMoreApplications ? (
+                        <CircularProgress size={12} sx={{ color: '#03478C', mr: '6px' }} />
+                      ) : null}
+                      Load more
+                    </ButtonBase>
+                  </Box>
+                )}
+              </>
+            )}
           </Box>
         </Box>
 

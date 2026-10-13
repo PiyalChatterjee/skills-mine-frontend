@@ -325,6 +325,8 @@ const buildColumnsFromApi = (
 
 // ── Main Component ────────────────────────────────────────────────────
 
+const CARDS_VISIBLE = 4
+
 const RecruiterPage = () => {
   usePageTitle("Recruiter Dashboard");
   const navigate = useNavigate();
@@ -338,6 +340,7 @@ const RecruiterPage = () => {
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [columns, setColumns] = useState<PipelineColumn[]>(PIPELINE_COLUMNS);
+  const [allExpanded, setAllExpanded] = useState(false);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
   );
@@ -427,7 +430,7 @@ const RecruiterPage = () => {
   };
 
   const handleViewMore = () => {
-    navigate(ROUTE_PATHS.recruiterDashboard);
+    setAllExpanded(true);
   };
 
   const handleCardView = (_cardId: string, jobProfileId: string, _stage: PipelineStageLabel) => {
@@ -567,27 +570,33 @@ const RecruiterPage = () => {
               {/* Cards board */}
               <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
                 <Box className={styles.pipelineBoard}>
-                  {columns.map((col) => (
-                    <PipelineColumnDrop key={col.label} label={col.label}>
-                      <Box className={styles.colCards}>
-                        {col.cards.map((card) => (
-                          <PipelineCardItem
-                            key={card.id}
-                            card={card}
-                            onView={handleCardView}
-                          />
-                        ))}
-                      </Box>
+                  {columns.map((col) => {
+                    const visibleCards = allExpanded ? col.cards : col.cards.slice(0, CARDS_VISIBLE)
+                    const hasMore = !allExpanded && col.cards.length > CARDS_VISIBLE
+                    return (
+                      <PipelineColumnDrop key={col.label} label={col.label}>
+                        <Box className={styles.colCards}>
+                          {visibleCards.map((card) => (
+                            <PipelineCardItem
+                              key={card.id}
+                              card={card}
+                              onView={handleCardView}
+                            />
+                          ))}
+                        </Box>
 
-                      <ButtonBase
-                        className={styles.viewMoreBtn}
-                        onClick={handleViewMore}
-                        disableRipple
-                      >
-                        View more
-                      </ButtonBase>
-                    </PipelineColumnDrop>
-                  ))}
+                        {hasMore && (
+                          <ButtonBase
+                            className={styles.viewMoreBtn}
+                            onClick={handleViewMore}
+                            disableRipple
+                          >
+                            View more
+                          </ButtonBase>
+                        )}
+                      </PipelineColumnDrop>
+                    )
+                  })}
                 </Box>
               </DndContext>
             </Box>

@@ -209,6 +209,8 @@ export type RecruiterCandidateCvBuild = {
   personalDetails: {
     firstName: string;
     lastName: string;
+    email: string;
+    phoneNumber: string;
     race: string;
     gender: string;
     disabilityStatus: string;
@@ -241,6 +243,8 @@ const mapCvBuildResponse = (raw: RawCvBuildResponse): RecruiterCandidateCvBuild 
     personalDetails: {
       firstName:        pd.first_name ?? "",
       lastName:         pd.last_name ?? "",
+      email:            pd.email ?? "",
+      phoneNumber:      pd.phone_number ?? "",
       race:             pd.race ?? "",
       gender:           pd.gender ?? "",
       disabilityStatus: pd.disability_status ?? "",
