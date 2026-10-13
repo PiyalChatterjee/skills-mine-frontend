@@ -315,26 +315,6 @@ export const VisitorDetailScreen = () => {
         {/* ── Left column ── */}
         <Box className={styles.leftCol}>
 
-          {/* AI Next Actions */}
-          {/* <Box className={styles.aiActionsSection}>
-            <Box className={styles.aiActionsHeading}>
-              <Typography component="span" className={styles.aiTitle}>
-                Next Actions for this Candidate
-              </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-                <AiSparkleIcon  />
-              </Box>
-            </Box>
-            <Box className={styles.aiActionBtns}>
-              <ButtonBase className={styles.aiBtn} disableRipple>
-                Send Latest Matched Jobs
-              </ButtonBase>
-              <ButtonBase className={styles.aiBtn} disableRipple>
-                Send Outreach Email
-              </ButtonBase>
-            </Box>
-          </Box> */}
-
           {/* Applications Section */}
           <Box className={styles.applicationsSection}>
             <Typography component="h2" className={styles.sectionTitle}>
