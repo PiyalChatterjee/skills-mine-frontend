@@ -13,54 +13,58 @@ import type { DashboardApplication } from "@/types/api";
 
 export const DASHBOARD_APPLICATION_STATUS_CONFIG: Record<
   ApplicationStatusKey,
-  { label: string; color: string; caption?: string }
+  { label: string; color: string; caption: string }
 > = {
   applied: {
     label: "Applied",
     color: "#72c4e0",
-    caption: "Your application has been submitted.",
+    caption: "Your job application has been successfully submitted and is now with the recruiter.",
   },
   screening: {
     label: "Screening",
     color: "#4db8c8",
-    caption: "Your application is under review.",
+    caption: "The recruiter is currently reviewing your application.",
   },
   assessment: {
     label: "Assessment",
     color: "#f0a500",
-    caption: "You have been invited to complete an assessment.",
+    caption: "You have been invited to complete an assessment for this position.",
   },
   interview: {
     label: "Interview",
     color: "#7c5cd8",
-    caption: "You have been selected for an interview.",
+    caption: "Good news! You have been invited to an interview for this position.",
   },
   shortlisted: {
     label: "Shortlisted",
     color: "#e085c2",
-    caption: "You have been shortlisted for this role.",
+    caption: "Good news! You have been shortlisted for this position.",
   },
   offer_extended: {
     label: "Offer",
     color: "#5bbf8a",
-    caption: "You have received an offer.",
+    caption: "Good news! An offer for this position has been extended to you!",
   },
   offer_accepted: {
     label: "Closed",
     color: "#4BAF73",
-    caption: "You have accepted the offer.",
+    caption: "Good news! You have accepted the offer for this position.",
   },
   offer_declined: {
     label: "Closed",
     color: "#D64545",
-    caption: "You have declined the offer.",
+    caption: "You have declined the offer for this position. Thank you for your interest!",
   },
   rejected: {
     label: "Closed",
     color: "#D64545",
-    caption: "Your application was not successful.",
+    caption: "Unfortunately, your application for this position was not successful. Thank you for your interest!",
   },
-  unknown: { label: "Unknown stage", color: "#7a8694" },
+  unknown: {
+    label: "Unknown stage",
+    color: "#7a8694",
+    caption: "Your application status is currently unavailable.",
+  },
 };
 
 const CLOSED_STAGES = new Set(["closed", "offer_accepted", "offer_declined", "reject", "rejected"]);
@@ -152,7 +156,7 @@ const transformApplicationToDisplay = (
       isActive: getApplicationStatusKey(stageKey) === progressStatus,
     })),
     fillPercent: displayStatus === "offer_declined" ? 100 : getPipelineFillPercent(progressStage, pipeline),
-    message: app.statusMessage || DASHBOARD_APPLICATION_STATUS_CONFIG[displayStatus === "offer_declined" ? displayStatus : status].caption || "",
+    message: DASHBOARD_APPLICATION_STATUS_CONFIG[displayStatus].caption,
     offerAccepted: false,
   };
 };

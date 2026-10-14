@@ -75,7 +75,7 @@ describe("useCandidateDashboardViewModel", () => {
       title: "Product Designer",
       status: "interview",
       fillPercent: 58,
-      message: "Interview scheduled.",
+      message: "Good news! You have been invited to an interview for this position.",
       offerAccepted: false,
     });
     expect(result.current.applications[0].pipelineStages).toEqual([
@@ -231,7 +231,7 @@ describe("useCandidateDashboardViewModel", () => {
     expect(DASHBOARD_APPLICATION_STATUS_CONFIG[app.status].label).toBe(label);
     expect(app.fillPercent).toBe(fillPercent);
     expect(app.pipelineStages.find((stage) => stage.isActive)?.key).toBe(activeStage);
-    expect(app.message).toBe("Your application was not successful.");
+    expect(app.message).toBe(DASHBOARD_APPLICATION_STATUS_CONFIG[status].caption);
   });
 
   it.each(["OFFER", "offer_extended", " offer "])("shows a complete red Closed status for rejection at %s", (rejectedAtStage) => {
@@ -243,6 +243,7 @@ describe("useCandidateDashboardViewModel", () => {
             job: { id: "job-6", title: "Application Developer" },
             stage: "REJECT",
             rejectedAtStage,
+            statusMessage: "Your application was not successful. Find out more",
           },
         ],
       },
@@ -259,6 +260,58 @@ describe("useCandidateDashboardViewModel", () => {
     });
     expect(app.fillPercent).toBe(100);
     expect(app.pipelineStages.find((stage) => stage.isActive)?.key).toBe("OFFER");
-    expect(app.message).toBe("You have declined the offer.");
+    expect(app.message).toBe("You have declined the offer for this position. Thank you for your interest!");
+  });
+
+  it.each([
+    ["INBOUND", "Your job application has been successfully submitted and is now with the recruiter."],
+    ["SCREENING", "The recruiter is currently reviewing your application."],
+    ["ASSESSMENT", "You have been invited to complete an assessment for this position."],
+    ["INTERVIEW", "Good news! You have been invited to an interview for this position."],
+    ["SHORTLIST", "Good news! You have been shortlisted for this position."],
+    ["OFFER", "Good news! An offer for this position has been extended to you!"],
+    ["CLOSED", "Good news! You have accepted the offer for this position."],
+    ["offer_declined", "You have declined the offer for this position. Thank you for your interest!"],
+    ["REJECT", "Unfortunately, your application for this position was not successful. Thank you for your interest!"],
+  ])("uses the local dictionary for %s instead of API copy", (stage, message) => {
+    mocks.useCandidateDashboardQuery.mockReturnValue({
+      data: {
+        applications: [{
+          id: "app-copy",
+          job: { id: "job-copy", title: "Application Developer" },
+          stage,
+          statusMessage: "API message. Find out more",
+        }],
+      },
+      isLoading: false,
+    });
+
+    const { result } = renderHook(() => useCandidateDashboardViewModel());
+
+    expect(result.current.applications[0].message).toBe(message);
+    expect(result.current.applications[0].message).not.toContain("Find out more");
+  });
+
+  it("uses a neutral dictionary message for an unknown stage", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    try {
+      mocks.useCandidateDashboardQuery.mockReturnValue({
+        data: {
+          applications: [{
+            id: "app-unknown",
+            job: { id: "job-unknown", title: "Application Developer" },
+            stage: "UNRECOGNIZED",
+            statusMessage: "API message. Find out more",
+          }],
+        },
+        isLoading: false,
+      });
+
+      const { result } = renderHook(() => useCandidateDashboardViewModel());
+
+      expect(result.current.applications[0].message).toBe("Your application status is currently unavailable.");
+    } finally {
+      warn.mockRestore();
+    }
   });
 });
