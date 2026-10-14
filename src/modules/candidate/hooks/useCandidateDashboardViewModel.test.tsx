@@ -202,7 +202,13 @@ describe("useCandidateDashboardViewModel", () => {
     expect(DASHBOARD_APPLICATION_STATUS_CONFIG.rejected.label).toBe("Closed");
   });
 
-  it("shows rejected progress up to the stage it was rejected at", () => {
+  it.each([
+    ["INBOUND", "applied", "APPLIED", "Applied", 8],
+    ["SCREENING", "screening", "SCREENING", "Screening", 25],
+    ["ASSESSMENT", "assessment", "ASSESSMENT", "Assessment", 42],
+    ["INTERVIEW", "interview", "INTERVIEW", "Interview", 58],
+    ["SHORTLIST", "shortlisted", "SHORTLISTED", "Shortlisted", 75],
+  ] as const)("shows %s instead of Closed for a recruiter rejection", (rejectedAtStage, status, activeStage, label, fillPercent) => {
     mocks.useCandidateDashboardQuery.mockReturnValue({
       data: {
         applications: [
@@ -211,7 +217,7 @@ describe("useCandidateDashboardViewModel", () => {
             job: { id: "job-5", title: "Application Developer" },
             stage: "REJECT",
             pipeline: ["SCREENING", "ASSESSMENT", "SCREENING", "REJECT"],
-            rejectedAtStage: "SCREENING",
+            rejectedAtStage,
           },
         ],
       },
@@ -221,8 +227,38 @@ describe("useCandidateDashboardViewModel", () => {
     const { result } = renderHook(() => useCandidateDashboardViewModel());
     const [app] = result.current.applications;
 
-    expect(app.status).toBe("rejected");
-    expect(app.fillPercent).toBe(25);
-    expect(app.pipelineStages.find((stage) => stage.isActive)?.key).toBe("SCREENING");
+    expect(app.status).toBe(status);
+    expect(DASHBOARD_APPLICATION_STATUS_CONFIG[app.status].label).toBe(label);
+    expect(app.fillPercent).toBe(fillPercent);
+    expect(app.pipelineStages.find((stage) => stage.isActive)?.key).toBe(activeStage);
+    expect(app.message).toBe("Your application was not successful.");
+  });
+
+  it.each(["OFFER", "offer_extended", " offer "])("shows a complete red Closed status for rejection at %s", (rejectedAtStage) => {
+    mocks.useCandidateDashboardQuery.mockReturnValue({
+      data: {
+        applications: [
+          {
+            id: "app-6",
+            job: { id: "job-6", title: "Application Developer" },
+            stage: "REJECT",
+            rejectedAtStage,
+          },
+        ],
+      },
+      isLoading: false,
+    });
+
+    const { result } = renderHook(() => useCandidateDashboardViewModel());
+    const [app] = result.current.applications;
+
+    expect(app.status).toBe("offer_declined");
+    expect(DASHBOARD_APPLICATION_STATUS_CONFIG[app.status]).toMatchObject({
+      label: "Closed",
+      color: "#D64545",
+    });
+    expect(app.fillPercent).toBe(100);
+    expect(app.pipelineStages.find((stage) => stage.isActive)?.key).toBe("OFFER");
+    expect(app.message).toBe("You have declined the offer.");
   });
 });

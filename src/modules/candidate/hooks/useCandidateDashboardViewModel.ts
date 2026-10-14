@@ -136,19 +136,23 @@ const transformApplicationToDisplay = (
   const progressStage =
     status === "rejected" && app.rejectedAtStage ? app.rejectedAtStage : app.stage;
   const progressStatus = getApplicationStatusKey(progressStage);
+  let displayStatus = status;
+  if (status === "rejected" && progressStatus !== "unknown") {
+    displayStatus = progressStatus === "offer_extended" ? "offer_declined" : progressStatus;
+  }
 
   return {
     id: app.id,
     jobId: app.job.id,
     title: app.job.title,
-    status,
+    status: displayStatus,
     pipelineStages: pipeline.map((stageKey) => ({
       key: stageKey,
       label: getApplicationStatusLabel(stageKey),
       isActive: getApplicationStatusKey(stageKey) === progressStatus,
     })),
-    fillPercent: getPipelineFillPercent(progressStage, pipeline),
-    message: app.statusMessage || DASHBOARD_APPLICATION_STATUS_CONFIG[status].caption || "",
+    fillPercent: displayStatus === "offer_declined" ? 100 : getPipelineFillPercent(progressStage, pipeline),
+    message: app.statusMessage || DASHBOARD_APPLICATION_STATUS_CONFIG[displayStatus === "offer_declined" ? displayStatus : status].caption || "",
     offerAccepted: false,
   };
 };
