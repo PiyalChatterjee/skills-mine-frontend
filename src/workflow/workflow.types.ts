@@ -3,7 +3,7 @@ export type WorkflowStage =
   | 'SCREENING'
   | 'ASSESSMENT'
   | 'INTERVIEW'
-  | 'SHORTLISTED'
+  | 'SHORTLIST'
   | 'OFFER'
   | 'PLACED'
   | 'CLOSED'

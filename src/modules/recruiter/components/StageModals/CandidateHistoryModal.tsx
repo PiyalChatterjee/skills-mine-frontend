@@ -38,7 +38,7 @@ const STAGE_LABEL: Record<string, string> = {
   INBOUND:    'Applied',
   SCREENING:  'Screened',
   ASSESSMENT: 'Assessed',
-  SHORTLIST:  'Shortlisted',
+  SHORTLIST:  'Shortlist',
   INTERVIEW:  'Interview Scheduled',
   OFFER:      'Offer Extended',
   CLOSED:     'Closed',

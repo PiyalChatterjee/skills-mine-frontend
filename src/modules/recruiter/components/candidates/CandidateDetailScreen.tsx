@@ -16,8 +16,8 @@ import styles from './CandidateDetailScreen.module.css'
 
 // ── Stage badge colors ─────────────────────────────────────────────────
 const STAGE_COLORS: Record<string, string> = {
-  Interview:   '#7c5cd8',
-  Shortlisted: '#2196a8',
+  Interview:  '#7c5cd8',
+  Shortlist:  '#2196a8',
   Screening:   '#2196a8',
   Inbound:     '#3aafb9',
   Assessment:  '#f59e0b',

@@ -4,7 +4,7 @@ export type PipelineStage =
   | 'Screening'
   | 'Assessment'
   | 'Interview'
-  | 'Shortlisted'
+  | 'Shortlist'
   | 'Offer'
   | 'Closed'
 

@@ -197,7 +197,7 @@ export type CandidatePipelineStage =
   | "SCREENING"
   | "ASSESSMENT"
   | "INTERVIEW"
-  | "SHORTLISTED"
+  | "SHORTLIST"
   | "OFFER";
 
 export type CandidateInternalStage =
@@ -205,7 +205,7 @@ export type CandidateInternalStage =
   | "Screening"
   | "Assessment"
   | "Interview"
-  | "Shortlisted"
+  | "Shortlist"
   | "Offer"
   | "Placed"
   | "Closed";

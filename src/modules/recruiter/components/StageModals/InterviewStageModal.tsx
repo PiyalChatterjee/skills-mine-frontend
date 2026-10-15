@@ -65,7 +65,7 @@ const InterviewStageModal = ({
     try {
       await mandateApi.advanceJobStage(jobId, {
         applicationId: [applicationId],
-        toStageCode: 'SHORTLISTED',
+        toStageCode: 'SHORTLIST',
       })
       onMoveBack?.(applicationId)
       onClose()
