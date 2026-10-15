@@ -38,7 +38,7 @@ type PipelineStageLabel =
   | "Screening"
   | "Assessment"
   | "Interview"
-  | "Shortlisted"
+  | "Shortlist"
   | "Offer"
   | "Closed";
 
@@ -76,7 +76,7 @@ const PIPELINE_COLUMNS: PipelineColumn[] = [
   { label: "Screening",  colorClass: styles.colScreening,  cards: [] },
   { label: "Assessment", colorClass: styles.colAssessment, cards: [] },
   { label: "Interview",  colorClass: styles.colInterview,  cards: [] },
-  { label: "Shortlisted",colorClass: styles.colShortlist,  cards: [] },
+  { label: "Shortlist", colorClass: styles.colShortlist,  cards: [] },
   { label: "Offer",      colorClass: styles.colOffer,      cards: [] },
   { label: "Closed",     colorClass: styles.colClosed,     cards: [] },
 ];
@@ -264,7 +264,7 @@ const STAGE_CODE_MAP: Record<string, PipelineStageLabel> = {
   SCREENING: "Screening",
   ASSESSMENT: "Assessment",
   INTERVIEW: "Interview",
-  SHORTLIST: "Shortlisted",
+  SHORTLIST: "Shortlist",
   OFFER: "Offer",
   CLOSED: "Closed",
 };
@@ -274,7 +274,7 @@ const STAGE_TONE_MAP: Record<PipelineStageLabel, CardTone> = {
   Screening: "lilac",
   Assessment: "yellow",
   Interview: "blush",
-  Shortlisted: "ice",
+  Shortlist: "ice",
   Offer: "mint",
   Closed: "success",
 };
@@ -305,7 +305,7 @@ const buildColumnsFromApi = (
     Screening: [],
     Assessment: [],
     Interview: [],
-    Shortlisted: [],
+    Shortlist: [],
     Offer: [],
     Closed: [],
   };
@@ -406,7 +406,7 @@ const RecruiterPage = () => {
       Screening: 0,
       Assessment: 0,
       Interview: 0,
-      Shortlisted: 0,
+      Shortlist: 0,
       Offer: 0,
       Closed: 0,
     };
@@ -417,7 +417,7 @@ const RecruiterPage = () => {
       if (normalized === "screening") counts.Screening = stage.count;
       if (normalized === "assessment") counts.Assessment = stage.count;
       if (normalized === "interview") counts.Interview = stage.count;
-      if (normalized === "shortlisted") counts.Shortlisted = stage.count;
+      if (normalized === "shortlisted" || normalized === "shortlist") counts.Shortlist = stage.count;
       if (normalized === "offer") counts.Offer = stage.count;
       if (normalized === "closed") counts.Closed = stage.count;
     });

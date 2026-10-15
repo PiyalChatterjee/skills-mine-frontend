@@ -79,13 +79,13 @@ const ArrowRightIcon = () => (
 
 // Stage badge colors
 const STAGE_COLORS: Record<PipelineStage, string> = {
-  Inbound:     '#FAEED8',
-  Screening:   '#E4DFF4',
-  Assessment:  '#FCF7DB',
-  Interview:   '#D3E5E8',
-  Shortlisted: '#F4DBE8',
-  Offer:       '#DBEFE3',
-  Closed:      '#4BAF73',
+  Inbound:    '#FAEED8',
+  Screening:  '#E4DFF4',
+  Assessment: '#FCF7DB',
+  Interview:  '#D3E5E8',
+  Shortlist:  '#F4DBE8',
+  Offer:      '#DBEFE3',
+  Closed:     '#4BAF73',
 }
 
 // Profile section icons — match Figma exactly
