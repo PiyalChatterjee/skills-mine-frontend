@@ -2152,6 +2152,32 @@
 
 /* ── Mobile (600px) ───────────────────────────────────────────────────── */
 @media (max-width: 600px) {
+  .heroJobSection.heroJobSection {
+    height: auto;
+    min-height: 200px;
+  }
+
+  .heroJobContent.heroJobContent {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 24px 16px;
+  }
+
+  .heroJobContent .heroJobHeading.heroJobHeading,
+  .heroJobContent .heroTagsRow {
+    position: static;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  .heroJobContent .heroJobBackButton:global(.MuiButtonBase-root) {
+    position: static;
+    flex-shrink: 0;
+  }
+
   .heroSection {
     height: 180px;
   }

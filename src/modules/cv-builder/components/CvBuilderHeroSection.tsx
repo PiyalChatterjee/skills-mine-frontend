@@ -16,7 +16,11 @@ const CvBuilderHeroSection = ({
   tags,
   isJobContext = false,
 }: CvBuilderHeroSectionProps) => (
-  <GradientPatternHero height={200}>
+  <GradientPatternHero
+    height={200}
+    className={isJobContext ? styles.heroJobSection : undefined}
+    contentClassName={isJobContext ? styles.heroJobContent : undefined}
+  >
     {onBack && (
       <ButtonBase
         type="button"
