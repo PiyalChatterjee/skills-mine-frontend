@@ -1,4 +1,5 @@
 import { Box, Button, TextField, Typography } from "@mui/material";
+import { useEffect, useRef } from "react";
 import {
   Controller,
   useFieldArray,
@@ -118,6 +119,7 @@ const CvBuilderPositionCard = ({ entryIndex }: { entryIndex: number }) => {
     control,
     name: `careerHistory.${entryIndex}.endDate`,
   });
+  const showFieldErrors = isRequired;
   const startDateAsDate = parseMonthYear(startDateValue);
   const endDateAsDate = parseMonthYear(endDateValue);
   // The start/end order check lives on startDate, so changing either date must
@@ -146,8 +148,8 @@ const CvBuilderPositionCard = ({ entryIndex }: { entryIndex: number }) => {
             <TextField
               {...field}
               inputRef={ref}
-              error={Boolean(fieldState.error)}
-              helperText={fieldState.error?.message}
+              error={showFieldErrors && Boolean(fieldState.error)}
+              helperText={showFieldErrors ? fieldState.error?.message : undefined}
               placeholder="Company name"
               className={styles.fieldControl}
               variant="outlined"
@@ -170,8 +172,8 @@ const CvBuilderPositionCard = ({ entryIndex }: { entryIndex: number }) => {
               <TextField
                 {...field}
                 inputRef={ref}
-                error={Boolean(fieldState.error)}
-                helperText={fieldState.error?.message}
+                error={showFieldErrors && Boolean(fieldState.error)}
+                helperText={showFieldErrors ? fieldState.error?.message : undefined}
                 placeholder="Position held"
                 className={styles.fieldControl}
                 variant="outlined"
@@ -206,8 +208,8 @@ const CvBuilderPositionCard = ({ entryIndex }: { entryIndex: number }) => {
                   slotProps={{
                     textField: {
                       onBlur: field.onBlur,
-                      error: Boolean(fieldState.error),
-                      helperText: fieldState.error?.message,
+                      error: showFieldErrors && Boolean(fieldState.error),
+                      helperText: showFieldErrors ? fieldState.error?.message : undefined,
                       className: `${styles.fieldControl} ${styles.monthYearField}`,
                       variant: "outlined",
                     },
@@ -242,8 +244,8 @@ const CvBuilderPositionCard = ({ entryIndex }: { entryIndex: number }) => {
                   slotProps={{
                     textField: {
                       onBlur: field.onBlur,
-                      error: Boolean(fieldState.error),
-                      helperText: fieldState.error?.message,
+                      error: showFieldErrors && Boolean(fieldState.error),
+                      helperText: showFieldErrors ? fieldState.error?.message : undefined,
                       className: `${styles.fieldControl} ${styles.monthYearField}`,
                       variant: "outlined",
                     },
@@ -278,11 +280,34 @@ const CvBuilderCareerHistoryForm = () => {
     control,
     formState: { errors },
     clearErrors,
+    trigger,
   } = useFormContext<CvBuilderFormValues>();
+  const currentCompany = useWatch({
+    control,
+    name: "personalDetails.currentCompany",
+  });
+  const previousCurrentCompany = useRef(currentCompany);
   const { fields, append } = useFieldArray({ control, name: "careerHistory" });
-  const formError = (
+  const isCurrentCompanyRequired = Boolean(
+    useWatch({ control, name: "personalDetails.currentCompany" })?.trim(),
+  );
+  const formError = isCurrentCompanyRequired ? (
     errors.careerHistory as { root?: { message?: string } } | undefined
-  )?.root?.message;
+  )?.root?.message : undefined;
+
+  useEffect(() => {
+    const currentCompanyChanged = previousCurrentCompany.current !== currentCompany;
+    previousCurrentCompany.current = currentCompany;
+
+    if (!currentCompany?.trim()) {
+      clearErrors("careerHistory");
+      return;
+    }
+
+    if (currentCompanyChanged) {
+      void trigger("careerHistory");
+    }
+  }, [currentCompany, clearErrors, trigger]);
 
   const handleAddPosition = () => {
     clearErrors("careerHistory");

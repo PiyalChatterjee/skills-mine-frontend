@@ -472,7 +472,7 @@ export const createCvBuilderSchema = (isVisitor = false) =>
   z
     .object({
       personalDetails: createPersonalDetailsSchema(isVisitor),
-      careerHistory: z.array(careerHistoryEntrySchema),
+      careerHistory: z.array(z.object(careerHistoryEntryShape)),
       skills: z
         .array(skillEntrySchema)
         .refine(
@@ -485,12 +485,24 @@ export const createCvBuilderSchema = (isVisitor = false) =>
       otherLanguage: z.string(),
     })
     .superRefine((data, ctx) => {
-      if (
-        data.personalDetails.currentCompany.trim() &&
-        !data.careerHistory.some(
-          (entry) => entry.companyName.trim() || entry.positionHeld.trim(),
-        )
-      ) {
+      if (!data.personalDetails.currentCompany.trim()) return;
+
+      data.careerHistory.forEach((entry, entryIndex) => {
+        const result = careerHistoryEntrySchema.safeParse(entry);
+        if (result.success) return;
+
+        result.error.issues.forEach((issue) => {
+          ctx.addIssue({
+            code: "custom",
+            message: issue.message,
+            path: ["careerHistory", entryIndex, ...issue.path],
+          });
+        });
+      });
+
+      if (!data.careerHistory.some(
+        (entry) => entry.companyName.trim() || entry.positionHeld.trim(),
+      )) {
         ctx.addIssue({
           code: "custom",
           message:

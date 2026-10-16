@@ -178,6 +178,7 @@ const CvBuilderPersonalDetailsForm = ({
           required={hasCurrentCompany}
           span="two"
           placeholder="Current position"
+          showError={hasCurrentCompany}
         />
 
         <Controller
