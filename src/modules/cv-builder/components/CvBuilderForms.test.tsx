@@ -59,7 +59,7 @@ const FormHarness = ({
   const form = useForm<CvBuilderFormValues>({
     defaultValues: values,
     mode: "onBlur",
-    resolver: zodResolver(cvBuilderSchema),
+    resolver: zodResolver(cvBuilderSchema) as never,
   });
   return (
     <FormProvider {...form}>
