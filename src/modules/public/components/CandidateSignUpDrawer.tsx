@@ -23,12 +23,14 @@ type CandidateSignUpDrawerProps = {
   open: boolean;
   onClose: () => void;
   visitorId?: string;
+  visitorEmail?: string;
 };
 
 export const CandidateSignUpDrawer = ({
   open,
   onClose,
   visitorId,
+  visitorEmail = "",
 }: CandidateSignUpDrawerProps) => {
   const dispatch = useDispatch<AppDispatch>();
   const [signUpSuccess, setSignUpSuccess] = useState(false);
@@ -39,7 +41,7 @@ export const CandidateSignUpDrawer = ({
     isSubmitting,
     submitForm,
     resetForm,
-  } = useCandidateSignUpForm(visitorId);
+  } = useCandidateSignUpForm(visitorId, visitorEmail);
   const handleDrawerClose = () => {
     onClose();
   };
@@ -142,6 +144,7 @@ export const CandidateSignUpDrawer = ({
             errors={errors}
             isSubmitting={isSubmitting}
             disableSubmit={false}
+            emailDisabled={Boolean(visitorId && visitorEmail)}
             onSubmit={() => {
               void handleSignUpSubmit();
             }}

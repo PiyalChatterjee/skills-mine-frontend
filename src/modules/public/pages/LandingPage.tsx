@@ -170,9 +170,9 @@ const LandingPage = () => {
   // Set by the CV builder after a visitor applies to a job. Snapshotted once so it
   // survives the history-state clear below, instead of being read fresh on every render.
   const [appliedJobState] = useState(
-    () => location.state as { visitorId?: string; matchScore?: number } | null,
+    () => location.state as { visitorId?: string; matchScore?: number; email?: string } | null,
   );
-  const { visitorId, matchScore } = appliedJobState ?? {};
+  const { visitorId, matchScore, email: visitorEmail } = appliedJobState ?? {};
   const [isApplicationSubmittedDismissed, setIsApplicationSubmittedDismissed] =
     useState(false);
   const [isDeclineConfirmationVisible, setIsDeclineConfirmationVisible] = useState(false);
@@ -224,7 +224,7 @@ const LandingPage = () => {
   };
 
   const handleKeepCvOnFile = () => {
-    openSignUpDrawer();
+    openSignUpDrawer(visitorEmail);
   };
 
   const handleDeclineKeepCvOnFile = () => {

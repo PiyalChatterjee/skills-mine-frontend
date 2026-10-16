@@ -13,6 +13,7 @@ type SignUpFormProps = {
   errors: FieldErrors<SignUpFormValues>;
   isSubmitting: boolean;
   disableSubmit: boolean;
+  emailDisabled?: boolean;
   onSubmit: () => void;
   submitLabel?: string;
 };
@@ -23,6 +24,7 @@ export const SignUpForm = ({
   errors,
   isSubmitting,
   disableSubmit,
+  emailDisabled = false,
   onSubmit,
   submitLabel = "Submit",
 }: SignUpFormProps) => {
@@ -89,6 +91,7 @@ export const SignUpForm = ({
           error={Boolean(errors.email)}
           helperText={errors.email?.message}
           {...register("email")}
+          disabled={emailDisabled}
         />
       </Box>
 

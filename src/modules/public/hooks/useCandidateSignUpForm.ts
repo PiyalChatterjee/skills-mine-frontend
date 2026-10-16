@@ -3,7 +3,7 @@ import { initialSignUpFormValues, type SignUpFormValues } from "@/modules/public
 import { candidateSignUpSchema } from "@/app/validation.schema";
 import { authApi } from "@/services/api/authApi";
 import { PENDING_CANDIDATE_PROFILE_STORAGE_KEY } from "@/modules/candidate/types/profileCreation";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 
 const isSuccessfulRegistration = (response: unknown) => {
   if (!response || typeof response !== "object") {
@@ -26,16 +26,23 @@ const isSuccessfulRegistration = (response: unknown) => {
   );
 };
 
-export const useCandidateSignUpForm = (visitorId?: string) => {
+export const useCandidateSignUpForm = (visitorId?: string, visitorEmail = "") => {
   const {
     register,
     control,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors, isSubmitting },
   } = useZodForm(candidateSignUpSchema, {
-    defaultValues: initialSignUpFormValues,
+    defaultValues: { ...initialSignUpFormValues, email: visitorEmail },
   });
+
+  useEffect(() => {
+    if (visitorId && visitorEmail) {
+      setValue("email", visitorEmail, { shouldValidate: true });
+    }
+  }, [setValue, visitorEmail, visitorId]);
 
   const submitForm = async (): Promise<boolean> => {
     let submitted = false;
@@ -44,7 +51,7 @@ export const useCandidateSignUpForm = (visitorId?: string) => {
       const payload = {
         firstName: formValues.firstName,
         lastName: formValues.lastName,
-        email: formValues.email,
+        email: visitorId && visitorEmail ? visitorEmail : formValues.email,
         mobileNumber: formValues.mobileNumber,
         password: formValues.password,
       };
@@ -68,8 +75,8 @@ export const useCandidateSignUpForm = (visitorId?: string) => {
   };
 
   const resetForm = useCallback(() => {
-    reset(initialSignUpFormValues);
-  }, [reset]);
+    reset({ ...initialSignUpFormValues, email: visitorId ? visitorEmail : "" });
+  }, [reset, visitorEmail, visitorId]);
 
   return {
     register,

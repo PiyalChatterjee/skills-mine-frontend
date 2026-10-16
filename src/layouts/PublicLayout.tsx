@@ -21,7 +21,7 @@ import { PublicHeader } from "./components/PublicHeader";
 import styles from "./PublicLayout.module.css";
 
 export type PublicLayoutOutletContext = {
-  openSignUpDrawer: () => void;
+  openSignUpDrawer: (email?: string) => void;
 };
 
 export const PublicLayout = () => {
@@ -29,6 +29,9 @@ export const PublicLayout = () => {
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const [visitorEmail, setVisitorEmail] = useState(
+    () => (location.state as { email?: string } | null)?.email ?? "",
+  );
   const { isAuthenticated, tokens, user } = useAuth();
   const isLoginPage = location.pathname === ROUTE_PATHS.login;
   const isSignupPage =
@@ -64,6 +67,12 @@ export const PublicLayout = () => {
   };
 
   const handleSignUpClick = () => {
+    setVisitorEmail("");
+    setSignUpDrawerOpen(true);
+  };
+
+  const handleVisitorSignUpClick = (email?: string) => {
+    setVisitorEmail(email ?? "");
     setSignUpDrawerOpen(true);
   };
 
@@ -171,7 +180,7 @@ export const PublicLayout = () => {
       <Box component="main" className={styles.contentArea}>
         <Outlet
           context={{
-            openSignUpDrawer: handleSignUpClick,
+            openSignUpDrawer: handleVisitorSignUpClick,
           }}
         />
       </Box>
@@ -188,6 +197,7 @@ export const PublicLayout = () => {
           open={isSignUpDrawerOpen}
           onClose={handleSignUpDrawerClose}
           visitorId={visitorId}
+          visitorEmail={visitorEmail}
         />
       )}
     </Box>

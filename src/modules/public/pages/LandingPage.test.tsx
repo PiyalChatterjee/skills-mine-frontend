@@ -6,7 +6,7 @@ const mocks = vi.hoisted(() => ({ navigate: vi.fn(), dispatch: vi.fn(), openSign
 
 vi.mock('react-redux', () => ({ useDispatch: () => mocks.dispatch }))
 vi.mock('react-router-dom', () => ({
-  useLocation: () => ({ pathname: '/', state: { visitorId: 'visitor-1', matchScore: 80 } }),
+  useLocation: () => ({ pathname: '/', state: { visitorId: 'visitor-1', matchScore: 80, email: 'jane@example.com' } }),
   useNavigate: () => mocks.navigate,
   useOutletContext: () => ({ openSignUpDrawer: mocks.openSignUpDrawer }),
 }))
@@ -46,7 +46,7 @@ describe('LandingPage visitor retention confirmation', () => {
   it('keeps Yes please opening signup without showing the decline confirmation', () => {
     render(<LandingPage />)
     fireEvent.click(screen.getByRole('button', { name: 'Yes please' }))
-    expect(mocks.openSignUpDrawer).toHaveBeenCalledTimes(1)
+    expect(mocks.openSignUpDrawer).toHaveBeenCalledWith('jane@example.com')
     expect(screen.queryByText('Thanks For Applying')).not.toBeInTheDocument()
   })
 

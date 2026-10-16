@@ -380,7 +380,13 @@ describe('useCvBuilderDone', () => {
     const { result } = renderHook(
       () =>
         useCvBuilderDone({
-          getFormValues: () => defaultFormValues,
+          getFormValues: () => ({
+            ...defaultFormValues,
+            personalDetails: {
+              ...defaultFormValues.personalDetails,
+              email: 'jane@example.com',
+            },
+          }),
           selectedLanguageEntries: ['English'],
           buildMyCvExists: false,
           guestApplicationDraft,
@@ -436,7 +442,12 @@ describe('useCvBuilderDone', () => {
       cvData: expect.objectContaining({ skills: ['React'] }),
     })
     expect(mockNavigate).toHaveBeenCalledWith('/', {
-      state: { visitorId: 'visitor-1', matchScore: 80, jobTitle: 'Senior Engineer' },
+      state: {
+        visitorId: 'visitor-1',
+        matchScore: 80,
+        jobTitle: 'Senior Engineer',
+        email: 'jane@example.com',
+      },
     })
   })
 
