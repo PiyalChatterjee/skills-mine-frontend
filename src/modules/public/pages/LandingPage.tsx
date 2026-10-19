@@ -236,7 +236,7 @@ const LandingPage = () => {
     const timer = window.setTimeout(() => {
       setIsApplicationSubmittedDismissed(true);
       setIsDeclineConfirmationVisible(false);
-    }, 5000);
+    }, 10000);
     return () => window.clearTimeout(timer);
   }, [isDeclineConfirmationVisible]);
 
