@@ -123,6 +123,11 @@ export const apiEndpoints = {
   manco: {
     dashboard: "/manco/:mancoId/dashboard",
     recruiterPerformance: "/manco/recruiters/:id/performance",
+    dashboardRecruiters: "/manco/dashboard/recruiters",
+    lowPerformingRecruiters: "/manco/dashboard/low-performing-recruiters",
+    recruiterDetails: "/manco/dashboard/recruiters/:recruiterId/details",
+    resolveLowPerformingAlert:
+      "/manco/dashboard/low-performing-recruiters/:alertId/resolve",
   },
   jobPosts: {
     list: "/job-posts",
