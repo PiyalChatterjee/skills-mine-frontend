@@ -579,19 +579,11 @@ const RecruiterPage = () => {
               MANCO Dashboard
             </ButtonBase>
             <Box className={styles.employeeBreadcrumbChevron} aria-hidden="true" />
-            <ButtonBase
-              className={styles.employeeBreadcrumbLink}
-              onClick={() => navigate(ROUTE_PATHS.recruiterDashboard)}
-              disableRipple
-            >
-              Recruitment Pipeline
-            </ButtonBase>
-            <Box className={styles.employeeBreadcrumbChevron} aria-hidden="true" />
             <Typography
               className={styles.employeeBreadcrumbCurrent}
               aria-current="page"
             >
-              {employeeQuery.data?.recruiter.fullName ?? "Employee"}
+              {`${employeeQuery.data?.recruiter.fullName ?? "Employee"}'s Recruitment Pipeline`}
             </Typography>
           </Box>
         )}
