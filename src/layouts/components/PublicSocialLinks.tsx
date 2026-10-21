@@ -2,6 +2,7 @@ import { Box } from "@mui/material";
 import facebookIcon from "@/assets/public-layout/social-facebook.svg";
 import instagramIcon from "@/assets/public-layout/social-instagram.svg";
 import linkedinIcon from "@/assets/public-layout/social-linkedin.svg";
+import websiteIcon from "@/assets/public-layout/social-website.svg";
 import styles from "./PublicSocialLinks.module.css";
 
 const socialLinks = [
@@ -19,6 +20,11 @@ const socialLinks = [
     label: "Instagram",
     href: "https://www.instagram.com/theskillsmine/",
     icon: instagramIcon,
+  },
+  {
+    label: "Website",
+    href: "https://theskillsmine.com/",
+    icon: websiteIcon,
   },
 ];
 
