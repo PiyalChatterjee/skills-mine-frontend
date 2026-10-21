@@ -90,7 +90,7 @@
   font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
   font-size: 48px;
   font-weight: 400;
-  line-height: 1;
+  line-height: 34.656px;
 }
 
 .alertCardActions img:last-child {
@@ -138,6 +138,7 @@
 
 /* ── CRM Integration Card (cyan/teal) ────────────────────────────────── */
 .crmCard {
+  align-self: start;
   background: #2b96d9;
   border-radius: 10px;
   min-height: 104px;
