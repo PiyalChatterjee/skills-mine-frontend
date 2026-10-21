@@ -24,7 +24,7 @@ describe('LandingPage visitor retention confirmation', () => {
     vi.clearAllMocks()
   })
 
-  it('shows the Figma confirmation for five seconds then restores the standard landing hero', () => {
+  it('shows the Figma confirmation for ten seconds then restores the standard landing hero', () => {
     vi.useFakeTimers()
     render(<LandingPage />)
     expect(screen.getByText('Application submitted.')).toBeInTheDocument()
@@ -35,7 +35,7 @@ describe('LandingPage visitor retention confirmation', () => {
     expect(screen.getByText('We hope to see you again soon, and good luck!')).toBeInTheDocument()
     expect(screen.queryByText('Application submitted.')).not.toBeInTheDocument()
 
-    act(() => { vi.advanceTimersByTime(4999) })
+    act(() => { vi.advanceTimersByTime(9999) })
     expect(screen.getByRole('heading', { name: 'Thanks For Applying' })).toBeInTheDocument()
     act(() => { vi.advanceTimersByTime(1) })
     expect(screen.queryByRole('heading', { name: 'Thanks For Applying' })).not.toBeInTheDocument()

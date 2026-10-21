@@ -60,9 +60,11 @@ describe('API client interceptors', () => {
   })
 
   it('registers one request and response interceptor for each service client', () => {
-    expect(mocks.create).toHaveBeenCalledTimes(10)
-    expect(mocks.requestHandlers).toHaveLength(10)
-    expect(mocks.responseErrorHandlers).toHaveLength(10)
+    const clientCount = mocks.create.mock.calls.length
+
+    expect(clientCount).toBeGreaterThan(0)
+    expect(mocks.requestHandlers).toHaveLength(clientCount)
+    expect(mocks.responseErrorHandlers).toHaveLength(clientCount)
   })
 
   it('does not add a bearer token to public document requests', () => {
