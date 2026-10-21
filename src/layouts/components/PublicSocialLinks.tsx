@@ -5,9 +5,21 @@ import linkedinIcon from "@/assets/public-layout/social-linkedin.svg";
 import styles from "./PublicSocialLinks.module.css";
 
 const socialLinks = [
-  { label: "LinkedIn", icon: linkedinIcon },
-  { label: "Facebook", icon: facebookIcon },
-  { label: "Instagram", icon: instagramIcon },
+  {
+    label: "LinkedIn",
+    href: "https://www.linkedin.com/company/the-skills-mine/",
+    icon: linkedinIcon,
+  },
+  {
+    label: "Facebook",
+    href: "https://www.facebook.com/theskillsmine",
+    icon: facebookIcon,
+  },
+  {
+    label: "Instagram",
+    href: "https://www.instagram.com/theskillsmine/",
+    icon: instagramIcon,
+  },
 ];
 
 type PublicSocialLinksProps = {
@@ -22,13 +34,12 @@ export const PublicSocialLinks = ({
     aria-label="Social media"
     className={`${styles.socialLinks} ${className}`}
   >
-    {socialLinks.map(({ label, icon }) => (
+    {socialLinks.map(({ label, href, icon }) => (
       <Box
         key={label}
         component="a"
-        href="#"
+        href={href}
         aria-label={label}
-        onClick={(event) => event.preventDefault()}
         className={styles.socialLink}
       >
         <Box component="img" src={icon} alt="" />

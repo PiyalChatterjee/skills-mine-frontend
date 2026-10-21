@@ -34,7 +34,11 @@ export const PublicFooter = ({ showContactLink = true }: PublicFooterProps) => {
             Terms and Conditions
           </Typography>
           {showContactLink ? (
-            <Typography component="p" className={styles.footerLinkText}>
+            <Typography
+              component="a"
+              href="https://theskillsmine.com/contact-us/"
+              className={styles.footerLinkText}
+            >
               Contact
             </Typography>
           ) : null}
