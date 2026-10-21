@@ -514,13 +514,19 @@
 
 .footerLinkText {
   color: #03478c;
-    align-self: center;
-    height: auto;
+  align-self: center;
+  height: auto;
   font-size: 16px;
   line-height: 1.5;
   letter-spacing: 0.1px;
   margin: 0;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  text-decoration: none;
+}
+
+.footerLinkText:hover,
+.footerLinkText:focus-visible {
+  text-decoration: none;
 }
 
 .footerLinkText:global(.MuiTypography-root) {
