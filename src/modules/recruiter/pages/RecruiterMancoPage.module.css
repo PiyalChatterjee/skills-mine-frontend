@@ -749,32 +749,6 @@
   border-top: 1px solid #e1e3e6;
 }
 
-.pipelineGrid {
-  display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.pipelineStage {
-  min-width: 0;
-  text-align: center;
-}
-
-.pipelineStageLabel,
-:global(.MuiTypography-root).pipelineStageLabel {
-  margin: 0;
-  color: #5a5e63;
-  font-size: 13px;
-}
-
-.pipelineStageValue,
-:global(.MuiTypography-root).pipelineStageValue {
-  margin: 0;
-  color: #03478c;
-  font-size: 18px;
-  font-weight: 600;
-}
-
 .statusMessage,
 :global(.MuiTypography-root).statusMessage {
   margin: 0;
@@ -791,12 +765,31 @@
   font-size: 14px;
 }
 
+.detailDialogPaper:global(.MuiDialog-paper) {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: min(1008px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
+  margin: 16px;
+  padding: 24px;
+  overflow: hidden;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 2px 4px 10px #03478c52;
+}
+
 .detailDialogTitle:global(.MuiDialogTitle-root) {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
-  padding: 24px 24px 16px;
+  padding: 0;
+}
+
+.detailHeading {
+  min-width: 0;
 }
 
 .detailName,
@@ -806,49 +799,67 @@
   font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
   font-size: 24px;
   font-weight: 500;
+  line-height: 1.5;
 }
 
 .detailRole,
 :global(.MuiTypography-root).detailRole {
-  margin: 4px 0 0;
+  margin: 0;
   color: #6891ba;
   font-size: 14px;
+  line-height: 1.5;
+}
+
+.detailCloseButton:global(.MuiButtonBase-root) {
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+}
+
+.detailCloseButton img {
+  display: block;
+  width: 24px;
+  height: 24px;
 }
 
 .detailDialogContent:global(.MuiDialogContent-root) {
-  padding: 20px 24px;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  border: 0;
 }
 
-.detailSectionTitle,
-:global(.MuiTypography-root).detailSectionTitle {
-  margin: 0 0 12px;
-  color: #03478c;
-  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 18px;
-  font-weight: 500;
-}
-
-.detailMetricsGrid,
-.detailPipelineGrid {
+.detailMetricsGrid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-  margin-bottom: 24px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  padding: 16px 0;
+  border-bottom: 1px solid #e1e3e6;
 }
 
 .detailMetric {
+  display: flex;
   min-width: 0;
-  padding: 12px;
-  border: 1px solid #e1e3e6;
-  border-radius: 6px;
-  background: #f2f9fd;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 8px;
+  border-right: 1px solid #03478c;
+  text-align: center;
+}
+
+.detailMetric:last-child {
+  border-right: 0;
 }
 
 .detailMetricLabel,
 :global(.MuiTypography-root).detailMetricLabel {
-  margin: 0 0 4px;
+  margin: 0;
   color: #03478c;
-  font-size: 13px;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.5;
 }
 
 .detailMetricValue,
@@ -856,13 +867,201 @@
   margin: 0;
   color: #32abbf;
   font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 22px;
+  font-size: 32px;
   font-weight: 600;
+  line-height: 1.5;
   overflow-wrap: anywhere;
 }
 
+.detailPipelineSection {
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e1e3e6;
+}
+
+.detailSectionTitle,
+:global(.MuiTypography-root).detailSectionTitle {
+  margin: 0 0 16px;
+  color: #03478c;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.detailPipelineGrid {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.detailPipelineRow {
+  position: relative;
+  width: 100%;
+  min-height: 40px;
+  container-name: detailPipelineRow;
+  container-type: inline-size;
+}
+
+.detailPipelineBar {
+  box-sizing: border-box;
+  position: relative;
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 12px;
+}
+
+.detailPipelineBar[data-stage='inbound'] {
+  background: #2b96d9;
+}
+
+.detailPipelineBar[data-stage='screening'] {
+  background: #957dd2;
+}
+
+.detailPipelineBar[data-stage='interview'] {
+  background: #e36c6c;
+}
+
+.detailPipelineBar[data-stage='offer'] {
+  background: #f2d64b;
+}
+
+.detailPipelineBar[data-stage='filled'] {
+  background: #4baf73;
+}
+
+.detailPipelineTextGroup {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  color: #ffffff;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
+  transform: translateY(-50%);
+}
+
+.detailPipelineLabel,
+:global(.MuiTypography-root).detailPipelineLabel,
+.detailPipelineValue,
+:global(.MuiTypography-root).detailPipelineValue,
+.detailRejectedLabel,
+:global(.MuiTypography-root).detailRejectedLabel,
+.detailRejectedValue,
+:global(.MuiTypography-root).detailRejectedValue {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.detailPipelineLabel,
+:global(.MuiTypography-root).detailPipelineLabel,
+.detailRejectedLabel,
+:global(.MuiTypography-root).detailRejectedLabel {
+  font-weight: 500;
+}
+
+.detailPipelineValue,
+:global(.MuiTypography-root).detailPipelineValue,
+.detailRejectedValue,
+:global(.MuiTypography-root).detailRejectedValue {
+  font-weight: 700;
+}
+
+.detailRejectedRow {
+  display: flex;
+  min-height: 40px;
+  align-items: center;
+  gap: 16px;
+}
+
+.detailRejectedMarker {
+  flex: 0 0 25px;
+  height: 40px;
+  background: #d64545;
+}
+
+.detailRejectedLabel,
+:global(.MuiTypography-root).detailRejectedLabel,
+.detailRejectedValue,
+:global(.MuiTypography-root).detailRejectedValue {
+  color: #2a3132;
+}
+
+@container detailPipelineRow (max-width: 160px) {
+  .detailPipelineTextGroup {
+    left: calc(100% + 16px);
+    color: #2a3132;
+  }
+}
+
+.detailPerformanceSection {
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e1e3e6;
+}
+
+.detailPerformanceSummary {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.detailPerformanceLabel,
+:global(.MuiTypography-root).detailPerformanceLabel {
+  margin: 0;
+  color: #6891ba;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.detailPerformanceValue,
+:global(.MuiTypography-root).detailPerformanceValue {
+  margin: 0;
+  color: #32abbf;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
 .detailDialogActions:global(.MuiDialogActions-root) {
-  padding: 12px 24px 20px;
+  display: flex;
+  justify-content: space-between;
+  gap: 26px;
+  padding: 0;
+}
+
+.detailCancelButton:global(.MuiButtonBase-root),
+.detailViewPipelineButton:global(.MuiButtonBase-root) {
+  width: 200px;
+  min-height: 48px;
+  padding: 12px 30px;
+  border-radius: 100px;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
+}
+
+.detailCancelButton:global(.MuiButtonBase-root) {
+  border: 1px solid #e1e3e6;
+  background: #ffffff;
+  color: #2a3132;
+}
+
+.detailViewPipelineButton:global(.MuiButtonBase-root) {
+  background: #03478c;
+  color: #ffffff;
+}
+
+.detailViewPipelineButton:global(.Mui-disabled) {
+  opacity: 0.5;
 }
 
 /* ── Responsive ──────────────────────────────────────────────────────── */
@@ -880,5 +1079,64 @@
   }
   .pageRoot {
     padding: 20px 20px 64px;
+  }
+}
+
+@media (max-width: 720px) {
+  .detailMetricsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .detailMetric {
+    padding: 8px;
+  }
+
+  .detailMetric:nth-child(2n) {
+    border-right: 0;
+  }
+
+  .detailMetric:nth-child(3n) {
+    border-right: 1px solid #03478c;
+  }
+
+  .detailMetric:nth-child(n + 3) {
+    padding-top: 12px;
+    border-top: 1px solid #e1e3e6;
+  }
+
+  .detailMetricLabel,
+  :global(.MuiTypography-root).detailMetricLabel {
+    font-size: 14px;
+  }
+
+  .detailMetricValue,
+  :global(.MuiTypography-root).detailMetricValue {
+    font-size: 26px;
+  }
+
+  .detailCancelButton:global(.MuiButtonBase-root),
+  .detailViewPipelineButton:global(.MuiButtonBase-root) {
+    width: calc(50% - 13px);
+    padding: 12px 16px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 420px) {
+  .detailDialogPaper:global(.MuiDialog-paper) {
+    margin: 8px;
+    padding: 16px;
+    width: calc(100vw - 16px);
+    max-height: calc(100vh - 16px);
+  }
+
+  .detailDialogActions:global(.MuiDialogActions-root) {
+    gap: 12px;
+  }
+
+  .detailCancelButton:global(.MuiButtonBase-root),
+  .detailViewPipelineButton:global(.MuiButtonBase-root) {
+    width: calc(50% - 6px);
+    padding: 10px 8px;
   }
 }

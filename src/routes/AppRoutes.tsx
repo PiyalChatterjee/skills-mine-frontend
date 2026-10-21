@@ -211,6 +211,10 @@ export const AppRoutes = () => {
               element={<RecruiterMancoPage />}
             />
             <Route
+              path={ROUTE_PATHS.recruiterMancoPipeline}
+              element={<RecruiterPage />}
+            />
+            <Route
               element={<PermissionGuard requiredPermissions={["CRM_EDIT"]} />}
             >
               <Route path={ROUTE_PATHS.crm} element={<CrmPage />} />

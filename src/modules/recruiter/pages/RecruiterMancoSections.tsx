@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   ButtonBase,
@@ -13,6 +14,7 @@ import alertCloseIcon from "@/assets/recruiter/manco-alert-close.svg";
 import alertWarningIcon from "@/assets/recruiter/manco-alert-warning.svg";
 import groupsIcon from "@/assets/recruiter/manco-groups.svg";
 import resolvedCheckIcon from "@/assets/recruiter/manco-resolved-check.svg";
+import closeIcon from "@/assets/icons/close-icon.svg";
 import arrowDownIcon from "@/assets/opportunities/figma-arrow-down-s-line.svg";
 import searchIcon from "@/assets/opportunities/figma-search-line.svg";
 import chevronDownIcon from "@/assets/cv-builder/chevron-down.svg";
@@ -28,6 +30,7 @@ import {
   formatPercentage,
   formatRevenue,
 } from "@/modules/recruiter/utils/mancoFormatters";
+import { ROUTE_PATHS } from "@/routes/routePaths";
 import type {
   LowPerformanceAlert,
   MancoPipelineDistribution,
@@ -44,6 +47,12 @@ const PIPELINE_STAGES: { key: keyof MancoPipelineDistribution; label: string }[]
   { key: "filled", label: "Filled" },
   { key: "totalPipeline", label: "Total pipeline" },
 ];
+const PIPELINE_DISTRIBUTION_STAGES = PIPELINE_STAGES.filter(
+  (stage) => stage.key !== "totalPipeline",
+);
+const PIPELINE_CHART_STAGES = PIPELINE_DISTRIBUTION_STAGES.filter(
+  (stage) => stage.key !== "rejected",
+);
 
 export const MancoPageHeader = () => (
   <Box className={styles.pageHeader}>
@@ -165,8 +174,12 @@ export const MancoCrmCard = () => (
 );
 
 export const MancoRecruiterSection = () => {
+  const navigate = useNavigate();
   const [selectedRecruiterId, setSelectedRecruiterId] = useState<string | null>(
     null,
+  );
+  const [openPipelineIds, setOpenPipelineIds] = useState<Set<string>>(
+    () => new Set(),
   );
   const {
     activeSort,
@@ -176,6 +189,28 @@ export const MancoRecruiterSection = () => {
     recruiterQuery,
     searchQuery,
   } = useMancoRecruiters();
+
+  const togglePipeline = (recruiterId: string) => {
+    setOpenPipelineIds((currentIds) => {
+      const nextIds = new Set(currentIds);
+      if (nextIds.has(recruiterId)) {
+        nextIds.delete(recruiterId);
+      } else {
+        nextIds.add(recruiterId);
+      }
+      return nextIds;
+    });
+  };
+
+  const viewRecruiterPipeline = (recruiterId: string) => {
+    setSelectedRecruiterId(null);
+    navigate(
+      ROUTE_PATHS.recruiterMancoPipeline.replace(
+        ":recruiterId",
+        encodeURIComponent(recruiterId),
+      ),
+    );
+  };
 
   return (
     <>
@@ -242,6 +277,8 @@ export const MancoRecruiterSection = () => {
           key={recruiter.recruiterId}
           recruiter={recruiter}
           onViewDetails={setSelectedRecruiterId}
+          pipelineOpen={openPipelineIds.has(recruiter.recruiterId)}
+          onTogglePipeline={() => togglePipeline(recruiter.recruiterId)}
         />
       ))}
       {!recruiterQuery.isLoading &&
@@ -256,6 +293,7 @@ export const MancoRecruiterSection = () => {
         <RecruiterDetailsDialog
           recruiterId={selectedRecruiterId}
           onClose={() => setSelectedRecruiterId(null)}
+          onViewPipeline={() => viewRecruiterPipeline(selectedRecruiterId)}
         />
       )}
     </>
@@ -265,10 +303,16 @@ export const MancoRecruiterSection = () => {
 type EmployeeCardProps = {
   recruiter: MancoRecruiter;
   onViewDetails: (id: string) => void;
+  pipelineOpen: boolean;
+  onTogglePipeline: () => void;
 };
 
-const EmployeeCard = ({ recruiter, onViewDetails }: EmployeeCardProps) => {
-  const [pipelineOpen, setPipelineOpen] = useState(false);
+const EmployeeCard = ({
+  recruiter,
+  onViewDetails,
+  pipelineOpen,
+  onTogglePipeline,
+}: EmployeeCardProps) => {
   const pipelineQuery = useMancoRecruiterDetail(
     recruiter.recruiterId,
     pipelineOpen,
@@ -312,7 +356,7 @@ const EmployeeCard = ({ recruiter, onViewDetails }: EmployeeCardProps) => {
       <Box className={styles.cardDivider} />
       <ButtonBase
         className={styles.pipelineRow}
-        onClick={() => setPipelineOpen((open) => !open)}
+        onClick={onTogglePipeline}
         disableRipple
         component="button"
         aria-expanded={pipelineOpen}
@@ -343,18 +387,9 @@ const EmployeeCard = ({ recruiter, onViewDetails }: EmployeeCardProps) => {
             </Typography>
           )}
           {pipelineQuery.data && (
-            <Box className={styles.pipelineGrid}>
-              {PIPELINE_STAGES.map((stage) => (
-                <Box className={styles.pipelineStage} key={stage.key}>
-                  <Typography className={styles.pipelineStageLabel}>
-                    {stage.label}
-                  </Typography>
-                  <Typography className={styles.pipelineStageValue}>
-                    {pipelineQuery.data!.pipelineDistribution[stage.key]}
-                  </Typography>
-                </Box>
-              ))}
-            </Box>
+            <PipelineDistributionChart
+              distribution={pipelineQuery.data.pipelineDistribution}
+            />
           )}
         </Box>
       )}
@@ -377,6 +412,72 @@ const RecruiterMetric = ({ label, value }: RecruiterMetricProps) => (
     </Typography>
   </Box>
 );
+
+type PipelineDistributionChartProps = {
+  distribution: MancoPipelineDistribution;
+};
+
+const PipelineDistributionChart = ({
+  distribution,
+}: PipelineDistributionChartProps) => {
+  const maxPipelineCount = Math.max(
+    1,
+    ...PIPELINE_CHART_STAGES.map((stage) => distribution[stage.key]),
+  );
+
+  return (
+    <Box className={styles.detailPipelineGrid}>
+      {PIPELINE_CHART_STAGES.map((stage) => {
+        const count = distribution[stage.key];
+        if (count === 0) {
+          return null;
+        }
+
+        return (
+          <Box
+            key={stage.key}
+            className={styles.detailPipelineRow}
+            role="meter"
+            aria-label={`${stage.label}: ${count}`}
+            aria-valuemin={0}
+            aria-valuemax={maxPipelineCount}
+            aria-valuenow={count}
+            style={{ width: `${(count / maxPipelineCount) * 100}%` }}
+          >
+            <Box className={styles.detailPipelineBar} data-stage={stage.key}>
+              <Box className={styles.detailPipelineTextGroup}>
+                <Typography className={styles.detailPipelineLabel}>
+                  {stage.label}
+                </Typography>
+                <Typography className={styles.detailPipelineValue}>
+                  {count}
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
+        );
+      })}
+      {distribution.rejected > 0 && (
+        <Box
+          className={styles.detailRejectedRow}
+          role="meter"
+          aria-label={`Rejected: ${distribution.rejected}`}
+          aria-valuemin={0}
+          aria-valuemax={Math.max(maxPipelineCount, distribution.rejected)}
+          aria-valuenow={distribution.rejected}
+        >
+          <Box className={styles.detailRejectedMarker} aria-hidden="true" />
+          <Typography className={styles.detailRejectedLabel}>
+            Rejected
+          </Typography>
+          <Typography className={styles.detailRejectedValue}>
+            {distribution.rejected}
+          </Typography>
+        </Box>
+      )}
+    </Box>
+  );
+};
 
 type AlertDetailsDialogProps = {
   alert: LowPerformanceAlert | null;
@@ -474,21 +575,26 @@ const AlertDetailsDialog = ({
 type RecruiterDetailsDialogProps = {
   recruiterId: string;
   onClose: () => void;
+  onViewPipeline: () => void;
 };
 
-const RecruiterDetailsDialog = ({ recruiterId, onClose }: RecruiterDetailsDialogProps) => {
+const RecruiterDetailsDialog = ({
+  recruiterId,
+  onClose,
+  onViewPipeline,
+}: RecruiterDetailsDialogProps) => {
   const detailQuery = useMancoRecruiterDetail(recruiterId);
-
   return (
     <Dialog
       open
       onClose={onClose}
-      maxWidth="md"
+      maxWidth={false}
       fullWidth
       aria-labelledby="manco-recruiter-details-title"
+      slotProps={{ paper: { className: styles.detailDialogPaper } }}
     >
       <DialogTitle id="manco-recruiter-details-title" className={styles.detailDialogTitle}>
-        <Box>
+        <Box className={styles.detailHeading}>
           <Typography component="h2" className={styles.detailName}>
             {detailQuery.data?.recruiter.fullName ?? "Recruiter details"}
           </Typography>
@@ -498,8 +604,16 @@ const RecruiterDetailsDialog = ({ recruiterId, onClose }: RecruiterDetailsDialog
             </Typography>
           )}
         </Box>
+        <ButtonBase
+          className={styles.detailCloseButton}
+          onClick={onClose}
+          aria-label="Close recruiter details"
+          disableRipple
+        >
+          <img src={closeIcon} alt="" aria-hidden="true" />
+        </ButtonBase>
       </DialogTitle>
-      <DialogContent dividers className={styles.detailDialogContent}>
+      <DialogContent className={styles.detailDialogContent}>
         {detailQuery.isLoading && (
           <Typography className={styles.statusMessage} role="status">
             Loading recruiter details...
@@ -512,13 +626,9 @@ const RecruiterDetailsDialog = ({ recruiterId, onClose }: RecruiterDetailsDialog
         )}
         {detailQuery.data && (
           <>
-            <Typography component="h3" className={styles.detailSectionTitle}>
-              Performance metrics
-            </Typography>
             <Box className={styles.detailMetricsGrid}>
               <DetailMetric label="MTD Placements" value={detailQuery.data.metrics.mtdPlacements} />
               <DetailMetric label="Active Roles" value={detailQuery.data.metrics.activeRoles} />
-              <DetailMetric label="Total Candidates" value={detailQuery.data.metrics.totalCandidates} />
               <DetailMetric
                 label="Revenue Earned (MTD)"
                 value={formatRevenue(detailQuery.data.metrics.revenueEarnedMtd)}
@@ -531,29 +641,46 @@ const RecruiterDetailsDialog = ({ recruiterId, onClose }: RecruiterDetailsDialog
                 label="Conversion"
                 value={formatPercentage(detailQuery.data.metrics.conversionRate)}
               />
-              <DetailMetric
-                label="Average Candidates per Role"
-                value={detailQuery.data.performanceSummary.averageCandidatesPerRole ?? "-"}
+            </Box>
+            <Box className={styles.detailPipelineSection}>
+              <Typography component="h3" className={styles.detailSectionTitle}>
+                Pipeline distribution
+              </Typography>
+              <PipelineDistributionChart
+                distribution={detailQuery.data.pipelineDistribution}
               />
             </Box>
-            <Typography component="h3" className={styles.detailSectionTitle}>
-              Pipeline distribution
-            </Typography>
-            <Box className={styles.detailPipelineGrid}>
-              {PIPELINE_STAGES.map((stage) => (
-                <DetailMetric
-                  key={stage.key}
-                  label={stage.label}
-                  value={detailQuery.data!.pipelineDistribution[stage.key]}
-                />
-              ))}
+            <Box className={styles.detailPerformanceSection}>
+              <Typography component="h3" className={styles.detailSectionTitle}>
+                Performance Summary
+              </Typography>
+              <Box className={styles.detailPerformanceSummary}>
+                <Typography className={styles.detailPerformanceLabel}>
+                  Avg. Candidates per Role
+                </Typography>
+                <Typography className={styles.detailPerformanceValue}>
+                  {detailQuery.data.performanceSummary.averageCandidatesPerRole ?? "-"}
+                </Typography>
+              </Box>
             </Box>
           </>
         )}
       </DialogContent>
       <DialogActions className={styles.detailDialogActions}>
-        <ButtonBase className={styles.dialogCloseButton} onClick={onClose}>
-          Close
+        <ButtonBase
+          className={styles.detailCancelButton}
+          onClick={onClose}
+          disableRipple
+        >
+          Cancel
+        </ButtonBase>
+        <ButtonBase
+          className={styles.detailViewPipelineButton}
+          onClick={onViewPipeline}
+          disabled={!detailQuery.data}
+          disableRipple
+        >
+          View Pipeline
         </ButtonBase>
       </DialogActions>
     </Dialog>
