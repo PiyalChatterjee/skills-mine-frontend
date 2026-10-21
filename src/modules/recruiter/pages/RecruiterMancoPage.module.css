@@ -932,6 +932,16 @@
   background: #4baf73;
 }
 
+.detailPipelineZeroRow {
+  display: flex;
+  min-height: 40px;
+  align-items: center;
+  gap: 16px;
+  color: #2a3132;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
+}
+
 .detailPipelineTextGroup {
   position: absolute;
   top: 50%;

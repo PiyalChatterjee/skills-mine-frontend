@@ -420,18 +420,12 @@ type PipelineDistributionChartProps = {
 const PipelineDistributionChart = ({
   distribution,
 }: PipelineDistributionChartProps) => {
-  const maxPipelineCount = Math.max(
-    1,
-    ...PIPELINE_CHART_STAGES.map((stage) => distribution[stage.key]),
-  );
+  const pipelineTotal = Math.max(1, distribution.totalPipeline);
 
   return (
     <Box className={styles.detailPipelineGrid}>
       {PIPELINE_CHART_STAGES.map((stage) => {
         const count = distribution[stage.key];
-        if (count === 0) {
-          return null;
-        }
 
         return (
           <Box
@@ -440,12 +434,25 @@ const PipelineDistributionChart = ({
             role="meter"
             aria-label={`${stage.label}: ${count}`}
             aria-valuemin={0}
-            aria-valuemax={maxPipelineCount}
+            aria-valuemax={pipelineTotal}
             aria-valuenow={count}
-            style={{ width: `${(count / maxPipelineCount) * 100}%` }}
+            style={{
+              width: count === 0 ? "100%" : `${(count / pipelineTotal) * 100}%`,
+            }}
           >
-            <Box className={styles.detailPipelineBar} data-stage={stage.key}>
-              <Box className={styles.detailPipelineTextGroup}>
+            {count > 0 ? (
+              <Box className={styles.detailPipelineBar} data-stage={stage.key}>
+                <Box className={styles.detailPipelineTextGroup}>
+                  <Typography className={styles.detailPipelineLabel}>
+                    {stage.label}
+                  </Typography>
+                  <Typography className={styles.detailPipelineValue}>
+                    {count}
+                  </Typography>
+                </Box>
+              </Box>
+            ) : (
+              <Box className={styles.detailPipelineZeroRow}>
                 <Typography className={styles.detailPipelineLabel}>
                   {stage.label}
                 </Typography>
@@ -453,28 +460,28 @@ const PipelineDistributionChart = ({
                   {count}
                 </Typography>
               </Box>
-            </Box>
+            )}
           </Box>
         );
       })}
-      {distribution.rejected > 0 && (
-        <Box
-          className={styles.detailRejectedRow}
-          role="meter"
-          aria-label={`Rejected: ${distribution.rejected}`}
-          aria-valuemin={0}
-          aria-valuemax={Math.max(maxPipelineCount, distribution.rejected)}
-          aria-valuenow={distribution.rejected}
-        >
+      <Box
+        className={styles.detailRejectedRow}
+        role="meter"
+        aria-label={`Rejected: ${distribution.rejected}`}
+        aria-valuemin={0}
+        aria-valuemax={pipelineTotal}
+        aria-valuenow={distribution.rejected}
+      >
+        {distribution.rejected > 0 && (
           <Box className={styles.detailRejectedMarker} aria-hidden="true" />
-          <Typography className={styles.detailRejectedLabel}>
-            Rejected
-          </Typography>
-          <Typography className={styles.detailRejectedValue}>
-            {distribution.rejected}
-          </Typography>
-        </Box>
-      )}
+        )}
+        <Typography className={styles.detailRejectedLabel}>
+          Rejected
+        </Typography>
+        <Typography className={styles.detailRejectedValue}>
+          {distribution.rejected}
+        </Typography>
+      </Box>
     </Box>
   );
 };
