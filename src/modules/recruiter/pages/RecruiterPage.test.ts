@@ -39,6 +39,7 @@ describe("buildColumnsFromApplications", () => {
         createApplication("first", "job-1", "INBOUND"),
         createApplication("duplicate", "job-1", "INTERVIEW"),
         createApplication("other", "job-2", "SCREENING"),
+        createApplication("rejected-only", "job-3", "REJECT"),
       ],
       [
         { label: "Inbound", colorClass: "", cards: [] },
@@ -66,5 +67,6 @@ describe("buildColumnsFromApplications", () => {
     });
     expect(interviewCards).toHaveLength(0);
     expect(screeningCards).toHaveLength(1);
+    expect(columns.flatMap(({ cards }) => cards)).toHaveLength(2);
   });
 });

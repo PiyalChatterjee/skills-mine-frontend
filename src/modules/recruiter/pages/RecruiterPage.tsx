@@ -200,6 +200,9 @@ const STAGE_TONE_MAP: Record<PipelineStageLabel, CardTone> = {
 const truncate = (text: string, max = 16) =>
   text.length > max ? `${text.slice(0, max)}…` : text;
 
+const isRejectedApplication = (application: PipelineApplication) =>
+  application.currentStageCode.trim().toUpperCase() === "REJECT";
+
 const mapUniversalItemToCard = (
   item: UniversalPipelineItem,
 ): PipelineCard | null => {
@@ -258,7 +261,9 @@ export const buildColumnsFromApplications = (
   };
   const seenJobProfileIds = new Set<string>();
 
-  for (const application of applications) {
+  for (const application of applications.filter(
+    (item) => !isRejectedApplication(item),
+  )) {
     const stage = STAGE_CODE_MAP[application.currentStageCode.toUpperCase()];
     const jobProfileId = application.jobProfile.jobProfileId;
     if (!stage || seenJobProfileIds.has(jobProfileId)) {
@@ -419,6 +424,25 @@ const RecruiterPage = () => {
 
     return counts;
   }, [dashboardData]);
+
+  const employeePipelineApplications = useMemo(
+    () =>
+      (employeePipelineData?.data ?? []).filter(
+        (application) => !isRejectedApplication(application),
+      ),
+    [employeePipelineData],
+  );
+
+  const employeeJobProfileIds = new Set(
+    employeePipelineApplications.map(
+      (application) => application.jobProfile.jobProfileId,
+    ),
+  );
+  const employeeClientIds = new Set(
+    employeePipelineApplications.map(
+      (application) => application.jobProfile.clientId,
+    ),
+  );
 
   const handleNewJobPost = () => {
     navigate(ROUTE_PATHS.recruiterNewJobPost);
@@ -603,7 +627,7 @@ const RecruiterPage = () => {
         <Box component="section" className={styles.pipelineSection}>
           <Typography component="p" className={styles.sectionSubtitle}>
             {employeePipelineData
-              ? `${new Set(employeePipelineData.data.map((application) => application.jobProfile.jobProfileId)).size} active Job Post${new Set(employeePipelineData.data.map((application) => application.jobProfile.jobProfileId)).size !== 1 ? "s" : ""} across ${new Set(employeePipelineData.data.map((application) => application.jobProfile.clientId)).size} ${new Set(employeePipelineData.data.map((application) => application.jobProfile.clientId)).size !== 1 ? "companies" : "company"}`
+              ? `${employeeJobProfileIds.size} active Job Post${employeeJobProfileIds.size !== 1 ? "s" : ""} across ${employeeClientIds.size} ${employeeClientIds.size !== 1 ? "companies" : "company"}`
               : pipelineDashboardStats
                 ? `${pipelineDashboardStats.activeJobs} active Job Post${pipelineDashboardStats.activeJobs !== 1 ? "s" : ""} across ${pipelineDashboardStats.companiesCount} ${pipelineDashboardStats.companiesCount !== 1 ? "companies" : "company"}`
                 : `${mandatesData?.pagination.total ?? 0} active Job Post${(mandatesData?.pagination.total ?? 0) !== 1 ? "s" : ""} across ${new Set(mandatesData?.mandates.map((m) => m.client) ?? []).size} ${new Set(mandatesData?.mandates.map((m) => m.client) ?? []).size !== 1 ? "companies" : "company"}`}
