@@ -24,6 +24,9 @@ import { usePageTitle } from "@/hooks/usePageTitle";
 import { useAuth } from "@/app/auth/AuthContext";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import { mandateApi } from "@/services/api/mandateApi";
+import cvsDueIcon from "@/assets/recruiter/cvs-due.svg";
+import interviewsIcon from "@/assets/recruiter/interviews.svg";
+import offerLetterIcon from "@/assets/recruiter/offer-letter.svg";
 import type {
   PipelineDashboardStats,
   PipelineApplication,
@@ -75,87 +78,16 @@ type PipelineColumn = {
 
 /** Column skeleton — no cards; cards are loaded from the API. */
 const PIPELINE_COLUMNS: PipelineColumn[] = [
-  { label: "Inbound",    colorClass: styles.colInbound,    cards: [] },
-  { label: "Screening",  colorClass: styles.colScreening,  cards: [] },
+  { label: "Inbound", colorClass: styles.colInbound, cards: [] },
+  { label: "Screening", colorClass: styles.colScreening, cards: [] },
   { label: "Assessment", colorClass: styles.colAssessment, cards: [] },
-  { label: "Interview",  colorClass: styles.colInterview,  cards: [] },
-  { label: "Shortlist", colorClass: styles.colShortlist,  cards: [] },
-  { label: "Offer",      colorClass: styles.colOffer,      cards: [] },
-  { label: "Closed",     colorClass: styles.colClosed,     cards: [] },
+  { label: "Interview", colorClass: styles.colInterview, cards: [] },
+  { label: "Shortlist", colorClass: styles.colShortlist, cards: [] },
+  { label: "Offer", colorClass: styles.colOffer, cards: [] },
+  { label: "Closed", colorClass: styles.colClosed, cards: [] },
 ];
 
 // ── Sub-components ────────────────────────────────────────────────────
-
-const CvsDueIcon = () => (
-  <svg
-    width="22"
-    height="22"
-    viewBox="0 0 24 24"
-    fill="none"
-    aria-hidden="true"
-  >
-    <rect
-      x="4"
-      y="3"
-      width="16"
-      height="18"
-      rx="2"
-      stroke="currentColor"
-      strokeWidth="1.7"
-    />
-    <path
-      d="M8 8h8M8 12h8M8 16h5"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-    />
-  </svg>
-);
-
-const InterviewsIcon = () => (
-  <svg
-    width="22"
-    height="22"
-    viewBox="0 0 24 24"
-    fill="none"
-    aria-hidden="true"
-  >
-    <circle cx="12" cy="8" r="3.5" stroke="currentColor" strokeWidth="1.7" />
-    <path
-      d="M4 20c0-4.418 3.582-8 8-8s8 3.582 8 8"
-      stroke="currentColor"
-      strokeWidth="1.7"
-      strokeLinecap="round"
-    />
-  </svg>
-);
-
-const OfferLetterIcon = () => (
-  <svg
-    width="22"
-    height="22"
-    viewBox="0 0 24 24"
-    fill="none"
-    aria-hidden="true"
-  >
-    <rect
-      x="3"
-      y="5"
-      width="18"
-      height="14"
-      rx="2"
-      stroke="currentColor"
-      strokeWidth="1.7"
-    />
-    <path
-      d="M3 8l9 6 9-6"
-      stroke="currentColor"
-      strokeWidth="1.7"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
 
 type KpiCardProps = {
   value: number;
@@ -217,24 +149,7 @@ const PipelineCardItem = ({ card, onView }: PipelineCardProps) => {
           disableRipple
           aria-label="View"
         >
-          <span className={styles.pipelineCardViewBtnIcon}>
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 20 20"
-              fill="none"
-              aria-hidden="true"
-            >
-              <circle cx="10" cy="10" r="9" stroke="currentColor" strokeWidth="1.5" />
-              <path
-                d="M6.5 10H13.5M10.5 7L13.5 10L10.5 13"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </span>
+          <span className={styles.pipelineCardViewBtnIcon} aria-hidden="true" />
           View
         </ButtonBase>
       </Box>
@@ -285,7 +200,9 @@ const STAGE_TONE_MAP: Record<PipelineStageLabel, CardTone> = {
 const truncate = (text: string, max = 16) =>
   text.length > max ? `${text.slice(0, max)}…` : text;
 
-const mapUniversalItemToCard = (item: UniversalPipelineItem): PipelineCard | null => {
+const mapUniversalItemToCard = (
+  item: UniversalPipelineItem,
+): PipelineCard | null => {
   const stage = STAGE_CODE_MAP[item.pipelineStatus.toUpperCase()];
   if (!stage) return null;
   return {
@@ -326,7 +243,7 @@ const buildColumnsFromApi = (
   }));
 };
 
-const buildColumnsFromApplications = (
+export const buildColumnsFromApplications = (
   applications: PipelineApplication[],
   baseColumns: PipelineColumn[],
 ): PipelineColumn[] => {
@@ -339,16 +256,19 @@ const buildColumnsFromApplications = (
     Offer: [],
     Closed: [],
   };
+  const seenJobProfileIds = new Set<string>();
 
   for (const application of applications) {
     const stage = STAGE_CODE_MAP[application.currentStageCode.toUpperCase()];
-    if (!stage) {
+    const jobProfileId = application.jobProfile.jobProfileId;
+    if (!stage || seenJobProfileIds.has(jobProfileId)) {
       continue;
     }
+    seenJobProfileIds.add(jobProfileId);
 
     cardsByStage[stage].push({
-      id: application.applicationId,
-      jobProfileId: application.jobProfile.jobProfileId,
+      id: jobProfileId,
+      jobProfileId,
       title: truncate(application.jobProfile.positionTitle),
       company: truncate(application.jobProfile.clientName, 18),
       companyIcon: application.jobProfile.clientName.charAt(0).toUpperCase(),
@@ -365,7 +285,7 @@ const buildColumnsFromApplications = (
 
 // ── Main Component ────────────────────────────────────────────────────
 
-const CARDS_VISIBLE = 4
+const CARDS_VISIBLE = 4;
 
 const RecruiterPage = () => {
   const { recruiterId } = useParams<{ recruiterId?: string }>();
@@ -399,7 +319,7 @@ const RecruiterPage = () => {
       try {
         setLoading(true);
         setErrorMessage(null);
-         setEmployeePipelineData(null);
+        setEmployeePipelineData(null);
 
         if (recruiterId) {
           const pipelineResponse = await mandateApi.listPipelines({
@@ -414,7 +334,10 @@ const RecruiterPage = () => {
 
           setEmployeePipelineData(pipelineResponse);
           setColumns(
-            buildColumnsFromApplications(pipelineResponse.data, PIPELINE_COLUMNS),
+            buildColumnsFromApplications(
+              pipelineResponse.data,
+              PIPELINE_COLUMNS,
+            ),
           );
           return;
         }
@@ -438,7 +361,12 @@ const RecruiterPage = () => {
         setDashboardData(dashboardResponse.data);
         setPipelineDashboardStats(pipelineDashboardResponse);
         setMandatesData(mandatesResponse.data);
-        setColumns(buildColumnsFromApi(universalPipelinesResponse.data, PIPELINE_COLUMNS));
+        setColumns(
+          buildColumnsFromApi(
+            universalPipelinesResponse.data,
+            PIPELINE_COLUMNS,
+          ),
+        );
       } catch (error) {
         if (!isActive) {
           return;
@@ -448,7 +376,7 @@ const RecruiterPage = () => {
           typeof error === "object" && error !== null && "message" in error
             ? String(
                 (error as { message?: unknown }).message ??
-                 `Failed to load ${recruiterId ? "recruiter pipeline" : "recruiter dashboard"}.`,
+                  `Failed to load ${recruiterId ? "recruiter pipeline" : "recruiter dashboard"}.`,
               )
             : `Failed to load ${recruiterId ? "recruiter pipeline" : "recruiter dashboard"}.`;
         setErrorMessage(message);
@@ -483,7 +411,8 @@ const RecruiterPage = () => {
       if (normalized === "screening") counts.Screening = stage.count;
       if (normalized === "assessment") counts.Assessment = stage.count;
       if (normalized === "interview") counts.Interview = stage.count;
-      if (normalized === "shortlisted" || normalized === "shortlist") counts.Shortlist = stage.count;
+      if (normalized === "shortlisted" || normalized === "shortlist")
+        counts.Shortlist = stage.count;
       if (normalized === "offer") counts.Offer = stage.count;
       if (normalized === "closed") counts.Closed = stage.count;
     });
@@ -499,7 +428,11 @@ const RecruiterPage = () => {
     setAllExpanded(true);
   };
 
-  const handleCardView = (_cardId: string, jobProfileId: string, _stage: PipelineStageLabel) => {
+  const handleCardView = (
+    _cardId: string,
+    jobProfileId: string,
+    _stage: PipelineStageLabel,
+  ) => {
     navigate(ROUTE_PATHS.recruiterMandate.replace(":cardId", jobProfileId));
   };
 
@@ -563,7 +496,11 @@ const RecruiterPage = () => {
         className={`${styles.pageRoot} ${recruiterId ? styles.employeePipelinePage : ""}`}
       >
         {recruiterId && (
-          <Box component="nav" aria-label="Breadcrumb" className={styles.employeeBreadcrumbs}>
+          <Box
+            component="nav"
+            aria-label="Breadcrumb"
+            className={styles.employeeBreadcrumbs}
+          >
             <ButtonBase
               className={styles.employeeBackButton}
               onClick={() => navigate(ROUTE_PATHS.recruiterManco)}
@@ -578,7 +515,10 @@ const RecruiterPage = () => {
             >
               MANCO Dashboard
             </ButtonBase>
-            <Box className={styles.employeeBreadcrumbChevron} aria-hidden="true" />
+            <Box
+              className={styles.employeeBreadcrumbChevron}
+              aria-hidden="true"
+            />
             <Typography
               className={styles.employeeBreadcrumbCurrent}
               aria-current="page"
@@ -616,9 +556,10 @@ const RecruiterPage = () => {
         >
           <Box className={styles.welcomeTextCol}>
             <Typography component="p" className={styles.welcomeGreeting}>
-              Hi {recruiterId
-                ? employeeQuery.data?.recruiter.fullName.split(" ")[0] ?? ""
-                : "Michael"}
+              Hi{" "}
+              {recruiterId
+                ? (employeeQuery.data?.recruiter.fullName.split(" ")[0] ?? "")
+                : ""}
             </Typography>
             <Typography component="p" className={styles.welcomeSubtitle}>
               Here's a snapshot of what you need to do this week
@@ -626,21 +567,33 @@ const RecruiterPage = () => {
           </Box>
           <Box className={styles.kpiRow}>
             <KpiCard
-              value={employeePipelineData?.stageCounters.INBOUND ?? pipelineDashboardStats?.cvsDue ?? stageCounts.Inbound}
+              value={
+                employeePipelineData?.stageCounters.INBOUND ??
+                pipelineDashboardStats?.cvsDue ??
+                stageCounts.Inbound
+              }
               label={recruiterId ? "CVs to screen" : "CVs due"}
-              icon={<CvsDueIcon />}
+              icon={<img src={cvsDueIcon} width={22} height={22} alt="" />}
               colorClass={styles.kpiBlue}
             />
             <KpiCard
-              value={employeePipelineData?.stageCounters.INTERVIEW ?? pipelineDashboardStats?.interviewsToSchedule ?? stageCounts.Interview}
+              value={
+                employeePipelineData?.stageCounters.INTERVIEW ??
+                pipelineDashboardStats?.interviewsToSchedule ??
+                stageCounts.Interview
+              }
               label="Interviews to schedule"
-              icon={<InterviewsIcon />}
+              icon={<img src={interviewsIcon} width={22} height={22} alt="" />}
               colorClass={styles.kpiPurple}
             />
             <KpiCard
-              value={employeePipelineData?.stageCounters.OFFER ?? pipelineDashboardStats?.offerLetterAcceptanceDeadline ?? stageCounts.Offer}
+              value={
+                employeePipelineData?.stageCounters.OFFER ??
+                pipelineDashboardStats?.offerLetterAcceptanceDeadline ??
+                stageCounts.Offer
+              }
               label="Offer Letter Acceptance Deadlines"
-              icon={<OfferLetterIcon />}
+              icon={<img src={offerLetterIcon} width={22} height={22} alt="" />}
               colorClass={styles.kpiAmber}
             />
           </Box>
@@ -652,8 +605,8 @@ const RecruiterPage = () => {
             {employeePipelineData
               ? `${new Set(employeePipelineData.data.map((application) => application.jobProfile.jobProfileId)).size} active Job Post${new Set(employeePipelineData.data.map((application) => application.jobProfile.jobProfileId)).size !== 1 ? "s" : ""} across ${new Set(employeePipelineData.data.map((application) => application.jobProfile.clientId)).size} ${new Set(employeePipelineData.data.map((application) => application.jobProfile.clientId)).size !== 1 ? "companies" : "company"}`
               : pipelineDashboardStats
-              ? `${pipelineDashboardStats.activeJobs} active Job Post${pipelineDashboardStats.activeJobs !== 1 ? "s" : ""} across ${pipelineDashboardStats.companiesCount} ${pipelineDashboardStats.companiesCount !== 1 ? "companies" : "company"}`
-              : `${mandatesData?.pagination.total ?? 0} active Job Post${(mandatesData?.pagination.total ?? 0) !== 1 ? "s" : ""} across ${new Set(mandatesData?.mandates.map((m) => m.client) ?? []).size} ${new Set(mandatesData?.mandates.map((m) => m.client) ?? []).size !== 1 ? "companies" : "company"}`}
+                ? `${pipelineDashboardStats.activeJobs} active Job Post${pipelineDashboardStats.activeJobs !== 1 ? "s" : ""} across ${pipelineDashboardStats.companiesCount} ${pipelineDashboardStats.companiesCount !== 1 ? "companies" : "company"}`
+                : `${mandatesData?.pagination.total ?? 0} active Job Post${(mandatesData?.pagination.total ?? 0) !== 1 ? "s" : ""} across ${new Set(mandatesData?.mandates.map((m) => m.client) ?? []).size} ${new Set(mandatesData?.mandates.map((m) => m.client) ?? []).size !== 1 ? "companies" : "company"}`}
           </Typography>
 
           <Box className={styles.pipelineWrapper}>
@@ -673,8 +626,11 @@ const RecruiterPage = () => {
               <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
                 <Box className={styles.pipelineBoard}>
                   {columns.map((col) => {
-                    const visibleCards = allExpanded ? col.cards : col.cards.slice(0, CARDS_VISIBLE)
-                    const hasMore = !allExpanded && col.cards.length > CARDS_VISIBLE
+                    const visibleCards = allExpanded
+                      ? col.cards
+                      : col.cards.slice(0, CARDS_VISIBLE);
+                    const hasMore =
+                      !allExpanded && col.cards.length > CARDS_VISIBLE;
                     return (
                       <PipelineColumnDrop key={col.label} label={col.label}>
                         <Box className={styles.colCards}>
@@ -697,7 +653,7 @@ const RecruiterPage = () => {
                           </ButtonBase>
                         )}
                       </PipelineColumnDrop>
-                    )
+                    );
                   })}
                 </Box>
               </DndContext>
