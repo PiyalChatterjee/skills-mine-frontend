@@ -25,6 +25,7 @@ const recruiter = {
   metrics: {
     mtdPlacements: 0,
     activeRoles: 0,
+    totalCandidates: 0,
     revenueEarnedMtd: 0,
     revenueEarnedYtd: 0,
     conversionRate: 0,
