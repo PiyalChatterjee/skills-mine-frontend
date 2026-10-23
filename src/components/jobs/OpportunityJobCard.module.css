@@ -344,13 +344,21 @@
   }
 
   .header {
-    grid-template-columns: auto 1fr auto;
-    grid-template-areas: none;
+    display: flex;
     gap: 12px;
   }
 
   .title {
-    grid-area: auto;
+    flex: 1;
+  }
+
+  .applicationStatusContainer:empty {
+    display: none;
+  }
+
+  .applicationStatusContainer,
+  .saveButtonContainer {
+    flex-shrink: 0;
   }
 }
 
@@ -371,14 +379,11 @@
 
   .header {
     min-height: 40px;
-    grid-template-columns: auto 1fr auto;
-    grid-template-areas: none;
     gap: 10px;
   }
 
   .title,
   .title:global(.MuiTypography-root) {
-    grid-area: auto;
     font-size: 18px;
   }
 }

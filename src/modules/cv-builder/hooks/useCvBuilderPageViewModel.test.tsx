@@ -204,7 +204,7 @@ describe("useCvBuilderPageViewModel", () => {
           }),
         ],
         skills: [{ name: "React" }],
-        languages: ["English"],
+        languages: ["English", "Other"],
         otherLanguage: "Klingon",
       }),
       true,
@@ -217,6 +217,50 @@ describe("useCvBuilderPageViewModel", () => {
       description: "Upload your CV directly from your computer.",
       tone: "coral",
     });
+  });
+
+  it.each([
+    {
+      savedLanguages: ["English", "Setswana (Tswana)", "Hindi"],
+      languages: ["English", "Setswana (Tswana)", "Other"],
+      otherLanguage: "Hindi",
+    },
+    {
+      savedLanguages: ["English", " Hindi ", "French"],
+      languages: ["English", "Other"],
+      otherLanguage: "Hindi, French",
+    },
+    {
+      savedLanguages: ["English"],
+      languages: ["English"],
+      otherLanguage: "",
+    },
+    {
+      savedLanguages: [],
+      languages: [],
+      otherLanguage: "",
+    },
+  ])("prefills language selections from $savedLanguages", ({ savedLanguages, languages, otherLanguage }) => {
+    mocks.useSelector.mockImplementation((selector: unknown) => {
+      if (selector === mocks.selectBuildMyCv) {
+        return {
+          ...savedCv,
+          languages: savedLanguages.map((language) => ({ language, proficiency: "Fluent" })),
+        };
+      }
+      if (selector === mocks.selectBuildMyCvLoaded) return true;
+      if (selector === mocks.selectBuildMyCvExists) return true;
+      return undefined;
+    });
+
+    renderHook(() => useCvBuilderPageViewModel());
+
+    expect(mocks.useCvBuilder).toHaveBeenCalledWith(
+      expect.objectContaining({ languages, otherLanguage }),
+      true,
+      undefined,
+      false,
+    );
   });
 
   it("focuses the current invalid CV field even when rendered form errors are stale", async () => {

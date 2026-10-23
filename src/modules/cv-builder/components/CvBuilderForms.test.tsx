@@ -2,8 +2,9 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { FormProvider, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { describe, expect, it, vi } from "vitest";
-import type { CvBuilderFormValues } from "@/app/validation.schema";
+import { cvBuilderSchema, type CvBuilderFormValues } from "@/app/validation.schema";
 import CvBuilderCareerHistoryForm from "./CvBuilderCareerHistoryForm";
 import CvBuilderEducationForm from "./CvBuilderEducationForm";
 import CvBuilderLanguagesForm from "./CvBuilderLanguagesForm";
@@ -58,8 +59,14 @@ const FormHarness = ({
   const form = useForm<CvBuilderFormValues>({
     defaultValues: values,
     mode: "onBlur",
+    resolver: zodResolver(cvBuilderSchema) as never,
   });
-  return <FormProvider {...form}>{children}</FormProvider>;
+  return (
+    <FormProvider {...form}>
+      {children}
+      <button type="button" onClick={() => void form.trigger()}>Validate form</button>
+    </FormProvider>
+  );
 };
 
 const renderInForm = (ui: ReactNode, values = buildValues()) =>
@@ -152,6 +159,29 @@ describe("CvBuilderPersonalDetailsForm", () => {
 });
 
 describe("CvBuilderCareerHistoryForm", () => {
+  it("clears stale career errors after current company and history are cleared", async () => {
+    const user = userEvent.setup();
+    renderInForm(
+      <>
+        <CvBuilderPersonalDetailsForm />
+        <CvBuilderCareerHistoryForm />
+      </>,
+      buildValues({ currentCompany: "Acme" }),
+    );
+
+    await user.click(screen.getByRole("button", { name: "Validate form" }));
+    expect(await screen.findByText("Company name is required")).toBeInTheDocument();
+    expect(screen.getByText("Position held is required")).toBeInTheDocument();
+    expect(screen.getByText("Current position is required when current company is provided")).toBeInTheDocument();
+
+    await user.clear(screen.getByRole("textbox", { name: "Current company" }));
+
+    expect(screen.queryByText("Company name is required")).not.toBeInTheDocument();
+    expect(screen.queryByText("Position held is required")).not.toBeInTheDocument();
+    expect(screen.queryByText("Employment start date is required")).not.toBeInTheDocument();
+    expect(screen.queryByText("Current position is required when current company is provided")).not.toBeInTheDocument();
+  });
+
   it("does not mark position fields required while current company is empty", () => {
     renderInForm(<CvBuilderCareerHistoryForm />);
 
@@ -171,6 +201,22 @@ describe("CvBuilderCareerHistoryForm", () => {
     expect(label("Position Held*")).toBeInTheDocument();
     expect(label("Employment Start Date*")).toBeInTheDocument();
     expect(label("End Date")).toBeInTheDocument();
+  });
+
+  it("validates career history when current company makes the fields required", async () => {
+    const user = userEvent.setup();
+    renderInForm(
+      <>
+        <CvBuilderPersonalDetailsForm />
+        <CvBuilderCareerHistoryForm />
+      </>,
+    );
+
+    await user.type(screen.getByRole("textbox", { name: "Current company" }), "Acme");
+
+    expect(await screen.findByText("Company name is required")).toBeInTheDocument();
+    expect(screen.getByText("Position held is required")).toBeInTheDocument();
+    expect(screen.getByText("Employment start date is required")).toBeInTheDocument();
   });
 
   it("adds another position", async () => {

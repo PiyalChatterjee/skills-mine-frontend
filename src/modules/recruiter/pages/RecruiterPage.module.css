@@ -17,6 +17,52 @@
   overflow-x: auto;
 }
 
+.employeePipelinePage {
+  background: #f2f9fd;
+}
+
+.employeeBreadcrumbs {
+  display: flex;
+  min-height: 24px;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 40px;
+  color: #03478c;
+}
+
+.employeeBackButton:global(.MuiButtonBase-root) {
+  min-width: 52px;
+  height: 24px;
+  padding: 0 8px;
+  border: 1px solid #aad5f0;
+  border-radius: 6px;
+  color: #b0b4b8;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 12px;
+}
+
+.employeeBreadcrumbLink:global(.MuiButtonBase-root),
+.employeeBreadcrumbCurrent,
+:global(.MuiTypography-root).employeeBreadcrumbCurrent {
+  margin: 0;
+  padding: 0;
+  color: #03478c;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.employeeBreadcrumbChevron {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 8px;
+  border-top: 2px solid #55abe1;
+  border-right: 2px solid #55abe1;
+  transform: rotate(45deg);
+}
+
 /* ── Page Header ─────────────────────────────────────────────────────── */
 .pageHeader {
   display: flex;

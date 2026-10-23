@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { OpportunityJobCard } from './OpportunityJobCard'
+import { jobMatchConfig } from './jobMatch.config'
 
 const renderCard = (overrides: Partial<React.ComponentProps<typeof OpportunityJobCard>> = {}) =>
   render(
@@ -21,6 +22,43 @@ const renderCard = (overrides: Partial<React.ComponentProps<typeof OpportunityJo
   )
 
 describe('OpportunityJobCard', () => {
+  it.each([
+    [jobMatchConfig.high.threshold, jobMatchConfig.high],
+    [jobMatchConfig.high.threshold - 1, jobMatchConfig.medium],
+    [jobMatchConfig.medium.threshold, jobMatchConfig.medium],
+    [jobMatchConfig.medium.threshold - 1, jobMatchConfig.low],
+  ])('uses the configured appearance for a score of %s', (matchScore, appearance) => {
+    renderCard({ matchScore })
+
+    const badge = screen.getByLabelText(`${matchScore}% match`)
+    expect(badge.style.getPropertyValue('--ring-fill')).toBe(appearance.color)
+    expect(badge.style.getPropertyValue('--ring-bg')).toBe(appearance.backgroundColor)
+  })
+
+  it('uses updated threshold configuration', () => {
+    const originalThresholds = {
+      high: jobMatchConfig.high.threshold,
+      medium: jobMatchConfig.medium.threshold,
+    }
+
+    try {
+      jobMatchConfig.high.threshold = 90
+      jobMatchConfig.medium.threshold = 70
+      const { rerender } = renderCard({ matchScore: 80 })
+
+      expect(screen.getByLabelText('80% match').style.getPropertyValue('--ring-fill'))
+        .toBe(jobMatchConfig.medium.color)
+
+      rerender(<OpportunityJobCard title="Frontend Engineer" description="Build product UI." tags={[]} actionLabel="View job" onAction={vi.fn()} matchScore={65} />)
+
+      expect(screen.getByLabelText('65% match').style.getPropertyValue('--ring-fill'))
+        .toBe(jobMatchConfig.low.color)
+    } finally {
+      jobMatchConfig.high.threshold = originalThresholds.high
+      jobMatchConfig.medium.threshold = originalThresholds.medium
+    }
+  })
+
   it('renders job content and clamps an out-of-range match score', () => {
     renderCard()
 

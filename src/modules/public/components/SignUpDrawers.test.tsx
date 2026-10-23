@@ -7,6 +7,7 @@ import { RecruiterSignUpDrawer } from "@/modules/public/components/RecruiterSign
 const mockDispatch = vi.fn();
 const mockCandidateSubmitForm = vi.fn();
 const mockCandidateResetForm = vi.fn();
+const mockUseCandidateSignUpForm = vi.fn();
 const mockRecruiterSubmitForm = vi.fn();
 const mockRecruiterResetForm = vi.fn();
 
@@ -15,10 +16,11 @@ vi.mock("react-redux", () => ({
 }));
 
 vi.mock("@/modules/public/components/SignUpForm", () => ({
-  SignUpForm: ({ onSubmit }: { onSubmit: () => void }) => (
-    <button type="button" onClick={onSubmit}>
-      Submit mocked form
-    </button>
+  SignUpForm: ({ onSubmit, emailDisabled }: { onSubmit: () => void; emailDisabled?: boolean }) => (
+    <>
+      <input aria-label="Email address" disabled={emailDisabled} />
+      <button type="button" onClick={onSubmit}>Submit mocked form</button>
+    </>
   ),
 }));
 
@@ -40,14 +42,17 @@ vi.mock("@/modules/public/hooks/useCandidateGoogleAuthState", () => ({
 }));
 
 vi.mock("@/modules/public/hooks/useCandidateSignUpForm", () => ({
-  useCandidateSignUpForm: () => ({
-    register: vi.fn(),
-    control: {},
-    errors: {},
-    isSubmitting: false,
-    submitForm: mockCandidateSubmitForm,
-    resetForm: mockCandidateResetForm,
-  }),
+  useCandidateSignUpForm: (...args: unknown[]) => {
+    mockUseCandidateSignUpForm(...args);
+    return {
+      register: vi.fn(),
+      control: {},
+      errors: {},
+      isSubmitting: false,
+      submitForm: mockCandidateSubmitForm,
+      resetForm: mockCandidateResetForm,
+    };
+  },
 }));
 
 vi.mock("@/modules/public/hooks/useRecruiterSignUpForm", () => ({
@@ -98,6 +103,22 @@ describe("Sign up drawers", () => {
 
     expect(screen.queryByText("Your account has been created.")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Submit mocked form" })).toBeInTheDocument();
+  });
+
+  it("prefills visitor email and locks the signup email field", () => {
+    render(
+      <MemoryRouter>
+        <CandidateSignUpDrawer
+          open={true}
+          onClose={vi.fn()}
+          visitorId="visitor-1"
+          visitorEmail="jane@example.com"
+        />
+      </MemoryRouter>,
+    );
+
+    expect(mockUseCandidateSignUpForm).toHaveBeenCalledWith("visitor-1", "jane@example.com");
+    expect(screen.getByRole("textbox", { name: "Email address" })).toBeDisabled();
   });
 
   it("resets recruiter signup success state and form when drawer closes", async () => {

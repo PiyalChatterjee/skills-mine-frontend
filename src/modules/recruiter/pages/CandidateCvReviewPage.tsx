@@ -17,6 +17,13 @@ import recruiterShell from './CandidatesPage.module.css'
 // ── Maps the real API response → form prefill shape ──────────────────────────
 const toPrefillData = (data: RecruiterCandidateCvBuild): CvBuilderPrefillData => {
   const pd = data.personalDetails
+  const savedLanguages = data.languages.map((language) => language.trim()).filter(Boolean)
+  const knownLanguages = savedLanguages.filter(
+    (language): language is (typeof LANGUAGES_LIST)[number] => LANGUAGES_LIST.includes(language as never),
+  )
+  const otherLanguages = savedLanguages.filter(
+    (language) => !LANGUAGES_LIST.includes(language as never),
+  )
   return {
     personalDetails: {
       fullName:            `${pd.firstName} ${pd.lastName}`.trim(),
@@ -49,11 +56,10 @@ const toPrefillData = (data: RecruiterCandidateCvBuild): CvBuilderPrefillData =>
       highestGradePassed: e.qualification,
       yearCompleted:      e.yearCompleted,
     })),
-    languages: data.languages.filter(
-      (l): l is (typeof LANGUAGES_LIST)[number] => LANGUAGES_LIST.includes(l as never),
-    ),
-    otherLanguage:
-      data.languages.find((l) => !LANGUAGES_LIST.includes(l as never)) ?? '',
+    languages: otherLanguages.length > 0
+      ? [...new Set([...knownLanguages, 'Other'])]
+      : knownLanguages,
+    otherLanguage: otherLanguages.join(', '),
   }
 }
 

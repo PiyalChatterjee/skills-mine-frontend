@@ -2,6 +2,7 @@ import { Button, Card, Chip, IconButton, Typography } from "@mui/material";
 import type { CSSProperties } from "react";
 import { BookmarkIcon } from "@/components/icons/BookmarkIcon";
 import styles from "./OpportunityJobCard.module.css";
+import { jobMatchConfig } from "./jobMatch.config";
 
 type OpportunityJobCardProps = {
   title: string;
@@ -20,16 +21,16 @@ type OpportunityJobCardProps = {
   applicationStatusKey?: string;
 };
 
-const resolveMatchColor = (matchScore: number) => {
-  if (matchScore >= 80) {
-    return "#4baf73";
+const resolveMatchAppearance = (matchScore: number) => {
+  if (matchScore >= jobMatchConfig.high.threshold) {
+    return jobMatchConfig.high;
   }
 
-  if (matchScore >= 60) {
-    return "#e6a83b";
+  if (matchScore >= jobMatchConfig.medium.threshold) {
+    return jobMatchConfig.medium;
   }
 
-  return "#32abbf";
+  return jobMatchConfig.low;
 };
 
 export const OpportunityJobCard = ({
@@ -54,19 +55,17 @@ export const OpportunityJobCard = ({
       ? Math.max(0, Math.min(100, Math.round(matchScore)))
       : undefined;
 
-  const ringColor =
+  const matchAppearance =
     typeof clampedMatchScore === "number"
-      ? resolveMatchColor(clampedMatchScore)
-      : "#4baf73";
-
-  const ringBgColor = ringColor === "#e6a83b" ? "#faeed8" : "#dbefe3";
+      ? resolveMatchAppearance(clampedMatchScore)
+      : jobMatchConfig.high;
 
   const ringStyle =
     typeof clampedMatchScore === "number"
       ? ({
-          "--ring-fill": ringColor,
+          "--ring-fill": matchAppearance.color,
           "--ring-angle": `${clampedMatchScore * 3.6}deg`,
-          "--ring-bg": ringBgColor,
+          "--ring-bg": matchAppearance.backgroundColor,
         } as CSSProperties)
       : undefined;
 

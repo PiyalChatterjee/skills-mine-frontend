@@ -25,15 +25,16 @@ declare module "axios" {
 const gateway = import.meta.env.VITE_API_BASE_URL ?? "/api";
 
 const serviceBaseUrls = {
-  default:   gateway,                                    // recruiter / pipeline / manco
-  auth:      `${gateway}/api/auth-service/v1`,                                    // auth paths carry /api/auth-service/v1/... themselves
+  default: gateway, // recruiter / pipeline / manco
+  auth: `${gateway}/api/auth-service/v1`, // auth paths carry /api/auth-service/v1/... themselves
   candidate: `${gateway}/api/candidate-service`,
-  mandate:   `${gateway}/api/mandate-service`,
-  document:  `${gateway}/api/document-service`,
-  crm:       `${gateway}/api/crm-service`,
-  ai:        `${gateway}/api/ai-service`,
-  visitor:   `${gateway}/api/visitor-service`,
-  pipeline:  `${gateway}/api/pipeline-service`,
+  mandate: `${gateway}/api/mandate-service`,
+  document: `${gateway}/api/document-service`,
+  crm: `${gateway}/api/crm-service`,
+  ai: `${gateway}/api/ai-service`,
+  visitor: `${gateway}/api/visitor-service`,
+  pipeline: `${gateway}/api/pipeline-service`,
+  manco: `${gateway}/api/manco-exco-service/v1`,
 } as const;
 
 // Tune here — no .env variable needed.
@@ -80,23 +81,24 @@ const createApiClient = (
   return client;
 };
 
-export const apiClient       = createApiClient(serviceBaseUrls.default);
-export const authApiClient   = createApiClient(serviceBaseUrls.auth);
+export const apiClient = createApiClient(serviceBaseUrls.default);
+export const authApiClient = createApiClient(serviceBaseUrls.auth);
 export const candidateApiClient = createApiClient(serviceBaseUrls.candidate);
-export const mandateApiClient   = createApiClient(serviceBaseUrls.mandate);
-export const documentApiClient  = createApiClient(serviceBaseUrls.document);
+export const mandateApiClient = createApiClient(serviceBaseUrls.mandate);
+export const documentApiClient = createApiClient(serviceBaseUrls.document);
 export const publicDocumentApiClient = createApiClient(
   serviceBaseUrls.document,
   REQUEST_TIMEOUT_MS,
   false,
 );
-export const crmApiClient       = createApiClient(serviceBaseUrls.crm);
-export const aiApiClient        = createApiClient(
+export const crmApiClient = createApiClient(serviceBaseUrls.crm);
+export const aiApiClient = createApiClient(
   serviceBaseUrls.ai,
   AI_REQUEST_TIMEOUT_MS,
 );
-export const visitorApiClient  = createApiClient(serviceBaseUrls.visitor);
+export const visitorApiClient = createApiClient(serviceBaseUrls.visitor);
 export const pipelineApiClient = createApiClient(serviceBaseUrls.pipeline);
+export const mancoApiClient = createApiClient(serviceBaseUrls.manco);
 
 export const unwrapResponseData = async <T>(
   responsePromise: Promise<AxiosResponse<T>>,

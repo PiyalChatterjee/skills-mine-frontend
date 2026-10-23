@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   Alert,
   Box,
@@ -10,12 +10,15 @@ import {
 } from "@mui/material";
 import { RecruiterSidebar } from "@/modules/recruiter/components/RecruiterSidebar";
 import { RecruiterTour } from "@/modules/recruiter/components/RecruiterTour";
+import { useMancoRecruiterDetail } from "@/modules/recruiter/hooks/useMancoDashboard";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { useAuth } from "@/app/auth/AuthContext";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import { mandateApi } from "@/services/api/mandateApi";
 import type {
   PipelineDashboardStats,
+  PipelineApplication,
+  PipelinesListData,
   RecruiterDashboardData,
   RecruiterMandatesData,
   UniversalPipelineItem,
@@ -228,6 +231,7 @@ const STAGE_CODE_MAP: Record<string, PipelineStageLabel> = {
   ASSESSMENT: "Assessment",
   INTERVIEW: "Interview",
   SHORTLIST: "Shortlist",
+  SHORTLISTED: "Shortlist",
   OFFER: "Offer",
   CLOSED: "Closed",
 };
@@ -292,12 +296,58 @@ const buildColumnsFromApi = (
   }));
 };
 
+const buildColumnsFromApplications = (
+  applications: PipelineApplication[],
+  baseColumns: PipelineColumn[],
+): PipelineColumn[] => {
+  const cardsByStage: Record<PipelineStageLabel, PipelineCard[]> = {
+    Inbound: [],
+    Screening: [],
+    Assessment: [],
+    Interview: [],
+    Shortlist: [],
+    Offer: [],
+    Closed: [],
+  };
+
+  for (const application of applications) {
+    const stage = STAGE_CODE_MAP[application.currentStageCode?.toUpperCase()];
+    if (!stage) {
+      continue;
+    }
+
+    const positionTitle = application.jobProfile?.positionTitle ?? "Untitled Position";
+    const clientName = application.jobProfile?.clientName ?? "Company";
+
+    cardsByStage[stage].push({
+      id: application.applicationId,
+      jobProfileId: application.jobProfile?.jobProfileId ?? application.applicationId,
+      title: truncate(positionTitle),
+      fullTitle: positionTitle,
+      company: truncate(clientName, 18),
+      companyIcon: clientName.charAt(0).toUpperCase() || "C",
+      tone: STAGE_TONE_MAP[stage],
+      stage,
+    });
+  }
+
+  return baseColumns.map((column) => ({
+    ...column,
+    cards: cardsByStage[column.label],
+  }));
+};
+
 // ── Main Component ────────────────────────────────────────────────────
 
-const CARDS_VISIBLE = 4
+const CARDS_VISIBLE = 4;
 
 const RecruiterPage = () => {
-  usePageTitle("Recruiter Dashboard");
+  const { recruiterId } = useParams<{ recruiterId?: string }>();
+  const employeeQuery = useMancoRecruiterDetail(
+    recruiterId ?? "",
+    Boolean(recruiterId),
+  );
+  usePageTitle(recruiterId ? "Recruitment Pipeline" : "Recruiter Dashboard");
   const navigate = useNavigate();
   const { isFirstLogin } = useAuth();
   const [dashboardData, setDashboardData] =
@@ -306,6 +356,8 @@ const RecruiterPage = () => {
     useState<PipelineDashboardStats | null>(null);
   const [mandatesData, setMandatesData] =
     useState<RecruiterMandatesData | null>(null);
+  const [employeePipelineData, setEmployeePipelineData] =
+    useState<PipelinesListData | null>(null);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [columns, setColumns] = useState<PipelineColumn[]>(PIPELINE_COLUMNS);
@@ -318,6 +370,25 @@ const RecruiterPage = () => {
       try {
         setLoading(true);
         setErrorMessage(null);
+        setEmployeePipelineData(null);
+
+        if (recruiterId) {
+          const pipelineResponse = await mandateApi.listPipelines({
+            recruiterId,
+            page: 1,
+            size: 100,
+          });
+
+          if (!isActive) {
+            return;
+          }
+
+          setEmployeePipelineData(pipelineResponse);
+          setColumns(
+            buildColumnsFromApplications(pipelineResponse.data, PIPELINE_COLUMNS),
+          );
+          return;
+        }
 
         const [
           dashboardResponse,
@@ -348,9 +419,9 @@ const RecruiterPage = () => {
           typeof error === "object" && error !== null && "message" in error
             ? String(
                 (error as { message?: unknown }).message ??
-                  "Failed to load recruiter dashboard.",
+                  `Failed to load ${recruiterId ? "recruiter pipeline" : "recruiter dashboard"}.`,
               )
-            : "Failed to load recruiter dashboard.";
+            : `Failed to load ${recruiterId ? "recruiter pipeline" : "recruiter dashboard"}.`;
         setErrorMessage(message);
       } finally {
         if (isActive) {
@@ -364,7 +435,7 @@ const RecruiterPage = () => {
     return () => {
       isActive = false;
     };
-  }, []);
+  }, [recruiterId]);
 
   const stageCounts = useMemo(() => {
     const counts: Record<PipelineStageLabel, number> = {
@@ -399,11 +470,11 @@ const RecruiterPage = () => {
     setAllExpanded(true);
   };
 
-  const handleCardView = (_cardId: string, jobProfileId: string, _stage: PipelineStageLabel) => {
+  const handleCardView = (_cardId: string, jobProfileId: string) => {
     navigate(ROUTE_PATHS.recruiterMandate.replace(":cardId", jobProfileId));
   };
 
-  if (loading) {
+  if (loading || (recruiterId && employeeQuery.isLoading)) {
     return (
       <Box className={styles.shell}>
         <RecruiterSidebar />
@@ -416,25 +487,57 @@ const RecruiterPage = () => {
 
   return (
     <Box className={styles.shell}>
-      <RecruiterTour isFirstLogin={isFirstLogin} />
+      {!recruiterId && <RecruiterTour isFirstLogin={isFirstLogin} />}
       <RecruiterSidebar />
 
-      <Box className={styles.pageRoot}>
-        {errorMessage ? <Alert severity="error">{errorMessage}</Alert> : null}
-        {/* ── Page Header ── */}
-        <Box className={styles.pageHeader}>
-          <Typography component="h1" className={styles.pageTitle}>
-            Universal Job Pipeline
-          </Typography>
-          <Button
-            variant="contained"
-            className={styles.newMandateBtn}
-            onClick={handleNewJobPost}
-            disableElevation
-          >
-            New Job Post
-          </Button>
-        </Box>
+      <Box
+        className={`${styles.pageRoot} ${recruiterId ? styles.employeePipelinePage : ""}`}
+      >
+        {recruiterId && (
+          <Box component="nav" aria-label="Breadcrumb" className={styles.employeeBreadcrumbs}>
+            <ButtonBase
+              className={styles.employeeBackButton}
+              onClick={() => navigate(ROUTE_PATHS.recruiterManco)}
+              disableRipple
+            >
+              Back
+            </ButtonBase>
+            <ButtonBase
+              className={styles.employeeBreadcrumbLink}
+              onClick={() => navigate(ROUTE_PATHS.recruiterManco)}
+              disableRipple
+            >
+              MANCO Dashboard
+            </ButtonBase>
+            <Box className={styles.employeeBreadcrumbChevron} aria-hidden="true" />
+            <Typography
+              className={styles.employeeBreadcrumbCurrent}
+              aria-current="page"
+            >
+              {`${employeeQuery.data?.recruiter.fullName ?? "Employee"}'s Recruitment Pipeline`}
+            </Typography>
+          </Box>
+        )}
+        {(errorMessage || (recruiterId && employeeQuery.isError)) && (
+          <Alert severity="error">
+            {errorMessage ?? "Recruiter details could not be loaded."}
+          </Alert>
+        )}
+        {!recruiterId && (
+          <Box className={styles.pageHeader}>
+            <Typography component="h1" className={styles.pageTitle}>
+              Universal Job Pipeline
+            </Typography>
+            <Button
+              variant="contained"
+              className={styles.newMandateBtn}
+              onClick={handleNewJobPost}
+              disableElevation
+            >
+              New Job Post
+            </Button>
+          </Box>
+        )}
 
         {/* ── Welcome Banner ── */}
         <Box
@@ -444,7 +547,9 @@ const RecruiterPage = () => {
         >
           <Box className={styles.welcomeTextCol}>
             <Typography component="p" className={styles.welcomeGreeting}>
-              Hi Michael
+              Hi {recruiterId
+                ? employeeQuery.data?.recruiter.fullName.split(" ")[0] ?? ""
+                : "Michael"}
             </Typography>
             <Typography component="p" className={styles.welcomeSubtitle}>
               Here's a snapshot of what you need to do this week
@@ -452,19 +557,19 @@ const RecruiterPage = () => {
           </Box>
           <Box className={styles.kpiRow}>
             <KpiCard
-              value={pipelineDashboardStats?.cvsDue ?? stageCounts.Inbound}
-              label="CVs due"
+              value={employeePipelineData?.stageCounters.INBOUND ?? pipelineDashboardStats?.cvsDue ?? stageCounts.Inbound}
+              label={recruiterId ? "CVs to screen" : "CVs due"}
               icon={<CvsDueIcon />}
               colorClass={styles.kpiBlue}
             />
             <KpiCard
-              value={pipelineDashboardStats?.interviewsToSchedule ?? stageCounts.Interview}
+              value={employeePipelineData?.stageCounters.INTERVIEW ?? pipelineDashboardStats?.interviewsToSchedule ?? stageCounts.Interview}
               label="Interviews to schedule"
               icon={<InterviewsIcon />}
               colorClass={styles.kpiPurple}
             />
             <KpiCard
-              value={pipelineDashboardStats?.offerLetterAcceptanceDeadline ?? stageCounts.Offer}
+              value={employeePipelineData?.stageCounters.OFFER ?? pipelineDashboardStats?.offerLetterAcceptanceDeadline ?? stageCounts.Offer}
               label="Offer Letter Acceptance Deadlines"
               icon={<OfferLetterIcon />}
               colorClass={styles.kpiAmber}
@@ -475,7 +580,9 @@ const RecruiterPage = () => {
         {/* ── Recruitment Pipeline ── */}
         <Box component="section" className={styles.pipelineSection}>
           <Typography component="p" className={styles.sectionSubtitle}>
-            {pipelineDashboardStats
+            {employeePipelineData
+              ? `${new Set(employeePipelineData.data.map((application) => application.jobProfile.jobProfileId)).size} active Job Post${new Set(employeePipelineData.data.map((application) => application.jobProfile.jobProfileId)).size !== 1 ? "s" : ""} across ${new Set(employeePipelineData.data.map((application) => application.jobProfile.clientId)).size} ${new Set(employeePipelineData.data.map((application) => application.jobProfile.clientId)).size !== 1 ? "companies" : "company"}`
+              : pipelineDashboardStats
               ? `${pipelineDashboardStats.activeJobs} active Job Post${pipelineDashboardStats.activeJobs !== 1 ? "s" : ""} across ${pipelineDashboardStats.companiesCount} ${pipelineDashboardStats.companiesCount !== 1 ? "companies" : "company"}`
               : `${mandatesData?.pagination.total ?? 0} active Job Post${(mandatesData?.pagination.total ?? 0) !== 1 ? "s" : ""} across ${new Set(mandatesData?.mandates.map((m) => m.client) ?? []).size} ${new Set(mandatesData?.mandates.map((m) => m.client) ?? []).size !== 1 ? "companies" : "company"}`}
           </Typography>
@@ -496,8 +603,8 @@ const RecruiterPage = () => {
               {/* Cards board */}
               <Box className={styles.pipelineBoard}>
                 {columns.map((col) => {
-                  const visibleCards = allExpanded ? col.cards : col.cards.slice(0, CARDS_VISIBLE)
-                  const hasMore = !allExpanded && col.cards.length > CARDS_VISIBLE
+                  const visibleCards = allExpanded ? col.cards : col.cards.slice(0, CARDS_VISIBLE);
+                  const hasMore = !allExpanded && col.cards.length > CARDS_VISIBLE;
                   return (
                     <Box key={col.label} className={styles.pipelineColumn}>
                       <Box className={styles.colCards}>
@@ -520,7 +627,7 @@ const RecruiterPage = () => {
                         </ButtonBase>
                       )}
                     </Box>
-                  )
+                  );
                 })}
               </Box>
             </Box>

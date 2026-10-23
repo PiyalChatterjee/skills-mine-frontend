@@ -401,7 +401,12 @@ export const useCvBuilderDone = ({
         }),
       );
       navigate(ROUTE_PATHS.landing, {
-        state: { visitorId, matchScore, jobTitle: guestApplicationDraft.jobTitle },
+        state: {
+          visitorId,
+          matchScore,
+          jobTitle: guestApplicationDraft.jobTitle,
+          email: payload.personalDetails?.email?.trim() ?? "",
+        },
       });
       return;
     }

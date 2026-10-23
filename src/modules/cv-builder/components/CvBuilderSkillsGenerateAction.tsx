@@ -16,6 +16,74 @@ type CvBuilderSkillsGenerateActionProps = {
   visitorId?: string;
 };
 
+type SkillGenerationDetails = {
+  isVisitor: boolean;
+  candidateId?: string;
+  fullName: string;
+  email: string;
+  phoneNumber: string;
+  careerHistory: CvBuilderFormValues["careerHistory"];
+};
+
+const hasCompany = (entry: CvBuilderFormValues["careerHistory"][number]) =>
+  Boolean(entry.companyName.trim());
+
+const hasPosition = (entry: CvBuilderFormValues["careerHistory"][number]) =>
+  Boolean(entry.positionHeld.trim());
+
+const hasResponsibilities = (entry: CvBuilderFormValues["careerHistory"][number]) =>
+  entry.tasks.some((task) => task.trim());
+
+const getJobCompletionScore = (entry: CvBuilderFormValues["careerHistory"][number]) =>
+  Number(hasCompany(entry)) + Number(hasPosition(entry)) + Number(hasResponsibilities(entry));
+
+const getMissingJobFields = (careerHistory: CvBuilderFormValues["careerHistory"]) => {
+  if (careerHistory.some((entry) => hasCompany(entry) && hasPosition(entry) && hasResponsibilities(entry))) {
+    return [];
+  }
+
+  const bestEntry = careerHistory.reduce<typeof careerHistory[number] | undefined>(
+    (best, entry) =>
+      !best || getJobCompletionScore(entry) > getJobCompletionScore(best) ? entry : best,
+    undefined,
+  );
+
+  return [
+    !bestEntry || !hasCompany(bestEntry) ? "company" : "",
+    !bestEntry || !hasPosition(bestEntry) ? "position" : "",
+    !bestEntry || !hasResponsibilities(bestEntry) ? "responsibilities" : "",
+  ].filter(Boolean);
+};
+
+export const getMissingSkillGenerationFields = ({
+  isVisitor,
+  candidateId,
+  fullName,
+  email,
+  phoneNumber,
+  careerHistory,
+}: SkillGenerationDetails) => {
+  const missingFields: string[] = [];
+
+  if (isVisitor) {
+    const nameParts = fullName.trim().split(/\s+/).filter(Boolean);
+    if (!nameParts[0]) missingFields.push("first name");
+    if (!nameParts[1]) missingFields.push("last name");
+    if (!email.trim()) missingFields.push("email");
+    if (!toSouthAfricaApiPhoneNumber(phoneNumber)) missingFields.push("phone number");
+  } else if (!candidateId) {
+    missingFields.push("candidate profile");
+  }
+
+  return [...missingFields, ...getMissingJobFields(careerHistory)];
+};
+
+const formatMissingFields = (fields: string[]) => {
+  if (fields.length < 2) return fields[0] ?? "";
+  if (fields.length === 2) return `${fields[0]} and ${fields[1]}`;
+  return `${fields.slice(0, -1).join(", ")}, and ${fields.at(-1)}`;
+};
+
 // Lives in the Skills section title row so it stays visible on the single-page review layout.
 const CvBuilderSkillsGenerateAction = ({
   replaceSkills,
@@ -54,22 +122,20 @@ const CvBuilderSkillsGenerateAction = ({
       phoneNumber: toSouthAfricaApiPhoneNumber(personalDetails.phoneNumber),
     };
 
-    if (
-      (user && !candidateId) ||
-      careerHistory.length === 0 ||
-      (isVisitor &&
-        (!visitorRegistration.email ||
-          !visitorRegistration.firstName ||
-          !visitorRegistration.lastName ||
-          !visitorRegistration.phoneNumber))
-    ) {
+    const missingFields = getMissingSkillGenerationFields({
+      isVisitor,
+      candidateId,
+      fullName: personalDetails.fullName,
+      email: personalDetails.email,
+      phoneNumber: personalDetails.phoneNumber,
+      careerHistory: getValues("careerHistory") ?? [],
+    });
+
+    if (missingFields.length > 0) {
       dispatch(
         pushNotification({
-          title: isVisitor ? "Add your details first" : "Add career history first",
-          message:
-            isVisitor
-              ? "Fill in your full name, email and phone number, plus at least one job's company, position and responsibilities before generating skills."
-              : "Fill in at least one job's company, position and responsibilities before generating skills.",
+          title: "Complete required details",
+          message: `Missing: ${formatMissingFields(missingFields)}. Add these details before generating skills.`,
           level: "info",
         }),
       );

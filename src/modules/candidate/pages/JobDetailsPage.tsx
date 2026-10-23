@@ -143,7 +143,7 @@ const JobDetailsPage = () => {
           </Typography>
         ) : null}
         <Typography component="h2" className={styles.sectionTitle}>
-          Job description
+          Job Description
         </Typography>
 
         {description ? (
@@ -164,7 +164,7 @@ const JobDetailsPage = () => {
             </Box>
             <Box className={styles.metaItem}>
               <Typography component="p" className={styles.metaLabel}>
-                Employment type
+                Employment Type
               </Typography>
               <Typography component="p" className={styles.metaValue}>
                 {employmentType}

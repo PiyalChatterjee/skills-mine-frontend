@@ -153,6 +153,76 @@ describe('personalDetailsSchema', () => {
     expect(result.success).toBe(true)
   })
 
+  it('does not require partially filled career history when current company is blank', () => {
+    const result = cvBuilderSchema.safeParse({
+      personalDetails: validPersonal,
+      careerHistory: [{
+        companyName: 'Acme Corp',
+        positionHeld: '',
+        startDate: '',
+        endDate: '',
+        isCurrentRole: false,
+        tasks: ['Built things'],
+        projects: [''],
+      }],
+      skills: [{ name: 'React' }],
+      tertiaryEducation: [{
+        institutionName: 'University',
+        degreeOrCertification: 'BSc',
+        yearCompleted: '2020',
+      }],
+      secondaryEducation: [{
+        institutionName: 'School',
+        highestGradePassed: 'Grade 12',
+        yearCompleted: '2016',
+      }],
+      languages: ['English'],
+      otherLanguage: '',
+    })
+
+    expect(result.success).toBe(true)
+  })
+
+  it('requires career entry fields when current company is provided', () => {
+    const result = cvBuilderSchema.safeParse({
+      personalDetails: {
+        ...validPersonal,
+        currentCompany: 'Acme Corp',
+        currentPosition: 'Engineer',
+        noticePeriod: '1 Month',
+      },
+      careerHistory: [{
+        companyName: '',
+        positionHeld: '',
+        startDate: '',
+        endDate: '',
+        isCurrentRole: false,
+        tasks: [''],
+        projects: [''],
+      }],
+      skills: [{ name: 'React' }],
+      tertiaryEducation: [{
+        institutionName: 'University',
+        degreeOrCertification: 'BSc',
+        yearCompleted: '2020',
+      }],
+      secondaryEducation: [{
+        institutionName: 'School',
+        highestGradePassed: 'Grade 12',
+        yearCompleted: '2016',
+      }],
+      languages: ['English'],
+      otherLanguage: '',
+    })
+
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.issues.some((issue) => issue.path.join('.') === 'careerHistory.0.companyName')).toBe(true)
+      expect(result.error.issues.some((issue) => issue.path.join('.') === 'careerHistory.0.positionHeld')).toBe(true)
+      expect(result.error.issues.some((issue) => issue.path.join('.') === 'careerHistory.0.startDate')).toBe(true)
+    }
+  })
+
   it('requires career history when current company is provided', () => {
     const result = cvBuilderSchema.safeParse({
       personalDetails: {

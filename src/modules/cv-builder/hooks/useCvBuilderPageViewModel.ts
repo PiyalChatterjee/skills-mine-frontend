@@ -99,6 +99,19 @@ const buildPrefillFromSavedCv = (
     buildMyCvData.personalDetails.currentCompany ?? currentEntry?.companyName ?? "";
   const currentPosition =
     buildMyCvData.personalDetails.currentPosition ?? currentEntry?.positionHeld ?? "";
+  const savedLanguages = (Array.isArray(buildMyCvData.languages)
+    ? buildMyCvData.languages
+    : []
+  )
+    .map((entry) => entry.language.trim())
+    .filter(Boolean);
+  const knownLanguages = savedLanguages.filter(
+    (language): language is (typeof LANGUAGES_LIST)[number] =>
+      LANGUAGES_LIST.includes(language as never),
+  );
+  const otherLanguages = savedLanguages.filter(
+    (language) => !LANGUAGES_LIST.includes(language as never),
+  );
 
   return {
     personalDetails: {
@@ -129,15 +142,10 @@ const buildPrefillFromSavedCv = (
       highestGradePassed: entry.qualification ?? "",
       yearCompleted: String(entry.yearCompleted ?? ""),
     })),
-    languages: (Array.isArray(buildMyCvData.languages) ? buildMyCvData.languages : [])
-    .map((language) => language.language)
-    .filter((language): language is (typeof LANGUAGES_LIST)[number] =>
-      LANGUAGES_LIST.includes(language as never),
-    ),
-    otherLanguage:
-      (Array.isArray(buildMyCvData.languages) ? buildMyCvData.languages : [])
-        .map((language) => language.language)
-        .find((language) => !LANGUAGES_LIST.includes(language as never)) ?? "",
+    languages: otherLanguages.length > 0
+      ? [...new Set([...knownLanguages, "Other"])]
+      : knownLanguages,
+    otherLanguage: otherLanguages.join(", "),
   };
 };
 

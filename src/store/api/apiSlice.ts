@@ -1,5 +1,12 @@
 import { createApi, fakeBaseQuery } from "@reduxjs/toolkit/query/react";
-import { candidateApi, industryApi, jobsApi, locationApi } from "@/services/api";
+import { candidateApi, industryApi, jobsApi, locationApi, mancoApi } from "@/services/api";
+import type {
+  LowPerformanceAlertPage,
+  MancoRecruiterDetail,
+  MancoRecruiterListParams,
+  MancoRecruiterPage,
+  ResolveLowPerformanceAlertResponse,
+} from "@/services/api/mancoApi";
 import { visitorApi } from "@/services/api/visitorApi";
 import type { JobsSearchFilters } from "@/services/api/jobsApi";
 import type {
@@ -94,6 +101,9 @@ export const apiSlice = createApi({
     "AiActions",
     "Industries",
     "Locations",
+    "MancoRecruiters",
+    "MancoAlerts",
+    "MancoRecruiterDetail",
   ],
   endpoints: (build) => ({
     getIndustries: build.query<string[], void>({
@@ -113,6 +123,39 @@ export const apiSlice = createApi({
           return locations.filter(Boolean);
         }),
       providesTags: [{ type: "Locations", id: "LIST" }],
+    }),
+    getMancoRecruiters: build.query<
+      MancoRecruiterPage,
+      MancoRecruiterListParams
+    >({
+      queryFn: (params) =>
+        withMappedApiError(() => mancoApi.listRecruiters(params)),
+      providesTags: [{ type: "MancoRecruiters", id: "LIST" }],
+    }),
+    getMancoLowPerformingRecruiters: build.query<
+      LowPerformanceAlertPage,
+      void
+    >({
+      queryFn: () =>
+        withMappedApiError(() => mancoApi.listLowPerformingRecruiters()),
+      providesTags: [{ type: "MancoAlerts", id: "LIST" }],
+    }),
+    resolveMancoLowPerformingAlert: build.mutation<
+      ResolveLowPerformanceAlertResponse,
+      string
+    >({
+      queryFn: (alertId) =>
+        withMappedApiError(() => mancoApi.resolveLowPerformingAlert(alertId)),
+      invalidatesTags: [{ type: "MancoAlerts", id: "LIST" }],
+    }),
+    getMancoRecruiterDetail: build.query<MancoRecruiterDetail, string>({
+      queryFn: (recruiterId) =>
+        withMappedApiError(() =>
+          mancoApi.getRecruiterPerformanceDetail(recruiterId),
+        ),
+      providesTags: (_result, _error, recruiterId) => [
+        { type: "MancoRecruiterDetail", id: recruiterId },
+      ],
     }),
     getCandidateProfile: build.query<CandidateProfile, CandidateProfileArgs>({
       queryFn: async ({ candidateId, userId }, api) =>
@@ -341,6 +384,10 @@ export const apiSlice = createApi({
 export const {
   useGetIndustriesQuery,
   useGetLocationsQuery,
+  useGetMancoRecruitersQuery,
+  useGetMancoLowPerformingRecruitersQuery,
+  useResolveMancoLowPerformingAlertMutation,
+  useGetMancoRecruiterDetailQuery,
   useGetCandidateProfileQuery,
   useGetCandidateDashboardQuery,
   useGetCandidateLandingQuery,
