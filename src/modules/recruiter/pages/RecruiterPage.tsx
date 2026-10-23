@@ -580,9 +580,9 @@ const RecruiterPage = () => {
         >
           <Box className={styles.welcomeTextCol}>
             <Typography component="p" className={styles.welcomeGreeting}>
-              Hi{" "}
+              Hi
               {recruiterId
-                ? (employeeQuery.data?.recruiter.fullName.split(" ")[0] ?? "")
+                ? (employeeQuery.data?.recruiter?.fullName?.split(" ")[0] ?? "")
                 : ""}
             </Typography>
             <Typography component="p" className={styles.welcomeSubtitle}>
