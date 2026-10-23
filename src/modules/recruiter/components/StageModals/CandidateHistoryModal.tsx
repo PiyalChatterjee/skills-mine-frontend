@@ -30,8 +30,8 @@ const STAGE_DOT_COLOR: Record<string, string> = {
   INTERVIEW:  '#7CB0B9',
   OFFER:      '#6FBF8F',
   CLOSED:     '#DBEFE3',
-  REJECT:     '#D64545',
-  REJECTED:   '#D64545',
+  REJECT:       '#D64545',
+  OFFER_REJECT: '#D64545',
 }
 
 const STAGE_LABEL: Record<string, string> = {
@@ -42,8 +42,8 @@ const STAGE_LABEL: Record<string, string> = {
   INTERVIEW:  'Interview Scheduled',
   OFFER:      'Offer Extended',
   CLOSED:     'Closed',
-  REJECT:     'Rejected',
-  REJECTED:   'Rejected',
+  REJECT:       'Rejected',
+  OFFER_REJECT: 'Rejected',
 }
 
 function formatDate(iso: string): string {

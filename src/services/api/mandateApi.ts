@@ -85,7 +85,7 @@ type CreateJobPostBody = {
 };
 
 /** Shape of the JSON body sent to PATCH /jobs/{jobProfileId} — all fields optional */
-type PatchJobPostBody = Partial<Omit<CreateJobPostBody, "status" | "currencyCode">>;
+type PatchJobPostBody = Partial<Omit<CreateJobPostBody, "currencyCode">>;
 
 type CompanyItem = {
   clientId: string;
@@ -597,10 +597,11 @@ export const mandateApi = {
 
   // e.g. POSTED <-> PAUSED, or FILLED/CLOSED/CANCELLED to end the mandate.
   updateJobStatus(mandateId: string, status: string) {
+    const body: PatchJobPostBody = { status };
     return mandateApiClient
       .patch<JobProfile>(
         resolveEndpoint(apiEndpoints.jobs.details, { jobProfileId: mandateId }),
-        { status },
+        body,
       )
       .then((): SuccessEnvelope<{ mandateId: string; status: string }> => ({
         success: true,

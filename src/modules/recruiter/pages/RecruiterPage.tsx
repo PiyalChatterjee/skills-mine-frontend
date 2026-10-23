@@ -8,15 +8,6 @@ import {
   CircularProgress,
   Typography,
 } from "@mui/material";
-import {
-  DndContext,
-  PointerSensor,
-  useDraggable,
-  useDroppable,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-} from "@dnd-kit/core";
 import { RecruiterSidebar } from "@/modules/recruiter/components/RecruiterSidebar";
 import { RecruiterTour } from "@/modules/recruiter/components/RecruiterTour";
 import { usePageTitle } from "@/hooks/usePageTitle";
@@ -56,6 +47,7 @@ type PipelineCard = {
   id: string;
   jobProfileId: string;
   title: string;
+  fullTitle: string;
   company: string;
   companyIcon: string;
   tone: CardTone;
@@ -184,22 +176,11 @@ type PipelineCardProps = {
 };
 
 const PipelineCardItem = ({ card, onView }: PipelineCardProps) => {
-  const { attributes, listeners, setNodeRef, transform, isDragging } =
-    useDraggable({ id: card.id });
-
   return (
     <Box
-      ref={setNodeRef}
-      className={`${styles.pipelineCard} ${styles[`card${card.tone[0].toUpperCase()}${card.tone.slice(1)}`]} ${isDragging ? styles.pipelineCardDragging : ""}`}
-      style={
-        transform
-          ? { transform: `translate3d(${transform.x}px, ${transform.y}px, 0)` }
-          : undefined
-      }
-      {...attributes}
-      {...listeners}
+      className={`${styles.pipelineCard} ${styles[`card${card.tone[0].toUpperCase()}${card.tone.slice(1)}`]}`}
     >
-      <Typography component="p" className={styles.pipelineCardTitle}>
+      <Typography component="p" className={styles.pipelineCardTitle} title={card.fullTitle}>
         {card.title}
       </Typography>
       <Box className={styles.pipelineCardCompany}>
@@ -239,24 +220,6 @@ const PipelineCardItem = ({ card, onView }: PipelineCardProps) => {
   );
 };
 
-type PipelineColumnDropProps = {
-  label: PipelineStageLabel;
-  children: React.ReactNode;
-};
-
-const PipelineColumnDrop = ({ label, children }: PipelineColumnDropProps) => {
-  const { setNodeRef, isOver } = useDroppable({ id: label });
-
-  return (
-    <Box
-      ref={setNodeRef}
-      className={`${styles.pipelineColumn} ${isOver ? styles.pipelineColumnOver : ""}`}
-    >
-      {children}
-    </Box>
-  );
-};
-
 // ── Pipeline helpers ──────────────────────────────────────────────────
 
 const STAGE_CODE_MAP: Record<string, PipelineStageLabel> = {
@@ -276,19 +239,25 @@ const STAGE_TONE_MAP: Record<PipelineStageLabel, CardTone> = {
   Interview: "blush",
   Shortlist: "ice",
   Offer: "mint",
-  Closed: "success",
+  Closed: "danger",
 };
 
 const truncate = (text: string, max = 16) =>
   text.length > max ? `${text.slice(0, max)}…` : text;
 
 const mapUniversalItemToCard = (item: UniversalPipelineItem): PipelineCard | null => {
-  const stage = STAGE_CODE_MAP[item.pipelineStatus.toUpperCase()];
+  const resolvedStatus =
+    item.jobStatus?.toUpperCase() === "POSTED" &&
+    item.pipelineStatus?.toUpperCase() === "CLOSED"
+      ? "OFFER"
+      : item.pipelineStatus.toUpperCase();
+  const stage = STAGE_CODE_MAP[resolvedStatus];
   if (!stage) return null;
   return {
     id: item.jobProfileId,
     jobProfileId: item.jobProfileId,
     title: truncate(item.positionTitle),
+    fullTitle: item.positionTitle,
     company: truncate(item.clientName, 18),
     companyIcon: item.clientName.charAt(0).toUpperCase(),
     tone: STAGE_TONE_MAP[stage],
@@ -341,9 +310,6 @@ const RecruiterPage = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [columns, setColumns] = useState<PipelineColumn[]>(PIPELINE_COLUMNS);
   const [allExpanded, setAllExpanded] = useState(false);
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-  );
 
   useEffect(() => {
     let isActive = true;
@@ -437,46 +403,6 @@ const RecruiterPage = () => {
     navigate(ROUTE_PATHS.recruiterMandate.replace(":cardId", jobProfileId));
   };
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over) {
-      return;
-    }
-
-    const cardId = String(active.id);
-    const targetStage = over.id as PipelineStageLabel;
-
-    setColumns((current) => {
-      const sourceColumn = current.find((col) =>
-        col.cards.some((card) => card.id === cardId),
-      );
-      if (!sourceColumn || sourceColumn.label === targetStage) {
-        return current;
-      }
-
-      const movedCard = sourceColumn.cards.find((card) => card.id === cardId);
-      if (!movedCard) {
-        return current;
-      }
-
-      return current.map((col) => {
-        if (col.label === sourceColumn.label) {
-          return {
-            ...col,
-            cards: col.cards.filter((card) => card.id !== cardId),
-          };
-        }
-        if (col.label === targetStage) {
-          return {
-            ...col,
-            cards: [...col.cards, { ...movedCard, stage: targetStage }],
-          };
-        }
-        return col;
-      });
-    });
-  };
-
   if (loading) {
     return (
       <Box className={styles.shell}>
@@ -568,37 +494,35 @@ const RecruiterPage = () => {
               </Box>
 
               {/* Cards board */}
-              <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-                <Box className={styles.pipelineBoard}>
-                  {columns.map((col) => {
-                    const visibleCards = allExpanded ? col.cards : col.cards.slice(0, CARDS_VISIBLE)
-                    const hasMore = !allExpanded && col.cards.length > CARDS_VISIBLE
-                    return (
-                      <PipelineColumnDrop key={col.label} label={col.label}>
-                        <Box className={styles.colCards}>
-                          {visibleCards.map((card) => (
-                            <PipelineCardItem
-                              key={card.id}
-                              card={card}
-                              onView={handleCardView}
-                            />
-                          ))}
-                        </Box>
+              <Box className={styles.pipelineBoard}>
+                {columns.map((col) => {
+                  const visibleCards = allExpanded ? col.cards : col.cards.slice(0, CARDS_VISIBLE)
+                  const hasMore = !allExpanded && col.cards.length > CARDS_VISIBLE
+                  return (
+                    <Box key={col.label} className={styles.pipelineColumn}>
+                      <Box className={styles.colCards}>
+                        {visibleCards.map((card) => (
+                          <PipelineCardItem
+                            key={card.id}
+                            card={card}
+                            onView={handleCardView}
+                          />
+                        ))}
+                      </Box>
 
-                        {hasMore && (
-                          <ButtonBase
-                            className={styles.viewMoreBtn}
-                            onClick={handleViewMore}
-                            disableRipple
-                          >
-                            View more
-                          </ButtonBase>
-                        )}
-                      </PipelineColumnDrop>
-                    )
-                  })}
-                </Box>
-              </DndContext>
+                      {hasMore && (
+                        <ButtonBase
+                          className={styles.viewMoreBtn}
+                          onClick={handleViewMore}
+                          disableRipple
+                        >
+                          View more
+                        </ButtonBase>
+                      )}
+                    </Box>
+                  )
+                })}
+              </Box>
             </Box>
           </Box>
         </Box>
