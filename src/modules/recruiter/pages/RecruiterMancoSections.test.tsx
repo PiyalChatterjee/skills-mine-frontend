@@ -2,9 +2,10 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { MancoRecruiterDetail } from "@/services/api/mancoApi";
-import { MancoRecruiterSection } from "./RecruiterMancoSections";
+import { MancoAttentionSection, MancoRecruiterSection } from "./RecruiterMancoSections";
 
 const mocks = vi.hoisted(() => ({
+  useMancoAttention: vi.fn(),
   useMancoRecruiterDetail: vi.fn(),
   useMancoRecruiters: vi.fn(),
 }));
@@ -13,6 +14,7 @@ vi.mock("@/modules/recruiter/hooks/useMancoDashboard", () => ({
   MANCO_SORT_OPTIONS: [
     { key: "mtdPlacements", label: "MTD Placements", sortBy: "MTD_PLACEMENTS" },
   ],
+  useMancoAttention: mocks.useMancoAttention,
   useMancoRecruiterDetail: mocks.useMancoRecruiterDetail,
   useMancoRecruiters: mocks.useMancoRecruiters,
 }));
@@ -53,6 +55,62 @@ const recruiterDetail: MancoRecruiterDetail = {
   },
   performanceSummary: { averageCandidatesPerRole: null },
 };
+
+describe("MancoAttentionSection API alert text", () => {
+  const alert = {
+    alertId: null,
+    recruiterId: "recruiter-1",
+    fullName: "Swastika Basu",
+    primaryEmail: "swastika.basu@ibm.com",
+    calculationMonth: "2026-09",
+    conversionRate: null,
+    issue: "Low conversion rate (N/A)",
+    metric: "Conversion Rate",
+    recommendedActions: ["Review pipeline quality and candidate sourcing."],
+  };
+
+  beforeEach(() => {
+    mocks.useMancoAttention.mockReturnValue({
+      alertCount: 1,
+      alerts: [alert],
+      hasLoadedAlerts: true,
+      hasResolveError: false,
+      isError: false,
+      isExpanded: true,
+      isLoading: false,
+      isResolving: false,
+      selectedAlert: null,
+      closeAlert: vi.fn(),
+      resolveSelectedAlert: vi.fn(),
+      selectAlert: vi.fn(),
+      toggleExpanded: vi.fn(),
+    });
+  });
+
+  it("renders the API issue in the attention list without an actualValue", () => {
+    render(<MancoAttentionSection />);
+
+    expect(screen.getByText(alert.issue)).toBeInTheDocument();
+    expect(screen.queryByText(/undefined/)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "View details" }));
+    expect(mocks.useMancoAttention().selectAlert).toHaveBeenCalledWith(alert);
+  });
+
+  it("renders the API issue and metric verbatim in the details dialog", () => {
+    mocks.useMancoAttention.mockReturnValue({
+      ...mocks.useMancoAttention(),
+      isExpanded: false,
+      selectedAlert: alert,
+    });
+
+    render(<MancoAttentionSection />);
+
+    expect(screen.getByRole("dialog")).toHaveTextContent(alert.issue);
+    expect(screen.getByText(alert.metric)).toBeInTheDocument();
+    expect(screen.getByText(alert.recommendedActions[0])).toBeInTheDocument();
+    expect(screen.queryByText(/undefined/)).not.toBeInTheDocument();
+  });
+});
 
 describe("MancoRecruiterSection pipeline distribution", () => {
   beforeEach(() => {

@@ -25,8 +25,6 @@ import {
   useMancoRecruiters,
 } from "@/modules/recruiter/hooks/useMancoDashboard";
 import {
-  formatAlertIssue,
-  formatAlertMetric,
   formatPercentage,
   formatRevenue,
 } from "@/modules/recruiter/utils/mancoFormatters";
@@ -136,7 +134,7 @@ export const MancoAttentionSection = () => {
                 </Typography>
                 <Box className={styles.alertListDetails}>
                   <Typography className={styles.alertListIssue}>
-                    {formatAlertIssue(alert)}
+                    {alert.issue}
                   </Typography>
                   <ButtonBase
                     className={styles.alertViewDetailsButton}
@@ -532,13 +530,13 @@ const AlertDetailsDialog = ({
             <Box className={styles.alertIssueRow}>
               <Typography className={styles.alertSummaryLabel}>Issue</Typography>
               <Typography className={styles.alertSummaryValue}>
-                {formatAlertIssue(alert)}
+                {alert.issue}
               </Typography>
             </Box>
             <Box className={styles.alertIssueRow}>
               <Typography className={styles.alertSummaryLabel}>Metric</Typography>
               <Typography className={styles.alertSummaryValue}>
-                {formatAlertMetric(alert.metric)}
+                {alert.metric}
               </Typography>
             </Box>
           </Box>
