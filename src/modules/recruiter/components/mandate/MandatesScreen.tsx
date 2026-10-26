@@ -55,6 +55,11 @@ export const MandatesScreen = ({ onNewJobPost, onEditJobPost }: MandatesScreenPr
   const [confirmDeleteDialogOpen, setConfirmDeleteDialogOpen] = useState(false)
   const pendingDeleteRef = useRef<{ id: string; title: string } | null>(null)
 
+  // Close job post confirmation dialog
+  const [closeJobLoading, setCloseJobLoading] = useState(false)
+  const [closeJobConfirmOpen, setCloseJobConfirmOpen] = useState(false)
+  const pendingCloseJobRef = useRef<{ id: string; title: string } | null>(null)
+
   // Status filter dropdown
   const statusBtnRef = useRef<HTMLButtonElement | null>(null)
   const [statusAnchorEl, setStatusAnchorEl]     = useState<HTMLButtonElement | null>(null)
@@ -191,39 +196,52 @@ export const MandatesScreen = ({ onNewJobPost, onEditJobPost }: MandatesScreenPr
   }
 
   const activeRowPost = jobPosts.find((p) => p.mandateId === activeRowId)
-  const canTogglePause = activeRowPost
-    ? ['POSTED', 'PAUSED'].includes(activeRowPost.status.toUpperCase())
-    : false
 
-  const handleTogglePause = () => {
-    const idToUpdate = activeRowId
-    const post = jobPosts.find((p) => p.mandateId === idToUpdate)
+  const handleCloseJobClick = () => {
+    const idToClose = activeRowId
+    const postToClose = jobPosts.find((p) => p.mandateId === idToClose)
     handleClose()
-    if (!idToUpdate || !post) return
+    if (!idToClose || !postToClose || postToClose.status.toUpperCase() === 'CLOSED') return
 
-    const isPaused = post.status.toUpperCase() === 'PAUSED'
-    const nextStatus = isPaused ? 'POSTED' : 'PAUSED'
+    pendingCloseJobRef.current = {
+      id: idToClose,
+      title: postToClose.title ?? '',
+    }
+    setCloseJobConfirmOpen(true)
+  }
 
-    setJobPosts((prev) =>
-      prev.map((p) => (p.mandateId === idToUpdate ? { ...p, status: nextStatus } : p)),
-    )
-    mandateApi.updateJobStatus(idToUpdate, nextStatus)
+  const confirmCloseJob = () => {
+    const pending = pendingCloseJobRef.current
+    if (!pending || closeJobLoading) return
+    setCloseJobLoading(true)
+
+    mandateApi
+      .updateJobStatus(pending.id, 'CLOSED')
       .then(() => {
-        dispatch(pushNotification({
-          level: 'success',
-          title: isPaused ? 'Job post resumed' : 'Job post paused',
-          message: post.title ? `"${post.title}" is now ${toTitleCase(nextStatus)}.` : undefined,
-        }))
+        setJobPosts((prev) =>
+          prev.map((p) => (p.mandateId === pending.id ? { ...p, status: 'CLOSED' } : p))
+        )
+        dispatch(
+          pushNotification({
+            level: 'success',
+            title: 'Job post closed',
+            message: pending.title ? `"${pending.title}" has been closed.` : undefined,
+          })
+        )
+        setCloseJobConfirmOpen(false)
+        pendingCloseJobRef.current = null
       })
       .catch(() => {
-        setJobPosts((prev) =>
-          prev.map((p) => (p.mandateId === idToUpdate ? { ...p, status: post.status } : p)),
+        dispatch(
+          pushNotification({
+            level: 'error',
+            title: 'Failed to close job post',
+            message: 'Could not close the job post. Please try again.',
+          })
         )
-        dispatch(pushNotification({
-          level: 'error',
-          title: 'Status update failed',
-          message: 'Could not update the job post status. Please try again.',
-        }))
+      })
+      .finally(() => {
+        setCloseJobLoading(false)
       })
   }
 
@@ -543,7 +561,7 @@ export const MandatesScreen = ({ onNewJobPost, onEditJobPost }: MandatesScreenPr
                     <Typography component="span" className={styles.gridValue}>{post.location}</Typography>
                     <Typography component="span" className={styles.gridValue}>{timeline}</Typography>
                     <Box className={styles.statusCell}>
-                      <Box className={`${styles.statusPill} ${isDraft ? styles.statusDraft : styles.statusPosted}`}>
+                      <Box className={`${styles.statusPill} ${isDraft ? styles.statusDraft : post.status.toUpperCase() === 'CLOSED' ? styles.statusClosed : styles.statusPosted}`}>
                         {displayStatus}
                       </Box>
                     </Box>
@@ -642,24 +660,30 @@ export const MandatesScreen = ({ onNewJobPost, onEditJobPost }: MandatesScreenPr
           Edit post
         </ButtonBase>
 
-        {canTogglePause && (
-          <ButtonBase className={styles.menuItem} onClick={handleTogglePause} disableRipple>
-            <svg
-              className={styles.menuIcon}
-              viewBox="0 0 20 20"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              aria-hidden="true"
-            >
-              {activeRowPost?.status.toUpperCase() === 'PAUSED' ? (
-                <path d="M6.667 4.167l8.333 5.833-8.333 5.833V4.167Z" stroke="#4d4d4d" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              ) : (
-                <path d="M7.5 5v10M12.5 5v10" stroke="#4d4d4d" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              )}
-            </svg>
-            {activeRowPost?.status.toUpperCase() === 'PAUSED' ? 'Resume posting' : 'Pause posting'}
-          </ButtonBase>
-        )}
+        <ButtonBase
+          className={styles.menuItem}
+          onClick={handleCloseJobClick}
+          disableRipple
+          disabled={activeRowPost?.status.toUpperCase() === 'CLOSED'}
+        >
+          <svg
+            className={styles.menuIcon}
+            viewBox="0 0 20 20"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+          >
+            <circle cx="10" cy="10" r="7.5" stroke="#4d4d4d" strokeWidth="1.5" />
+            <path
+              d="m7.5 7.5 5 5m0-5-5 5"
+              stroke="#4d4d4d"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          Close job post
+        </ButtonBase>
 
         <ButtonBase
           className={`${styles.menuItem} ${styles.menuItemDelete}`}
@@ -751,6 +775,87 @@ export const MandatesScreen = ({ onNewJobPost, onEditJobPost }: MandatesScreenPr
           </ButtonBase>
         </DialogActions>
       </Dialog>
+
+      {/* ── Close Job confirmation modal ── */}
+      {closeJobConfirmOpen && (
+        <Box
+          className={styles.confirmBackdrop}
+          onClick={() => {
+            if (!closeJobLoading) {
+              setCloseJobConfirmOpen(false)
+              pendingCloseJobRef.current = null
+            }
+          }}
+        >
+          <Box
+            className={styles.confirmModal}
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="close-job-modal-title"
+          >
+            {/* header */}
+            <Box className={styles.confirmModalHeader}>
+              <Typography component="h2" id="close-job-modal-title" className={styles.confirmModalTitle}>
+                Close Job Post
+              </Typography>
+              <ButtonBase
+                className={styles.confirmModalCloseBtn}
+                disableRipple
+                aria-label="Cancel"
+                disabled={closeJobLoading}
+                onClick={() => {
+                  setCloseJobConfirmOpen(false)
+                  pendingCloseJobRef.current = null
+                }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M18 6L6 18M6 6l12 12" stroke="#57606a" strokeWidth="2" strokeLinecap="round" />
+                </svg>
+              </ButtonBase>
+            </Box>
+
+            {/* body */}
+            <Box className={styles.confirmModalBody}>
+              <svg width="44" height="44" viewBox="0 0 24 24" fill="none" aria-hidden="true" style={{ flexShrink: 0 }}>
+                <circle cx="12" cy="12" r="10" fill="#FEE2E2" />
+                <path d="M12 8v4m0 4h.01" stroke="#C0392B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <Box>
+                <Typography component="p" className={styles.confirmModalMessage}>
+                  Are you sure you want to close this job post?
+                </Typography>
+                <Typography component="p" className={styles.confirmModalSubMessage}>
+                  This action cannot be undone. The job will be marked as closed and will no longer accept new applicants.
+                </Typography>
+              </Box>
+            </Box>
+
+            {/* footer */}
+            <Box className={styles.confirmModalFooter}>
+              <ButtonBase
+                className={styles.confirmCancelBtn}
+                disableRipple
+                disabled={closeJobLoading}
+                onClick={() => {
+                  setCloseJobConfirmOpen(false)
+                  pendingCloseJobRef.current = null
+                }}
+              >
+                Cancel
+              </ButtonBase>
+              <ButtonBase
+                className={styles.confirmCloseBtn}
+                disableRipple
+                disabled={closeJobLoading}
+                onClick={confirmCloseJob}
+              >
+                {closeJobLoading ? <CircularProgress size={14} sx={{ color: '#fff' }} /> : 'Yes, Close Job'}
+              </ButtonBase>
+            </Box>
+          </Box>
+        </Box>
+      )}
     </Box>
   )
 }
