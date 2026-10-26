@@ -62,6 +62,17 @@ npm run preview
 
 ## What Changed Recently
 
+### Relationship CRM
+
+- `/recruiter/crm` and `/crm` share the live CRM screen; the legacy route retains its `CRM_EDIT` permission guard.
+- Uses `VITE_API_BASE_URL` with the `/api/crm-service` suffix and the existing bearer-token interceptor.
+- Client listing calls `GET /crm/clients` with optional `search`, `status`, and 1-based `page` / `size` parameters. Summary tiles and pagination use the direct response, not a success envelope.
+- Add employer calls `POST /crm/employer`. Cards display contact details from the client list; Update submits `POST /crm/clients/{clientId}/notes` with required `classification` and `note`, plus optional `followupDate` and `lastcontactDate` dates. The API service also exposes `GET /crm/employers/{name}` for full employer lookup.
+- React Hook Form and Zod validate dialogs; successful mutations invalidate the shared RTK Query CRM cache. Failed requests remain visible with retry or form errors.
+- CRM page orchestration is separate from static icons/cards/tiles in `src/modules/crm/components/CrmPresentation.tsx` and display helpers in `src/modules/crm/presentation.ts`; these reuse the existing recruiter CRM CSS Module.
+- CRM cards follow the Figma classification colors, contact links, timing badges, and locally stored icons. The Update dialog uses radio classification options, paired dates, a four-line note limit, and validity-gated submission.
+- Shared `FormField` and `FormDateField` components in `src/components/forms` provide external accessible labels, error associations, CSS Module styling, multiline support, and keyboard-accessible calendar selection. CRM create/update dialogs consume them without depending on CV Builder fields. Date fields accept `YYYY-MM-DD` text or calendar input and preserve the CRM API date keys.
+
 ### Recruiter Sign-Up Flow
 
 - Added recruiter-specific sign-up submission through the staff/recruiter registration API boundary rather than treating recruiter registration as candidate registration.

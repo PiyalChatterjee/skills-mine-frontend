@@ -1,0 +1,62 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  width: 100%;
+}
+
+.label {
+  color: #2a3132;
+  font: 400 16px/24px 'Red Hat Text', sans-serif;
+  letter-spacing: 0.1px;
+}
+
+.control:global(.MuiFormControl-root) {
+  margin: 0;
+  min-width: 0;
+}
+
+.control :global(.MuiOutlinedInput-root) {
+  min-height: 48px;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #2a3132;
+  font: 400 16px/24px 'Red Hat Text', sans-serif;
+  letter-spacing: 0.1px;
+}
+
+.control :global(.MuiOutlinedInput-notchedOutline) {
+  border-color: #b0b4b8;
+}
+
+.control :global(.MuiInputBase-input) {
+  padding: 11px 9px;
+  font: inherit;
+}
+
+.control :global(.MuiInputBase-input)::placeholder {
+  color: #b0b4b8;
+  opacity: 1;
+}
+
+.control :global(.MuiInputBase-multiline) {
+  padding: 12px 9px;
+  align-items: flex-start;
+}
+
+.control :global(.MuiInputBase-multiline) :global(.MuiInputBase-input) {
+  padding: 0;
+}
+
+.control :global(.MuiFormHelperText-root) {
+  margin: 4px 0 0;
+}
+
+.control :global(.Mui-focused) :global(.MuiOutlinedInput-notchedOutline) {
+  border-color: #32abbf;
+}
+
+.control :global(.Mui-error) :global(.MuiOutlinedInput-notchedOutline) {
+  border-color: #d64545;
+}

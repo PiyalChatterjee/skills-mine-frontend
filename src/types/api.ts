@@ -874,52 +874,70 @@ export interface AtsCandidateProfileData {
 
 export interface CrmClient {
   clientId: string;
-  company: string;
-  status: "hot_lead" | "warm_contact" | "cold_lead" | "needs_attention";
-  contactPerson?: string;
-  contactEmail?: string;
-  contactPhone?: string;
-  industry?: string;
-  lastContactDays?: number;
-  overdueDays?: number;
-  dealValue?: number;
-  mandatesOpen?: number;
-  notes?: Array<{
-    noteId: string;
-    note: string;
-    noteType?: string;
-    addedBy: string;
-    addedAt: string;
-  }>;
+  clientName: string;
+  status: string;
+  contactName?: string | null;
+  contactNumber?: string | null;
+  emailId?: string | null;
+  clientRate?: number | null;
+  lastContactDays?: number | null;
+  followupDays?: number | null;
+  overdueDays?: number | null;
+  lastNote?: string | null;
 }
 
 export interface CrmClientsData {
   summary: {
-    hot_lead: number;
-    warm_contact: number;
-    cold_lead: number;
-    needs_attention: number;
-    total: number;
+    needsAttention: number;
+    hotLeads: number;
+    warmContacts: number;
+    coldLeads: number;
   };
   clients: CrmClient[];
-  pagination: Pagination;
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+}
+
+export type CrmClassification =
+  | "needs_attention"
+  | "hot_lead"
+  | "warm_contact"
+  | "cold_lead";
+
+export interface CrmClientsParams {
+  status?: CrmClassification;
+  search?: string;
+  page?: number;
+  size?: number;
 }
 
 export interface AddCrmNoteRequest {
+  classification: CrmClassification;
+  followupDate?: string;
+  lastcontactDate?: string;
   note: string;
-  noteType?: string;
-  newStatus?: CrmClient["status"];
 }
 
-export interface AddCrmNoteData {
-  clientId: string;
-  noteId: string;
-  noteType: string;
-  addedBy: string;
-  addedAt: string;
-  previousStatus?: CrmClient["status"];
-  currentStatus: CrmClient["status"];
-  totalNotes: number;
+export interface AddCrmNoteData extends Omit<CrmClient, "lastNote"> {
+  note?: string;
+  timestamp?: string;
+}
+
+export interface CreateCrmEmployerRequest {
+  employerName: string;
+  contactName: string;
+  contactNumber: string;
+  emailId: string;
+  clientRate?: number;
+}
+
+export interface CrmEmployerDetail extends Pick<
+  CrmClient,
+  "clientId" | "clientName" | "contactName" | "contactNumber" | "emailId" | "status" | "clientRate"
+> {
+  createdAt?: string;
 }
 
 export interface MancoDashboardData {

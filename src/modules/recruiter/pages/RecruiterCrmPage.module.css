@@ -1,371 +1,275 @@
-/* ── Shell (sidebar + content) ───────────────────────────────────────── */
 .shell {
   display: flex;
   align-items: stretch;
   min-height: 100vh;
   margin-left: 240px;
+  background: #f2f9fd;
 }
 
-/* ── Page Root ───────────────────────────────────────────────────────── */
 .pageRoot {
   flex: 1;
-  background: #f0f4f8;
+  min-width: 0;
+  max-width: 1200px;
   min-height: 100vh;
-  padding: 32px 40px 48px;
-  overflow-x: auto;
-}
-
-/* ── Page Title ──────────────────────────────────────────────────────── */
-.pageTitle,
-:global(.MuiTypography-root).pageTitle {
-  margin: 0 0 20px;
-  color: #03478c;
-  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 24px;
-  font-weight: 500;
-  line-height: 1.3;
-  letter-spacing: 0;
-}
-
-/* ── Stat Tiles Outer Panel ──────────────────────────────────────────── */
-.statTilesPanel {
-  background: #1a4a82;
-  border-radius: 10px;
-  padding: 12px;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  margin-bottom: 20px;
-}
-
-/* ── Individual Stat Tile ────────────────────────────────────────────── */
-.statTile {
-  border-radius: 8px;
-  padding: 18px 20px 16px;
+  margin: 0 auto;
+  padding: 20px 80px 80px;
   display: flex;
   flex-direction: column;
-  min-height: 80px;
+  gap: 32px;
 }
 
-.statTileRed   { background: #e05a5a; }
-.statTileGreen { background: #4aaa6e; }
-.statTileAmber { background: #e8a53a; }
-.statTileTeal  { background: #3d9db5; }
+.pageHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.pageTitle:global(.MuiTypography-root) {
+  margin: 0;
+  color: #03478c;
+  font: 500 24px/36px 'Red Hat Display', sans-serif;
+  letter-spacing: 0.1px;
+}
+
+.statTilesPanel {
+  background: #03478c;
+  border-radius: 20px;
+  padding: 24px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.statTile {
+  border-radius: 10px;
+  padding: 32px 32px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  color: #ffffff;
+}
+
+.statTileRed, .crmCardRed { background: #d64545; }
+.statTileGreen, .crmCardGreen { background: #4baf73; }
+.statTileAmber, .crmCardAmber { background: #e6a83b; }
+.statTileTeal, .crmCardTeal { background: #2b96d9; }
+.crmCardNeutral { background: #57606a; }
 
 .statTileTop {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: 6px;
+  gap: 8px;
 }
 
-.statTileValue,
-:global(.MuiTypography-root).statTileValue {
+.statTileValue:global(.MuiTypography-root) {
   margin: 0;
-  color: #ffffff;
-  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 42px;
-  font-weight: 400;
-  line-height: 1;
-  letter-spacing: 0;
+  color: inherit;
+  font: 400 72px/52px 'Red Hat Display', sans-serif;
+  letter-spacing: 0.1px;
 }
 
 .statTileIcon {
   display: flex;
-  align-items: center;
-  color: rgba(255, 255, 255, 0.85);
-  margin-top: 4px;
+  padding-top: 2px;
 }
 
-.statTileLabel,
-:global(.MuiTypography-root).statTileLabel {
+.statTileLabel:global(.MuiTypography-root) {
   margin: 0;
-  color: rgba(255, 255, 255, 0.92);
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 13px;
-  font-weight: 400;
-  line-height: 1.4;
+  color: inherit;
+  font: 400 14px/21px 'Red Hat Text', sans-serif;
+  letter-spacing: 0.1px;
 }
 
-/* ── Search Bar ──────────────────────────────────────────────────────── */
+.filters {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
 .searchWrap {
-  margin-bottom: 16px;
+  flex: 1;
+  min-width: 0;
   position: relative;
 }
 
 .searchIcon {
   position: absolute;
-  left: 12px;
+  left: 8px;
   top: 50%;
   transform: translateY(-50%);
-  color: #8c959f;
   display: flex;
-  align-items: center;
   pointer-events: none;
 }
 
 .searchInput {
   width: 100%;
   background: #ffffff;
-  border: 1px solid #d0d7de;
-  border-radius: 6px;
-  padding: 9px 14px 9px 36px;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 14px;
-  color: #57606a;
-  outline: none;
-  box-sizing: border-box;
-  transition: border-color 0.15s ease;
+  border: 1px solid #aad5f0;
+  border-radius: 8px;
+  padding: 6px 8px 6px 32px;
+  color: #2a3132;
+  font: 400 14px/21px 'Red Hat Text', sans-serif;
+  letter-spacing: 0.1px;
 }
 
-.searchInput::placeholder {
-  color: #8c959f;
+.searchInput::placeholder { color: #b0b4b8; }
+
+.statusFilter:global(.MuiFormControl-root) {
+  min-width: 220px;
+  background: #ffffff;
 }
 
-.searchInput:focus {
-  border-color: #0969da;
+.statusFilter :global(.MuiOutlinedInput-root) {
+  border-radius: 8px;
 }
 
-/* ── Cards List ──────────────────────────────────────────────────────── */
 .cardsList {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 32px;
 }
 
-/* ── CRM Card ────────────────────────────────────────────────────────── */
 .crmCard {
   border-radius: 8px;
-  padding: 14px 16px 12px;
+  padding: 24px;
   display: flex;
   flex-direction: column;
+  gap: 16px;
+  min-height: 231px;
+  flex-shrink: 0;
+  color: #ffffff;
+  box-shadow: 4px 4px 2px rgb(0 0 0 / 10%);
 }
 
-.crmCardGreen { background: #4aaa6e; }
-.crmCardRed   { background: #e05a5a; }
-.crmCardAmber { background: #e8a53a; }
-.crmCardTeal  { background: #3d9db5; }
+.crmCardAmber { color: #2a3132; }
 
-/* ── Card Top Row: badge | line | status tag ─────────────────────────── */
+.crmCard img, .statTile img, .searchIcon img {
+  display: block;
+  flex-shrink: 0;
+}
+
 .cardTopRow {
   display: flex;
   align-items: center;
-  margin-bottom: 10px;
+  gap: 24px;
 }
 
-/* Badge tag (Hot Lead / Needs Attention / Warm Contact / Cold Lead) */
-.badgeTag {
+.badgeTag, .statusTag {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  background: rgba(255, 255, 255, 0.22);
-  border: 1px solid rgba(255, 255, 255, 0.38);
-  border-radius: 4px;
-  padding: 2px 8px 2px 6px;
+  gap: 8px;
+  box-shadow: inset 0 0 0 1px currentColor;
+  border-radius: 8px;
+  padding: 4px 8px;
   flex-shrink: 0;
 }
 
-.badgeTagIcon {
-  display: flex;
-  align-items: center;
-  color: #ffffff;
-  flex-shrink: 0;
-}
-
-.badgeTagText,
-:global(.MuiTypography-root).badgeTagText {
+.badgeTagText:global(.MuiTypography-root),
+.statusTagText:global(.MuiTypography-root) {
   margin: 0;
-  color: #ffffff;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 11px;
-  font-weight: 500;
-  line-height: 1.4;
+  color: inherit;
+  font: 400 14px/21px 'Red Hat Text', sans-serif;
+  letter-spacing: 0.1px;
   white-space: nowrap;
 }
 
-/* Horizontal divider line between badge and status */
+.badgeTagText:global(.MuiTypography-root) { font-weight: 700; }
+
 .cardDividerLine {
   flex: 1;
+  min-width: 0;
   height: 1px;
-  background: rgba(255, 255, 255, 0.3);
-  margin: 0 10px;
+  background: currentColor;
 }
 
-/* Status tag (Follow up / Overdue) */
-.statusTag {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  border-radius: 4px;
-  padding: 2px 8px 2px 6px;
-  flex-shrink: 0;
-}
+.statusTagFollowUp { background: rgb(255 255 255 / 40%); }
+.statusTagOverdue { background: #e68f8f; color: #ffffff; }
+.crmCardAmber .statusTagFollowUp { background: transparent; }
 
-.statusTagFollowUp {
-  background: rgba(255, 255, 255, 0.22);
-  border: 1px solid rgba(255, 255, 255, 0.38);
-}
-
-.statusTagOverdue {
-  background: #c0392b;
-  border: 1px solid #922b21;
-}
-
-.statusTagIcon {
+.companyRow {
   display: flex;
   align-items: center;
-  color: #ffffff;
-  flex-shrink: 0;
+  justify-content: space-between;
+  gap: 24px;
 }
 
-.statusTagText,
-:global(.MuiTypography-root).statusTagText {
+.companyName:global(.MuiTypography-root) {
   margin: 0;
-  color: #ffffff;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 11px;
-  font-weight: 500;
-  line-height: 1.4;
-  white-space: nowrap;
+  color: inherit;
+  font: 500 24px/36px 'Red Hat Display', sans-serif;
+  letter-spacing: 0.1px;
+  overflow-wrap: anywhere;
 }
 
-/* ── Company Name ────────────────────────────────────────────────────── */
-.companyName,
-:global(.MuiTypography-root).companyName {
-  margin: 0 0 8px;
-  color: #ffffff;
-  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 18px;
-  font-weight: 500;
-  line-height: 1.3;
-}
-
-/* ── Last Contact Row ────────────────────────────────────────────────── */
-.lastContactRow {
+.contactDetails {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-bottom: 7px;
+  justify-content: flex-end;
+  gap: 16px;
+  font: 500 18px/27px 'Red Hat Display', sans-serif;
+  letter-spacing: 0.1px;
 }
 
-.rowIcon {
+.contactName, .contactPhone { color: inherit; white-space: nowrap; }
+.contactName { text-decoration: underline; }
+.contactPhone { text-decoration: none; }
+
+.lastContactRow, .notesRow {
   display: flex;
-  align-items: center;
-  color: rgba(255, 255, 255, 0.88);
-  flex-shrink: 0;
+  gap: 8px;
+  align-items: flex-start;
 }
 
-.lastContactText,
-:global(.MuiTypography-root).lastContactText {
+.lastContactText:global(.MuiTypography-root),
+.notesLabel:global(.MuiTypography-root),
+.notesContent:global(.MuiTypography-root) {
   margin: 0;
-  color: rgba(255, 255, 255, 0.92);
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 12px;
-  font-weight: 400;
-  line-height: 1.4;
-}
-
-/* ── Notes Row ───────────────────────────────────────────────────────── */
-.notesRow {
-  display: flex;
-  align-items: flex-start;
-  gap: 6px;
-  margin-bottom: 4px;
-}
-
-.notesIconWrap {
-  display: flex;
-  align-items: flex-start;
-  margin-top: 1px;
-  color: rgba(255, 255, 255, 0.88);
-  flex-shrink: 0;
+  color: inherit;
+  font: 400 14px/21px 'Red Hat Text', sans-serif;
+  letter-spacing: 0.1px;
 }
 
 .notesTextCol {
   display: flex;
   flex-direction: column;
-  flex: 1;
+  gap: 4px;
   min-width: 0;
 }
 
-.notesLabel,
-:global(.MuiTypography-root).notesLabel {
-  margin: 0 0 1px;
-  color: rgba(255, 255, 255, 0.92);
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1.4;
-}
+.notesLabel:global(.MuiTypography-root) { font-weight: 700; }
+.notesContent:global(.MuiTypography-root) { font-style: italic; overflow-wrap: anywhere; white-space: pre-line; }
+.notesRow { flex: 1; min-width: 0; }
 
-.notesContent,
-:global(.MuiTypography-root).notesContent {
-  margin: 0;
-  color: rgba(255, 255, 255, 0.9);
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 12px;
-  font-weight: 400;
-  line-height: 1.5;
-  font-style: italic;
-}
-
-/* ── Card Bottom Row ─────────────────────────────────────────────────── */
 .cardBottomRow {
   display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  margin-top: 10px;
+  align-items: flex-start;
+  gap: 16px;
 }
 
 .updateBtn:global(.MuiButtonBase-root) {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.38);
-  border-radius: 4px;
-  padding: 4px 12px;
-  color: #ffffff;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 1.4;
-  transition: background 0.15s ease;
+  gap: 8px;
+  background: transparent;
+  border: 0;
+  box-shadow: inset 0 0 0 1px currentColor;
+  border-radius: 8px;
+  padding: 4px 8px;
+  color: inherit;
+  font: 400 14px/21px 'Red Hat Text', sans-serif;
+  letter-spacing: 0.1px;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
-.updateBtn:global(.MuiButtonBase-root):hover {
-  background: rgba(255, 255, 255, 0.32);
-}
+.updateBtn:global(.MuiButtonBase-root):hover { background: rgb(255 255 255 / 20%); }
+.updateBtn:focus-visible, .searchInput:focus-visible, .contactDetails a:focus-visible { outline: 2px solid #03478c; outline-offset: 3px; }
 
-/* ── Responsive ──────────────────────────────────────────────────────── */
-
-/* Tablet (900px) — sidebar off-canvas, remove shell offset */
-@media (max-width: 900px) {
-  .shell {
-    margin-left: 0;
-  }
-  .statTilesPanel {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .pageRoot {
-    padding: 20px 20px 40px;
-  }
-}
-
-/* Mobile (600px) */
-@media (max-width: 600px) {
-  .shell {
-    margin-left: 0;
-  }
-  .statTilesPanel {
-    grid-template-columns: 1fr;
-  }
-  .pageRoot {
-    padding: 16px 12px 32px;
-  }
-  .statTileValue,
-  :global(.MuiTypography-root).statTileValue {
-    font-size: 32px;
-  }
+@media (max-width: 1200px) {
+  .pageRoot { padding-right: 32px; padding-left: 32px; }
+  .statTilesPanel { gap: 16px; }
+  .statTile { padding: 24px 16px; }
+  .contactDetails { flex-wrap: wrap; gap: 8px 16px; }
 }

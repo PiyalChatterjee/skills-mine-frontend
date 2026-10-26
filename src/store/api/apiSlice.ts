@@ -1,5 +1,13 @@
 import { createApi, fakeBaseQuery } from "@reduxjs/toolkit/query/react";
-import { candidateApi, industryApi, jobsApi, locationApi, mancoApi } from "@/services/api";
+import { candidateApi, crmApi, industryApi, jobsApi, locationApi, mancoApi } from "@/services/api";
+import type {
+  AddCrmNoteData,
+  AddCrmNoteRequest,
+  CreateCrmEmployerRequest,
+  CrmClientsData,
+  CrmClientsParams,
+  CrmEmployerDetail,
+} from "@/types/api";
 import type {
   LowPerformanceAlertPage,
   MancoRecruiterDetail,
@@ -104,8 +112,30 @@ export const apiSlice = createApi({
     "MancoRecruiters",
     "MancoAlerts",
     "MancoRecruiterDetail",
+    "CrmClients",
+    "CrmEmployer",
   ],
   endpoints: (build) => ({
+    getCrmClients: build.query<CrmClientsData, CrmClientsParams>({
+      queryFn: (params) => withMappedApiError(() => crmApi.listClients(params)),
+      providesTags: ["CrmClients"],
+    }),
+    getCrmEmployer: build.query<CrmEmployerDetail, string>({
+      queryFn: (name) => withMappedApiError(() => crmApi.getEmployerByName(name)),
+      providesTags: (_result, _error, name) => [{ type: "CrmEmployer", id: name }],
+    }),
+    createCrmEmployer: build.mutation<AddCrmNoteData, CreateCrmEmployerRequest>({
+      queryFn: (payload) => withMappedApiError(() => crmApi.createEmployer(payload)),
+      invalidatesTags: (_result, error) => error ? [] : ["CrmClients", "CrmEmployer"],
+    }),
+    addCrmClientNote: build.mutation<
+      AddCrmNoteData,
+      { clientId: string; payload: AddCrmNoteRequest }
+    >({
+      queryFn: ({ clientId, payload }) =>
+        withMappedApiError(() => crmApi.addClientNote(clientId, payload)),
+      invalidatesTags: (_result, error) => error ? [] : ["CrmClients", "CrmEmployer"],
+    }),
     getIndustries: build.query<string[], void>({
       queryFn: () =>
         withMappedApiError(async () => {
@@ -382,6 +412,10 @@ export const apiSlice = createApi({
 });
 
 export const {
+  useGetCrmClientsQuery,
+  useGetCrmEmployerQuery,
+  useCreateCrmEmployerMutation,
+  useAddCrmClientNoteMutation,
   useGetIndustriesQuery,
   useGetLocationsQuery,
   useGetMancoRecruitersQuery,

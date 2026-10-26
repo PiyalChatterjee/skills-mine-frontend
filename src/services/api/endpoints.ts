@@ -139,6 +139,8 @@ export const apiEndpoints = {
   crm: {
     clients: "/crm/clients",
     clientNotes: "/crm/clients/:clientId/notes",
+    employer: "/crm/employer",
+    employerByName: "/crm/employers/:name",
     statusParam: "status",
   },
 } as const;
