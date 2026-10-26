@@ -23,6 +23,7 @@ import ClosedStageModal from '@/modules/recruiter/components/StageModals/ClosedS
 import CandidateHistoryModal from '@/modules/recruiter/components/StageModals/CandidateHistoryModal'
 import { ROUTE_PATHS } from '@/routes/routePaths'
 import { mandateApi } from '@/services/api/mandateApi'
+import { jobProfileApi } from '@/services/api/recruiterCandidatesApi'
 import type { PipelineStage } from '@/modules/recruiter/types'
 import type { RecruiterPipelineCard, RecruiterPipelineStage } from '@/types/api'
 import styles from './CandidatePipelinePage.module.css'
@@ -267,7 +268,7 @@ const CandidatePipelinePage = () => {
         ...stageGroup,
         cards: stageGroup.cards.map(card =>
           card.applicationId === rejectedId
-            ? { ...card, applicationStatus: 'REJECTED' }
+            ? { ...card, applicationStatus: 'REJECT' }
             : card
         ),
       }))
@@ -287,7 +288,7 @@ const CandidatePipelinePage = () => {
       if (!movedCard) return prev
       return withoutCard.map(sg => {
         if (sg.label !== 'Closed') return sg
-        return { ...sg, cards: [...sg.cards, { ...movedCard!, stage: 'Closed', applicationStatus: 'REJECTED' }] }
+        return { ...sg, cards: [...sg.cards, { ...movedCard!, stage: 'Closed', applicationStatus: 'OFFER_REJECT' }] }
       })
     })
     setClosedModal({
@@ -303,14 +304,17 @@ const CandidatePipelinePage = () => {
   useEffect(() => {
     if (!cardId) return
 
+    const jobClosedPromise = jobProfileApi.getJobProfile(cardId)
+      .then(p => p.status?.toUpperCase() === 'CLOSED')
+      .catch(() => false)
+
     mandateApi.listPipelines({ jobProfileId: cardId, page: 1, size: 100 })
       .then(async res => {
         const isRejectedCode = (code?: string) =>
-          code?.toUpperCase() === 'REJECT' || code?.toUpperCase() === 'REJECTED'
+          code?.toUpperCase() === 'REJECT' || code?.toUpperCase() === 'OFFER_REJECT'
 
         const rejectedApps = res.data.filter(app => isRejectedCode(app.currentStageCode))
         const rejected = new Set<string>(rejectedApps.map(a => a.applicationId))
-        setRejectedIds(rejected)
 
         // For each rejected app, fetch its stage history to find the stage it
         // was in just before rejection (the fromStageCode of the REJECT entry).
@@ -333,6 +337,23 @@ const CandidatePipelinePage = () => {
           })
         )
 
+        // Job closed → auto-reject every candidate still in Inbound (they stay in Inbound, styled as rejected)
+        if (await jobClosedPromise) {
+          const inboundIds = res.data
+            .filter(app => !rejected.has(app.applicationId) && getCardStageKey(app) === 'Inbound')
+            .map(app => app.applicationId)
+          if (inboundIds.length > 0) {
+            // Show as rejected regardless of whether the backend call succeeds
+            inboundIds.forEach(id => rejected.add(id))
+            try {
+              await mandateApi.advanceJobStage(cardId, { applicationId: inboundIds, toStageCode: 'REJECT' })
+            } catch {
+              // persisting failed — cards are still shown as rejected in the UI
+            }
+          }
+        }
+        setRejectedIds(rejected)
+
         const grouped = STAGES.map(s => ({
           label: s.key,
           colorClass: '',
@@ -351,7 +372,7 @@ const CandidatePipelinePage = () => {
               sourceCode:          app.sourceCode,
               matchScoreLatest:    app.matchScoreLatest ?? 0,
               createdAt:           app.createdAt,
-              applicationStatus:   rejected.has(app.applicationId) ? 'REJECTED' : '',
+              applicationStatus:   rejected.has(app.applicationId) ? (isRejectedCode(app.currentStageCode) ? app.currentStageCode.toUpperCase() : 'REJECT') : '',
               offerDetails:        null,
               closedAt:            null,
               companyIcon:         '',

@@ -614,6 +614,7 @@ export interface UniversalPipelineItem {
   positionTitle: string;
   clientName: string;
   pipelineStatus: string;
+  jobStatus: string;
 }
 
 export interface UniversalPipelinesData {

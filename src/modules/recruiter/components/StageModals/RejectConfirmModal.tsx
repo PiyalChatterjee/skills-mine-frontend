@@ -60,7 +60,7 @@ const RejectConfirmModal = ({
     try {
       await mandateApi.advanceJobStage(jobId, {
         applicationId: [applicationId],
-        toStageCode: 'REJECT',
+        toStageCode: stageName === 'Offer' ? 'OFFER_REJECT' : 'REJECT',
       })
       onRejected?.(applicationId)
       onClose()
