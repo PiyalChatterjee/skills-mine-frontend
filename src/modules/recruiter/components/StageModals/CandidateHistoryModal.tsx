@@ -96,12 +96,16 @@ const CandidateHistoryModal = ({
       .finally(() => setLoading(false))
   }, [applicationId])
 
-  // Resolve the ID to navigate with: prefer candidateId, fall back to visitorId from history
-  const resolvedProfileId =
-    candidateId ||
-    history.find(h => h.applicant?.candidateId)?.applicant?.candidateId ||
-    history.find(h => h.applicant?.visitorId)?.applicant?.visitorId ||
-    null
+  // Resolve the profile route: prefer candidateId, fall back to visitorId from history
+  const resolvedCandidateId =
+    candidateId || history.find(h => h.applicant?.candidateId)?.applicant?.candidateId || null
+  const resolvedVisitorId =
+    resolvedCandidateId ? null : history.find(h => h.applicant?.visitorId)?.applicant?.visitorId || null
+  const resolvedProfilePath = resolvedCandidateId
+    ? ROUTE_PATHS.recruiterCandidateDetail.replace(':candidateId', resolvedCandidateId)
+    : resolvedVisitorId
+      ? ROUTE_PATHS.recruiterVisitorDetail.replace(':visitorId', resolvedVisitorId)
+      : null
 
   return (
     <Box className={styles.backdrop} onClick={onClose}>
@@ -190,13 +194,13 @@ const CandidateHistoryModal = ({
               onClick={() => {
                 if (onViewProfile) {
                   onViewProfile()
-                } else if (resolvedProfileId) {
-                  navigate(ROUTE_PATHS.recruiterCandidateDetail.replace(':candidateId', resolvedProfileId))
+                } else if (resolvedProfilePath) {
+                  navigate(resolvedProfilePath)
                   onClose()
                 }
               }}
               disableRipple
-              disabled={!onViewProfile && !resolvedProfileId}
+              disabled={!onViewProfile && !resolvedProfilePath}
             >
               View Profile
             </ButtonBase>
