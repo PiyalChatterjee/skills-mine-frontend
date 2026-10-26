@@ -81,6 +81,7 @@ export const apiEndpoints = {
   },
   locations: {
     list: "/locations",
+    master: "/locations/master",
   },
   skills: {
     search: "/skills/search",

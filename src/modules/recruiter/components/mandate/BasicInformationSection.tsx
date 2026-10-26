@@ -4,6 +4,7 @@ import { Controller, useFormState } from 'react-hook-form'
 import type { MandateFormValues } from './types'
 import { mandateApi } from '@/services/api/mandateApi'
 import { getPhoneNumberInputProps } from '@/app/phoneNumber'
+import { LocationSelect } from './LocationSelect'
 import styles from './form.module.css'
 
 interface Props {
@@ -280,21 +281,7 @@ export const BasicInformationSection = ({ control, setValue }: Props) => {
 
       {/* Location + Fill By Date */}
       <div className={styles.row}>
-        <div className={styles.field}>
-          <label className={styles.label}>Location *</label>
-          <Controller
-            name="location"
-            control={control}
-            render={({ field }) => (
-              <input
-                {...field}
-                className={`${styles.input} ${errors.location ? styles.hasError : ''}`}
-                placeholder="Location"
-              />
-            )}
-          />
-          {errors.location && <p className={styles.errorText}>{errors.location.message}</p>}
-        </div>
+        <LocationSelect control={control} setValue={setValue} />
         <div className={styles.field}>
           <label className={styles.label}>Fill By Date *</label>
           <Controller

@@ -480,7 +480,7 @@ const CandidatePipelinePage = () => {
           </ButtonBase>
           <Box className={styles.breadcrumbDivider} />
           <ButtonBase className={styles.breadcrumbSection} onClick={handleBack} disableRipple>
-            Applicant Pipeline
+            Candidate Pipeline
           </ButtonBase>
           {jobTitle && (
             <>
