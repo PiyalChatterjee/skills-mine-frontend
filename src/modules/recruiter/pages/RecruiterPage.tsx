@@ -15,6 +15,9 @@ import { usePageTitle } from "@/hooks/usePageTitle";
 import { useAuth } from "@/app/auth/AuthContext";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import { mandateApi } from "@/services/api/mandateApi";
+import cvsDueIcon from "@/assets/recruiter/cvs-due.svg";
+import interviewsIcon from "@/assets/recruiter/interviews.svg";
+import offerLetterIcon from "@/assets/recruiter/offer-letter.svg";
 import type {
   PipelineDashboardStats,
   PipelineApplication,
@@ -78,77 +81,6 @@ const PIPELINE_COLUMNS: PipelineColumn[] = [
 
 // ── Sub-components ────────────────────────────────────────────────────
 
-const CvsDueIcon = () => (
-  <svg
-    width="22"
-    height="22"
-    viewBox="0 0 24 24"
-    fill="none"
-    aria-hidden="true"
-  >
-    <rect
-      x="4"
-      y="3"
-      width="16"
-      height="18"
-      rx="2"
-      stroke="currentColor"
-      strokeWidth="1.7"
-    />
-    <path
-      d="M8 8h8M8 12h8M8 16h5"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-    />
-  </svg>
-);
-
-const InterviewsIcon = () => (
-  <svg
-    width="22"
-    height="22"
-    viewBox="0 0 24 24"
-    fill="none"
-    aria-hidden="true"
-  >
-    <circle cx="12" cy="8" r="3.5" stroke="currentColor" strokeWidth="1.7" />
-    <path
-      d="M4 20c0-4.418 3.582-8 8-8s8 3.582 8 8"
-      stroke="currentColor"
-      strokeWidth="1.7"
-      strokeLinecap="round"
-    />
-  </svg>
-);
-
-const OfferLetterIcon = () => (
-  <svg
-    width="22"
-    height="22"
-    viewBox="0 0 24 24"
-    fill="none"
-    aria-hidden="true"
-  >
-    <rect
-      x="3"
-      y="5"
-      width="18"
-      height="14"
-      rx="2"
-      stroke="currentColor"
-      strokeWidth="1.7"
-    />
-    <path
-      d="M3 8l9 6 9-6"
-      stroke="currentColor"
-      strokeWidth="1.7"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
-
 type KpiCardProps = {
   value: number;
   label: string;
@@ -202,30 +134,7 @@ const PipelineCardItem = ({ card, onView }: PipelineCardProps) => {
           disableRipple
           aria-label="View"
         >
-          <span className={styles.pipelineCardViewBtnIcon}>
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 20 20"
-              fill="none"
-              aria-hidden="true"
-            >
-              <circle
-                cx="10"
-                cy="10"
-                r="9"
-                stroke="currentColor"
-                strokeWidth="1.5"
-              />
-              <path
-                d="M6.5 10H13.5M10.5 7L13.5 10L10.5 13"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </span>
+          <span className={styles.pipelineCardViewBtnIcon} aria-hidden="true" />
           View
         </ButtonBase>
       </Box>
@@ -608,7 +517,7 @@ const RecruiterPage = () => {
                 stageCounts.Inbound
               }
               label={recruiterId ? "CVs to screen" : "CVs due"}
-              icon={<CvsDueIcon />}
+              icon={<img src={cvsDueIcon} width="22" height="22" alt="" />}
               colorClass={styles.kpiBlue}
             />
             <KpiCard
@@ -618,7 +527,7 @@ const RecruiterPage = () => {
                 stageCounts.Interview
               }
               label="Interviews to schedule"
-              icon={<InterviewsIcon />}
+              icon={<img src={interviewsIcon} width="22" height="22" alt="" />}
               colorClass={styles.kpiPurple}
             />
             <KpiCard
@@ -628,7 +537,7 @@ const RecruiterPage = () => {
                 stageCounts.Offer
               }
               label="Offer Letter Acceptance Deadlines"
-              icon={<OfferLetterIcon />}
+              icon={<img src={offerLetterIcon} width="22" height="22" alt="" />}
               colorClass={styles.kpiAmber}
             />
           </Box>
