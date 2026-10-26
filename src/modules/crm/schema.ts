@@ -1,15 +1,17 @@
 import { z } from "zod";
 import { emailSchema } from "@/app/validation.schema";
+import { CrmClassification, CrmClassificationLabel } from "@/enums/statuses";
 
 export const crmClassificationLabels = {
-  needs_attention: "Needs Attention",
-  hot_lead: "Hot Lead",
-  warm_contact: "Warm Contact",
-  cold_lead: "Cold Lead",
+  [CrmClassification.NEEDS_ATTENTION]: CrmClassificationLabel.NEEDS_ATTENTION,
+  [CrmClassification.HOT_LEAD]: CrmClassificationLabel.HOT_LEAD,
+  [CrmClassification.WARM_CONTACT]: CrmClassificationLabel.WARM_CONTACT,
+  [CrmClassification.COLD_LEAD]: CrmClassificationLabel.COLD_LEAD,
 } as const;
 
 export const crmClassifications = [
-  "needs_attention", "hot_lead", "warm_contact", "cold_lead",
+  CrmClassification.NEEDS_ATTENTION, CrmClassification.HOT_LEAD,
+  CrmClassification.WARM_CONTACT, CrmClassification.COLD_LEAD,
 ] as const;
 
 const dateSchema = z.string().refine(

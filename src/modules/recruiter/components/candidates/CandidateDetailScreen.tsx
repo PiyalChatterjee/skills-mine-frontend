@@ -1,3 +1,4 @@
+import { PipelineStageLabel as PipelineLabel } from "@/enums/statuses";
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Box, ButtonBase, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Typography } from '@mui/material'
@@ -16,14 +17,14 @@ import styles from './CandidateDetailScreen.module.css'
 
 // ── Stage badge colors ─────────────────────────────────────────────────
 const STAGE_COLORS: Record<string, string> = {
-  Interview:  '#7c5cd8',
-  Shortlist:  '#2196a8',
-  Screening:   '#2196a8',
-  Inbound:     '#3aafb9',
-  Assessment:  '#f59e0b',
-  Offer:       '#4baf73',
-  Placed:      '#2f9a5f',
-  Closed:      '#d96b6b',
+  [PipelineLabel.INTERVIEW]:  '#7c5cd8',
+  [PipelineLabel.SHORTLIST]:  '#2196a8',
+  [PipelineLabel.SCREENING]:   '#2196a8',
+  [PipelineLabel.INBOUND]:     '#3aafb9',
+  [PipelineLabel.ASSESSMENT]:  '#f59e0b',
+  [PipelineLabel.OFFER]:       '#4baf73',
+  [PipelineLabel.PLACED]:      '#2f9a5f',
+  [PipelineLabel.CLOSED]:      '#d96b6b',
 }
 
 // ── Icons ──────────────────────────────────────────────────────────────

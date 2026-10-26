@@ -1,3 +1,4 @@
+import { JobPostStatus, PipelineStageCode, PipelineStageLabel as PipelineLabel } from "@/enums/statuses";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -30,14 +31,7 @@ import styles from "./RecruiterPage.module.css";
 
 // ── Types ─────────────────────────────────────────────────────────────
 
-type PipelineStageLabel =
-  | "Inbound"
-  | "Screening"
-  | "Assessment"
-  | "Interview"
-  | "Shortlist"
-  | "Offer"
-  | "Closed";
+type PipelineStageLabel = Exclude<PipelineLabel, typeof PipelineLabel.PLACED>;
 
 type CardTone =
   | "cream"
@@ -70,13 +64,13 @@ type PipelineColumn = {
 
 /** Column skeleton — no cards; cards are loaded from the API. */
 const PIPELINE_COLUMNS: PipelineColumn[] = [
-  { label: "Inbound", colorClass: styles.colInbound, cards: [] },
-  { label: "Screening", colorClass: styles.colScreening, cards: [] },
-  { label: "Assessment", colorClass: styles.colAssessment, cards: [] },
-  { label: "Interview", colorClass: styles.colInterview, cards: [] },
-  { label: "Shortlist", colorClass: styles.colShortlist, cards: [] },
-  { label: "Offer", colorClass: styles.colOffer, cards: [] },
-  { label: "Closed", colorClass: styles.colClosed, cards: [] },
+  { label: PipelineLabel.INBOUND, colorClass: styles.colInbound, cards: [] },
+  { label: PipelineLabel.SCREENING, colorClass: styles.colScreening, cards: [] },
+  { label: PipelineLabel.ASSESSMENT, colorClass: styles.colAssessment, cards: [] },
+  { label: PipelineLabel.INTERVIEW, colorClass: styles.colInterview, cards: [] },
+  { label: PipelineLabel.SHORTLIST, colorClass: styles.colShortlist, cards: [] },
+  { label: PipelineLabel.OFFER, colorClass: styles.colOffer, cards: [] },
+  { label: PipelineLabel.CLOSED, colorClass: styles.colClosed, cards: [] },
 ];
 
 // ── Sub-components ────────────────────────────────────────────────────
@@ -145,24 +139,24 @@ const PipelineCardItem = ({ card, onView }: PipelineCardProps) => {
 // ── Pipeline helpers ──────────────────────────────────────────────────
 
 const STAGE_CODE_MAP: Record<string, PipelineStageLabel> = {
-  INBOUND: "Inbound",
-  SCREENING: "Screening",
-  ASSESSMENT: "Assessment",
-  INTERVIEW: "Interview",
-  SHORTLIST: "Shortlist",
-  SHORTLISTED: "Shortlist",
-  OFFER: "Offer",
-  CLOSED: "Closed",
+  [PipelineStageCode.INBOUND]: PipelineLabel.INBOUND,
+  [PipelineStageCode.SCREENING]: PipelineLabel.SCREENING,
+  [PipelineStageCode.ASSESSMENT]: PipelineLabel.ASSESSMENT,
+  [PipelineStageCode.INTERVIEW]: PipelineLabel.INTERVIEW,
+  [PipelineStageCode.SHORTLIST]: PipelineLabel.SHORTLIST,
+  [PipelineStageCode.SHORTLISTED]: PipelineLabel.SHORTLIST,
+  [PipelineStageCode.OFFER]: PipelineLabel.OFFER,
+  [PipelineStageCode.CLOSED]: PipelineLabel.CLOSED,
 };
 
 const STAGE_TONE_MAP: Record<PipelineStageLabel, CardTone> = {
-  Inbound: "cream",
-  Screening: "lilac",
-  Assessment: "yellow",
-  Interview: "blush",
-  Shortlist: "ice",
-  Offer: "mint",
-  Closed: "danger",
+  [PipelineLabel.INBOUND]: "cream",
+  [PipelineLabel.SCREENING]: "lilac",
+  [PipelineLabel.ASSESSMENT]: "yellow",
+  [PipelineLabel.INTERVIEW]: "blush",
+  [PipelineLabel.SHORTLIST]: "ice",
+  [PipelineLabel.OFFER]: "mint",
+  [PipelineLabel.CLOSED]: "danger",
 };
 
 const truncate = (text: string, max = 16) =>
@@ -172,9 +166,9 @@ const mapUniversalItemToCard = (
   item: UniversalPipelineItem,
 ): PipelineCard | null => {
   const resolvedStatus =
-    item.jobStatus?.toUpperCase() === "POSTED" &&
-    item.pipelineStatus?.toUpperCase() === "CLOSED"
-      ? "OFFER"
+    item.jobStatus?.toUpperCase() === JobPostStatus.POSTED &&
+    item.pipelineStatus?.toUpperCase() === PipelineStageCode.CLOSED
+      ? PipelineStageCode.OFFER
       : item.pipelineStatus.toUpperCase();
   const stage = STAGE_CODE_MAP[resolvedStatus];
   if (!stage) return null;
@@ -195,13 +189,13 @@ const buildColumnsFromApi = (
   baseColumns: PipelineColumn[],
 ): PipelineColumn[] => {
   const cardsByStage: Record<PipelineStageLabel, PipelineCard[]> = {
-    Inbound: [],
-    Screening: [],
-    Assessment: [],
-    Interview: [],
-    Shortlist: [],
-    Offer: [],
-    Closed: [],
+    [PipelineLabel.INBOUND]: [],
+    [PipelineLabel.SCREENING]: [],
+    [PipelineLabel.ASSESSMENT]: [],
+    [PipelineLabel.INTERVIEW]: [],
+    [PipelineLabel.SHORTLIST]: [],
+    [PipelineLabel.OFFER]: [],
+    [PipelineLabel.CLOSED]: [],
   };
 
   for (const item of items) {
@@ -222,13 +216,13 @@ export const buildColumnsFromApplications = (
   baseColumns: PipelineColumn[],
 ): PipelineColumn[] => {
   const cardsByStage: Record<PipelineStageLabel, PipelineCard[]> = {
-    Inbound: [],
-    Screening: [],
-    Assessment: [],
-    Interview: [],
-    Shortlist: [],
-    Offer: [],
-    Closed: [],
+    [PipelineLabel.INBOUND]: [],
+    [PipelineLabel.SCREENING]: [],
+    [PipelineLabel.ASSESSMENT]: [],
+    [PipelineLabel.INTERVIEW]: [],
+    [PipelineLabel.SHORTLIST]: [],
+    [PipelineLabel.OFFER]: [],
+    [PipelineLabel.CLOSED]: [],
   };
   const cardsByJobProfileId = new Map<string, PipelineCard>();
 
@@ -384,25 +378,25 @@ const RecruiterPage = () => {
 
   const stageCounts = useMemo(() => {
     const counts: Record<PipelineStageLabel, number> = {
-      Inbound: 0,
-      Screening: 0,
-      Assessment: 0,
-      Interview: 0,
-      Shortlist: 0,
-      Offer: 0,
-      Closed: 0,
+      [PipelineLabel.INBOUND]: 0,
+      [PipelineLabel.SCREENING]: 0,
+      [PipelineLabel.ASSESSMENT]: 0,
+      [PipelineLabel.INTERVIEW]: 0,
+      [PipelineLabel.SHORTLIST]: 0,
+      [PipelineLabel.OFFER]: 0,
+      [PipelineLabel.CLOSED]: 0,
     };
 
     dashboardData?.pipeline.forEach((stage) => {
       const normalized = stage.stage.trim().toLowerCase();
-      if (normalized === "inbound") counts.Inbound = stage.count;
-      if (normalized === "screening") counts.Screening = stage.count;
-      if (normalized === "assessment") counts.Assessment = stage.count;
-      if (normalized === "interview") counts.Interview = stage.count;
-      if (normalized === "shortlisted" || normalized === "shortlist")
+      if (normalized === PipelineStageCode.INBOUND.toLowerCase()) counts.Inbound = stage.count;
+      if (normalized === PipelineStageCode.SCREENING.toLowerCase()) counts.Screening = stage.count;
+      if (normalized === PipelineStageCode.ASSESSMENT.toLowerCase()) counts.Assessment = stage.count;
+      if (normalized === PipelineStageCode.INTERVIEW.toLowerCase()) counts.Interview = stage.count;
+      if (normalized === PipelineStageCode.SHORTLISTED.toLowerCase() || normalized === PipelineStageCode.SHORTLIST.toLowerCase())
         counts.Shortlist = stage.count;
-      if (normalized === "offer") counts.Offer = stage.count;
-      if (normalized === "closed") counts.Closed = stage.count;
+      if (normalized === PipelineStageCode.OFFER.toLowerCase()) counts.Offer = stage.count;
+      if (normalized === PipelineStageCode.CLOSED.toLowerCase()) counts.Closed = stage.count;
     });
 
     return counts;

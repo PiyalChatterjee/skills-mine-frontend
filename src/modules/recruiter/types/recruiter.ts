@@ -1,14 +1,8 @@
-// ── Pipeline Stages ────────────────────────────────────────────────────
-export type PipelineStage =
-  | 'Inbound'
-  | 'Screening'
-  | 'Assessment'
-  | 'Interview'
-  | 'Shortlist'
-  | 'Offer'
-  | 'Closed'
+import type { ClosedReason as ClosedReasonValue, JobPostStatusLabel, PipelineStageLabel } from "@/enums/statuses"
 
-export type ClosedReason = 'Hired' | 'Rejected' | null
+export type PipelineStage = Exclude<PipelineStageLabel, typeof PipelineStageLabel.PLACED>
+
+export type ClosedReason = ClosedReasonValue | null
 
 // ── Stage History Entry ────────────────────────────────────────────────
 export interface StageHistoryEntry {
@@ -124,7 +118,7 @@ export interface Mandate {
   jobPublished: string
   jobReference: string
   stage: PipelineStage
-  status: 'Posted' | 'Draft' | 'Closed'
+  status: Exclude<JobPostStatusLabel, typeof JobPostStatusLabel.OPEN>
   views: number
   applicants: number
   transformationApplicants: number

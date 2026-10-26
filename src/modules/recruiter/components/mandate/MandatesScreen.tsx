@@ -1,3 +1,4 @@
+import { JobPostStatus, JobPostStatusLabel } from "@/enums/statuses";
 import {
   Box,
   Button,
@@ -34,7 +35,7 @@ type MandatesScreenProps = {
 
 const PAGE_SIZE = 10;
 
-const STATUS_OPTIONS = ["Posted", "Closed"] as const;
+const STATUS_OPTIONS = [JobPostStatusLabel.POSTED, JobPostStatusLabel.CLOSED] as const;
 type StatusOption = (typeof STATUS_OPTIONS)[number];
 
 type CompanyOption = { name: string; clientId: string };
@@ -174,7 +175,7 @@ export const MandatesScreen = ({
   // ── Strip CANCELLED rows, then optionally sort by fill-by date ───────────
   const filteredRows = useMemo(() => {
     const rows = jobPosts.filter(
-      (post) => post.status.toUpperCase() !== "CANCELLED",
+      (post) => post.status.toUpperCase() !== JobPostStatus.CANCELLED,
     );
     if (!timelineSortDir) return rows;
     return [...rows].sort((a, b) => {
@@ -265,7 +266,7 @@ export const MandatesScreen = ({
     if (
       !idToClose ||
       !postToClose ||
-      postToClose.status.toUpperCase() === "CLOSED"
+      postToClose.status.toUpperCase() === JobPostStatus.CLOSED
     )
       return;
 
@@ -282,11 +283,11 @@ export const MandatesScreen = ({
     setCloseJobLoading(true);
 
     mandateApi
-      .updateJobStatus(pending.id, "CLOSED")
+      .updateJobStatus(pending.id, JobPostStatus.CLOSED)
       .then(() => {
         setJobPosts((prev) =>
           prev.map((p) =>
-            p.mandateId === pending.id ? { ...p, status: "CLOSED" } : p,
+            p.mandateId === pending.id ? { ...p, status: JobPostStatus.CLOSED } : p,
           ),
         );
         dispatch(
@@ -604,7 +605,7 @@ export const MandatesScreen = ({
           <Box className={styles.table}>
             {paginatedRows.map((post) => {
               const displayStatus = toTitleCase(post.status);
-              const isDraft = post.status.toUpperCase() === "DRAFT";
+              const isDraft = post.status.toUpperCase() === JobPostStatus.DRAFT;
               const timeline = `${formatDate(post.openDate)} – ${formatDate(post.targetCloseDate)}`;
 
               return (
@@ -718,7 +719,7 @@ export const MandatesScreen = ({
                     </Typography>
                     <Box className={styles.statusCell}>
                       <Box
-                        className={`${styles.statusPill} ${isDraft ? styles.statusDraft : post.status.toUpperCase() === "CLOSED" ? styles.statusClosed : styles.statusPosted}`}
+                        className={`${styles.statusPill} ${isDraft ? styles.statusDraft : post.status.toUpperCase() === JobPostStatus.CLOSED ? styles.statusClosed : styles.statusPosted}`}
                       >
                         {displayStatus}
                       </Box>
@@ -829,7 +830,7 @@ export const MandatesScreen = ({
           className={styles.menuItem}
           onClick={handleCloseJobClick}
           disableRipple
-          disabled={activeRowPost?.status.toUpperCase() === "CLOSED"}
+          disabled={activeRowPost?.status.toUpperCase() === JobPostStatus.CLOSED}
         >
           <img
             src={closePostIcon}

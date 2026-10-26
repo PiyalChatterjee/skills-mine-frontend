@@ -1,15 +1,12 @@
 import type { Job, SaveBuildMyCvRequest } from "@/types";
+import { GuestApplicationStatus } from "@/enums/statuses";
 
 export const GUEST_APPLICATION_DRAFT_STORAGE_KEY =
   "skillsmine.guest-application-drafts";
 
 const DRAFT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
-export type GuestApplicationStatus =
-  | "pending-authentication"
-  | "cv-completed"
-  | "restoring"
-  | "restored";
+export type { GuestApplicationStatus } from "@/enums/statuses";
 
 export type GuestApplicationDraft = {
   jobId: string;
@@ -73,7 +70,7 @@ export const createGuestApplicationDraft = (job: Job): GuestApplicationDraft => 
     jobId: job.jobId,
     jobTitle: job.title,
     job,
-    applicationStatus: "pending-authentication",
+    applicationStatus: GuestApplicationStatus.PENDING_AUTHENTICATION,
     sourceChannel: "guest-cv-builder",
     createdAt: now.toISOString(),
     updatedAt: now.toISOString(),
@@ -94,7 +91,7 @@ export const saveGuestApplicationCv = (
       ? {
           ...draft,
           cvData,
-          applicationStatus: "cv-completed" as const,
+          applicationStatus: GuestApplicationStatus.CV_COMPLETED,
           updatedAt: now,
         }
       : draft,
@@ -116,6 +113,6 @@ export const updateGuestApplicationDraft = (
 
 export const clearRestoredGuestApplicationDrafts = () => {
   writeDrafts(
-    readStoredDrafts().filter((draft) => draft.applicationStatus !== "restored"),
+    readStoredDrafts().filter((draft) => draft.applicationStatus !== GuestApplicationStatus.RESTORED),
   );
 };

@@ -1,3 +1,4 @@
+import { GuestApplicationStatus as GuestDraftStatus } from "@/enums/statuses";
 import { useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -174,7 +175,7 @@ export const useCvBuilderPageViewModel = () => {
     const drafts = getGuestApplicationDrafts();
     return (
       drafts.find((draft) => draft.jobId === guestApplicationJobId) ??
-      drafts.find((draft) => draft.applicationStatus === "pending-authentication")
+      drafts.find((draft) => draft.applicationStatus === GuestDraftStatus.PENDING_AUTHENTICATION)
     );
   }, [guestApplicationJobId, userId]);
   const isGuestApplication = Boolean(guestApplicationDraft);

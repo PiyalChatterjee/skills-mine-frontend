@@ -1,3 +1,4 @@
+import { JobPostStatus } from "@/enums/statuses";
 import { mandateApiClient } from "@/services/api/axios";
 import { apiEndpoints, resolveEndpoint } from "@/services/api/endpoints";
 import { formatEnumLabel } from "@/app/formatEnumLabel";
@@ -83,7 +84,7 @@ export const jobsApi = {
     q?: string,
     page = 1,
     limit = 10,
-    status: string = "POSTED",
+    status: JobPostStatus = JobPostStatus.POSTED,
     filters: JobsSearchFilters = {},
   ): Promise<JobsResponse> {
     const industryIds = await resolveIndustryIds(filters.industries ?? []);

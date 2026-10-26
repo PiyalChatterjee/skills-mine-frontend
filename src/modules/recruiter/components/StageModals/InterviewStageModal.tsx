@@ -1,3 +1,4 @@
+import { PipelineStageCode, PipelineStageLabel as PipelineLabel } from "@/enums/statuses";
 import { useState } from 'react'
 import { Box, ButtonBase, CircularProgress, Typography } from '@mui/material'
 import { mandateApi } from '@/services/api/mandateApi'
@@ -65,7 +66,7 @@ const InterviewStageModal = ({
     try {
       await mandateApi.advanceJobStage(jobId, {
         applicationId: [applicationId],
-        toStageCode: 'SHORTLIST',
+        toStageCode: PipelineStageCode.SHORTLIST,
       })
       onMoveBack?.(applicationId)
       onClose()
@@ -80,7 +81,7 @@ const InterviewStageModal = ({
     try {
       await mandateApi.advanceJobStage(jobId, {
         applicationId: [applicationId],
-        toStageCode: 'OFFER',
+        toStageCode: PipelineStageCode.OFFER,
         notes,
       })
       onAdvance?.(applicationId)
@@ -173,7 +174,7 @@ const InterviewStageModal = ({
     </Box>}
       {rejectOpen && (
         <RejectConfirmModal
-          stageName="Interview"
+          stageName={PipelineLabel.INTERVIEW}
           candidateName={candidateName}
           candidateTitle={candidateTitle}
           company={company}

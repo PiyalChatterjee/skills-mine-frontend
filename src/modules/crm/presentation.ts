@@ -1,3 +1,4 @@
+import { CrmClassificationLabel } from "@/enums/statuses";
 import { crmClassificationLabels, crmClassifications } from './schema'
 import styles from '@/modules/recruiter/pages/RecruiterCrmPage.module.css'
 
@@ -8,10 +9,10 @@ export function leadLabel(status: string): string {
 
 export function cardColorClass(leadType: string): string {
   switch (leadType) {
-    case 'Hot Lead':        return styles.crmCardGreen
-    case 'Needs Attention': return styles.crmCardRed
-    case 'Warm Contact':    return styles.crmCardAmber
-    case 'Cold Lead':       return styles.crmCardTeal
+    case CrmClassificationLabel.HOT_LEAD:        return styles.crmCardGreen
+    case CrmClassificationLabel.NEEDS_ATTENTION: return styles.crmCardRed
+    case CrmClassificationLabel.WARM_CONTACT:    return styles.crmCardAmber
+    case CrmClassificationLabel.COLD_LEAD:       return styles.crmCardTeal
     default:               return styles.crmCardNeutral
   }
 }

@@ -1,3 +1,4 @@
+import { ClosedReason as CandidateClosedReason, PipelineStageLabel as PipelineLabel } from "@/enums/statuses";
 import { createSlice, nanoid, type PayloadAction } from "@reduxjs/toolkit";
 import type {
   Candidate,
@@ -84,8 +85,8 @@ const recruiterPipelineSlice = createSlice({
       candidate.currentStage = toStage;
 
       // If rejected → mark closed reason
-      if (toStage === "Closed") {
-        candidate.closedReason = "Rejected";
+      if (toStage === PipelineLabel.CLOSED) {
+        candidate.closedReason = CandidateClosedReason.REJECTED;
       }
     },
 

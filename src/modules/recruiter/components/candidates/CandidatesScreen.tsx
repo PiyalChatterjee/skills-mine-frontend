@@ -1,3 +1,4 @@
+import { ApplicationStatus } from "@/enums/statuses";
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Box, ButtonBase, CircularProgress, Popover, Typography } from '@mui/material'
@@ -8,7 +9,7 @@ import styles from './CandidatesScreen.module.css'
 
 const PAGE_SIZE = 10
 
-const STATUS_OPTIONS = ['SUBMITTED', 'ACTIVE', 'ON_HOLD', 'CLOSED', 'CANCELLED', 'REJECTED', 'APPLIED'] as const
+const STATUS_OPTIONS = [ApplicationStatus.SUBMITTED, ApplicationStatus.ACTIVE, ApplicationStatus.ON_HOLD, ApplicationStatus.CLOSED, ApplicationStatus.CANCELLED, ApplicationStatus.REJECTED, ApplicationStatus.APPLIED] as const
 type StatusOption = (typeof STATUS_OPTIONS)[number]
 
 function toTitleCase(s: string): string {

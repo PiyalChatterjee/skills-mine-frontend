@@ -1,3 +1,4 @@
+import { CrmClassification as CrmStatus, CrmClassificationLabel } from "@/enums/statuses";
 import { Box, ButtonBase, Typography } from '@mui/material'
 import { crmClassificationLabels } from '@/modules/crm/schema'
 import { cardColorClass, leadLabel } from '@/modules/crm/presentation'
@@ -21,16 +22,16 @@ import styles from '@/modules/recruiter/pages/RecruiterCrmPage.module.css'
 type LeadType = typeof crmClassificationLabels[CrmClassification]
 
 const leadIcons: Record<LeadType, string> = {
-  'Needs Attention': attentionIcon,
-  'Hot Lead': hotIcon,
-  'Warm Contact': warmIcon,
-  'Cold Lead': coldIcon,
+  [CrmClassificationLabel.NEEDS_ATTENTION]: attentionIcon,
+  [CrmClassificationLabel.HOT_LEAD]: hotIcon,
+  [CrmClassificationLabel.WARM_CONTACT]: warmIcon,
+  [CrmClassificationLabel.COLD_LEAD]: coldIcon,
 }
 
 function LeadIcon({ leadType, stat = false }: { leadType: string; stat?: boolean }) {
   const icon = Object.entries(leadIcons).find(([label]) => label === leadType)?.[1]
   if (!icon) return null
-  return <img src={stat && leadType === 'Warm Contact' ? warmStatIcon : icon} alt="" aria-hidden="true" />
+  return <img src={stat && leadType === CrmClassificationLabel.WARM_CONTACT ? warmStatIcon : icon} alt="" aria-hidden="true" />
 }
 
 export const MagnifierIcon = () => <img src={searchIcon} alt="" aria-hidden="true" />
@@ -59,7 +60,7 @@ type CrmCardProps = {
 
 export const CrmCard = ({ contact, onUpdate }: CrmCardProps) => {
   const leadType = leadLabel(contact.status)
-  const isWarm = contact.status === 'warm_contact'
+  const isWarm = contact.status === CrmStatus.WARM_CONTACT
   const isOverdue = contact.overdueDays != null && contact.overdueDays > 0
   const days = isOverdue ? contact.overdueDays : contact.followupDays
 

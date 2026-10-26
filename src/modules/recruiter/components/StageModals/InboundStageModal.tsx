@@ -1,3 +1,4 @@
+import { PipelineStageCode } from "@/enums/statuses";
 import { useState } from 'react'
 import { Box, ButtonBase, CircularProgress, Typography } from '@mui/material'
 import { mandateApi } from '@/services/api/mandateApi'
@@ -55,7 +56,7 @@ const InboundStageModal = ({
     try {
       await mandateApi.advanceJobStage(jobId, {
         applicationId: [applicationId],
-        toStageCode: 'SCREENING',
+        toStageCode: PipelineStageCode.SCREENING,
       })
       onAdvance?.(applicationId)
       onClose()

@@ -1,3 +1,4 @@
+import { CrmClassificationLabel } from "@/enums/statuses";
 import { useState } from 'react'
 import { Alert, Box, Button, CircularProgress, MenuItem, Pagination, TextField, Typography } from '@mui/material'
 import { RecruiterSidebar } from '@/modules/recruiter/components/RecruiterSidebar'
@@ -45,10 +46,10 @@ const RecruiterCrmPage = () => {
 
         {/* Stat tiles */}
         <Box className={styles.statTilesPanel}>
-          <StatTile value={data?.summary.needsAttention} label="Needs Attention" colorClass={styles.statTileRed}   leadType="Needs Attention" />
-          <StatTile value={data?.summary.hotLeads}       label="Hot Leads"       colorClass={styles.statTileGreen} leadType="Hot Lead" />
-          <StatTile value={data?.summary.warmContacts}   label="Warm Contacts"   colorClass={styles.statTileAmber} leadType="Warm Contact" />
-          <StatTile value={data?.summary.coldLeads}      label="Cold Leads"      colorClass={styles.statTileTeal}  leadType="Cold Lead" />
+          <StatTile value={data?.summary.needsAttention} label={CrmClassificationLabel.NEEDS_ATTENTION} colorClass={styles.statTileRed}   leadType={CrmClassificationLabel.NEEDS_ATTENTION} />
+          <StatTile value={data?.summary.hotLeads}       label="Hot Leads"       colorClass={styles.statTileGreen} leadType={CrmClassificationLabel.HOT_LEAD} />
+          <StatTile value={data?.summary.warmContacts}   label="Warm Contacts"   colorClass={styles.statTileAmber} leadType={CrmClassificationLabel.WARM_CONTACT} />
+          <StatTile value={data?.summary.coldLeads}      label="Cold Leads"      colorClass={styles.statTileTeal}  leadType={CrmClassificationLabel.COLD_LEAD} />
         </Box>
 
         {/* Search */}

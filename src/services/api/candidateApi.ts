@@ -1,3 +1,4 @@
+import { ApplicationStatus, DocumentExtractionStatus, DocumentLifecycleStatus, PipelineStageCode, ProfileStatus } from "@/enums/statuses";
 import {
   apiClient,
   candidateApiClient,
@@ -228,7 +229,7 @@ const mapDashboardResponse = (
           .find(
             (stage) =>
               typeof stage !== "string" &&
-              stage.to_stage_code?.toUpperCase() === "REJECT",
+              stage.to_stage_code?.toUpperCase() === PipelineStageCode.REJECT,
           )
       : undefined;
     const rejectedAtStage =
@@ -276,11 +277,13 @@ const mapDashboardResponse = (
         summary.totalApplications ?? normalizedApplications.length,
       submitted:
         summary.submitted ??
-        statuses.filter((status) => status === "SUBMITTED").length,
+        statuses.filter((status) => status === ApplicationStatus.SUBMITTED).length,
       inProgress:
         summary.inProgress ??
         statuses.filter((status) =>
-          ["ACTIVE", "SUBMITTED", "ON_HOLD"].includes(status),
+          [ApplicationStatus.ACTIVE, ApplicationStatus.SUBMITTED, ApplicationStatus.ON_HOLD].some(
+            (inProgressStatus) => inProgressStatus === status,
+          ),
         ).length,
       successful: summary.successful ?? 0,
     },
@@ -746,7 +749,7 @@ const mapBuildResponse = (
     validation: data.validation ?? [],
     summary: data.summary ?? "",
     extractionStatus:
-      data.extractionStatus ?? data.extraction_status ?? "NOT_STARTED",
+      data.extractionStatus ?? data.extraction_status ?? DocumentExtractionStatus.NOT_STARTED,
     createdAt: data.createdAt ?? data.created_at ?? null,
     lastModified:
       data.lastModified ??
@@ -1140,7 +1143,7 @@ export const candidateApi = {
           profileStatus:
             profileSummary.profileStatus ??
             profileSummary.profile_status ??
-            "INCOMPLETE",
+            ProfileStatus.INCOMPLETE,
         },
         createdAt: data.createdAt ?? data.created_at ?? null,
       };
@@ -1448,7 +1451,7 @@ export const candidateApi = {
     >;
     return {
       candidateId: data.candidate_id ?? data.candidateId ?? candidateId,
-      profileStatus: data.profile_status ?? data.profileStatus ?? "ACTIVE",
+      profileStatus: data.profile_status ?? data.profileStatus ?? ProfileStatus.ACTIVE,
       message: data.message ?? "",
       createdAt: data.created_at ?? data.createdAt ?? null,
       updatedAt: data.updated_at ?? data.updatedAt ?? null,
@@ -1492,7 +1495,7 @@ export const candidateApi = {
       fileName: raw.file_name ?? fileName,
       mediaType: raw.media_type ?? file.type,
       sizeBytes: raw.size_bytes ?? file.size,
-      lifecycleStatus: raw.lifecycle_status ?? "ACTIVE",
+      lifecycleStatus: raw.lifecycle_status ?? DocumentLifecycleStatus.ACTIVE,
       uploadedAt: raw.updated_at ?? new Date().toISOString(),
     };
   },

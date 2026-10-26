@@ -62,6 +62,13 @@ npm run preview
 
 ## What Changed Recently
 
+### Shared Business Status Enums
+
+- `src/enums/statuses.ts` is the source of truth for job-post, mandate, application, pipeline, offer-response, profile, document, CRM, and guest-application status values and their existing display labels.
+- Use the domain-specific value, for example `JobPostStatus.CLOSED` for job posts, `PipelineStageCode.CLOSED` for pipeline requests, and `CrmClassification.WARM_CONTACT` for CRM payloads. Do not mix domains that happen to share the same string.
+- Enum objects use `as const` and export matching literal-union types, compatible with the project's `erasableSyntaxOnly` TypeScript setting. They are imported from the same module for runtime comparisons and type annotations.
+- Wire casing, historical application aliases, workflow transition order, and unknown-response fallbacks are unchanged. HTTP response codes, CSS attribute selectors, and server response field names are not business status enums.
+
 ### Relationship CRM
 
 - `/recruiter/crm` and `/crm` share the live CRM screen; the legacy route retains its `CRM_EDIT` permission guard.

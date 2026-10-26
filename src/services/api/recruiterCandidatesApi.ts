@@ -1,3 +1,4 @@
+import { PipelineStageLabel as PipelineLabel } from "@/enums/statuses";
 import { candidateApiClient, documentApiClient, mandateApiClient, visitorApiClient } from "@/services/api/axios";
 import { apiEndpoints, resolveEndpoint } from "@/services/api/endpoints";
 import { toCvPayload } from "@/services/api/candidateApi";
@@ -13,7 +14,7 @@ import type {
 // ── List response shape ───────────────────────────────────────────────────
 type CandidateRow = {
   applicantType: "CANDIDATE" | "VISITOR";
-  source: "TOP_SCORED" | "APPLIED" | string;
+  source: string;
   applicationId: string | null;
   applicantId: string;
   firstName: string;
@@ -412,7 +413,7 @@ export const recruiterCandidatesApi = {
             jobProfileId:  app.job_profile_id_ref,
             jobTitle:      app.job_title,
             company:       app.company_name ?? app.company ?? '',
-            currentStage:  stageFormatted || 'Inbound',
+            currentStage:  stageFormatted || PipelineLabel.INBOUND,
           };
         }),
         pagination: {

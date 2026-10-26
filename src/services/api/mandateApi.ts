@@ -1,3 +1,4 @@
+import { JobPostStatus, MandateStatus } from "@/enums/statuses";
 import { apiClient, mandateApiClient, pipelineApiClient } from "@/services/api/axios";
 import { apiEndpoints, resolveEndpoint } from "@/services/api/endpoints";
 import { formatEnumLabel } from "@/app/formatEnumLabel";
@@ -59,7 +60,7 @@ export type CreateMandateRequest = {
 type IndustryItem = { industryId: string; industryName: string; normalizedKey?: string };
 /** Shape of the JSON body sent to POST /jobs */
 type CreateJobPostBody = {
-  status: string;
+  status: JobPostStatus;
   companyName: string;
   contactName?: string;
   contactEmail?: string;
@@ -196,7 +197,7 @@ const toMandate = (job: JobProfileSummary): RecruiterMandatesData["mandates"][nu
   clientId: job.client?.clientId ?? "",
   recruiterId: "",
   recruiterName: "",
-  status: job.status === "PAUSED" ? "ON_HOLD" : job.status === "POSTED" ? "ACTIVE" : "CLOSED",
+  status: job.status === JobPostStatus.PAUSED ? MandateStatus.ON_HOLD : job.status === JobPostStatus.POSTED ? MandateStatus.ACTIVE : MandateStatus.CLOSED,
   priority: "MEDIUM",
   openDate: job.publishedAt ?? job.createdAt,
   targetCloseDate: job.fillByDate,
@@ -294,7 +295,7 @@ const toJobWriteRequest = async (payload: CreateMandateRequest): Promise<CreateJ
     payload.industries.some((name) => name.toLowerCase() === industry.industryName.toLowerCase()),
   );
   return {
-    status: "POSTED",
+    status: JobPostStatus.POSTED,
     companyName: payload.companyName,
     contactName: payload.contactName,
     contactEmail: payload.contactEmail,
@@ -596,7 +597,7 @@ export const mandateApi = {
   },
 
   // e.g. POSTED <-> PAUSED, or FILLED/CLOSED/CANCELLED to end the mandate.
-  updateJobStatus(mandateId: string, status: string) {
+  updateJobStatus(mandateId: string, status: JobPostStatus) {
     const body: PatchJobPostBody = { status };
     return mandateApiClient
       .patch<JobProfile>(

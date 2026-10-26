@@ -3,6 +3,7 @@ import { jobsApi } from "./jobsApi";
 import { mandateApi } from "./mandateApi";
 import { industryApi } from "./industryApi";
 import { recruiterCandidatesApi } from "./recruiterCandidatesApi";
+import { JobPostStatus, PipelineStageCode } from "@/enums/statuses";
 
 const mockGet = vi.hoisted(() => vi.fn());
 const mockPost = vi.hoisted(() => vi.fn());
@@ -13,6 +14,7 @@ const mockDelete = vi.hoisted(() => vi.fn());
 vi.mock("@/services/api/axios", () => ({
   apiClient: { get: mockGet, post: mockPost, put: mockPut, patch: mockPatch, delete: mockDelete },
   mandateApiClient: { get: mockGet, post: mockPost, put: mockPut, patch: mockPatch, delete: mockDelete },
+  pipelineApiClient: { get: mockGet, post: mockPost, put: mockPut, patch: mockPatch, delete: mockDelete },
 }));
 
 const summary = {
@@ -55,6 +57,7 @@ describe("Mandate Service v2 frontend adapters", () => {
       params: { status: "POSTED", search: "software", page: 0, size: 6 },
       paramsSerializer: { indexes: null },
     });
+
     expect(result).toMatchObject({ total: 1, page: 0, pageSize: 6 });
     expect(result.jobs[0]).toMatchObject({
       jobId: summary.jobProfileId,
@@ -63,6 +66,38 @@ describe("Mandate Service v2 frontend adapters", () => {
       industry: "Technology",
       employmentType: "Full Time",
     });
+  });
+
+  it("closes a job with the shared enum while preserving the API payload", async () => {
+    mockPatch.mockResolvedValue({ data: { ...summary, status: "CLOSED" } });
+
+    const result = await mandateApi.updateJobStatus(summary.jobProfileId, JobPostStatus.CLOSED);
+
+    expect(mockPatch).toHaveBeenCalledExactlyOnceWith(
+      `/jobs/${summary.jobProfileId}`, { status: "CLOSED" },
+    );
+    expect(result.data).toEqual({ mandateId: summary.jobProfileId, status: "CLOSED" });
+  });
+
+  it("preserves unknown job statuses from backend responses", async () => {
+    mockGet.mockResolvedValue({ data: { data: [{ ...summary, status: "FUTURE_STATUS" }], total: 1, page: 0, size: 10 } });
+
+    const result = await jobsApi.list();
+
+    expect(result.jobs[0].status).toBe("FUTURE_STATUS");
+  });
+
+  it("sends rejection codes unchanged through the pipeline service", async () => {
+    mockPut.mockResolvedValue({ data: { targetStage: "OFFER_REJECT", succeeded: [], failed: [] } });
+
+    await mandateApi.advanceJobStage(summary.jobProfileId, {
+      applicationId: ["app-1"], toStageCode: PipelineStageCode.OFFER_REJECT,
+    });
+
+    expect(mockPut).toHaveBeenCalledExactlyOnceWith(
+      `/pipelines/jobs/${summary.jobProfileId}/stage`,
+      { applicationId: ["app-1"], toStageCode: "OFFER_REJECT" },
+    );
   });
 
   it("sends global job-search filters using backend industry ids", async () => {

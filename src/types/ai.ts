@@ -1,3 +1,4 @@
+import { JobPostStatus } from "@/enums/statuses";
 export type AiSubjectType = "CANDIDATE" | "VISITOR";
 
 export interface ResumeParseRequest {
@@ -55,7 +56,7 @@ export interface GenerateJobSkillsRequest {
 export interface JobSkillGenerationResponse {
   ai_generation_run_id: string;
   job_profile_id: string;
-  job_status: "DRAFT";
+  job_status: typeof JobPostStatus.DRAFT;
   suggested_skills: AiSuggestedSkill[];
   generated_at: string;
 }

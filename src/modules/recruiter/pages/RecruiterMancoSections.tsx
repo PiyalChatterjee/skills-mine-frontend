@@ -1,3 +1,4 @@
+import { ClosedReason, PipelineStageLabel as PipelineLabel } from "@/enums/statuses";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -37,11 +38,11 @@ import type {
 import styles from "./RecruiterMancoPage.module.css";
 
 const PIPELINE_STAGES: { key: keyof MancoPipelineDistribution; label: string }[] = [
-  { key: "inbound", label: "Inbound" },
-  { key: "screening", label: "Screening" },
-  { key: "interview", label: "Interview" },
-  { key: "offer", label: "Offer" },
-  { key: "rejected", label: "Rejected" },
+  { key: "inbound", label: PipelineLabel.INBOUND },
+  { key: "screening", label: PipelineLabel.SCREENING },
+  { key: "interview", label: PipelineLabel.INTERVIEW },
+  { key: "offer", label: PipelineLabel.OFFER },
+  { key: "rejected", label: ClosedReason.REJECTED },
   { key: "filled", label: "Filled" },
   { key: "totalPipeline", label: "Total pipeline" },
 ];

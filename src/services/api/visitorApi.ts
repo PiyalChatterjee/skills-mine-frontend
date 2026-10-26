@@ -1,3 +1,4 @@
+import { DocumentLifecycleStatus, PipelineStageLabel as PipelineLabel } from "@/enums/statuses";
 import {
   publicDocumentApiClient,
   unwrapResponseData,
@@ -247,7 +248,7 @@ export const visitorApi = {
       fileName: document.file_name ?? fileName,
       mediaType: document.media_type ?? file.type,
       sizeBytes: document.size_bytes ?? file.size,
-      lifecycleStatus: document.lifecycle_status ?? "ACTIVE",
+      lifecycleStatus: document.lifecycle_status ?? DocumentLifecycleStatus.ACTIVE,
       uploadedAt:
         document.updated_at ?? raw.updated_at ?? new Date().toISOString(),
     };
@@ -296,7 +297,7 @@ export const visitorApi = {
           jobProfileId:  app.job_profile_id_ref ?? app.job_profile_id ?? '',
           jobTitle:      app.job_title ?? '',
           company:       app.company_name ?? app.company ?? '',
-          currentStage:  stageFormatted || 'Inbound',
+          currentStage:  stageFormatted || PipelineLabel.INBOUND,
         };
       }),
       pagination: {

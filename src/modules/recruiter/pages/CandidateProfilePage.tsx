@@ -1,3 +1,4 @@
+import { PipelineStageLabel as PipelineLabel } from "@/enums/statuses";
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
@@ -79,13 +80,13 @@ const ArrowRightIcon = () => (
 
 // Stage badge colors
 const STAGE_COLORS: Record<PipelineStage, string> = {
-  Inbound:    '#FAEED8',
-  Screening:  '#E4DFF4',
-  Assessment: '#FCF7DB',
-  Interview:  '#D3E5E8',
-  Shortlist:  '#F4DBE8',
-  Offer:      '#DBEFE3',
-  Closed:     '#4BAF73',
+  [PipelineLabel.INBOUND]:    '#FAEED8',
+  [PipelineLabel.SCREENING]:  '#E4DFF4',
+  [PipelineLabel.ASSESSMENT]: '#FCF7DB',
+  [PipelineLabel.INTERVIEW]:  '#D3E5E8',
+  [PipelineLabel.SHORTLIST]:  '#F4DBE8',
+  [PipelineLabel.OFFER]:      '#DBEFE3',
+  [PipelineLabel.CLOSED]:     '#4BAF73',
 }
 
 // Profile section icons — match Figma exactly

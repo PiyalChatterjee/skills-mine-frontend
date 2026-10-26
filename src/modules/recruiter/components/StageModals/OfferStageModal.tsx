@@ -1,3 +1,4 @@
+import { OfferResponseStatus, PipelineStageCode, PipelineStageLabel as PipelineLabel } from "@/enums/statuses";
 import { useState } from 'react'
 import { Box, ButtonBase, CircularProgress, Typography } from '@mui/material'
 import { mandateApi } from '@/services/api/mandateApi'
@@ -62,8 +63,8 @@ const OfferStageModal = ({
     setAdvancing(true)
     try {
       await mandateApi.advanceOfferToClose(applicationId, {
-        toStageCode: 'CLOSED',
-        offerResponseStatus: 'ACCEPTED',
+        toStageCode: PipelineStageCode.CLOSED,
+        offerResponseStatus: OfferResponseStatus.ACCEPTED,
         offerDetails: {
           actualSalaryAccepted: Number(ctcTotal),
           currencyCode: 'ZAR',
@@ -207,7 +208,7 @@ const OfferStageModal = ({
     </Box>}
       {rejectOpen && (
         <RejectConfirmModal
-          stageName="Offer"
+          stageName={PipelineLabel.OFFER}
           candidateName={candidateName}
           candidateTitle={candidateTitle}
           company={company}

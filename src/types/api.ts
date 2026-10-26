@@ -1,3 +1,13 @@
+import type {
+  ApplicationStatus,
+  CrmClassification as CrmClassificationValue,
+  MandateStatus,
+  OfferResponseStatus,
+  PipelineStageCode,
+  PipelineStageLabel,
+  ProfileStatus,
+} from "@/enums/statuses";
+
 export interface ApiError {
   message: string;
   code?: string;
@@ -189,26 +199,20 @@ export interface CandidateDashboardData {
 export type CandidateDashboardQuery = {
   page?: number;
   size?: number;
-  status?: "SUBMITTED" | "ACTIVE" | "ON_HOLD";
+  status?: Extract<
+    ApplicationStatus,
+    typeof ApplicationStatus.SUBMITTED | typeof ApplicationStatus.ACTIVE | typeof ApplicationStatus.ON_HOLD
+  >;
 };
 
-export type CandidatePipelineStage =
-  | "APPLIED"
-  | "SCREENING"
-  | "ASSESSMENT"
-  | "INTERVIEW"
-  | "SHORTLIST"
-  | "OFFER";
+export type CandidatePipelineStage = Exclude<
+  PipelineStageCode,
+  typeof PipelineStageCode.INBOUND | typeof PipelineStageCode.PLACED |
+  typeof PipelineStageCode.CLOSED | typeof PipelineStageCode.REJECT |
+  typeof PipelineStageCode.OFFER_REJECT | typeof PipelineStageCode.SHORTLISTED
+>;
 
-export type CandidateInternalStage =
-  | "Inbound"
-  | "Screening"
-  | "Assessment"
-  | "Interview"
-  | "Shortlist"
-  | "Offer"
-  | "Placed"
-  | "Closed";
+export type CandidateInternalStage = PipelineStageLabel;
 
 export interface JobsListData {
   showEmployerDetails?: boolean;
@@ -232,7 +236,7 @@ export interface Job {
   requirements?: string[];
   responsibilities: string[];
   skills?: string[];
-  status: "Open" | "Closed" | "Draft" | string;
+  status: string;
   applicationCount: number;
   postedDate: string;
   recruiterId?: string;
@@ -688,7 +692,7 @@ export interface Mandate {
   clientId: string;
   recruiterId: string;
   recruiterName: string;
-  status: "ACTIVE" | "CLOSED" | "ON_HOLD";
+  status: MandateStatus;
   priority: "HIGH" | "MEDIUM" | "LOW";
   openDate: string;
   targetCloseDate: string;
@@ -776,7 +780,7 @@ export interface PipelineStageUpdateData {
 // ── Advance to Interview stage  (POST /pipelines/:applicationId/interview) ────
 
 export interface AdvanceToInterviewRequest {
-  toStageCode: 'INTERVIEW';
+  toStageCode: typeof PipelineStageCode.INTERVIEW;
   reasonCode?: string;
   notes?: string;
   shortListDetails: {
@@ -791,10 +795,10 @@ export interface AdvanceToInterviewRequest {
 
 export interface PipelineJobStageAdvanceRequest {
   applicationId: string[];
-  toStageCode: string;
+  toStageCode: PipelineStageCode;
   reasonCode?: string;
   notes?: string;
-  offerResponseStatus?: string;
+  offerResponseStatus?: OfferResponseStatus;
   outcomeCode?: string;
 }
 
@@ -825,10 +829,10 @@ export interface OfferClosedOfferDetails {
 }
 
 export interface OfferClosedRequest {
-  toStageCode: 'CLOSED';
+  toStageCode: typeof PipelineStageCode.CLOSED;
   reasonCode?: string;
   notes?: string;
-  offerResponseStatus: 'ACCEPTED' | 'DECLINED' | 'WITHDRAWN';
+  offerResponseStatus: OfferResponseStatus;
   offerDetails: OfferClosedOfferDetails;
 }
 
@@ -900,11 +904,7 @@ export interface CrmClientsData {
   totalPages: number;
 }
 
-export type CrmClassification =
-  | "needs_attention"
-  | "hot_lead"
-  | "warm_contact"
-  | "cold_lead";
+export type CrmClassification = CrmClassificationValue;
 
 export interface CrmClientsParams {
   status?: CrmClassification;
@@ -1065,7 +1065,7 @@ export interface JobPost {
   recruiterName: string
   industry: string
   industries: string[]
-  status: 'POSTED' | 'DRAFT' | 'CLOSED' | string
+  status: string
   priority: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' | string
   openDate: string
   targetCloseDate: string
@@ -1127,7 +1127,7 @@ export interface SimpleCandidateProfileInput {
 
 export interface SimpleCandidateProfileResponse {
   candidateId: string;
-  profileStatus: "INCOMPLETE" | "ACTIVE" | "INACTIVE" | "DELETED";
+  profileStatus: ProfileStatus;
   message: string;
   createdAt?: string | null;
   updatedAt?: string | null;

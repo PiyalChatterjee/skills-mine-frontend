@@ -1,3 +1,4 @@
+import { JobPostStatus } from "@/enums/statuses";
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Box, ButtonBase, CircularProgress, Typography } from '@mui/material'
@@ -539,13 +540,13 @@ const MandateDetailPage = () => {
               <ButtonBase
                 className={styles.closeJobBtn}
                 disableRipple
-                disabled={closeJobLoading || jobProfile.status === 'CLOSED'}
+                disabled={closeJobLoading || jobProfile.status === JobPostStatus.CLOSED}
                 onClick={() => {
-                  if (!resolvedId || closeJobLoading || jobProfile.status === 'CLOSED') return
+                  if (!resolvedId || closeJobLoading || jobProfile.status === JobPostStatus.CLOSED) return
                   setCloseJobConfirmOpen(true)
                 }}
               >
-                {closeJobLoading ? 'Closing…' : jobProfile.status === 'CLOSED' ? 'Job Closed' : 'Close Job Post'}
+                {closeJobLoading ? 'Closing…' : jobProfile.status === JobPostStatus.CLOSED ? 'Job Closed' : 'Close Job Post'}
               </ButtonBase>
             </Box>
 
@@ -612,9 +613,9 @@ const MandateDetailPage = () => {
                         if (!resolvedId || closeJobLoading) return
                         setCloseJobLoading(true)
                         mandateApi
-                          .updateJobStatus(resolvedId, 'CLOSED')
+                          .updateJobStatus(resolvedId, JobPostStatus.CLOSED)
                           .then(() => {
-                            setJobProfile(prev => prev ? { ...prev, status: 'CLOSED' } : prev)
+                            setJobProfile(prev => prev ? { ...prev, status: JobPostStatus.CLOSED } : prev)
                             setCloseJobConfirmOpen(false)
                           })
                           .finally(() => setCloseJobLoading(false))

@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { JobPostStatusLabel } from "@/enums/statuses";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { useInfiniteScrollTrigger } from "@/hooks/useInfiniteScrollTrigger";
@@ -68,7 +69,7 @@ const toContractJob = (job: JobsFeedCandidateJob): JobsFeedJob => ({
   ...job,
   industry: job.industry,
   employmentType: job.employmentType ?? "Permanent",
-  status: "Open",
+  status: JobPostStatusLabel.OPEN,
   applicationCount: job.applicationCount ?? 0,
   requirements: job.requirements ?? [],
   responsibilities: job.responsibilities ?? [],

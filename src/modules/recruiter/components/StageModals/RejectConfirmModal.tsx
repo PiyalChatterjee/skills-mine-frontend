@@ -1,3 +1,4 @@
+import { PipelineStageCode, PipelineStageLabel as PipelineLabel } from "@/enums/statuses";
 import { useState } from 'react'
 import { Box, ButtonBase, CircularProgress, Typography } from '@mui/material'
 import { mandateApi } from '@/services/api/mandateApi'
@@ -60,7 +61,7 @@ const RejectConfirmModal = ({
     try {
       await mandateApi.advanceJobStage(jobId, {
         applicationId: [applicationId],
-        toStageCode: stageName === 'Offer' ? 'OFFER_REJECT' : 'REJECT',
+        toStageCode: stageName === PipelineLabel.OFFER ? PipelineStageCode.OFFER_REJECT : PipelineStageCode.REJECT,
       })
       onRejected?.(applicationId)
       onClose()

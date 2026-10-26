@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ApplicationStatusLabel } from "@/enums/statuses";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@/app/auth/AuthContext";
 import { extractErrorMessage } from "@/app/errorUtils";
@@ -214,7 +215,7 @@ export const useJobDetailsViewModel = () => {
       : fallbackSkills;
 
   return {
-    applyButtonLabel: isApplying ? "Applying..." : isApplied ? "Applied" : "Apply now",
+    applyButtonLabel: isApplying ? "Applying..." : isApplied ? ApplicationStatusLabel.APPLIED : "Apply now",
     applyError,
     backRoute,
     companyName,

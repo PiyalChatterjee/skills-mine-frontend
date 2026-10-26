@@ -1,3 +1,4 @@
+import { JobPostStatus } from "@/enums/statuses";
 import { createApi, fakeBaseQuery } from "@reduxjs/toolkit/query/react";
 import { candidateApi, crmApi, industryApi, jobsApi, locationApi, mancoApi } from "@/services/api";
 import type {
@@ -236,7 +237,7 @@ export const apiSlice = createApi({
     }),
     listJobsPage: build.query<JobsResponse, JobsListArgs>({
       queryFn: ({ searchQuery, page, pageSize, filters }) =>
-        withMappedApiError(() => jobsApi.list(searchQuery, page, pageSize, "POSTED", filters)),
+        withMappedApiError(() => jobsApi.list(searchQuery, page, pageSize, JobPostStatus.POSTED, filters)),
       providesTags: (_result, _error, args) => [
         {
           type: "Jobs",
