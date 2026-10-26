@@ -308,7 +308,7 @@ const buildColumnsFromApi = (
   }));
 };
 
-const buildColumnsFromApplications = (
+export const buildColumnsFromApplications = (
   applications: PipelineApplication[],
   baseColumns: PipelineColumn[],
 ): PipelineColumn[] => {
@@ -321,10 +321,21 @@ const buildColumnsFromApplications = (
     Offer: [],
     Closed: [],
   };
+  const cardsByJobProfileId = new Map<string, PipelineCard>();
 
   for (const application of applications) {
     const stage = STAGE_CODE_MAP[application.currentStageCode?.toUpperCase()];
-    if (!stage) {
+    const jobProfileId = application.jobProfile?.jobProfileId;
+    if (!stage || !jobProfileId) {
+      continue;
+    }
+
+    const existingCard = cardsByJobProfileId.get(jobProfileId);
+    const stageIndex = baseColumns.findIndex((column) => column.label === stage);
+    const existingStageIndex = existingCard
+      ? baseColumns.findIndex((column) => column.label === existingCard.stage)
+      : -1;
+    if (stageIndex <= existingStageIndex) {
       continue;
     }
 
@@ -332,10 +343,9 @@ const buildColumnsFromApplications = (
       application.jobProfile?.positionTitle ?? "Untitled Position";
     const clientName = application.jobProfile?.clientName ?? "Company";
 
-    cardsByStage[stage].push({
-      id: application.applicationId,
-      jobProfileId:
-        application.jobProfile?.jobProfileId ?? application.applicationId,
+    cardsByJobProfileId.set(jobProfileId, {
+      id: jobProfileId,
+      jobProfileId,
       title: truncate(positionTitle),
       fullTitle: positionTitle,
       company: truncate(clientName, 18),
@@ -343,6 +353,10 @@ const buildColumnsFromApplications = (
       tone: STAGE_TONE_MAP[stage],
       stage,
     });
+  }
+
+  for (const card of cardsByJobProfileId.values()) {
+    cardsByStage[card.stage].push(card);
   }
 
   return baseColumns.map((column) => ({

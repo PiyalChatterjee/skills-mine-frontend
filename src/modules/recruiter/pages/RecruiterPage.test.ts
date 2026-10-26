@@ -32,12 +32,13 @@ const createApplication = (
 });
 
 describe("buildColumnsFromApplications", () => {
-  it("shows one card per job profile, using the first supported application stage", () => {
+  it("shows one card per job profile in its furthest supported application stage", () => {
     const columns = buildColumnsFromApplications(
       [
         createApplication("rejected", "job-1", "REJECT"),
         createApplication("first", "job-1", "INBOUND"),
         createApplication("duplicate", "job-1", "INTERVIEW"),
+        createApplication("closed", "job-1", "CLOSED"),
         createApplication("other", "job-2", "SCREENING"),
         createApplication("rejected-only", "job-3", "REJECT"),
       ],
@@ -53,6 +54,7 @@ describe("buildColumnsFromApplications", () => {
     );
 
     const inboundCards = columns.find(({ label }) => label === "Inbound")?.cards;
+    const closedCards = columns.find(({ label }) => label === "Closed")?.cards;
     const interviewCards = columns.find(
       ({ label }) => label === "Interview",
     )?.cards;
@@ -60,10 +62,12 @@ describe("buildColumnsFromApplications", () => {
       ({ label }) => label === "Screening",
     )?.cards;
 
-    expect(inboundCards).toHaveLength(1);
-    expect(inboundCards?.[0]).toMatchObject({
+    expect(inboundCards).toHaveLength(0);
+    expect(closedCards).toHaveLength(1);
+    expect(closedCards?.[0]).toMatchObject({
       id: "job-1",
       jobProfileId: "job-1",
+      stage: "Closed",
     });
     expect(interviewCards).toHaveLength(0);
     expect(screeningCards).toHaveLength(1);
