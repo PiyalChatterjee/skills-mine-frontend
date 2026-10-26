@@ -37,6 +37,8 @@ export type CreateMandateRequest = {
   contactPhoneNumber?: string;
   positionTitle: string;
   location: string;
+  /** Master-list locationId from GET /locations/master */
+  locationId?: string;
   fillByDate: string;
   workType: string;
   employmentType: string;
@@ -67,6 +69,7 @@ type CreateJobPostBody = {
   contactPhoneNumber?: string;
   positionTitle: string;
   locationText: string;
+  locationId?: string;
   fillByDate: string;
   workType: string | null;
   employmentType: string | null;
@@ -233,7 +236,10 @@ const toPatchBody = async (
   if ((current.contactPhoneNumber ?? "") !== (original.contactPhoneNumber ?? ""))
     patch.contactPhoneNumber = current.contactPhoneNumber;
   if (current.positionTitle !== original.positionTitle) patch.positionTitle = current.positionTitle;
-  if (current.location !== original.location) patch.locationText = current.location;
+  if (current.location !== original.location || (current.locationId ?? "") !== (original.locationId ?? "")) {
+    patch.locationText = current.location;
+    if (current.locationId) patch.locationId = current.locationId;
+  }
   if (current.fillByDate !== original.fillByDate) patch.fillByDate = current.fillByDate;
   if (current.workType !== original.workType)
     patch.workType = current.workType ? normalizeEnum(current.workType).replace("ON_SITE", "ONSITE") : null;
@@ -302,6 +308,7 @@ const toJobWriteRequest = async (payload: CreateMandateRequest): Promise<CreateJ
     contactPhoneNumber: payload.contactPhoneNumber,
     positionTitle: payload.positionTitle,
     locationText: payload.location,
+    ...(payload.locationId ? { locationId: payload.locationId } : {}),
     fillByDate: payload.fillByDate,
     workType: payload.workType ? normalizeEnum(payload.workType).replace("ON_SITE", "ONSITE") : null,
     employmentType: payload.employmentType ? normalizeEnum(payload.employmentType) : null,

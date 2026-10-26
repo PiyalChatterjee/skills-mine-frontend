@@ -437,8 +437,11 @@ const CandidatePipelinePage = () => {
   }
 
   const handleViewCandidate = (candidateId: string, visitorId?: string) => {
-    const id = candidateId || visitorId || ''
-    if (id) navigate(ROUTE_PATHS.recruiterCandidateDetail.replace(':candidateId', id))
+    if (candidateId) {
+      navigate(ROUTE_PATHS.recruiterCandidateDetail.replace(':candidateId', candidateId))
+    } else if (visitorId) {
+      navigate(ROUTE_PATHS.recruiterVisitorDetail.replace(':visitorId', visitorId))
+    }
   }
 
   const handleBack = () => {
@@ -478,7 +481,7 @@ const CandidatePipelinePage = () => {
           </ButtonBase>
           <Box className={styles.breadcrumbDivider} />
           <ButtonBase className={styles.breadcrumbSection} onClick={handleBack} disableRipple>
-            Applicant Pipeline
+            Candidate Pipeline
           </ButtonBase>
           {jobTitle && (
             <>

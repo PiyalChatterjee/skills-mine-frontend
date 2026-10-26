@@ -22,6 +22,7 @@ const NewMandatePage = () => {
       contactPhoneNumber: values.contactPersonPhone,
       positionTitle: values.positionTitle,
       location: values.location,
+      locationId: values.locationId || undefined,
       fillByDate: values.fillByDate,
       workType: values.workType,
       employmentType: values.employmentType,

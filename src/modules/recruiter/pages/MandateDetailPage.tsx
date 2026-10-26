@@ -242,7 +242,7 @@ const MandateDetailPage = () => {
                 <Box className={`${styles.statCard} ${styles.statCardApplicants}`}>
                   <Box>
                     <Typography component="p" className={styles.statValue}>{jobProfile.applicantCount}</Typography>
-                    <Typography component="p" className={styles.statLabel}>Applicants</Typography>
+                    <Typography component="p" className={styles.statLabel}>Candidates</Typography>
                   </Box>
                   <Box className={styles.statIcon}><img src={userLineIcon} width={22} height={22} alt="" aria-hidden="true" /></Box>
                 </Box>
@@ -384,7 +384,7 @@ const MandateDetailPage = () => {
             {/* ── Top Candidates For This Post ── */}
             <Box className={styles.candidatesCard}>
               <Typography component="p" className={styles.topCandidatesHeading}>
-                Top Applicants For This Post
+                Top Candidates For This Post
               </Typography>
               <Box className={styles.searchBarRow}>
                 <Box className={styles.searchInputWrapper}>
@@ -398,7 +398,7 @@ const MandateDetailPage = () => {
                     placeholder="Search by name…"
                     value={nameFilter}
                     onChange={e => setNameFilter(e.target.value)}
-                    aria-label="Search applicants by name"
+                    aria-label="Search candidates by name"
                   />
                   {nameFilter && (
                     <button
@@ -444,7 +444,7 @@ const MandateDetailPage = () => {
                                 <Box className={styles.emptyState}>
                                   <Typography component="p" className={styles.emptyStateText}>
                                     {nameFilter.trim()
-                                      ? `No applicants match "${nameFilter.trim()}".`
+                                      ? `No candidates match "${nameFilter.trim()}".`
                                       : 'No candidates found for this post.'}
                                   </Typography>
                                 </Box>
@@ -534,7 +534,7 @@ const MandateDetailPage = () => {
                   )
                 }}
               >
-                {pipelineLoading ? 'Loading…' : 'View Applicant Pipeline'}
+                {pipelineLoading ? 'Loading…' : 'View Candidate Pipeline'}
               </ButtonBase>
 
               <ButtonBase
@@ -591,7 +591,7 @@ const MandateDetailPage = () => {
                         Are you sure you want to close this job post?
                       </Typography>
                       <Typography component="p" className={styles.confirmModalSubMessage}>
-                        This action cannot be undone. The job will be marked as closed and will no longer accept new applicants.
+                        This action cannot be undone. The job will be marked as closed and will no longer accept new candidates.
                       </Typography>
                     </Box>
                   </Box>

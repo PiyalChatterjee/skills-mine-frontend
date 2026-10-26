@@ -6,6 +6,7 @@ export interface MandateFormValues {
   contactPersonPhone: string
   positionTitle: string
   location: string
+  locationId: string
   fillByDate: string
   workType: string
   employmentType: string

@@ -1023,12 +1023,8 @@ export const MandatesScreen = ({
                 >
                   Are you sure you want to close this job post?
                 </Typography>
-                <Typography
-                  component="p"
-                  className={styles.confirmModalSubMessage}
-                >
-                  This action cannot be undone. The job will be marked as closed
-                  and will no longer accept new applicants.
+                <Typography component="p" className={styles.confirmModalSubMessage}>
+                  This action cannot be undone. The job will be marked as closed and will no longer accept new candidates.
                 </Typography>
               </Box>
             </Box>
