@@ -42,7 +42,6 @@ describe("live CRM screen", () => {
       emailId: "contact@example.com", clientRate: 15,
     });
     vi.mocked(crmApi.addClientNote).mockResolvedValue(client);
-    vi.mocked(crmApi.createEmployer).mockResolvedValue(client);
   });
 
   it("renders server counts, names, notes and zero-day timing", async () => {
@@ -52,8 +51,10 @@ describe("live CRM screen", () => {
     expect(screen.getByText("Hiring next month")).toBeInTheDocument();
     expect(screen.getByText(/0 days/, { selector: "span" })).toHaveTextContent("Follow up: 0 days");
     expect(screen.getByText("Last Contact: 0 days ago")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Account contact" })).toHaveAttribute("href", "mailto:contact@example.com");
-    expect(screen.getByRole("link", { name: "+27111234567" })).toHaveAttribute("href", "tel:+27111234567");
+    expect(screen.getByText("Account contact").tagName).toBe("SPAN");
+    expect(screen.queryByRole("link", { name: "Account contact" })).not.toBeInTheDocument();
+    expect(screen.getByText("+27111234567").tagName).toBe("SPAN");
+    expect(screen.queryByRole("link", { name: "+27111234567" })).not.toBeInTheDocument();
     expect(crmApi.listClients).toHaveBeenCalledWith({ page: 1, size: 20 });
   });
 
@@ -89,22 +90,12 @@ describe("live CRM screen", () => {
     await waitFor(() => expect(crmApi.listClients).toHaveBeenCalledTimes(2));
   });
 
-  it("creates employers and preserves a zero client rate", async () => {
+  it("does not expose employer creation on the dashboard", async () => {
     renderPage();
-    fireEvent.click(screen.getByRole("button", { name: "Add employer" }));
-    const dialog = screen.getByRole("dialog");
-    for (const [label, value] of [
-      ["Employer name", "New Employer"], ["Contact name", "Recruiter"],
-      ["Contact number", "+27 11 123 4567"], ["Email address", "recruiter@example.com"], ["Client rate", "0"],
-    ]) {
-      fireEvent.change(within(dialog).getByLabelText(label), { target: { value } });
-    }
-    fireEvent.click(within(dialog).getByRole("button", { name: "Create employer" }));
-    await waitFor(() => expect(crmApi.createEmployer).toHaveBeenCalledExactlyOnceWith({
-      employerName: "New Employer", contactName: "Recruiter", contactNumber: "+27 11 123 4567",
-      emailId: "recruiter@example.com", clientRate: 0,
-    }));
-    expect(await screen.findByText("Employer created successfully.")).toBeInTheDocument();
+    await screen.findByRole("heading", { name: "Live Employer" });
+    expect(screen.queryByRole("button", { name: "Add employer" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(crmApi.createEmployer).not.toHaveBeenCalled();
   });
 
   it("retains note drafts and displays server errors when a mutation fails", async () => {

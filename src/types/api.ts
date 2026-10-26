@@ -205,12 +205,7 @@ export type CandidateDashboardQuery = {
   >;
 };
 
-export type CandidatePipelineStage = Exclude<
-  PipelineStageCode,
-  typeof PipelineStageCode.INBOUND | typeof PipelineStageCode.PLACED |
-  typeof PipelineStageCode.CLOSED | typeof PipelineStageCode.REJECT |
-  typeof PipelineStageCode.OFFER_REJECT | typeof PipelineStageCode.SHORTLISTED
->;
+export type CandidatePipelineStage = PipelineStageCode;
 
 export type CandidateInternalStage = PipelineStageLabel;
 

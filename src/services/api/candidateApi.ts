@@ -229,7 +229,8 @@ const mapDashboardResponse = (
           .find(
             (stage) =>
               typeof stage !== "string" &&
-              stage.to_stage_code?.toUpperCase() === PipelineStageCode.REJECT,
+              (stage.to_stage_code?.toUpperCase() === PipelineStageCode.REJECT ||
+                stage.to_stage_code?.toUpperCase() === PipelineStageCode.OFFER_REJECT),
           )
       : undefined;
     const rejectedAtStage =

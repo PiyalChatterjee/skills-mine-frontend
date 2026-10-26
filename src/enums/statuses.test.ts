@@ -3,7 +3,7 @@ import {
   ApplicationStatus, ApplicationStatusKey, ApplicationStatusLabel, ClosedReason,
   CrmClassification, CrmClassificationLabel, DocumentExtractionStatus,
   DocumentLifecycleStatus, GuestApplicationStatus, JobPostStatus, JobPostStatusLabel,
-  MandateStatus, OfferResponseStatus, PipelineStageCode, PipelineStageLabel, ProfileStatus,
+  LegacyPipelineStageCode, MandateStatus, OfferResponseStatus, PipelineStageCode, PipelineStageLabel, ProfileStatus,
 } from "./statuses";
 import { crmClassifications, crmClassificationLabels, crmNoteSchema } from "@/modules/crm/schema";
 import { getApplicationStatusKey, getApplicationStatusLabel } from "@/modules/candidate/utils/applicationStatus";
@@ -15,7 +15,8 @@ describe("business status wire contracts", () => {
     [JobPostStatusLabel, ["Posted", "Draft", "Closed", "Open"]],
     [MandateStatus, ["ACTIVE", "CLOSED", "ON_HOLD"]],
     [ApplicationStatus, ["SUBMITTED", "ACTIVE", "ON_HOLD", "CLOSED", "CANCELLED", "REJECTED", "APPLIED"]],
-    [PipelineStageCode, ["INBOUND", "SCREENING", "ASSESSMENT", "INTERVIEW", "SHORTLIST", "OFFER", "PLACED", "CLOSED", "REJECT", "OFFER_REJECT", "APPLIED", "SHORTLISTED"]],
+    [PipelineStageCode, ["INBOUND", "SCREENING", "ASSESSMENT", "SHORTLIST", "INTERVIEW", "OFFER", "REJECT", "OFFER_REJECT", "CLOSED"]],
+    [LegacyPipelineStageCode, ["APPLIED", "SHORTLISTED", "PLACED"]],
     [PipelineStageLabel, ["Inbound", "Screening", "Assessment", "Interview", "Shortlist", "Offer", "Placed", "Closed"]],
     [ApplicationStatusKey, ["applied", "screening", "assessment", "interview", "shortlisted", "offer_extended", "offer_accepted", "offer_declined", "rejected", "unknown"]],
     [ApplicationStatusLabel, ["Applied", "Shortlisted", "Screened", "Assessed", "Interview Scheduled", "Offer Extended"]],
@@ -55,18 +56,19 @@ describe("business status wire contracts", () => {
     expect(getApplicationStatusLabel("new_backend_status")).toBe("new_backend_status");
   });
 
-  it("preserves the existing workflow graph without enabling rejection or alias stages", () => {
+  it("uses only confirmed backend codes in the workflow", () => {
     expect(workflowConfig.stages).toEqual([
-      "INBOUND", "SCREENING", "ASSESSMENT", "INTERVIEW", "SHORTLIST", "OFFER", "PLACED", "CLOSED",
+      "INBOUND", "SCREENING", "ASSESSMENT", "SHORTLIST", "INTERVIEW", "OFFER", "REJECT", "OFFER_REJECT", "CLOSED",
     ]);
     expect(workflowConfig.transitions).toEqual([
       { from: "INBOUND", to: ["SCREENING", "CLOSED"] },
       { from: "SCREENING", to: ["ASSESSMENT", "CLOSED"] },
-      { from: "ASSESSMENT", to: ["INTERVIEW", "CLOSED"] },
-      { from: "INTERVIEW", to: ["SHORTLIST", "CLOSED"] },
-      { from: "SHORTLIST", to: ["OFFER", "CLOSED"] },
-      { from: "OFFER", to: ["PLACED", "CLOSED"] },
-      { from: "PLACED", to: ["CLOSED"] },
+      { from: "ASSESSMENT", to: ["SHORTLIST", "CLOSED"] },
+      { from: "SHORTLIST", to: ["INTERVIEW", "CLOSED"] },
+      { from: "INTERVIEW", to: ["OFFER", "CLOSED"] },
+      { from: "OFFER", to: ["CLOSED"] },
+      { from: "REJECT", to: [] },
+      { from: "OFFER_REJECT", to: [] },
       { from: "CLOSED", to: [] },
     ]);
   });

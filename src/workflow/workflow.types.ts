@@ -1,10 +1,6 @@
 import type { PipelineStageCode } from "@/enums/statuses"
 
-export type WorkflowStage = Exclude<
-  PipelineStageCode,
-  typeof PipelineStageCode.APPLIED | typeof PipelineStageCode.SHORTLISTED |
-  typeof PipelineStageCode.REJECT | typeof PipelineStageCode.OFFER_REJECT
->
+export type WorkflowStage = PipelineStageCode
 
 export interface WorkflowTransition {
   from: WorkflowStage

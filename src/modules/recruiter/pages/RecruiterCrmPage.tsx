@@ -6,7 +6,7 @@ import { usePageTitle } from '@/hooks/usePageTitle'
 import { useSearchQueryState } from '@/hooks/useSearchQueryState'
 import { extractErrorMessage } from '@/app/errorUtils'
 import { useGetCrmClientsQuery } from '@/store/api/apiSlice'
-import { CreateCrmEmployerDialog, UpdateCrmClientDialog } from '@/modules/crm/components/CrmClientDialogs'
+import { UpdateCrmClientDialog } from '@/modules/crm/components/CrmClientDialogs'
 import { CrmCard, MagnifierIcon, StatTile } from '@/modules/crm/components/CrmPresentation'
 import { crmClassificationLabels, crmClassifications } from '@/modules/crm/schema'
 import type { CrmClassification, CrmClient } from '@/types/api'
@@ -18,7 +18,6 @@ const RecruiterCrmPage = () => {
   const [status, setStatus] = useState<CrmClassification | ''>('')
   const [pagination, setPagination] = useState({ key: '', page: 1 })
   const [selectedClient, setSelectedClient] = useState<CrmClient | null>(null)
-  const [creating, setCreating] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
   const filterKey = JSON.stringify([search.debouncedValue, status])
   const page = pagination.key === filterKey ? pagination.page : 1
@@ -35,7 +34,6 @@ const RecruiterCrmPage = () => {
       <Box className={styles.pageRoot}>
         <Box className={styles.pageHeader}>
           <Typography component="h1" className={styles.pageTitle}>CRM Dashboard</Typography>
-          <Button variant="contained" onClick={() => { setSuccessMessage(''); setCreating(true) }}>Add employer</Button>
         </Box>
         {successMessage && <Alert severity="success" onClose={() => setSuccessMessage('')}>{successMessage}</Alert>}
         {isError && (
@@ -93,10 +91,6 @@ const RecruiterCrmPage = () => {
             disabled={isFetching} onChange={(_event, nextPage) => setPagination({ key: filterKey, page: nextPage })} />
         )}
       </Box>
-      {creating && <CreateCrmEmployerDialog onClose={() => setCreating(false)} onSaved={() => {
-        setCreating(false)
-        setSuccessMessage('Employer created successfully.')
-      }} />}
       {selectedClient && <UpdateCrmClientDialog key={selectedClient.clientId} client={selectedClient}
         onClose={() => setSelectedClient(null)} onSaved={() => {
           setSelectedClient(null)

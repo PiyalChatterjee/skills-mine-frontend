@@ -86,11 +86,9 @@ export const CrmCard = ({ contact, onUpdate }: CrmCardProps) => {
         <Typography component="h3" className={styles.companyName}>{contact.clientName}</Typography>
         <Box className={styles.contactDetails}>
           {contact.contactName && (
-            contact.emailId
-              ? <a href={`mailto:${contact.emailId}`} className={styles.contactName}>{contact.contactName}</a>
-              : <span className={styles.contactName}>{contact.contactName}</span>
+            <span className={styles.contactName}>{contact.contactName}</span>
           )}
-          {contact.contactNumber && <a href={`tel:${contact.contactNumber}`} className={styles.contactPhone}>{contact.contactNumber}</a>}
+          {contact.contactNumber && <span className={styles.contactPhone}>{contact.contactNumber}</span>}
         </Box>
       </Box>
 

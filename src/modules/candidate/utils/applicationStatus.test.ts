@@ -14,6 +14,8 @@ describe("getApplicationStatusKey", () => {
     ["CLOSED", "offer_accepted"],
     ["offer_declined", "offer_declined"],
     ["REJECT", "rejected"],
+    ["OFFER_REJECT", "rejected"],
+    [" offer_reject ", "rejected"],
     ["rejected", "rejected"],
   ])("maps %s to %s", (stage, key) => {
     expect(getApplicationStatusKey(stage)).toBe(key);
@@ -30,6 +32,7 @@ describe("getApplicationStatusLabel", () => {
     ["SHORTLIST", "Shortlisted"],
     ["OFFER", "Offer"],
     ["REJECT", "Closed"],
+    ["OFFER_REJECT", "Closed"],
     ["CLOSED", "Closed"],
     ["PLACED", "Placed"],
   ])("labels %s as %s", (stage, label) => {

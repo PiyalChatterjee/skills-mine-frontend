@@ -1,4 +1,4 @@
-import { JobPostStatus, PipelineStageCode, PipelineStageLabel as PipelineLabel } from "@/enums/statuses";
+import { JobPostStatus, LegacyPipelineStageCode, PipelineStageCode, PipelineStageLabel as PipelineLabel } from "@/enums/statuses";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -144,7 +144,7 @@ const STAGE_CODE_MAP: Record<string, PipelineStageLabel> = {
   [PipelineStageCode.ASSESSMENT]: PipelineLabel.ASSESSMENT,
   [PipelineStageCode.INTERVIEW]: PipelineLabel.INTERVIEW,
   [PipelineStageCode.SHORTLIST]: PipelineLabel.SHORTLIST,
-  [PipelineStageCode.SHORTLISTED]: PipelineLabel.SHORTLIST,
+  [LegacyPipelineStageCode.SHORTLISTED]: PipelineLabel.SHORTLIST,
   [PipelineStageCode.OFFER]: PipelineLabel.OFFER,
   [PipelineStageCode.CLOSED]: PipelineLabel.CLOSED,
 };
@@ -393,7 +393,7 @@ const RecruiterPage = () => {
       if (normalized === PipelineStageCode.SCREENING.toLowerCase()) counts.Screening = stage.count;
       if (normalized === PipelineStageCode.ASSESSMENT.toLowerCase()) counts.Assessment = stage.count;
       if (normalized === PipelineStageCode.INTERVIEW.toLowerCase()) counts.Interview = stage.count;
-      if (normalized === PipelineStageCode.SHORTLISTED.toLowerCase() || normalized === PipelineStageCode.SHORTLIST.toLowerCase())
+      if (normalized === LegacyPipelineStageCode.SHORTLISTED.toLowerCase() || normalized === PipelineStageCode.SHORTLIST.toLowerCase())
         counts.Shortlist = stage.count;
       if (normalized === PipelineStageCode.OFFER.toLowerCase()) counts.Offer = stage.count;
       if (normalized === PipelineStageCode.CLOSED.toLowerCase()) counts.Closed = stage.count;

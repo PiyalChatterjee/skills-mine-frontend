@@ -303,18 +303,18 @@ describe('candidateApi', () => {
       })
     })
 
-    it('captures the stage an application was rejected at', async () => {
+    it.each(['REJECT', 'OFFER_REJECT'])('captures the stage an application was rejected at for %s', async (rejectionCode) => {
       mockGet.mockResolvedValue({
         data: {
           applications: [{
             application_id: 'APP-2',
             job_title: 'Application Developer',
-            current_stage_code: 'REJECT',
+            current_stage_code: rejectionCode,
             stage_progress: [
               { from_stage_code: 'INBOUND', to_stage_code: 'SCREENING' },
               { from_stage_code: 'SCREENING', to_stage_code: 'ASSESSMENT' },
               { from_stage_code: 'ASSESSMENT', to_stage_code: 'SCREENING' },
-              { from_stage_code: 'SCREENING', to_stage_code: 'REJECT' },
+              { from_stage_code: 'SCREENING', to_stage_code: rejectionCode },
             ],
           }],
         },

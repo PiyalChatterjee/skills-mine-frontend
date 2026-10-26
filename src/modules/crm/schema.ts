@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { emailSchema } from "@/app/validation.schema";
 import { CrmClassification, CrmClassificationLabel } from "@/enums/statuses";
 
 export const crmClassificationLabels = {
@@ -33,16 +32,4 @@ export const crmNoteSchema = z.object({
   lastcontactDate: dateSchema,
 });
 
-export const crmEmployerSchema = z.object({
-  employerName: z.string().trim().min(1, "Employer name is required").max(250),
-  contactName: z.string().trim().min(1, "Contact name is required").max(250),
-  contactNumber: z.string().trim().min(1, "Contact number is required").max(250),
-  emailId: emailSchema.max(250),
-  clientRate: z.string().trim().refine(
-    (value) => value === "" || (Number.isFinite(Number(value)) && Number(value) >= 0),
-    "Client rate must be a non-negative number",
-  ),
-});
-
 export type CrmNoteValues = z.infer<typeof crmNoteSchema>;
-export type CrmEmployerValues = z.infer<typeof crmEmployerSchema>;

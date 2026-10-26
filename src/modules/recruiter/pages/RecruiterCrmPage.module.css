@@ -184,9 +184,16 @@
   background: currentColor;
 }
 
+.statusTag {
+  border: 1px solid currentColor;
+  box-shadow: none;
+}
+
 .statusTagFollowUp { background: rgb(255 255 255 / 40%); }
+.crmCardGreen .statusTagFollowUp { background: #93cfab; }
 .statusTagOverdue { background: #e68f8f; color: #ffffff; }
-.crmCardAmber .statusTagFollowUp { background: transparent; }
+.crmCardTeal .statusTagOverdue { background: #d64545; }
+.crmCardAmber .statusTagFollowUp { background: #ebb962; }
 
 .companyRow {
   display: flex;

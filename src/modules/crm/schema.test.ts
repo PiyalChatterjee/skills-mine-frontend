@@ -1,11 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { crmEmployerSchema, crmNoteSchema } from "./schema";
+import { crmNoteSchema } from "./schema";
 
 describe("CRM validation", () => {
-  const employer = {
-    employerName: "Employer", contactName: "Recruiter",
-    contactNumber: "+27 11 123 4567", emailId: "contact@example.com", clientRate: "",
-  };
   const note = { classification: "hot_lead", note: "Hiring soon", followupDate: "", lastcontactDate: "" };
 
   it("requires note text and a supported classification", () => {
@@ -27,17 +23,4 @@ describe("CRM validation", () => {
     expect(crmNoteSchema.safeParse({ ...note, note: "1\r\n2\r\n3\r\n4\r\n5" }).success).toBe(false);
   });
 
-  it("trims employer fields and preserves optional or zero rates", () => {
-    expect(crmEmployerSchema.parse({ ...employer, employerName: " Employer " }).employerName).toBe("Employer");
-    expect(crmEmployerSchema.safeParse({ ...employer, clientRate: "0" }).success).toBe(true);
-    expect(crmEmployerSchema.safeParse(employer).success).toBe(true);
-  });
-
-  it.each([
-    { employerName: " " }, { contactName: "" }, { contactNumber: "" },
-    { emailId: "not-an-email" }, { clientRate: "-1" }, { clientRate: "Infinity" },
-    { clientRate: "abc" }, { employerName: "a".repeat(251) },
-  ])("rejects invalid employer inputs: %j", (invalid) => {
-    expect(crmEmployerSchema.safeParse({ ...employer, ...invalid }).success).toBe(false);
-  });
 });

@@ -1,8 +1,7 @@
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  Alert, Button, Dialog, DialogActions, DialogContent,
-  DialogTitle, IconButton, FormControlLabel, Radio, RadioGroup,
+  Alert, Button, Dialog, IconButton, FormControlLabel, Radio, RadioGroup,
 } from "@mui/material";
 import { extractErrorMessage } from "@/app/errorUtils";
 import { FormField } from "@/components/forms/FormField";
@@ -10,12 +9,12 @@ import { FormDateField } from "@/components/forms/FormDateField";
 import closeIcon from "@/assets/crm/close.svg";
 import radioDot from "@/assets/crm/radio-dot.svg";
 import {
-  useAddCrmClientNoteMutation, useCreateCrmEmployerMutation,
+  useAddCrmClientNoteMutation,
 } from "@/store/api/apiSlice";
 import type { CrmClient } from "@/types/api";
 import {
-  crmClassificationLabels, crmClassifications, crmEmployerSchema, crmNoteSchema,
-  type CrmEmployerValues, type CrmNoteValues,
+  crmClassificationLabels, crmClassifications, crmNoteSchema,
+  type CrmNoteValues,
 } from "../schema";
 import styles from "./CrmClientDialogs.module.css";
 
@@ -23,64 +22,6 @@ type DialogProps = {
   onClose: () => void;
   onSaved: () => void;
 };
-
-export function CreateCrmEmployerDialog({ onClose, onSaved }: DialogProps) {
-  const [createEmployer, { isLoading }] = useCreateCrmEmployerMutation();
-  const { control, handleSubmit, setError, formState: { errors } } =
-    useForm<CrmEmployerValues>({
-      resolver: zodResolver(crmEmployerSchema),
-      defaultValues: {
-        employerName: "", contactName: "", contactNumber: "", emailId: "", clientRate: "",
-      },
-      mode: "onTouched",
-    });
-
-  const submit = handleSubmit(async ({ clientRate, ...values }) => {
-    try {
-      await createEmployer({
-        ...values,
-        ...(clientRate !== "" ? { clientRate: Number(clientRate) } : {}),
-      }).unwrap();
-      onSaved();
-    } catch (error) {
-      setError("root", { message: extractErrorMessage(error, "Failed to create employer.") });
-    }
-  });
-
-  return (
-    <Dialog open onClose={isLoading ? undefined : onClose} fullWidth maxWidth="sm"
-      aria-labelledby="crm-create-title" slotProps={{ paper: { className: styles.paper } }}>
-      <form onSubmit={submit} noValidate aria-busy={isLoading}>
-        <DialogTitle id="crm-create-title">Add employer</DialogTitle>
-        <DialogContent className={styles.content}>
-          {errors.root && <Alert severity="error">{errors.root.message}</Alert>}
-          <fieldset className={styles.fields} disabled={isLoading}>
-            {([
-              ["employerName", "Employer name", "text"],
-              ["contactName", "Contact name", "text"],
-              ["contactNumber", "Contact number", "tel"],
-              ["emailId", "Email address", "email"],
-              ["clientRate", "Client rate", "number"],
-            ] as const).map(([name, label, type]) => (
-              <Controller key={name} name={name} control={control} render={({ field: { ref, ...field }, fieldState }) => (
-                <FormField {...field} inputRef={ref} label={label} type={type}
-                  required={name !== "clientRate"} error={Boolean(fieldState.error)}
-                  helperText={fieldState.error?.message}
-                  slotProps={{ htmlInput: type === "number" ? { min: 0, step: "any" } : {} }} />
-              )} />
-            ))}
-          </fieldset>
-        </DialogContent>
-        <DialogActions className={styles.actions}>
-          <Button onClick={onClose} disabled={isLoading}>Cancel</Button>
-          <Button variant="contained" type="submit" disabled={isLoading}>
-            {isLoading ? "Saving..." : "Create employer"}
-          </Button>
-        </DialogActions>
-      </form>
-    </Dialog>
-  );
-}
 
 export function UpdateCrmClientDialog({ client, onClose, onSaved }: DialogProps & { client: CrmClient }) {
   const [addNote, { isLoading }] = useAddCrmClientNoteMutation();

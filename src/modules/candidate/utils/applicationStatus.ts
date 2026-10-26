@@ -1,4 +1,4 @@
-import { ApplicationStatusKey, ApplicationStatusLabel, PipelineStageCode, PipelineStageLabel } from "@/enums/statuses";
+import { ApplicationStatusKey, ApplicationStatusLabel, LegacyPipelineStageCode, PipelineStageCode, PipelineStageLabel } from "@/enums/statuses";
 
 export type { ApplicationStatusKey } from "@/enums/statuses";
 
@@ -15,8 +15,9 @@ const APPLICATION_STATUS_LABELS: Record<string, string> = {
   [ApplicationStatusKey.OFFER_ACCEPTED]: PipelineStageLabel.CLOSED,
   [ApplicationStatusKey.OFFER_DECLINED]: PipelineStageLabel.CLOSED,
   [PipelineStageCode.REJECT.toLowerCase()]: PipelineStageLabel.CLOSED,
+  [PipelineStageCode.OFFER_REJECT.toLowerCase()]: PipelineStageLabel.CLOSED,
   [ApplicationStatusKey.REJECTED]: PipelineStageLabel.CLOSED,
-  [PipelineStageCode.PLACED.toLowerCase()]: PipelineStageLabel.PLACED,
+  [LegacyPipelineStageCode.PLACED.toLowerCase()]: PipelineStageLabel.PLACED,
   [PipelineStageCode.CLOSED.toLowerCase()]: PipelineStageLabel.CLOSED,
 };
 
@@ -35,6 +36,7 @@ const APPLICATION_STATUS_KEYS: Record<string, ApplicationStatusKey> = {
   [PipelineStageCode.CLOSED.toLowerCase()]: ApplicationStatusKey.OFFER_ACCEPTED,
   [ApplicationStatusKey.OFFER_DECLINED]: ApplicationStatusKey.OFFER_DECLINED,
   [PipelineStageCode.REJECT.toLowerCase()]: ApplicationStatusKey.REJECTED,
+  [PipelineStageCode.OFFER_REJECT.toLowerCase()]: ApplicationStatusKey.REJECTED,
   [ApplicationStatusKey.REJECTED]: ApplicationStatusKey.REJECTED,
 };
 

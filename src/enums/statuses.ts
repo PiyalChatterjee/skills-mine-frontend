@@ -41,18 +41,22 @@ export const PipelineStageCode = {
   INBOUND: "INBOUND",
   SCREENING: "SCREENING",
   ASSESSMENT: "ASSESSMENT",
-  INTERVIEW: "INTERVIEW",
   SHORTLIST: "SHORTLIST",
+  INTERVIEW: "INTERVIEW",
   OFFER: "OFFER",
-  PLACED: "PLACED",
-  CLOSED: "CLOSED",
   REJECT: "REJECT",
   OFFER_REJECT: "OFFER_REJECT",
-  // Historical aliases still returned by candidate and dashboard endpoints.
-  APPLIED: "APPLIED",
-  SHORTLISTED: "SHORTLISTED",
+  CLOSED: "CLOSED",
 } as const;
 export type PipelineStageCode = ValueOf<typeof PipelineStageCode>;
+
+// Read compatibility only; these are not valid backend pipeline request codes.
+export const LegacyPipelineStageCode = {
+  APPLIED: "APPLIED",
+  SHORTLISTED: "SHORTLISTED",
+  PLACED: "PLACED",
+} as const;
+export type LegacyPipelineStageCode = ValueOf<typeof LegacyPipelineStageCode>;
 
 export const PipelineStageLabel = {
   INBOUND: "Inbound",

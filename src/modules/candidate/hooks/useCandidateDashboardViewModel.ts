@@ -73,14 +73,15 @@ const CLOSED_STAGES = new Set([
   ApplicationStatusValue.OFFER_ACCEPTED,
   ApplicationStatusValue.OFFER_DECLINED,
   PipelineStageCode.REJECT.toLowerCase(),
+  PipelineStageCode.OFFER_REJECT.toLowerCase(),
   ApplicationStatusValue.REJECTED,
 ]);
 const DEFAULT_PIPELINE = [
-  PipelineStageCode.APPLIED,
+  PipelineStageCode.INBOUND,
   PipelineStageCode.SCREENING,
   PipelineStageCode.ASSESSMENT,
+  PipelineStageCode.SHORTLIST,
   PipelineStageCode.INTERVIEW,
-  PipelineStageCode.SHORTLISTED,
   PipelineStageCode.OFFER,
 ];
 const unknownStages = new Set<string>();
