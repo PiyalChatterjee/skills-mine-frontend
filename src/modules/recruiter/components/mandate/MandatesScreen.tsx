@@ -20,6 +20,11 @@ import { pushNotification } from "@/store/slices/notificationSlice";
 import type { AppDispatch } from "@/store";
 import type { JobPost } from "@/types/api";
 import { ROUTE_PATHS } from "@/routes/routePaths";
+import editPostIcon from "@/assets/recruiter/job-post-edit.svg";
+import closePostIcon from "@/assets/recruiter/job-post-close.svg";
+import deletePostIcon from "@/assets/recruiter/job-post-delete.svg";
+import dismissIcon from "@/assets/recruiter/job-post-dismiss.svg";
+import closeWarningIcon from "@/assets/recruiter/job-post-close-warning.svg";
 import styles from "./MandatesScreen.module.css";
 
 type MandatesScreenProps = {
@@ -414,38 +419,10 @@ export const MandatesScreen = ({
           aria-expanded={companyOpen ? "true" : undefined}
         >
           {/* Building / company icon */}
-          <svg
-            className={styles.filterChipSvgIcon}
-            viewBox="0 0 16 16"
-            fill="none"
+          <span
+            className={`${styles.filterChipSvgIcon} ${styles.assetMask} ${styles.companyIcon}`}
             aria-hidden="true"
-          >
-            <rect
-              x="2"
-              y="5"
-              width="8"
-              height="9"
-              rx="0.5"
-              stroke="currentColor"
-              strokeWidth="1.3"
-            />
-            <path
-              d="M10 7h2.5a.5.5 0 0 1 .5.5V14h-3V7Z"
-              stroke="currentColor"
-              strokeWidth="1.3"
-            />
-            <path
-              d="M4.5 8.5h1M7.5 8.5h1M4.5 11h1M7.5 11h1"
-              stroke="currentColor"
-              strokeWidth="1.2"
-              strokeLinecap="round"
-            />
-            <path
-              d="M5.5 14v-2.5h3V14"
-              stroke="currentColor"
-              strokeWidth="1.3"
-            />
-          </svg>
+          />
           {selectedCompanyName ?? "Company"}
         </ButtonBase>
 
@@ -460,26 +437,10 @@ export const MandatesScreen = ({
           aria-expanded={locationOpen ? "true" : undefined}
         >
           {/* Pin / location icon */}
-          <svg
-            className={styles.filterChipSvgIcon}
-            viewBox="0 0 16 16"
-            fill="none"
+          <span
+            className={`${styles.filterChipSvgIcon} ${styles.assetMask} ${styles.locationIcon}`}
             aria-hidden="true"
-          >
-            <path
-              d="M8 1.5A4.25 4.25 0 0 0 3.75 5.75C3.75 9.25 8 14.5 8 14.5S12.25 9.25 12.25 5.75A4.25 4.25 0 0 0 8 1.5Z"
-              stroke="currentColor"
-              strokeWidth="1.3"
-              fill="none"
-            />
-            <circle
-              cx="8"
-              cy="5.75"
-              r="1.5"
-              stroke="currentColor"
-              strokeWidth="1.2"
-            />
-          </svg>
+          />
           Location
         </ButtonBase>
 
@@ -494,52 +455,19 @@ export const MandatesScreen = ({
           aria-expanded={statusOpen ? "true" : undefined}
         >
           {/* Circle-check / status icon */}
-          <svg
-            className={styles.filterChipSvgIcon}
-            viewBox="0 0 16 16"
-            fill="none"
+          <span
+            className={`${styles.filterChipSvgIcon} ${styles.assetMask} ${styles.statusIcon}`}
             aria-hidden="true"
-          >
-            <circle
-              cx="8"
-              cy="8"
-              r="5.5"
-              stroke="currentColor"
-              strokeWidth="1.3"
-            />
-            <path
-              d="M5.5 8l1.75 1.75L10.5 6"
-              stroke="currentColor"
-              strokeWidth="1.3"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+          />
           Status
         </ButtonBase>
 
         <Box component="label" className={styles.searchField}>
           {/* Magnifier / search icon */}
-          <svg
-            className={styles.filterChipSvgIcon}
-            viewBox="0 0 16 16"
-            fill="none"
+          <span
+            className={`${styles.filterChipSvgIcon} ${styles.assetMask} ${styles.searchIcon}`}
             aria-hidden="true"
-          >
-            <circle
-              cx="6.5"
-              cy="6.5"
-              r="4"
-              stroke="currentColor"
-              strokeWidth="1.3"
-            />
-            <path
-              d="M10 10l3 3"
-              stroke="currentColor"
-              strokeWidth="1.3"
-              strokeLinecap="round"
-            />
-          </svg>
+          />
           <input
             className={styles.searchInput}
             type="search"
@@ -744,21 +672,10 @@ export const MandatesScreen = ({
                             );
                           }}
                         >
-                          <svg
-                            viewBox="0 0 10 6"
-                            fill="none"
+                          <span
+                            className={`${styles.assetMask} ${styles.sortAscendingIcon}`}
                             aria-hidden="true"
-                            width="10"
-                            height="6"
-                          >
-                            <path
-                              d="M1 5L5 1L9 5"
-                              stroke="currentColor"
-                              strokeWidth="1.6"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
+                          />
                         </button>
                         <button
                           type="button"
@@ -771,21 +688,10 @@ export const MandatesScreen = ({
                             );
                           }}
                         >
-                          <svg
-                            viewBox="0 0 10 6"
-                            fill="none"
+                          <span
+                            className={`${styles.assetMask} ${styles.sortDescendingIcon}`}
                             aria-hidden="true"
-                            width="10"
-                            height="6"
-                          >
-                            <path
-                              d="M1 1L5 5L9 1"
-                              stroke="currentColor"
-                              strokeWidth="1.6"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
+                          />
                         </button>
                       </Box>
                     </Box>
@@ -859,21 +765,10 @@ export const MandatesScreen = ({
             onClick={() => goToPage(currentPage - 1)}
             aria-label="Previous page"
           >
-            <svg
-              viewBox="0 0 16 16"
-              fill="none"
+            <span
+              className={`${styles.assetMask} ${styles.previousIcon}`}
               aria-hidden="true"
-              width="14"
-              height="14"
-            >
-              <path
-                d="M10 12L6 8l4-4"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+            />
           </ButtonBase>
 
           {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
@@ -898,21 +793,10 @@ export const MandatesScreen = ({
             onClick={() => goToPage(currentPage + 1)}
             aria-label="Next page"
           >
-            <svg
-              viewBox="0 0 16 16"
-              fill="none"
+            <span
+              className={`${styles.assetMask} ${styles.nextIcon}`}
               aria-hidden="true"
-              width="14"
-              height="14"
-            >
-              <path
-                d="M6 4l4 4-4 4"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+            />
           </ButtonBase>
         </Box>
       )}
@@ -932,21 +816,12 @@ export const MandatesScreen = ({
           onClick={handleEditPost}
           disableRipple
         >
-          <svg
+          <img
+            src={editPostIcon}
             className={styles.menuIcon}
-            viewBox="0 0 20 20"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
+            alt=""
             aria-hidden="true"
-          >
-            <path
-              d="M14.166 2.5a2.357 2.357 0 0 1 3.334 3.334L6.25 17.083 2.5 17.5l.417-3.75L14.166 2.5Z"
-              stroke="#4d4d4d"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+          />
           Edit post
         </ButtonBase>
 
@@ -956,28 +831,12 @@ export const MandatesScreen = ({
           disableRipple
           disabled={activeRowPost?.status.toUpperCase() === "CLOSED"}
         >
-          <svg
+          <img
+            src={closePostIcon}
             className={styles.menuIcon}
-            viewBox="0 0 20 20"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
+            alt=""
             aria-hidden="true"
-          >
-            <circle
-              cx="10"
-              cy="10"
-              r="7.5"
-              stroke="#4d4d4d"
-              strokeWidth="1.5"
-            />
-            <path
-              d="m7.5 7.5 5 5m0-5-5 5"
-              stroke="#4d4d4d"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+          />
           Close job post
         </ButtonBase>
 
@@ -994,21 +853,12 @@ export const MandatesScreen = ({
               sx={{ color: "#d32f2f" }}
             />
           ) : (
-            <svg
+            <img
+              src={deletePostIcon}
               className={styles.menuIcon}
-              viewBox="0 0 20 20"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
+              alt=""
               aria-hidden="true"
-            >
-              <path
-                d="M3.333 5.833h13.334M8.333 9.167v5M11.667 9.167v5M4.167 5.833l.833 10c0 .92.746 1.667 1.667 1.667h6.666c.92 0 1.667-.747 1.667-1.667l.833-10M7.5 5.833V3.333a.833.833 0 0 1 .833-.833h3.334a.833.833 0 0 1 .833.833v2.5"
-                stroke="#d32f2f"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+            />
           )}
           Delete
         </ButtonBase>
@@ -1145,42 +995,26 @@ export const MandatesScreen = ({
                   pendingCloseJobRef.current = null;
                 }}
               >
-                <svg
+                <img
+                  src={dismissIcon}
                   width="18"
                   height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
+                  alt=""
                   aria-hidden="true"
-                >
-                  <path
-                    d="M18 6L6 18M6 6l12 12"
-                    stroke="#57606a"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                </svg>
+                />
               </ButtonBase>
             </Box>
 
             {/* body */}
             <Box className={styles.confirmModalBody}>
-              <svg
+              <img
+                src={closeWarningIcon}
+                className={styles.closeWarningIcon}
                 width="44"
                 height="44"
-                viewBox="0 0 24 24"
-                fill="none"
+                alt=""
                 aria-hidden="true"
-                style={{ flexShrink: 0 }}
-              >
-                <circle cx="12" cy="12" r="10" fill="#FEE2E2" />
-                <path
-                  d="M12 8v4m0 4h.01"
-                  stroke="#C0392B"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              />
               <Box>
                 <Typography
                   component="p"

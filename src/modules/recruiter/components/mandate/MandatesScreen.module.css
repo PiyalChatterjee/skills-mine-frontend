@@ -95,6 +95,60 @@
   color: inherit;
 }
 
+.assetMask {
+  display: inline-block;
+  background-color: currentColor;
+  mask: var(--icon-mask) center / contain no-repeat;
+}
+
+.companyIcon {
+  --icon-mask: url("../../../../assets/recruiter/job-post-company.svg");
+}
+
+.locationIcon {
+  --icon-mask: url("../../../../assets/recruiter/job-post-location.svg");
+}
+
+.statusIcon {
+  --icon-mask: url("../../../../assets/recruiter/job-post-status.svg");
+}
+
+.searchIcon {
+  --icon-mask: url("../../../../assets/recruiter/job-post-search.svg");
+}
+
+.sortAscendingIcon,
+.sortDescendingIcon {
+  width: 10px;
+  height: 6px;
+}
+
+.sortAscendingIcon {
+  --icon-mask: url("../../../../assets/recruiter/job-post-sort-ascending.svg");
+}
+
+.sortDescendingIcon {
+  --icon-mask: url("../../../../assets/recruiter/job-post-sort-descending.svg");
+}
+
+.previousIcon,
+.nextIcon {
+  width: 14px;
+  height: 14px;
+}
+
+.previousIcon {
+  --icon-mask: url("../../../../assets/recruiter/job-post-previous.svg");
+}
+
+.nextIcon {
+  --icon-mask: url("../../../../assets/recruiter/job-post-next.svg");
+}
+
+.closeWarningIcon {
+  flex-shrink: 0;
+}
+
 /* Filter dropdown popover */
 .filterDropdownPaper:global(.MuiPaper-root) {
   min-width: 192px;
