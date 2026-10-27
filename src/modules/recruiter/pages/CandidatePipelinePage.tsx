@@ -412,28 +412,37 @@ const CandidatePipelinePage = () => {
     }
   }
 
+  const openStageModal = (stage: string, card: RecruiterPipelineCard) => {
+    const state: ModalCandidateState = {
+      candidateName: candidateName(card),
+      candidateTitle: card.jobProfile.positionTitle,
+      company: card.jobProfile.clientName,
+      applicationId: card.applicationId,
+      jobId: card.jobProfile.jobProfileId,
+      matchScoreLatest: card.matchScoreLatest,
+      isRejected: rejectedIds.has(card.applicationId),
+    }
+    switch (stage) {
+      case PipelineLabel.INBOUND:    return setInboundModal(state)
+      case PipelineLabel.SCREENING:  return setScreeningModal(state)
+      case PipelineLabel.ASSESSMENT: return setAssessmentModal(state)
+      case PipelineLabel.SHORTLIST:  return setShortlistModal(state)
+      case PipelineLabel.INTERVIEW:  return setInterviewModal(state)
+      case PipelineLabel.OFFER:      return setOfferModal(state)
+      case PipelineLabel.CLOSED:     return setClosedModal(state)
+    }
+  }
+
+  // Cards cannot be moved between stages by dragging. Dropping on a different
+  // stage opens the card's stage modal instead; stage changes only happen
+  // through the modal actions.
   const handleDragEnd = ({ active, over }: DragEndEvent) => {
     setActiveCard(null)
     if (!over || active.id === over.id) return
-    const targetStage = over.id as string
-
-    setPipelineStages(prev => {
-      let movedCard: RecruiterPipelineCard | undefined
-      const withoutCard = prev.map(stage => {
-        const idx = stage.cards.findIndex(c => c.applicationId === active.id)
-        if (idx === -1) return stage
-        movedCard = stage.cards[idx]
-        return { ...stage, cards: stage.cards.filter((_, i) => i !== idx) }
-      })
-      if (!movedCard) return prev
-      // If dropped onto a card's column the over.id will be a stageKey; guard against dropping on self-column
-      const sourceStage = prev.find(s => s.cards.some(c => c.applicationId === active.id))?.label
-      if (sourceStage === targetStage) return prev
-      return withoutCard.map(stage => {
-        if (stage.label !== targetStage) return stage
-        return { ...stage, cards: [...stage.cards, { ...movedCard!, stage: targetStage }] }
-      })
-    })
+    const sourceStage = pipelineStages.find(s => s.cards.some(c => c.applicationId === active.id))
+    const card = sourceStage?.cards.find(c => c.applicationId === active.id)
+    if (!sourceStage || !card || sourceStage.label === over.id) return
+    openStageModal(sourceStage.label, card)
   }
 
   const handleViewCandidate = (candidateId: string, visitorId?: string) => {
@@ -542,16 +551,6 @@ const CandidatePipelinePage = () => {
                       const title   = card.jobProfile.positionTitle
                       const company = card.jobProfile.clientName
                       const stage   = s.key
-                      const makeModal = (setter: (v: ModalCandidateState) => void) =>
-                        () => setter({
-                          candidateName: name,
-                          candidateTitle: title,
-                          company,
-                          applicationId: card.applicationId,
-                          jobId: card.jobProfile.jobProfileId,
-                          matchScoreLatest: card.matchScoreLatest,
-                          isRejected: rejectedIds.has(card.applicationId),
-                        })
                       return (
                         <DraggableCard
                           key={card.applicationId}
@@ -568,16 +567,7 @@ const CandidatePipelinePage = () => {
                             candidateId:    card.candidate.candidateId,
                             visitorId:      card.candidate.visitorId,
                           })}
-                          onExpand={
-                            s.key === PipelineLabel.INBOUND     ? makeModal(setInboundModal)    :
-                            s.key === PipelineLabel.SCREENING   ? makeModal(setScreeningModal)  :
-                            s.key === PipelineLabel.ASSESSMENT  ? makeModal(setAssessmentModal) :
-                            s.key === PipelineLabel.SHORTLIST   ? makeModal(setShortlistModal)  :
-                            s.key === PipelineLabel.INTERVIEW   ? makeModal(setInterviewModal)  :
-                            s.key === PipelineLabel.OFFER       ? makeModal(setOfferModal)      :
-                            s.key === PipelineLabel.CLOSED      ? makeModal(setClosedModal)     :
-                            undefined
-                          }
+                          onExpand={() => openStageModal(s.key, card)}
                         />
                       )
                     })}

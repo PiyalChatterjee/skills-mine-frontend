@@ -135,18 +135,13 @@ const OfferStageModal = ({
                 <Typography component="label" className={styles.fieldLabel} htmlFor="offer-ext-date-offer">
                   Offer Extension Date *
                 </Typography>
-                <Box className={styles.inputWrapper}>
-                  <input
-                    id="offer-ext-date-offer"
-                    type="text"
-                    className={styles.input}
-                    value={offerDate}
-                    onChange={e => setOfferDate(e.target.value)}
-                  />
-                  <Box className={styles.inputIcon}>
-                    <CalendarIcon />
-                  </Box>
-                </Box>
+                <input
+                  id="offer-ext-date-offer"
+                  type="date"
+                  className={styles.input}
+                  value={offerDate}
+                  onChange={e => setOfferDate(e.target.value)}
+                />
               </Box>
 
               {/* Cost-to-Company Total */}
@@ -170,15 +165,13 @@ const OfferStageModal = ({
                 <Typography component="label" className={styles.fieldLabel} htmlFor="valid-until-offer">
                   Offer Valid Until
                 </Typography>
-                <Box className={styles.inputWrapper}>
-                  <input
-                    id="valid-until-offer"
-                    type="date"
-                    className={styles.input}
-                    value={validUntil}
-                    onChange={e => setValidUntil(e.target.value)}
-                  />
-                </Box>
+                <input
+                  id="valid-until-offer"
+                  type="date"
+                  className={styles.input}
+                  value={validUntil}
+                  onChange={e => setValidUntil(e.target.value)}
+                />
               </Box>
             </Box>
           </Box>
