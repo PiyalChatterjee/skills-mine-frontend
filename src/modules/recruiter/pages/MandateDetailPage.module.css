@@ -756,6 +756,12 @@
   background: #a93226;
 }
 
+.closeJobBtn:global(.MuiButtonBase-root):global(.Mui-disabled) {
+  background: #f8d7da;
+  color: #e08a8a;
+  cursor: not-allowed;
+}
+
 /* ── Responsive ──────────────────────────────────────────────────────── */
 /* ── Tablet (900px) ───────────────────────────────────────────────────── */
 @media (max-width: 900px) {
