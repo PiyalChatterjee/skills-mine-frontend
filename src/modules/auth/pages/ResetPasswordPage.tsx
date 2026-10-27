@@ -308,10 +308,10 @@ const ResetPasswordPage = () => {
             {isChangeMode
               ? isCurrentPasswordSubmitting
                 ? "Changing..."
-                : "Change password"
+                : "Change Password"
               : isSubmitting
                 ? "Resetting..."
-                : "Reset password"}
+                : "Reset Password"}
           </Button>
         </Box>
       </Box>

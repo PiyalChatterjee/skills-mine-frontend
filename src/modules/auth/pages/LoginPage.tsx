@@ -236,7 +236,7 @@ const LoginPage = () => {
             disabled={isSubmitting}
             className={styles.submitButton}
           >
-            {isSubmitting ? "Signing in..." : "Log In"}
+            {isSubmitting ? "Signing In..." : "Log In"}
           </Button>
 
           <Box className={styles.forgotPasswordRow}>

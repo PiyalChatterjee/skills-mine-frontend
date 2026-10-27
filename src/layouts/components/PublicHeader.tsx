@@ -416,19 +416,19 @@ export const PublicHeader = ({
                     onClick={handleProfileSettingsClick}
                     className={styles.profileMenuItem}
                   >
-                    Profile settings
+                    Profile Settings
                   </MenuItem>
                   <MenuItem
                     onClick={handleChangePasswordClick}
                     className={styles.profileMenuItem}
                   >
-                    Change password
+                    Change Password
                   </MenuItem>
                   <MenuItem
                     onClick={handleSignOutClick}
                     className={styles.profileMenuItem}
                   >
-                    Log out
+                    Log Out
                   </MenuItem>
                 </Menu>
               </>

@@ -127,7 +127,7 @@ const ProfilePage = () => {
   return (
     <Box className={styles.pageRoot}>
       <Typography component="h1" className={styles.pageTitle}>
-        Profile settings
+        Profile Settings
       </Typography>
 
       <Box className={styles.layout}>
