@@ -182,6 +182,7 @@ export interface DashboardApplication {
     company: string;
   };
   stage: string;
+  jobStatus?: string;
   statusMessage: string;
   pipeline: string[];
   rejectedAtStage?: string;

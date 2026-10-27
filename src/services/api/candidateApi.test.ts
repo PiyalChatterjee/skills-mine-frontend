@@ -285,6 +285,7 @@ describe('candidateApi', () => {
             job_profile_id_ref: 'JOB-1',
             job_title: 'Engineer',
             current_stage_code: 'SCREENING',
+            job_status: 'closed',
             stage_progress: [{ stage_code: 'APPLIED' }, { stage_code: 'SCREENING' }],
           }],
           pagination: { current_page: 1, page_size: 10, total_items: 1, total_pages: 1 },
@@ -298,6 +299,7 @@ describe('candidateApi', () => {
       expect(result.applications[0]).toMatchObject({
         id: 'APP-1',
         stage: 'SCREENING',
+        jobStatus: 'closed',
         job: { id: 'JOB-1', title: 'Engineer' },
         pipeline: ['APPLIED', 'SCREENING'],
       })

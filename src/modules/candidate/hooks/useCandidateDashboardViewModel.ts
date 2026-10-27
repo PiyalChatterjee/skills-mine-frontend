@@ -148,8 +148,10 @@ const transformApplicationToDisplay = (
   const progressStage =
     status === ApplicationStatusValue.REJECTED && app.rejectedAtStage ? app.rejectedAtStage : app.stage;
   const progressStatus = getApplicationStatusKey(progressStage);
+  const isClosedRejection =
+    status === ApplicationStatusValue.REJECTED && app.jobStatus?.trim().toLowerCase() === "closed";
   let displayStatus = status;
-  if (status === ApplicationStatusValue.REJECTED && progressStatus !== ApplicationStatusValue.UNKNOWN) {
+  if (!isClosedRejection && status === ApplicationStatusValue.REJECTED && progressStatus !== ApplicationStatusValue.UNKNOWN) {
     displayStatus = progressStatus === ApplicationStatusValue.OFFER_EXTENDED ? ApplicationStatusValue.OFFER_DECLINED : progressStatus;
   }
 
@@ -163,7 +165,7 @@ const transformApplicationToDisplay = (
       label: getApplicationStatusLabel(stageKey),
       isActive: getApplicationStatusKey(stageKey) === progressStatus,
     })),
-    fillPercent: displayStatus === ApplicationStatusValue.OFFER_DECLINED ? 100 : getPipelineFillPercent(progressStage, pipeline),
+    fillPercent: isClosedRejection || displayStatus === ApplicationStatusValue.OFFER_DECLINED ? 100 : getPipelineFillPercent(progressStage, pipeline),
     message: DASHBOARD_APPLICATION_STATUS_CONFIG[displayStatus].caption,
     offerAccepted: false,
   };

@@ -167,6 +167,7 @@ describe("useCandidateDashboardViewModel", () => {
             id: "app-4",
             job: { id: "job-4", title: "Application Developer" },
             stage: "CLOSED",
+            jobStatus: "closed",
             pipeline: [],
           },
         ],
@@ -178,7 +179,41 @@ describe("useCandidateDashboardViewModel", () => {
 
     expect(result.current.applications[0].status).toBe("offer_accepted");
     expect(result.current.applications[0].fillPercent).toBe(100);
+    expect(DASHBOARD_APPLICATION_STATUS_CONFIG.offer_accepted).toMatchObject({
+      label: "Closed",
+      color: "#4BAF73",
+    });
   });
+
+  it.each(["INBOUND", "SCREENING", "ASSESSMENT", "SHORTLIST", "INTERVIEW", "OFFER"])(
+    "shows red Closed for a closed job rejected at %s",
+    (rejectedAtStage) => {
+      mocks.useCandidateDashboardQuery.mockReturnValue({
+        data: {
+          applications: [{
+            id: "app-closed-rejection",
+            job: { id: "job-closed", title: "Application Developer" },
+            jobStatus: "CLOSED",
+            stage: "REJECT",
+            rejectedAtStage,
+          }],
+        },
+        isLoading: false,
+      });
+
+      const { result } = renderHook(() => useCandidateDashboardViewModel());
+      const [app] = result.current.applications;
+
+      expect(app.status).toBe("rejected");
+      expect(app.fillPercent).toBe(100);
+      expect(DASHBOARD_APPLICATION_STATUS_CONFIG[app.status]).toMatchObject({
+        label: "Closed",
+        color: "#D64545",
+      });
+      expect(app.message).toBe(DASHBOARD_APPLICATION_STATUS_CONFIG.rejected.caption);
+      expect(app.pipelineStages.find((stage) => stage.isActive)?.key).toBe(rejectedAtStage);
+    },
+  );
 
   it.each(["REJECT", "OFFER_REJECT"])("maps backend %s stage to a closed rejected status", (stage) => {
     mocks.useCandidateDashboardQuery.mockReturnValue({

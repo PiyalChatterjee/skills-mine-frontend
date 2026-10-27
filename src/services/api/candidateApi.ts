@@ -187,6 +187,7 @@ type RawDashboardApplication = {
   stage?: string;
   current_stage?: string;
   current_stage_code?: string;
+  job_status?: string;
   statusMessage?: string;
   message?: string;
   stage_progress?: RawDashboardPipelineStage[];
@@ -250,6 +251,7 @@ const mapDashboardResponse = (
         company: item.job?.company ?? item.company_name ?? "",
       },
       stage: item.stage ?? item.current_stage ?? item.current_stage_code ?? "",
+      jobStatus: item.job_status,
       statusMessage: item.statusMessage ?? item.message ?? "",
       ...(rejectedAtStage ? { rejectedAtStage } : {}),
       pipeline: Array.isArray(progress)
