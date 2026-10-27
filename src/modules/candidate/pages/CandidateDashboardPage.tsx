@@ -316,7 +316,7 @@ const CandidateDashboardPage = () => {
         <Box className={styles.applicationsList}>
           <Box className={styles.applicationsHeader}>
             <Typography component="h2" className={styles.sectionTitle}>
-              My applications
+              My Applications
             </Typography>
           </Box>
           {applications.length === 0 ? (
