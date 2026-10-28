@@ -534,7 +534,7 @@ const MandateDetailPage = () => {
                   )
                 }}
               >
-                {pipelineLoading ? 'Loading…' : 'View Candidate Pipeline'}
+                {pipelineLoading ? 'Loading…' : 'View Applicant Pipeline'}
               </ButtonBase>
 
               <ButtonBase

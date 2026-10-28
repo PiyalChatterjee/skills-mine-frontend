@@ -255,6 +255,8 @@ const CandidatePipelinePage = () => {
   const [historyModal, setHistoryModal] = useState<{ candidateName: string; candidateTitle: string; applicationId: string; candidateId: string; visitorId?: string } | null>(null)
 
   const [rejectedIds, setRejectedIds] = useState<Set<string>>(new Set())
+  // Closed job → candidates in any stage other than Inbound cannot be moved (Advance / Move back disabled)
+  const [isJobClosed, setIsJobClosed] = useState(false)
 
   const [pipelineStages, setPipelineStages] = useState<RecruiterPipelineStage[]>([])
   const [loading, setLoading] = useState(true)
@@ -339,7 +341,9 @@ const CandidatePipelinePage = () => {
         )
 
         // Job closed → auto-reject every candidate still in Inbound (they stay in Inbound, styled as rejected)
-        if (await jobClosedPromise) {
+        const jobClosed = await jobClosedPromise
+        setIsJobClosed(jobClosed)
+        if (jobClosed) {
           const inboundIds = res.data
             .filter(app => !rejected.has(app.applicationId) && getCardStageKey(app) === PipelineLabel.INBOUND)
             .map(app => app.applicationId)
@@ -490,7 +494,7 @@ const CandidatePipelinePage = () => {
           </ButtonBase>
           <Box className={styles.breadcrumbDivider} />
           <ButtonBase className={styles.breadcrumbSection} onClick={handleBack} disableRipple>
-            Candidate Pipeline
+            Applicant Pipeline
           </ButtonBase>
           {jobTitle && (
             <>
@@ -647,6 +651,7 @@ const CandidatePipelinePage = () => {
           jobId={screeningModal.jobId}
           matchScoreLatest={screeningModal.matchScoreLatest}
           isRejected={screeningModal.isRejected}
+          isMoveLocked={isJobClosed}
           onClose={() => setScreeningModal(null)}
           onAdvance={(advancedId) => {
             setPipelineStages(prev =>
@@ -687,6 +692,7 @@ const CandidatePipelinePage = () => {
           applicationId={assessmentModal.applicationId}
           jobId={assessmentModal.jobId}
           isRejected={assessmentModal.isRejected}
+          isMoveLocked={isJobClosed}
           onClose={() => setAssessmentModal(null)}
           onAdvance={(advancedId) => {
             setPipelineStages(prev =>
@@ -727,6 +733,7 @@ const CandidatePipelinePage = () => {
           applicationId={shortlistModal.applicationId}
           jobId={shortlistModal.jobId}
           isRejected={shortlistModal.isRejected}
+          isMoveLocked={isJobClosed}
           onClose={() => setShortlistModal(null)}
           onAdvance={(advancedId) => {
             setPipelineStages(prev =>
@@ -767,6 +774,7 @@ const CandidatePipelinePage = () => {
           applicationId={interviewModal.applicationId}
           jobId={interviewModal.jobId}
           isRejected={interviewModal.isRejected}
+          isMoveLocked={isJobClosed}
           onClose={() => setInterviewModal(null)}
           onAdvance={(advancedId) => {
             setPipelineStages(prev =>
@@ -807,6 +815,7 @@ const CandidatePipelinePage = () => {
           applicationId={offerModal.applicationId}
           jobId={offerModal.jobId}
           isRejected={offerModal.isRejected}
+          isMoveLocked={isJobClosed}
           onClose={() => setOfferModal(null)}
           onAdvance={(advancedId) => {
             const advancing = offerModal
