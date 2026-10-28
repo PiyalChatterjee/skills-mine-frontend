@@ -1,0 +1,264 @@
+.shell {
+  display: flex;
+  min-height: 100vh;
+  margin-left: 240px;
+  background: #f2f9fd;
+}
+
+.pageRoot {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+  padding: 72px 40px 80px;
+  color: #2a3132;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  letter-spacing: 0.1px;
+}
+
+.pageRoot > * {
+  width: 100%;
+  max-width: 1040px;
+  align-self: center;
+}
+
+.pageHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pageTitle:global(.MuiTypography-root) {
+  margin: 0;
+  color: #03478c;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 36px;
+  letter-spacing: 0.1px;
+}
+
+.pageSubtitle:global(.MuiTypography-root) {
+  margin: 0;
+  color: #03478c;
+  font-family: inherit;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: inherit;
+}
+
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+  padding: 24px;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 2px 4px 10px #03478c52;
+}
+
+.sectionTitle:global(.MuiTypography-root) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  letter-spacing: inherit;
+}
+
+.sectionTitle img,
+.industry img {
+  display: block;
+  flex-shrink: 0;
+}
+
+.strategicMetrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0;
+  padding: 16px 0;
+}
+
+.strategicMetric {
+  text-align: center;
+  border-right: 1px solid #b0b4b8;
+}
+
+.strategicMetric:last-child {
+  border-right: 0;
+}
+
+.strategicMetric dt {
+  color: #03478c;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+}
+
+.strategicMetric dd {
+  margin: 0;
+  color: #32abbf;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 48px;
+}
+
+.insights {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.industriesCard {
+  color: #ffffff;
+  background: #03478c;
+  box-shadow: none;
+}
+
+.industryList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 0;
+}
+
+.industry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 24px;
+}
+
+.industry dt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  line-height: 21px;
+}
+
+.industry dd {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+}
+
+.riskPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 24px 24px 28px;
+  border-radius: 16px;
+  background: #f7dada;
+}
+
+.riskValue:global(.MuiTypography-root) {
+  margin: 0;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 40px;
+  font-weight: 600;
+  line-height: 60px;
+  letter-spacing: inherit;
+}
+
+.caption,
+.caption:global(.MuiTypography-root),
+.emptyState:global(.MuiTypography-root) {
+  margin: 0;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 21px;
+  letter-spacing: inherit;
+}
+
+.operationalMetrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin: 0;
+}
+
+.operationalCard {
+  gap: 8px;
+  min-height: 125px;
+  padding: 16px 24px;
+}
+
+.operationalCard dt {
+  font-size: 14px;
+  line-height: 21px;
+}
+
+.operationalValue {
+  margin: 0;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 48px;
+  line-height: 35px;
+}
+
+.unavailableValue,
+.strategicMetric .unavailableValue {
+  margin: 0;
+  font-size: 16px;
+  line-height: 24px;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+@media (max-width: 1200px) {
+  .pageRoot {
+    padding: 40px 24px 80px;
+  }
+
+  .strategicMetrics,
+  .operationalMetrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: 24px;
+  }
+
+  .strategicMetric:nth-child(2) {
+    border-right: 0;
+  }
+}
+
+@media (max-width: 900px) {
+  .shell {
+    margin-left: 0;
+    padding-top: 72px;
+  }
+
+}
+
+@media (max-width: 600px) {
+  .pageRoot {
+    padding: 24px 16px 40px;
+  }
+
+  .insights,
+  .strategicMetrics,
+  .operationalMetrics {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .strategicMetric {
+    border-right: 0;
+  }
+}

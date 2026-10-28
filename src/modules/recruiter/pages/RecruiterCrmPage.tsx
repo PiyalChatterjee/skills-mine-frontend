@@ -1,6 +1,6 @@
 import { CrmClassificationLabel } from "@/enums/statuses";
 import { useState } from 'react'
-import { Alert, Box, Button, CircularProgress, MenuItem, Pagination, TextField, Typography } from '@mui/material'
+import { Alert, Box, Button, CircularProgress, Pagination, Typography } from '@mui/material'
 import { RecruiterSidebar } from '@/modules/recruiter/components/RecruiterSidebar'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useSearchQueryState } from '@/hooks/useSearchQueryState'
@@ -8,28 +8,25 @@ import { extractErrorMessage } from '@/app/errorUtils'
 import { useGetCrmClientsQuery } from '@/store/api/apiSlice'
 import { UpdateCrmClientDialog } from '@/modules/crm/components/CrmClientDialogs'
 import { CrmCard, MagnifierIcon, StatTile } from '@/modules/crm/components/CrmPresentation'
-import { crmClassificationLabels, crmClassifications } from '@/modules/crm/schema'
-import type { CrmClassification, CrmClient } from '@/types/api'
+import type { CrmClient } from '@/types/api'
 import styles from './RecruiterCrmPage.module.css'
 
-const RecruiterCrmPage = () => {
+const RecruiterCrmPage = ({ navigation = 'recruiter' }: { navigation?: 'recruiter' | 'exco' }) => {
   usePageTitle('CRM')
   const search = useSearchQueryState({ minCharacters: 1 })
-  const [status, setStatus] = useState<CrmClassification | ''>('')
   const [pagination, setPagination] = useState({ key: '', page: 1 })
   const [selectedClient, setSelectedClient] = useState<CrmClient | null>(null)
   const [successMessage, setSuccessMessage] = useState('')
-  const filterKey = JSON.stringify([search.debouncedValue, status])
+  const filterKey = search.debouncedValue
   const page = pagination.key === filterKey ? pagination.page : 1
   const { currentData: data, isFetching, isError, error, refetch } = useGetCrmClientsQuery({
     page, size: 20,
-    ...(status ? { status } : {}),
     ...(search.debouncedValue ? { search: search.debouncedValue } : {}),
   })
 
   return (
-    <Box className={styles.shell}>
-      <RecruiterSidebar />
+    <Box className={`${styles.shell} ${navigation === 'exco' ? styles.excoShell : ''}`}>
+      <RecruiterSidebar variant={navigation} />
 
       <Box className={styles.pageRoot}>
         <Box className={styles.pageHeader}>
@@ -63,14 +60,6 @@ const RecruiterCrmPage = () => {
             onChange={search.handleInputChange}
           />
           </Box>
-        <TextField select size="small" label="Classification" value={status} className={styles.statusFilter}
-          onChange={(event) => {
-            const value = event.target.value
-            setStatus(crmClassifications.find((classification) => classification === value) ?? '')
-          }}>
-          <MenuItem value="">All classifications</MenuItem>
-          {crmClassifications.map((value) => <MenuItem key={value} value={value}>{crmClassificationLabels[value]}</MenuItem>)}
-        </TextField>
         </Box>
 
         {/* Cards */}

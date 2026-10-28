@@ -230,6 +230,10 @@ export const AppRoutes = () => {
           <Route element={<ExcoLayout />}>
             <Route element={<RoleGuard allowedRoles={["EXCO", "ADMIN"]} />}>
               <Route path={ROUTE_PATHS.exco} element={<ExcoPage />} />
+              <Route
+                path={ROUTE_PATHS.excoCrm}
+                element={<RecruiterCrmPage navigation="exco" />}
+              />
             </Route>
           </Route>
 

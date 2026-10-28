@@ -36,4 +36,5 @@ export const ROUTE_PATHS = {
   manco: '/manco',
   recruiterManco: '/recruiter/manco',
   exco: '/exco',
+  excoCrm: '/exco/crm',
 } as const

@@ -30,7 +30,7 @@ export function UpdateCrmClientDialog({ client, onClose, onSaved }: DialogProps 
       resolver: zodResolver(crmNoteSchema),
       defaultValues: {
         classification: crmClassifications.find((value) => value === client.status),
-        note: "", followupDate: "", lastcontactDate: "",
+        note: client.lastNote ?? "", followupDate: "", lastcontactDate: "",
       },
       mode: "onChange",
     });

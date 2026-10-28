@@ -6,6 +6,13 @@
   background: #f2f9fd;
 }
 
+@media (max-width: 900px) {
+  .excoShell {
+    margin-left: 0;
+    padding-top: 72px;
+  }
+}
+
 .pageRoot {
   flex: 1;
   min-width: 0;
@@ -115,15 +122,6 @@
 }
 
 .searchInput::placeholder { color: #b0b4b8; }
-
-.statusFilter:global(.MuiFormControl-root) {
-  min-width: 220px;
-  background: #ffffff;
-}
-
-.statusFilter :global(.MuiOutlinedInput-root) {
-  border-radius: 8px;
-}
 
 .cardsList {
   display: flex;

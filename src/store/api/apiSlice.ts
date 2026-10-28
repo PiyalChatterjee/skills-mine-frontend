@@ -1,6 +1,7 @@
 import { JobPostStatus } from "@/enums/statuses";
 import { createApi, fakeBaseQuery } from "@reduxjs/toolkit/query/react";
-import { candidateApi, crmApi, industryApi, jobsApi, locationApi, mancoApi } from "@/services/api";
+import { candidateApi, crmApi, excoApi, industryApi, jobsApi, locationApi, mancoApi } from "@/services/api";
+import type { ExcoDashboard } from "@/services/api/excoApi";
 import type {
   AddCrmNoteData,
   AddCrmNoteRequest,
@@ -113,10 +114,15 @@ export const apiSlice = createApi({
     "MancoRecruiters",
     "MancoAlerts",
     "MancoRecruiterDetail",
+    "ExcoDashboard",
     "CrmClients",
     "CrmEmployer",
   ],
   endpoints: (build) => ({
+    getExcoDashboard: build.query<ExcoDashboard, void>({
+      queryFn: () => withMappedApiError(() => excoApi.getDashboard()),
+      providesTags: ["ExcoDashboard"],
+    }),
     getCrmClients: build.query<CrmClientsData, CrmClientsParams>({
       queryFn: (params) => withMappedApiError(() => crmApi.listClients(params)),
       providesTags: ["CrmClients"],
@@ -413,6 +419,7 @@ export const apiSlice = createApi({
 });
 
 export const {
+  useGetExcoDashboardQuery,
   useGetCrmClientsQuery,
   useGetCrmEmployerQuery,
   useCreateCrmEmployerMutation,

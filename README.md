@@ -62,6 +62,13 @@ npm run preview
 
 ## What Changed Recently
 
+### EXCO Dashboard
+
+- `/exco` reuses the recruiter layout and sidebar, with Dashboard, CRM, and logout navigation. `/exco/crm` reuses the live CRM screen while retaining Exco navigation. Both routes require EXCO or ADMIN.
+- Metrics come from `GET /api/manco-exco-service/v1/exco/dashboard` through the authenticated MANCO/EXCO client and RTK Query. Omitting `metricDate` requests the latest available snapshot; the API service also accepts an explicit snapshot date.
+- Strategic KPIs, top hiring industries, churn risk, and operational cards use server values. Null metrics display "Not available", zeros remain zero, and failed requests expose retry. The design-only requests-per-week caption is omitted because it is not supplied by the API.
+- Exco styling uses a sibling CSS Module and locally downloaded Figma assets; recruiter navigation and dashboard behavior remain unchanged.
+
 ### Shared Business Status Enums
 
 - `src/enums/statuses.ts` is the source of truth for job-post, mandate, application, pipeline, offer-response, profile, document, CRM, and guest-application status values and their existing display labels.
@@ -73,10 +80,12 @@ npm run preview
 ### Relationship CRM
 
 - `/recruiter/crm` and `/crm` share the live CRM screen; the legacy route retains its `CRM_EDIT` permission guard.
+- The shared CRM toolbar contains only the full-width search field. Classification is edited in the Update dialog, not filtered through a toolbar dropdown.
 - Uses `VITE_API_BASE_URL` with the `/api/crm-service` suffix and the existing bearer-token interceptor.
 - Client listing calls `GET /crm/clients` with optional `search`, `status`, and 1-based `page` / `size` parameters. Summary tiles and pagination use the direct response, not a success envelope.
 - Cards display contact details from the client list; Update submits `POST /crm/clients/{clientId}/notes` with required `classification` and `note`, plus optional `followupDate` and `lastcontactDate` dates. Employer creation is not exposed on the dashboard; the API service and RTK Query endpoint for `POST /crm/employer` remain available, alongside `GET /crm/employers/{name}` for full employer lookup.
 - React Hook Form and Zod validate dialogs; successful mutations invalidate the shared RTK Query CRM cache. Failed requests remain visible with retry or form errors.
+- The shared Update dialog prefills the client's existing `lastNote` for editing in recruiter and Exco CRM. Clients without a saved note start with an empty required note; cancelling discards draft changes.
 - CRM page orchestration is separate from static icons/cards/tiles in `src/modules/crm/components/CrmPresentation.tsx` and display helpers in `src/modules/crm/presentation.ts`; these reuse the existing recruiter CRM CSS Module.
 - CRM cards follow the Figma classification colors, contact links, timing badges, and locally stored icons. The Update dialog uses radio classification options, paired dates, a four-line note limit, and validity-gated submission.
 - Shared `FormField` and `FormDateField` components in `src/components/forms` provide external accessible labels, error associations, CSS Module styling, multiline support, and keyboard-accessible calendar selection. CRM create/update dialogs consume them without depending on CV Builder fields. Date fields accept `YYYY-MM-DD` text or calendar input and preserve the CRM API date keys.

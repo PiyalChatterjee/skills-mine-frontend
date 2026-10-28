@@ -24,12 +24,12 @@ const response = {
   page: 1, size: 20, totalElements: 21, totalPages: 2,
 };
 
-function renderPage() {
+function renderPage(navigation: 'recruiter' | 'exco' = 'recruiter') {
   const store = configureStore({
     reducer: { [apiSlice.reducerPath]: apiSlice.reducer },
     middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(apiSlice.middleware),
   });
-  render(<Provider store={store}><RecruiterCrmPage /></Provider>);
+  render(<Provider store={store}><RecruiterCrmPage navigation={navigation} /></Provider>);
   return store;
 }
 
@@ -58,18 +58,20 @@ describe("live CRM screen", () => {
     expect(crmApi.listClients).toHaveBeenCalledWith({ page: 1, size: 20 });
   });
 
-  it("requests pages and resets to page 1 for debounced server search and filters", async () => {
+  it.each(['recruiter', 'exco'] as const)("shows only search on the %s CRM screen", async (navigation) => {
+    renderPage(navigation);
+    await screen.findByText("Live Employer");
+    expect(screen.getByRole("textbox", { name: "Search contacts" })).toBeInTheDocument();
+    expect(screen.queryByRole("combobox", { name: "Classification" })).not.toBeInTheDocument();
+  });
+
+  it("requests pages and resets to page 1 for debounced server search", async () => {
     renderPage();
     await screen.findByText("Live Employer");
     fireEvent.click(screen.getByRole("button", { name: "Go to page 2" }));
     await waitFor(() => expect(crmApi.listClients).toHaveBeenLastCalledWith({ page: 2, size: 20 }));
     fireEvent.change(screen.getByRole("textbox", { name: "Search contacts" }), { target: { value: " Bank " } });
     await waitFor(() => expect(crmApi.listClients).toHaveBeenLastCalledWith({ page: 1, size: 20, search: "Bank" }));
-    fireEvent.mouseDown(screen.getByRole("combobox", { name: "Classification" }));
-    fireEvent.click(await screen.findByRole("option", { name: "Warm Contact" }));
-    await waitFor(() => expect(crmApi.listClients).toHaveBeenLastCalledWith({
-      page: 1, size: 20, search: "Bank", status: "warm_contact",
-    }));
   });
 
   it("validates notes, submits exact payload and refreshes clients from the redesigned popup", async () => {
@@ -77,7 +79,7 @@ describe("live CRM screen", () => {
     fireEvent.click(await screen.findByRole("button", { name: "Update Live Employer" }));
     const dialog = screen.getByRole("dialog");
     expect(within(dialog).getByRole("radio", { name: "Hot Lead" })).toBeChecked();
-    expect(within(dialog).getByRole("button", { name: "Update" })).toBeDisabled();
+    expect(within(dialog).getByLabelText(/Add Note/)).toHaveValue(client.lastNote);
     expect(crmApi.addClientNote).not.toHaveBeenCalled();
     fireEvent.change(within(dialog).getByLabelText(/Add Note/), { target: { value: "  Spoke to contact  " } });
     fireEvent.change(within(dialog).getByRole("textbox", { name: "Last Follow-up Date" }), { target: { value: "2026-11-01" } });
@@ -88,6 +90,43 @@ describe("live CRM screen", () => {
     }));
     expect(await screen.findByText("Client updated successfully.")).toBeInTheDocument();
     await waitFor(() => expect(crmApi.listClients).toHaveBeenCalledTimes(2));
+  });
+
+  it("submits the existing note when only classification changes", async () => {
+    renderPage();
+    fireEvent.click(await screen.findByRole("button", { name: "Update Live Employer" }));
+    const dialog = screen.getByRole("dialog");
+    expect(within(dialog).getByLabelText(/Add Note/)).toHaveValue("Hiring next month");
+    fireEvent.click(within(dialog).getByRole("radio", { name: "Warm Contact" }));
+    await waitFor(() => expect(within(dialog).getByRole("button", { name: "Update" })).toBeEnabled());
+    fireEvent.click(within(dialog).getByRole("button", { name: "Update" }));
+    await waitFor(() => expect(crmApi.addClientNote).toHaveBeenCalledExactlyOnceWith("client-1", {
+      classification: "warm_contact", note: "Hiring next month",
+    }));
+  });
+
+  it.each([null, undefined, ""])("keeps the note empty and required when the existing note is %s", async (lastNote) => {
+    vi.mocked(crmApi.listClients).mockResolvedValue({
+      ...response, clients: [{ ...client, lastNote }],
+    });
+    renderPage();
+    fireEvent.click(await screen.findByRole("button", { name: "Update Live Employer" }));
+    const dialog = screen.getByRole("dialog");
+    expect(within(dialog).getByLabelText(/Add Note/)).toHaveValue("");
+    fireEvent.click(within(dialog).getByRole("radio", { name: "Warm Contact" }));
+    await waitFor(() => expect(within(dialog).getByRole("button", { name: "Update" })).toBeDisabled());
+    expect(crmApi.addClientNote).not.toHaveBeenCalled();
+  });
+
+  it("restores the saved note after cancelling an edited draft", async () => {
+    renderPage();
+    fireEvent.click(await screen.findByRole("button", { name: "Update Live Employer" }));
+    fireEvent.change(screen.getByLabelText(/Add Note/), { target: { value: "Unsaved draft" } });
+    fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Cancel" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: "Update Live Employer" }));
+    expect(screen.getByLabelText(/Add Note/)).toHaveValue(client.lastNote);
+    expect(crmApi.addClientNote).not.toHaveBeenCalled();
   });
 
   it("does not expose employer creation on the dashboard", async () => {

@@ -130,6 +130,9 @@ export const apiEndpoints = {
     resolveLowPerformingAlert:
       "/manco/dashboard/low-performing-recruiters/:alertId/resolve",
   },
+  exco: {
+    dashboard: "/exco/dashboard",
+  },
   jobPosts: {
     list: "/job-posts",
     create: "/jobs",

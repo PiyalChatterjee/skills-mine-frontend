@@ -12,6 +12,9 @@ import crmIcon          from '@/assets/recruiter/person.svg'
 import mancoIcon        from '@/assets/recruiter/settings_account_box.svg'
 import logoutIcon       from '@/assets/logout-icon.svg'
 import logoBanner       from '@/assets/recruiter/Group 45 (1).svg'
+import excoDashboardIcon from '@/assets/recruiter/speed-up-line.svg'
+import excoLogo from '@/assets/exco/logo.svg'
+import excoLogoutIcon from '@/assets/exco/logout.svg'
 
 // ── Types ──────────────────────────────────────────────────────────────
 
@@ -44,7 +47,9 @@ const CandidatesIcon = () => (
 
 // ── Component ──────────────────────────────────────────────────────────
 
-export const RecruiterSidebar = () => {
+export const RecruiterSidebar = ({ variant = 'recruiter' }: { variant?: 'recruiter' | 'exco' }) => {
+  const isExco = variant === 'exco'
+  const dashboardPath = isExco ? ROUTE_PATHS.exco : ROUTE_PATHS.recruiterDashboard
   const location = useLocation()
   const navigate = useNavigate()
   const { logout } = useAuth()
@@ -63,7 +68,10 @@ export const RecruiterSidebar = () => {
     window.location.replace(ROUTE_PATHS.landing)
   }
 
-  const mainNavItems: NavItem[] = [
+  const mainNavItems: NavItem[] = isExco ? [
+    { id: 'dashboard', label: 'Dashboard', to: dashboardPath, icon: <img src={excoDashboardIcon} alt="" aria-hidden="true" /> },
+    { id: 'crm', label: 'CRM', to: ROUTE_PATHS.excoCrm, icon: <img src={crmIcon} alt="" aria-hidden="true" /> },
+  ] : [
     { id: 'pipeline',  label: 'Pipeline',   to: ROUTE_PATHS.recruiterDashboard, icon: <img src={gridOnIcon} width={18} height={18} alt="" aria-hidden="true" /> },
     { id: 'jobPosts',   label: 'Job Posts',   to: ROUTE_PATHS.recruiterJobPosts, icon: <img src={mandatesIcon}  width={18} height={18} alt="" aria-hidden="true" /> },
     { id: 'newJobPost', label: 'New Job Post', icon: <PlusIcon />,       onClick: handleNewJobPostClick },
@@ -73,7 +81,7 @@ export const RecruiterSidebar = () => {
   ]
 
   const adminNavItems: NavItem[] = [
-    { id: 'logout', label: 'Log out', icon: <img src={logoutIcon} width={18} height={18} alt="" aria-hidden="true" />, onClick: handleLogoutClick },
+    { id: 'logout', label: 'Log Out', icon: <img src={isExco ? excoLogoutIcon : logoutIcon} width={isExco ? 24 : 18} height={isExco ? 24 : 18} alt="" aria-hidden="true" />, onClick: handleLogoutClick },
   ]
 
   const renderNavItem = (item: NavItem) => {
@@ -94,6 +102,7 @@ export const RecruiterSidebar = () => {
           key={item.id}
           component={NavLink}
           to={item.to}
+          end={isExco}
           className={`${styles.navItem} ${isActive ? styles.navItemActive : ''}`}
         >
           {content}
@@ -114,17 +123,18 @@ export const RecruiterSidebar = () => {
   }
 
   return (
-    <Box component="nav" className={styles.sidebar} aria-label="Recruiter navigation" data-tour="recruiter-sidebar">
+    <Box component="nav" className={`${styles.sidebar} ${isExco ? styles.excoSidebar : ''}`} aria-label={isExco ? 'EXCO navigation' : 'Recruiter navigation'} data-tour={isExco ? undefined : 'recruiter-sidebar'}>
 
       {/* ── Logo ── */}
       <Box className={styles.logoWrap}>
         <Box
           component={NavLink}
-          to={ROUTE_PATHS.recruiterDashboard}
-          aria-label="Go to Recruiter Dashboard"
+          to={dashboardPath}
+          end={isExco}
+          aria-label={isExco ? 'Go to EXCO Dashboard' : 'Go to Recruiter Dashboard'}
           className={styles.logoLink}
         >
-          <img src={logoBanner} alt="The Skills Mine — Cultivating Growth" className={styles.logoBanner} />
+          <img src={isExco ? excoLogo : logoBanner} alt="The Skills Mine — Cultivating Growth" className={styles.logoBanner} />
         </Box>
       </Box>
 
