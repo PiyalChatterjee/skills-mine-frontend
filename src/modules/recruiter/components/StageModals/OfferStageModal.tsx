@@ -30,6 +30,7 @@ export interface OfferStageModalProps {
   jobId: string
   dueDate?: string
   isRejected?: boolean
+  isMoveLocked?: boolean
   onClose: () => void
   onAdvance?: (applicationId: string) => void
   onMoveBack?: (applicationId: string) => void
@@ -46,6 +47,7 @@ const OfferStageModal = ({
   jobId,
   dueDate = 'Jan 20, 2026',
   isRejected = false,
+  isMoveLocked = false,
   onClose,
   onAdvance,
   onRejected,
@@ -188,9 +190,9 @@ const OfferStageModal = ({
               Reject
             </ButtonBase>
             <ButtonBase
-              className={`${styles.advanceBtn} ${!canAdvance || isRejected ? styles.advanceBtnDisabled : ''}`}
+              className={`${styles.advanceBtn} ${!canAdvance || isRejected || isMoveLocked ? styles.advanceBtnDisabled : ''}`}
               disableRipple
-              disabled={!canAdvance || advancing || isRejected}
+              disabled={!canAdvance || advancing || isRejected || isMoveLocked}
               onClick={handleAdvance}
             >
               {advancing ? <CircularProgress size={14} sx={{ color: '#fff' }} /> : 'Advance'}

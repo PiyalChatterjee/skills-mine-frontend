@@ -16,7 +16,7 @@ type LocationGroup = { label: string; options: MasterLocation[] }
 const WORK_OPTION_GROUP = 'Work Options'
 const COUNTRY_GROUP = 'Other African Countries'
 
-/** Group master locations: cities by province, countries and work options in their own groups. */
+/** Group master locations: provinces first, then other African countries, then work options. */
 const groupLocations = (locations: MasterLocation[]): LocationGroup[] => {
   const groups = new Map<string, MasterLocation[]>()
   for (const location of locations) {
@@ -30,7 +30,11 @@ const groupLocations = (locations: MasterLocation[]): LocationGroup[] => {
     if (bucket) bucket.push(location)
     else groups.set(label, [location])
   }
-  return [...groups.entries()].map(([label, options]) => ({ label, options }))
+  const rank = (label: string) =>
+    label === WORK_OPTION_GROUP ? 2 : label === COUNTRY_GROUP ? 1 : 0
+  return [...groups.entries()]
+    .map(([label, options]) => ({ label, options }))
+    .sort((a, b) => rank(a.label) - rank(b.label))
 }
 
 const sameName = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase()
