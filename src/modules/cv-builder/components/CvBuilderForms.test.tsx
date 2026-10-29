@@ -5,6 +5,7 @@ import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { describe, expect, it, vi } from "vitest";
 import { cvBuilderSchema, type CvBuilderFormValues } from "@/app/validation.schema";
+import { AVAILABILITY_LABELS } from "@/modules/candidate/utils/profileEnums";
 import CvBuilderCareerHistoryForm from "./CvBuilderCareerHistoryForm";
 import CvBuilderEducationForm from "./CvBuilderEducationForm";
 import CvBuilderLanguagesForm from "./CvBuilderLanguagesForm";
@@ -96,6 +97,18 @@ describe("CvBuilderPersonalDetailsForm", () => {
     expect(label("Current Position")).toBeInTheDocument();
     expect(label("Notice Period")).toBeInTheDocument();
     expect(screen.queryByRole("textbox", { name: "Email address" })).not.toBeInTheDocument();
+  });
+
+  it("uses availability labels for notice period options", async () => {
+    const user = userEvent.setup();
+    renderInForm(<CvBuilderPersonalDetailsForm />);
+
+    await user.click(screen.getByRole("combobox", { name: "Notice period" }));
+
+    Object.values(AVAILABILITY_LABELS).forEach((availabilityLabel) => {
+      expect(screen.getByRole("option", { name: availabilityLabel })).toBeInTheDocument();
+    });
+    expect(screen.queryByRole("option", { name: "Notice Required" })).not.toBeInTheDocument();
   });
 
   it("marks current position and notice period required once a current company is entered", async () => {

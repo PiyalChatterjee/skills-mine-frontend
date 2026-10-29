@@ -5,7 +5,7 @@ const PREFERRED_LOCATION_LABELS: Record<string, string> = {
   ON_SITE: "On-site",
 };
 
-const AVAILABILITY_LABELS: Record<string, string> = {
+export const AVAILABILITY_LABELS: Record<string, string> = {
   IMMEDIATELY: "Immediately",
   "30_DAYS": "30 days",
   "2_WEEKS": "2 weeks",
