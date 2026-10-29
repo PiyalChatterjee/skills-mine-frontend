@@ -6,6 +6,7 @@ import type { ProfileFormValues } from '@/app/validation.schema'
 import { splitCandidateFullName } from '@/modules/candidate/utils/candidateName'
 import type { CandidateProfile, CandidateProfileUpdatePayload } from '@/modules/candidate/types'
 import {
+  AVAILABILITY_OPTIONS,
   toAvailabilityEnum,
   toAvailabilityLabel,
   toEmploymentTypeEnum,
@@ -38,7 +39,7 @@ export const PROFILE_SELECT_OPTIONS = {
     'INTERNSHIP',
     'FREELANCE',
   ],
-  availability: ['Immediately', '2 weeks', '1 month'],
+  availability: AVAILABILITY_OPTIONS,
 } as const
 
 export const getProfileFormValues = (

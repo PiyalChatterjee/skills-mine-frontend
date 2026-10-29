@@ -7,12 +7,14 @@ const PREFERRED_LOCATION_LABELS: Record<string, string> = {
 
 const AVAILABILITY_LABELS: Record<string, string> = {
   IMMEDIATELY: "Immediately",
+  "30_DAYS": "30 days",
   "2_WEEKS": "2 weeks",
   "1_MONTH": "1 month",
   "2_MONTHS": "2 months",
   "3_MONTHS": "3 months",
-  NOTICE_REQUIRED: "Notice required",
 };
+
+export const AVAILABILITY_OPTIONS = Object.values(AVAILABILITY_LABELS);
 
 const EMPLOYMENT_TYPE_LABELS: Record<string, string> = {
   FULL_TIME: "FULL_TIME",
