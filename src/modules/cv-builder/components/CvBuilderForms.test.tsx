@@ -242,6 +242,18 @@ describe("CvBuilderCareerHistoryForm", () => {
     expect(screen.getAllByText("*Required fields")).toHaveLength(1);
   });
 
+  it("removes an added position", async () => {
+    const user = userEvent.setup();
+    renderInForm(<CvBuilderCareerHistoryForm />);
+
+    await user.click(screen.getByRole("button", { name: "+ Add position" }));
+    await user.click(screen.getByRole("button", { name: "Remove position 2" }));
+
+    expect(screen.getByRole("heading", { name: "Position 1" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Position 2" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Remove position 1" })).not.toBeInTheDocument();
+  });
+
   it("adds and removes tasks, keeping at least one empty task row", async () => {
     const user = userEvent.setup();
     renderInForm(<CvBuilderCareerHistoryForm />);
