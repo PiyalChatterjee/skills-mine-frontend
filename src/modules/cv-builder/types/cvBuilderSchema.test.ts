@@ -65,6 +65,14 @@ describe('personalDetailsSchema', () => {
     expect(result.success).toBe(false)
   })
 
+  it.each(['race', 'gender', 'disabilityStatus', 'residentialLocation'])(
+    'rejects whitespace-only %s',
+    (field) => {
+      const result = personalDetailsSchema.safeParse({ ...validPersonal, [field]: '   ' })
+      expect(result.success).toBe(false)
+    },
+  )
+
   it('requires currentPosition when currentCompany is provided', () => {
     const result = personalDetailsSchema.safeParse({
       ...validPersonal,
@@ -386,6 +394,11 @@ describe('tertiaryEntrySchema', () => {
     expect(result.success).toBe(false)
   })
 
+  it('rejects whitespace-only required text fields', () => {
+    expect(tertiaryEntrySchema.safeParse({ ...validEntry, institutionName: '   ' }).success).toBe(false)
+    expect(tertiaryEntrySchema.safeParse({ ...validEntry, degreeOrCertification: '   ' }).success).toBe(false)
+  })
+
   it('rejects empty degreeOrCertification', () => {
     const result = tertiaryEntrySchema.safeParse({ ...validEntry, degreeOrCertification: '' })
     expect(result.success).toBe(false)
@@ -418,6 +431,11 @@ describe('secondaryEntrySchema', () => {
   it('rejects empty institutionName', () => {
     const result = secondaryEntrySchema.safeParse({ ...validEntry, institutionName: '' })
     expect(result.success).toBe(false)
+  })
+
+  it('rejects whitespace-only required text fields', () => {
+    expect(secondaryEntrySchema.safeParse({ ...validEntry, institutionName: '   ' }).success).toBe(false)
+    expect(secondaryEntrySchema.safeParse({ ...validEntry, highestGradePassed: '   ' }).success).toBe(false)
   })
 
   it('rejects empty highestGradePassed', () => {

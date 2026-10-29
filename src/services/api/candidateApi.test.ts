@@ -441,7 +441,11 @@ describe('candidateApi', () => {
         data: {
           candidate_id: 'CAND100001',
           personal_details: { first_name: 'Jane', last_name: 'Doe' },
-          career_history: [],
+          career_history: [{
+            company_name: 'Acme',
+            position_held: 'Engineer',
+            projects: ['Analytics dashboard'],
+          }],
           skills: [],
           education: [
             { institution_name: 'High School', level_code: 'SECONDARY' },
@@ -456,6 +460,7 @@ describe('candidateApi', () => {
       expect(result.candidateId).toBe('CAND100001')
       expect(result.education.secondaryEducation).toHaveLength(1)
       expect(result.education.tertiaryEducation).toHaveLength(1)
+      expect(result.careerHistory[0].projects).toEqual(['Analytics dashboard'])
     })
 
     it('normalizes object-shaped skills to names', async () => {
@@ -515,6 +520,27 @@ describe('candidateApi', () => {
           responsibilities: [],
         }],
       })
+    })
+
+    it('includes career history projects in the cv-build request', async () => {
+      mockPost.mockResolvedValue({ data: { success: true, data: {} } })
+
+      await candidateApi.saveBuildMyCv('candidate-1', {
+        careerHistory: [{
+          company: 'Acme',
+          jobTitle: 'Engineer',
+          startDate: 'January 2022',
+          endDate: 'Present',
+          responsibilities: 'Built features',
+          projects: ['  Analytics dashboard  ', ''],
+        }],
+      })
+
+      expect(mockPost).toHaveBeenCalledWith('/candidates/cv-build/', expect.objectContaining({
+        career_history: [expect.objectContaining({
+          projects: ['Analytics dashboard'],
+        })],
+      }))
     })
 
     it('calls POST /candidates/cv-build/', async () => {
