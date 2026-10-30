@@ -37,6 +37,11 @@ const completedYearSchema = z
   .min(1, "Year completed is required")
   .regex(/^(?!0000)\d{4}$/, "Enter a valid year (YYYY)");
 
+const institutionNameSchema = requiredField("Institution name").refine(
+  (value) => /\p{L}/u.test(value),
+  "Institution name must include at least one letter",
+);
+
 const signupNamePattern =
   /^\p{L}[\p{L}\p{M}]*(?:[ '\u2019-]\p{L}[\p{L}\p{M}]*)*$/u;
 const signupName = (label: string) =>
@@ -453,13 +458,13 @@ export const careerHistoryEntrySchema = z
 export const skillEntrySchema = z.object({ name: z.string() });
 
 export const tertiaryEntrySchema = z.object({
-  institutionName: requiredField("Institution name"),
+  institutionName: institutionNameSchema,
   degreeOrCertification: requiredField("Degree or certification"),
   yearCompleted: completedYearSchema,
 });
 
 export const secondaryEntrySchema = z.object({
-  institutionName: requiredField("Institution name"),
+  institutionName: institutionNameSchema,
   highestGradePassed: requiredField("Highest grade passed"),
   yearCompleted: completedYearSchema,
 });

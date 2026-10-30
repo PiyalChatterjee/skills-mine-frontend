@@ -399,6 +399,10 @@ describe('tertiaryEntrySchema', () => {
     expect(tertiaryEntrySchema.safeParse({ ...validEntry, degreeOrCertification: '   ' }).success).toBe(false)
   })
 
+  it('rejects institution names without letters', () => {
+    expect(tertiaryEntrySchema.safeParse({ ...validEntry, institutionName: '--' }).success).toBe(false)
+  })
+
   it('rejects empty degreeOrCertification', () => {
     const result = tertiaryEntrySchema.safeParse({ ...validEntry, degreeOrCertification: '' })
     expect(result.success).toBe(false)
@@ -441,6 +445,10 @@ describe('secondaryEntrySchema', () => {
   it('rejects whitespace-only required text fields', () => {
     expect(secondaryEntrySchema.safeParse({ ...validEntry, institutionName: '   ' }).success).toBe(false)
     expect(secondaryEntrySchema.safeParse({ ...validEntry, highestGradePassed: '   ' }).success).toBe(false)
+  })
+
+  it('rejects institution names without letters', () => {
+    expect(secondaryEntrySchema.safeParse({ ...validEntry, institutionName: '--' }).success).toBe(false)
   })
 
   it('rejects empty highestGradePassed', () => {
