@@ -37,6 +37,8 @@ export const PublicFooter = ({ showContactLink = true }: PublicFooterProps) => {
             <Typography
               component="a"
               href="https://theskillsmine.com/contact-us/"
+              target="_blank"
+              rel="noopener noreferrer"
               className={styles.footerLinkText}
             >
               Contact
