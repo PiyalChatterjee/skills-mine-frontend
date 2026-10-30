@@ -413,6 +413,11 @@ describe('tertiaryEntrySchema', () => {
     const result = tertiaryEntrySchema.safeParse({ ...validEntry, yearCompleted: '18' })
     expect(result.success).toBe(false)
   })
+
+  it('rejects 0000 as yearCompleted', () => {
+    const result = tertiaryEntrySchema.safeParse({ ...validEntry, yearCompleted: '0000' })
+    expect(result.success).toBe(false)
+  })
 })
 
 // ─── secondaryEntrySchema ─────────────────────────────────────────────────────
@@ -445,6 +450,11 @@ describe('secondaryEntrySchema', () => {
 
   it('rejects non-4-digit yearCompleted', () => {
     const result = secondaryEntrySchema.safeParse({ ...validEntry, yearCompleted: '10' })
+    expect(result.success).toBe(false)
+  })
+
+  it('rejects 0000 as yearCompleted', () => {
+    const result = secondaryEntrySchema.safeParse({ ...validEntry, yearCompleted: '0000' })
     expect(result.success).toBe(false)
   })
 })

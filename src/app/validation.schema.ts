@@ -31,6 +31,12 @@ export const optionalEmailSchema = z
 const requiredField = (label: string) =>
   z.string().trim().min(1, `${label} is required`);
 
+const completedYearSchema = z
+  .string()
+  .trim()
+  .min(1, "Year completed is required")
+  .regex(/^(?!0000)\d{4}$/, "Enter a valid year (YYYY)");
+
 const signupNamePattern =
   /^\p{L}[\p{L}\p{M}]*(?:[ '\u2019-]\p{L}[\p{L}\p{M}]*)*$/u;
 const signupName = (label: string) =>
@@ -449,21 +455,13 @@ export const skillEntrySchema = z.object({ name: z.string() });
 export const tertiaryEntrySchema = z.object({
   institutionName: requiredField("Institution name"),
   degreeOrCertification: requiredField("Degree or certification"),
-  yearCompleted: z
-    .string()
-    .trim()
-    .min(1, "Year completed is required")
-    .regex(/^\d{4}$/, "Enter a valid year (YYYY)"),
+  yearCompleted: completedYearSchema,
 });
 
 export const secondaryEntrySchema = z.object({
   institutionName: requiredField("Institution name"),
   highestGradePassed: requiredField("Highest grade passed"),
-  yearCompleted: z
-    .string()
-    .trim()
-    .min(1, "Year completed is required")
-    .regex(/^\d{4}$/, "Enter a valid year (YYYY)"),
+  yearCompleted: completedYearSchema,
 });
 
 export const createCvBuilderSchema = (isVisitor = false) =>
