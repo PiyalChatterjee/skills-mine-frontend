@@ -469,6 +469,27 @@ export const secondaryEntrySchema = z.object({
   yearCompleted: completedYearSchema,
 });
 
+export const getTertiaryYearIndexesBeforeSecondary = (
+  tertiaryEducation: readonly { yearCompleted: string }[],
+  secondaryEducation: readonly { yearCompleted: string }[],
+): number[] => {
+  const latestSecondaryYear = Math.max(
+    ...secondaryEducation
+      .map((entry) => entry.yearCompleted.trim())
+      .filter((year) => /^\d{4}$/.test(year) && year !== "0000")
+      .map(Number),
+  );
+
+  if (!Number.isFinite(latestSecondaryYear)) return [];
+
+  return tertiaryEducation.flatMap((entry, index) => {
+    const year = entry.yearCompleted.trim();
+    return /^\d{4}$/.test(year) && Number(year) < latestSecondaryYear
+      ? [index]
+      : [];
+  });
+};
+
 export const createCvBuilderSchema = (isVisitor = false) =>
   z
     .object({
@@ -486,6 +507,18 @@ export const createCvBuilderSchema = (isVisitor = false) =>
       otherLanguage: z.string(),
     })
     .superRefine((data, ctx) => {
+      getTertiaryYearIndexesBeforeSecondary(
+        data.tertiaryEducation,
+        data.secondaryEducation,
+      ).forEach((index) => {
+        ctx.addIssue({
+          code: "custom",
+          message:
+            "Tertiary year completed cannot be earlier than secondary year completed.",
+          path: ["tertiaryEducation", index, "yearCompleted"],
+        });
+      });
+
       if (!data.personalDetails.currentCompany.trim()) return;
 
       data.careerHistory.forEach((entry, entryIndex) => {

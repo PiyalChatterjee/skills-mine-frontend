@@ -301,6 +301,30 @@ describe("CvBuilderEducationForm", () => {
     expect(tertiaryYear).toHaveValue("2024");
   });
 
+  it("shows an error when tertiary education predates secondary education", async () => {
+    const user = userEvent.setup();
+    const values = buildValues();
+    values.tertiaryEducation[0] = {
+      institutionName: "University",
+      degreeOrCertification: "BTech",
+      yearCompleted: "2017",
+    };
+    values.secondaryEducation[0] = {
+      institutionName: "High School",
+      highestGradePassed: "Grade 12",
+      yearCompleted: "2018",
+    };
+    renderInForm(<CvBuilderEducationForm />, values);
+
+    await user.click(screen.getByRole("button", { name: "Validate form" }));
+
+    expect(
+      await screen.findByText(
+        "Tertiary year completed cannot be earlier than secondary year completed.",
+      ),
+    ).toBeInTheDocument();
+  });
+
   it("adds and removes a tertiary entry", async () => {
     const user = userEvent.setup();
     renderInForm(<CvBuilderEducationForm />);

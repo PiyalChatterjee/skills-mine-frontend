@@ -258,6 +258,59 @@ describe('personalDetailsSchema', () => {
     expect(result.success).toBe(false)
   })
 
+  it('rejects tertiary education completed before secondary education', () => {
+    const result = cvBuilderSchema.safeParse({
+      personalDetails: validPersonal,
+      careerHistory: [],
+      skills: [{ name: 'React' }],
+      tertiaryEducation: [{
+        institutionName: 'University',
+        degreeOrCertification: 'BSc',
+        yearCompleted: '2017',
+      }],
+      secondaryEducation: [{
+        institutionName: 'School',
+        highestGradePassed: 'Grade 12',
+        yearCompleted: '2018',
+      }],
+      languages: ['English'],
+      otherLanguage: '',
+    })
+
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.issues).toContainEqual(
+        expect.objectContaining({
+          message:
+            'Tertiary year completed cannot be earlier than secondary year completed.',
+          path: ['tertiaryEducation', 0, 'yearCompleted'],
+        }),
+      )
+    }
+  })
+
+  it('accepts tertiary education completed in the same year as secondary education', () => {
+    const result = cvBuilderSchema.safeParse({
+      personalDetails: validPersonal,
+      careerHistory: [],
+      skills: [{ name: 'React' }],
+      tertiaryEducation: [{
+        institutionName: 'University',
+        degreeOrCertification: 'BSc',
+        yearCompleted: '2018',
+      }],
+      secondaryEducation: [{
+        institutionName: 'School',
+        highestGradePassed: 'Grade 12',
+        yearCompleted: '2018',
+      }],
+      languages: ['English'],
+      otherLanguage: '',
+    })
+
+    expect(result.success).toBe(true)
+  })
+
   it('accepts the populated CV builder values used by the review screen', () => {
     const result = cvBuilderSchema.safeParse({
       personalDetails: {
