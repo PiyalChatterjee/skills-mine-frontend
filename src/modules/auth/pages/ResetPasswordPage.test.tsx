@@ -52,6 +52,14 @@ const submitValidForm = async () => {
   fireEvent.click(screen.getByRole('button', { name: /reset password/i }))
 }
 
+const submitValidChangePasswordForm = async () => {
+  const passwordInputs = screen.getAllByPlaceholderText('Password')
+  await userEvent.type(passwordInputs[0], 'Password1!')
+  await userEvent.type(passwordInputs[1], 'Password1!')
+  await userEvent.type(passwordInputs[2], 'Password1!')
+  fireEvent.click(screen.getByRole('button', { name: /change password/i }))
+}
+
 describe('ResetPasswordPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -149,6 +157,42 @@ describe('ResetPasswordPage', () => {
         }),
       )
       expect(mockNavigate).not.toHaveBeenCalled()
+    })
+  })
+
+  it('returns to the originating route after a successful password change', async () => {
+    render(
+      <MemoryRouter
+        initialEntries={[
+          {
+            pathname: '/reset-password',
+            search: '?mode=change',
+            state: {
+              returnTo: {
+                pathname: '/recruiter/dashboard',
+                search: '?tab=active',
+                hash: '#pipeline',
+                scrollY: 520,
+                state: { selectedFilter: 'mine' },
+              },
+            },
+          },
+        ]}
+      >
+        <ResetPasswordPage />
+      </MemoryRouter>,
+    )
+
+    await submitValidChangePasswordForm()
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(
+        '/recruiter/dashboard?tab=active#pipeline',
+        {
+          replace: true,
+          state: { selectedFilter: 'mine', restoreScrollY: 520 },
+        },
+      )
     })
   })
 

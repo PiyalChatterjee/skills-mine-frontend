@@ -132,7 +132,12 @@ describe("PublicHeader career support dropdown", () => {
 
 const LocationProbe = () => {
   const location = useLocation();
-  return <span data-testid="location">{`${location.pathname}${location.search}`}</span>;
+  return (
+    <>
+      <span data-testid="location">{`${location.pathname}${location.search}`}</span>
+      <span data-testid="location-state">{JSON.stringify(location.state)}</span>
+    </>
+  );
 };
 
 const renderProfileHeader = (restrictNavigation: boolean) =>
@@ -185,6 +190,15 @@ describe("PublicHeader profile menu and onboarding restriction", () => {
     await user.click(within(menu).getByRole("menuitem", { name: /change password/i }));
 
     expect(screen.getByTestId("location")).toHaveTextContent("/reset-password?mode=change");
+    expect(JSON.parse(screen.getByTestId("location-state").textContent ?? "{}")).toEqual({
+      returnTo: {
+        pathname: "/profile/create",
+        search: "",
+        hash: "",
+        scrollY: window.scrollY,
+        state: null,
+      },
+    });
   });
 
   it("allows change password during onboarding", async () => {
