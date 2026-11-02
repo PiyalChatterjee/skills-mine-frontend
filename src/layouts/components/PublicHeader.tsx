@@ -101,7 +101,6 @@ export const PublicHeader = ({
 
   const handleChangePasswordClick = () => {
     handleProfileMenuClose();
-    if (restrictNavigation) return;
     navigate(`${ROUTE_PATHS.resetPassword}?mode=change`);
   };
 
