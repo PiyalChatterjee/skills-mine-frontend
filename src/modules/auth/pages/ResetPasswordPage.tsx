@@ -19,6 +19,7 @@ import { ROUTE_PATHS } from "@/routes/routePaths";
 import { tokenStorage } from "@/app/auth/tokenStorage";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { authApi } from "@/services/api/authApi";
+import { extractErrorMessage } from "@/app/errorUtils";
 
 const ResetPasswordPage = () => {
   usePageTitle("Reset Password");
@@ -138,12 +139,23 @@ const ResetPasswordPage = () => {
       tokenStorage.clearTokens();
       tokenStorage.clearUser();
       tokenStorage.clearAuth();
-    } catch {
+    } catch (error) {
+      const responseMessage =
+        typeof error === "object" && error !== null && "response" in error
+          ? (error as { response?: { data?: { message?: unknown } } }).response
+              ?.data?.message
+          : undefined;
       dispatch(
         pushNotification({
           level: "error",
           title: "Reset failed",
-          message: "Unable to reset password. Please try again.",
+          message:
+            typeof responseMessage === "string" && responseMessage.trim()
+              ? responseMessage
+              : extractErrorMessage(
+                  error,
+                  "Unable to reset password. Please try again.",
+                ),
         }),
       );
     }

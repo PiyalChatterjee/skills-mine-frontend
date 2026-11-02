@@ -124,8 +124,36 @@ describe('ResetPasswordPage', () => {
     })
   })
 
-  it('shows a generic error notification when reset fails', async () => {
-    mockResetPassword.mockRejectedValue(new Error('failed'))
+  it('shows the backend validation message when the reset code is invalid', async () => {
+    mockResetPassword.mockRejectedValue({
+      response: {
+        data: {
+          code: 'INVALID_RESET_CODE',
+          message: 'The confirmation code is invalid.',
+        },
+      },
+    })
+
+    renderPage('/reset-password?email=test@example.com')
+    await submitValidForm()
+
+    await waitFor(() => {
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'notification/pushNotification',
+          payload: expect.objectContaining({
+            level: 'error',
+            title: 'Reset failed',
+            message: 'The confirmation code is invalid.',
+          }),
+        }),
+      )
+      expect(mockNavigate).not.toHaveBeenCalled()
+    })
+  })
+
+  it('shows a generic error notification when reset fails without a known code', async () => {
+    mockResetPassword.mockRejectedValue({ status: 500 })
 
     renderPage('/reset-password?email=test@example.com')
     await submitValidForm()
