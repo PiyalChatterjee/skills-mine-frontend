@@ -4,6 +4,7 @@ import ProfilePage from "./ProfilePage";
 
 const mocks = vi.hoisted(() => ({
   useCandidateProfileViewModel: vi.fn(),
+  profileSelectField: vi.fn(() => null),
 }));
 
 vi.mock("@/modules/candidate/hooks/useCandidateProfileViewModel", () => ({
@@ -12,9 +13,13 @@ vi.mock("@/modules/candidate/hooks/useCandidateProfileViewModel", () => ({
 
 vi.mock("@/hooks/usePageTitle", () => ({ usePageTitle: vi.fn() }));
 
+vi.mock("@/modules/candidate/hooks/useWorkTypeOptions", () => ({
+  useWorkTypeOptions: () => ["Remote", "Hybrid", "On-site", "Nationwide (South Africa)", "Africa-wide", "International"],
+}));
+
 vi.mock("@/modules/candidate/components/ProfileFormFields", () => ({
   formatProfileLabel: (label: string) => label,
-  ProfileSelectField: () => null,
+  ProfileSelectField: mocks.profileSelectField,
   ProfileTextField: () => null,
 }));
 
@@ -50,6 +55,13 @@ describe("ProfilePage footer button", () => {
     render(<ProfilePage />);
 
     expect(screen.getByRole("button", { name: "Go to Your Dashboard" })).toBeInTheDocument();
+    expect(mocks.profileSelectField).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "preferredWorkType",
+        options: ["Remote", "Hybrid", "On-site", "Nationwide (South Africa)", "Africa-wide", "International"],
+      }),
+      undefined,
+    );
   });
 
   it.each([

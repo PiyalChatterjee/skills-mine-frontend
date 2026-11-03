@@ -161,6 +161,16 @@ export const apiSlice = createApi({
         }),
       providesTags: [{ type: "Locations", id: "LIST" }],
     }),
+    getWorkOptions: build.query<string[], void>({
+      queryFn: () =>
+        withMappedApiError(async () => {
+          const locations = await locationApi.getMasterLocations();
+          return locations
+            .filter((location) => location.type === "WORK_OPTION")
+            .map((location) => location.name);
+        }),
+      providesTags: [{ type: "Locations", id: "WORK_OPTIONS" }],
+    }),
     getMancoRecruiters: build.query<
       MancoRecruiterPage,
       MancoRecruiterListParams
@@ -426,6 +436,7 @@ export const {
   useAddCrmClientNoteMutation,
   useGetIndustriesQuery,
   useGetLocationsQuery,
+  useGetWorkOptionsQuery,
   useGetMancoRecruitersQuery,
   useGetMancoLowPerformingRecruitersQuery,
   useResolveMancoLowPerformingAlertMutation,
