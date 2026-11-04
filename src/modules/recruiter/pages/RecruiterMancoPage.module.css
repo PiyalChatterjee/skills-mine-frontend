@@ -37,7 +37,7 @@
 :global(.MuiTypography-root).pageTitle {
   margin: 0;
   color: #03478c;
-  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: 'Red Hat Display';
   font-size: 24px;
   font-weight: 500;
   line-height: 1.5;
@@ -48,7 +48,7 @@
 :global(.MuiTypography-root).pageSubtitle {
   margin: 0;
   color: #03478c;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: 'Red Hat Text';
   font-size: 16px;
   font-weight: 400;
   line-height: 1.5;
@@ -87,7 +87,7 @@
   align-items: center;
   margin: 0;
   color: #ffffff;
-  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: 'Red Hat Display';
   font-size: 48px;
   font-weight: 400;
   line-height: 35px;
@@ -129,7 +129,7 @@
 :global(.MuiTypography-root).alertCardLabel {
   margin: 0;
   color: #ffffff;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: 'Red Hat Text';
   font-size: 14px;
   font-weight: 400;
   line-height: 1.5;
@@ -152,7 +152,7 @@
 :global(.MuiTypography-root).crmCardLabel {
   margin: 0;
   color: rgba(255, 255, 255, 0.95);
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: 'Red Hat Text';
   font-size: 14px;
   font-weight: 400;
   line-height: 1.5;
@@ -176,7 +176,7 @@
 :global(.MuiTypography-root).alertListMessage {
   margin: 0;
   color: #ffffff;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: 'Red Hat Text';
   font-size: 14px;
   line-height: 1.5;
 }
@@ -210,7 +210,7 @@
 :global(.MuiTypography-root).alertListIssue {
   margin: 0;
   color: #2a3132;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: 'Red Hat Text';
   font-size: 14px;
   font-weight: 400;
   line-height: 1.5;
@@ -226,7 +226,7 @@
   border-radius: 4px;
   background: #ffffff;
   color: #03478c;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: 'Red Hat Text';
   font-size: 14px;
   font-weight: 400;
   line-height: 1.5;
@@ -272,7 +272,7 @@
 :global(.MuiTypography-root).alertDialogName {
   margin: 0;
   color: #2a3132;
-  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: 'Red Hat Display';
   font-size: 18px;
   font-weight: 500;
   line-height: 1.5;
@@ -322,7 +322,7 @@
   flex: 0 0 70px;
   margin: 0;
   color: #2a3132;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: 'Red Hat Text';
   font-size: 16px;
   font-weight: 500;
   line-height: 1.5;
@@ -332,7 +332,7 @@
 :global(.MuiTypography-root).alertSummaryValue {
   margin: 0;
   color: #2a3132;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: 'Red Hat Text';
   font-size: 14px;
   font-weight: 400;
   line-height: 1.5;
@@ -351,7 +351,7 @@
 :global(.MuiTypography-root).alertActionsTitle {
   margin: 0;
   color: #2a3132;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: 'Red Hat Text';
   font-size: 16px;
   font-weight: 500;
   line-height: 1.5;
@@ -362,7 +362,7 @@
   margin: 0;
   padding-left: 21px;
   color: #2a3132;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: 'Red Hat Text';
   font-size: 14px;
   font-weight: 400;
   line-height: 1.5;
@@ -389,7 +389,7 @@
   border-radius: 100px;
   background: #ffffff;
   color: #2a3132;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: 'Red Hat Text';
   font-size: 16px;
   font-weight: 400;
   line-height: 1.5;
@@ -407,7 +407,7 @@
   border-radius: 100px;
   background: #03478c;
   color: #ffffff;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: 'Red Hat Text';
   font-size: 16px;
   font-weight: 400;
   line-height: 1.5;
@@ -435,7 +435,7 @@
 :global(.MuiTypography-root).searchSectionTitle {
   margin: 0;
   color: #2a3132;
-  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: 'Red Hat Display';
   font-size: 24px;
   font-weight: 500;
   line-height: 1.5;
@@ -470,7 +470,7 @@
   border: 1px solid #b0b4b8;
   border-radius: 100px;
   padding: 10px 52px 10px 20px;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: 'Red Hat Text';
   font-size: 16px;
   color: #5a5e63;
   outline: none;
@@ -500,7 +500,7 @@
 :global(.MuiTypography-root).sortLabel {
   margin: 0;
   color: #2a3132;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: 'Red Hat Text';
   font-size: 16px;
   font-weight: 500;
   line-height: 1.5;
@@ -514,7 +514,7 @@
   gap: 4px;
   border-radius: 4px;
   padding: 6px 12px;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: 'Red Hat Text';
   font-size: 16px;
   font-weight: 500;
   line-height: 1.5;
@@ -561,7 +561,7 @@
   border-radius: 4px;
   background: #ffffff;
   color: #03478c;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: 'Red Hat Text';
   font-size: 16px;
   font-weight: 500;
   line-height: 1.5;
@@ -603,7 +603,7 @@
 :global(.MuiTypography-root).employeeName {
   margin: 0;
   color: #2a3132;
-  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: 'Red Hat Display';
   font-size: 24px;
   font-weight: 500;
   line-height: 1.5;
@@ -613,7 +613,7 @@
 .employeeMeta,
 :global(.MuiTypography-root).employeeMeta {
   margin: 0;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: 'Red Hat Text';
   font-size: 14px;
   font-weight: 400;
   line-height: 1.5;
@@ -638,7 +638,7 @@
   border-radius: 100px;
   padding: 12px 30px;
   color: #ffffff;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: 'Red Hat Text';
   font-size: 16px;
   font-weight: 400;
   line-height: 1.5;
@@ -676,7 +676,7 @@
 :global(.MuiTypography-root).statCellLabel {
   margin: 0 0 6px;
   color: #03478c;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: 'Red Hat Text';
   font-size: 16px;
   font-weight: 500;
   line-height: 1.5;
@@ -688,7 +688,7 @@
 :global(.MuiTypography-root).statCellValue {
   margin: 0;
   color: #32abbf;
-  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: 'Red Hat Display';
   font-size: 32px;
   font-weight: 600;
   line-height: 1.25;
@@ -722,7 +722,7 @@
 :global(.MuiTypography-root).pipelineRowLabel {
   margin: 0;
   color: #03478c;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: 'Red Hat Text';
   font-size: 16px;
   font-weight: 500;
   line-height: 1.5;
@@ -762,7 +762,7 @@
   border-radius: 4px;
   background: #03478c;
   color: #ffffff;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: 'Red Hat Text';
   font-size: 14px;
 }
 
@@ -797,7 +797,7 @@
 :global(.MuiTypography-root).detailName {
   margin: 0;
   color: #2a3132;
-  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: 'Red Hat Display';
   font-size: 24px;
   font-weight: 500;
   line-height: 1.5;
@@ -867,7 +867,7 @@
 :global(.MuiTypography-root).detailMetricValue {
   margin: 0;
   color: #32abbf;
-  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: 'Red Hat Display';
   font-size: 32px;
   font-weight: 600;
   line-height: 1.5;
@@ -883,7 +883,7 @@
 :global(.MuiTypography-root).detailSectionTitle {
   margin: 0 0 16px;
   color: #03478c;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: 'Red Hat Text';
   font-size: 16px;
   font-weight: 500;
   line-height: 1.5;
@@ -1034,7 +1034,7 @@
 :global(.MuiTypography-root).detailPerformanceValue {
   margin: 0;
   color: #32abbf;
-  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: 'Red Hat Display';
   font-size: 32px;
   font-weight: 600;
   line-height: 1.5;
@@ -1053,7 +1053,7 @@
   min-height: 48px;
   padding: 12px 30px;
   border-radius: 100px;
-  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-family: 'Red Hat Text';
   font-size: 16px;
   font-weight: 400;
   line-height: 1.5;

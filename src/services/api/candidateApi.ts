@@ -466,6 +466,7 @@ export const toCvPayload = (payload: SaveBuildMyCvRequest) => {
 
   const careerHistory = payload.careerHistory?.map((item) => {
     const isCurrent = !item.endDate || item.endDate === "Present";
+    const projects = item.projects?.map((project) => project.trim()).filter(Boolean);
     return {
       company_name: item.company,
       position_held: item.jobTitle,
@@ -476,6 +477,7 @@ export const toCvPayload = (payload: SaveBuildMyCvRequest) => {
         .split(";")
         .map((task) => task.trim())
         .filter(Boolean),
+      ...(projects?.length ? { projects } : {}),
     };
   });
 
@@ -735,6 +737,13 @@ const mapBuildResponse = (
       responsibilities:
         normalizeResponsibilities(item.responsibilities) ??
         normalizeResponsibilities(item.responsibilities_text),
+      ...(Array.isArray(item.projects)
+        ? {
+            projects: item.projects.filter(
+              (project): project is string => typeof project === "string",
+            ),
+          }
+        : {}),
     })),
     skills: (data.skills ?? [])
       .map((skill) => {

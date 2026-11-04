@@ -6,6 +6,7 @@ import { z } from 'zod'
 import { useZodForm } from '@/hooks/useZodForm'
 import { validateAndFocusForm } from '@/app/formValidation'
 import { ProfileTextField, ProfileSelectField } from './ProfileFormFields'
+import { toPreferredLocationLabel } from '@/modules/candidate/utils/profileEnums'
 
 vi.mock('@/assets/icons/dropdown-chevron.svg', () => ({ default: 'chevron.svg' }))
 
@@ -52,12 +53,16 @@ const SelectFieldWrapper = ({
   disabled = false,
   options = ['Engineer', 'Designer', 'Manager'],
   label = 'Role',
+  initialRole = '',
+  resolveValue,
 }: {
   disabled?: boolean
   options?: string[]
   label?: string
+  initialRole?: string
+  resolveValue?: (value: string, options: readonly string[]) => string
 }) => {
-  const { control } = useForm<TestForm>({ defaultValues: { firstName: '', role: '' } })
+  const { control } = useForm<TestForm>({ defaultValues: { firstName: '', role: initialRole } })
   return (
     <ProfileSelectField
       control={control}
@@ -65,6 +70,7 @@ const SelectFieldWrapper = ({
       label={label}
       placeholder="Select a role"
       options={options}
+      resolveValue={resolveValue}
       disabled={disabled}
     />
   )
@@ -188,6 +194,18 @@ describe('profile validation focus', () => {
 })
 
 describe('ProfileSelectField', () => {
+  it('resolves a saved enum against API options when they arrive', () => {
+    const { rerender } = render(
+      <SelectFieldWrapper initialRole="AFRICA_WIDE" options={[]} resolveValue={toPreferredLocationLabel} />,
+    )
+
+    rerender(
+      <SelectFieldWrapper initialRole="AFRICA_WIDE" options={['Africa-wide']} resolveValue={toPreferredLocationLabel} />,
+    )
+
+    expect(screen.getByRole('combobox', { name: 'Role' })).toHaveTextContent('Africa-wide')
+  })
+
   it('marks asterisk-labelled dropdowns as required for assistive technology', () => {
     render(<SelectFieldWrapper label="Role*" />)
     expect(screen.getByRole('combobox', { name: 'Role*' })).toHaveAttribute('aria-required', 'true')

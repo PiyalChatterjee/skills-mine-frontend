@@ -80,21 +80,28 @@ const buildPrefillFromSavedCv = (
         entry.jobTitle?.trim() ||
         entry.startDate?.trim() ||
         entry.endDate?.trim() ||
-        entry.responsibilities?.trim(),
+        entry.responsibilities?.trim() ||
+        entry.projects?.some((project) => project.trim()),
     )
-    .map((entry) => ({
-      companyName: entry.company ?? "",
-      positionHeld: entry.jobTitle ?? "",
-      startDate: isoToMonthName(entry.startDate ?? ""),
-      endDate:
-        entry.endDate == null || (entry.endDate ?? "").toLowerCase() === "present"
-          ? "Present"
-          : isoToMonthName(entry.endDate),
-      isCurrentRole:
-        entry.endDate == null || (entry.endDate ?? "").toLowerCase() === "present",
-      tasks: splitResponsibilities(entry.responsibilities),
-      projects: [""],
-    }));
+    .map((entry) => {
+      const projects = (entry.projects ?? [])
+        .map((project) => project.trim())
+        .filter(Boolean);
+
+      return {
+        companyName: entry.company ?? "",
+        positionHeld: entry.jobTitle ?? "",
+        startDate: isoToMonthName(entry.startDate ?? ""),
+        endDate:
+          entry.endDate == null || (entry.endDate ?? "").toLowerCase() === "present"
+            ? "Present"
+            : isoToMonthName(entry.endDate),
+        isCurrentRole:
+          entry.endDate == null || (entry.endDate ?? "").toLowerCase() === "present",
+        tasks: splitResponsibilities(entry.responsibilities),
+        projects: projects.length ? projects : [""],
+      };
+    });
   const currentEntry = savedEntries.find((entry) => entry.isCurrentRole);
   const currentCompany =
     buildMyCvData.personalDetails.currentCompany ?? currentEntry?.companyName ?? "";

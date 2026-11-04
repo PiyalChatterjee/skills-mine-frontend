@@ -38,6 +38,7 @@ type SelectFieldProps<TFieldValues extends FieldValues> = {
   label: string;
   placeholder?: string;
   options?: readonly string[];
+  resolveValue?: (value: string, options: readonly string[]) => string;
   fullWidth?: boolean;
   disabled?: boolean;
   inputClassName?: string;
@@ -149,6 +150,7 @@ export const ProfileSelectField = <TFieldValues extends FieldValues>({
   label,
   placeholder,
   options = [],
+  resolveValue,
   fullWidth,
   disabled = false,
   inputClassName = styles.readonlyInput,
@@ -165,8 +167,9 @@ export const ProfileSelectField = <TFieldValues extends FieldValues>({
         name={name}
         render={({ field, fieldState }) => {
           const placeholderText = placeholder ?? label;
-          const selectedValue =
+          const rawValue =
             typeof field.value === "string" ? field.value : "";
+          const selectedValue = resolveValue ? resolveValue(rawValue, options) : rawValue;
           const selectedValues = selectedValue
             .split(",")
             .map((value) => value.trim())

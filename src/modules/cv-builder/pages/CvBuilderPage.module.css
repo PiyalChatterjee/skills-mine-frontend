@@ -767,6 +767,12 @@
   margin-bottom: 32px;
 }
 
+.positionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .positionLabel,
 .positionLabel:global(.MuiTypography-root) {
   color: #2b96d9;

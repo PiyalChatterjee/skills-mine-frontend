@@ -5,6 +5,7 @@ import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { describe, expect, it, vi } from "vitest";
 import { cvBuilderSchema, type CvBuilderFormValues } from "@/app/validation.schema";
+import { AVAILABILITY_LABELS } from "@/modules/candidate/utils/profileEnums";
 import CvBuilderCareerHistoryForm from "./CvBuilderCareerHistoryForm";
 import CvBuilderEducationForm from "./CvBuilderEducationForm";
 import CvBuilderLanguagesForm from "./CvBuilderLanguagesForm";
@@ -96,6 +97,18 @@ describe("CvBuilderPersonalDetailsForm", () => {
     expect(label("Current Position")).toBeInTheDocument();
     expect(label("Notice Period")).toBeInTheDocument();
     expect(screen.queryByRole("textbox", { name: "Email address" })).not.toBeInTheDocument();
+  });
+
+  it("uses availability labels for notice period options", async () => {
+    const user = userEvent.setup();
+    renderInForm(<CvBuilderPersonalDetailsForm />);
+
+    await user.click(screen.getByRole("combobox", { name: "Notice period" }));
+
+    Object.values(AVAILABILITY_LABELS).forEach((availabilityLabel) => {
+      expect(screen.getByRole("option", { name: availabilityLabel })).toBeInTheDocument();
+    });
+    expect(screen.queryByRole("option", { name: "Notice Required" })).not.toBeInTheDocument();
   });
 
   it("marks current position and notice period required once a current company is entered", async () => {
@@ -229,6 +242,18 @@ describe("CvBuilderCareerHistoryForm", () => {
     expect(screen.getAllByText("*Required fields")).toHaveLength(1);
   });
 
+  it("removes an added position", async () => {
+    const user = userEvent.setup();
+    renderInForm(<CvBuilderCareerHistoryForm />);
+
+    await user.click(screen.getByRole("button", { name: "+ Add position" }));
+    await user.click(screen.getByRole("button", { name: "Remove position 2" }));
+
+    expect(screen.getByRole("heading", { name: "Position 1" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Position 2" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Remove position 1" })).not.toBeInTheDocument();
+  });
+
   it("adds and removes tasks, keeping at least one empty task row", async () => {
     const user = userEvent.setup();
     renderInForm(<CvBuilderCareerHistoryForm />);
@@ -274,6 +299,30 @@ describe("CvBuilderEducationForm", () => {
     await user.type(tertiaryYear, "20a2x45");
 
     expect(tertiaryYear).toHaveValue("2024");
+  });
+
+  it("shows an error when tertiary education predates secondary education", async () => {
+    const user = userEvent.setup();
+    const values = buildValues();
+    values.tertiaryEducation[0] = {
+      institutionName: "University",
+      degreeOrCertification: "BTech",
+      yearCompleted: "2017",
+    };
+    values.secondaryEducation[0] = {
+      institutionName: "High School",
+      highestGradePassed: "Grade 12",
+      yearCompleted: "2018",
+    };
+    renderInForm(<CvBuilderEducationForm />, values);
+
+    await user.click(screen.getByRole("button", { name: "Validate form" }));
+
+    expect(
+      await screen.findByText(
+        "Tertiary year completed cannot be earlier than secondary year completed.",
+      ),
+    ).toBeInTheDocument();
   });
 
   it("adds and removes a tertiary entry", async () => {

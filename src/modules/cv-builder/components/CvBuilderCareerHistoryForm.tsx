@@ -104,7 +104,15 @@ const DynamicListSection = ({
   );
 };
 
-const CvBuilderPositionCard = ({ entryIndex }: { entryIndex: number }) => {
+const CvBuilderPositionCard = ({
+  entryIndex,
+  canRemove,
+  onRemove,
+}: {
+  entryIndex: number;
+  canRemove: boolean;
+  onRemove: () => void;
+}) => {
   const { control, trigger } = useFormContext<CvBuilderFormValues>();
   const currentCompany = useWatch({
     control,
@@ -132,9 +140,16 @@ const CvBuilderPositionCard = ({ entryIndex }: { entryIndex: number }) => {
 
   return (
     <Box className={styles.positionCard}>
-      <Typography component="h3" className={styles.positionLabel}>
-        Position {entryIndex + 1}
-      </Typography>
+      <Box className={styles.positionHeader}>
+        <Typography component="h3" className={styles.positionLabel}>
+          Position {entryIndex + 1}
+        </Typography>
+        <CvBuilderRemoveItemButton
+          canRemove={canRemove}
+          ariaLabel={`Remove position ${entryIndex + 1}`}
+          onClick={onRemove}
+        />
+      </Box>
 
       <CvBuilderLabeledField
         label="Company name"
@@ -287,7 +302,7 @@ const CvBuilderCareerHistoryForm = () => {
     name: "personalDetails.currentCompany",
   });
   const previousCurrentCompany = useRef(currentCompany);
-  const { fields, append } = useFieldArray({ control, name: "careerHistory" });
+  const { fields, append, remove } = useFieldArray({ control, name: "careerHistory" });
   const isCurrentCompanyRequired = Boolean(
     useWatch({ control, name: "personalDetails.currentCompany" })?.trim(),
   );
@@ -337,7 +352,12 @@ const CvBuilderCareerHistoryForm = () => {
       )}
 
       {fields.map((fieldItem, entryIndex) => (
-        <CvBuilderPositionCard key={fieldItem.id} entryIndex={entryIndex} />
+        <CvBuilderPositionCard
+          key={fieldItem.id}
+          entryIndex={entryIndex}
+          canRemove={fields.length > 1}
+          onRemove={() => remove(entryIndex)}
+        />
       ))}
 
       <Button

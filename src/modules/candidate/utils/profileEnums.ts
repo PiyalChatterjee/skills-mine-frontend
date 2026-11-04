@@ -1,18 +1,13 @@
-const PREFERRED_LOCATION_LABELS: Record<string, string> = {
-  REMOTE: "Remote",
-  HYBRID: "Hybrid",
-  ONSITE: "On-site",
-  ON_SITE: "On-site",
-};
-
-const AVAILABILITY_LABELS: Record<string, string> = {
+export const AVAILABILITY_LABELS: Record<string, string> = {
   IMMEDIATELY: "Immediately",
   "2_WEEKS": "2 weeks",
+  "30_DAYS": "30 days",
   "1_MONTH": "1 month",
   "2_MONTHS": "2 months",
   "3_MONTHS": "3 months",
-  NOTICE_REQUIRED: "Notice required",
 };
+
+export const AVAILABILITY_OPTIONS = Object.values(AVAILABILITY_LABELS);
 
 const EMPLOYMENT_TYPE_LABELS: Record<string, string> = {
   FULL_TIME: "FULL_TIME",
@@ -27,9 +22,14 @@ const EMPLOYMENT_TYPE_LABELS: Record<string, string> = {
 const toEnum = (value?: string | null): string =>
   (value?.trim() ?? "").toUpperCase().replaceAll("-", "_").replaceAll(" ", "_");
 
-export const toPreferredLocationLabel = (value?: string | null): string => {
-  const normalized = toEnum(value);
-  return PREFERRED_LOCATION_LABELS[normalized] ?? value?.trim() ?? "";
+export const toPreferredLocationLabel = (
+  value?: string | null,
+  options: readonly string[] = [],
+): string => {
+  const normalize = (option: string) =>
+    toPreferredLocationEnum(option).replace(/[()]/g, "");
+  const currentValue = value?.trim() ?? "";
+  return options.find((option) => normalize(option) === normalize(currentValue)) ?? currentValue;
 };
 
 export const toPreferredLocationEnum = (value?: string | null): string => {

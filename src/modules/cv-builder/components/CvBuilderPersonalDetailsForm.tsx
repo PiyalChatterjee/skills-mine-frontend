@@ -1,7 +1,7 @@
 ﻿import { Box } from "@mui/material";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import userIcon from "@/assets/public-layout/user-icon.svg";
-import { formatEnumLabel } from "@/app/formatEnumLabel";
+import { AVAILABILITY_LABELS } from "@/modules/candidate/utils/profileEnums";
 import styles from "../pages/CvBuilderPage.module.css";
 import {
   CvBuilderFormPanel,
@@ -194,7 +194,7 @@ const CvBuilderPersonalDetailsForm = ({
               onChange={field.onChange}
               onBlur={field.onBlur}
               options={NOTICE_PERIOD_OPTIONS}
-              getOptionLabel={formatEnumLabel}
+              getOptionLabel={(option) => AVAILABILITY_LABELS[option] ?? option}
               span="one"
               error={Boolean(fieldState.error)}
               helperText={fieldState.error?.message}

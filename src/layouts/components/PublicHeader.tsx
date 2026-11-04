@@ -101,8 +101,17 @@ export const PublicHeader = ({
 
   const handleChangePasswordClick = () => {
     handleProfileMenuClose();
-    if (restrictNavigation) return;
-    navigate(`${ROUTE_PATHS.resetPassword}?mode=change`);
+    navigate(`${ROUTE_PATHS.resetPassword}?mode=change`, {
+      state: {
+        returnTo: {
+          pathname: location.pathname,
+          search: location.search,
+          hash: location.hash,
+          scrollY: window.scrollY,
+          state: location.state,
+        },
+      },
+    });
   };
 
   const handleSignOutClick = async () => {

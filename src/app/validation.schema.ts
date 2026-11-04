@@ -31,6 +31,17 @@ export const optionalEmailSchema = z
 const requiredField = (label: string) =>
   z.string().trim().min(1, `${label} is required`);
 
+const completedYearSchema = z
+  .string()
+  .trim()
+  .min(1, "Year completed is required")
+  .regex(/^(?!0000)\d{4}$/, "Enter a valid year (YYYY)");
+
+const institutionNameSchema = requiredField("Institution name").refine(
+  (value) => /\p{L}/u.test(value),
+  "Institution name must include at least one letter",
+);
+
 const signupNamePattern =
   /^\p{L}[\p{L}\p{M}]*(?:[ '\u2019-]\p{L}[\p{L}\p{M}]*)*$/u;
 const signupName = (label: string) =>
@@ -305,15 +316,13 @@ export const createPersonalDetailsSchema = (isVisitor = false) =>
         ),
       email: optionalEmailSchema.default(""),
       phoneNumber: optionalLocalPhoneNumberSchema.default(""),
-      race: z.string().min(1, "Race is required"),
-      gender: z.string().min(1, "Gender is required"),
-      disabilityStatus: z.string().min(1, "Disability status is required"),
+      race: requiredField("Race"),
+      gender: requiredField("Gender"),
+      disabilityStatus: requiredField("Disability status"),
       nationality: z.string().refine((value) => value.trim().length > 0, {
         message: "Nationality is required",
       }),
-      residentialLocation: z
-        .string()
-        .min(1, "Residential location is required"),
+      residentialLocation: requiredField("Residential location"),
       currentCompany: z.string(),
       currentPosition: z.string(),
       noticePeriod: z.string(),
@@ -449,24 +458,37 @@ export const careerHistoryEntrySchema = z
 export const skillEntrySchema = z.object({ name: z.string() });
 
 export const tertiaryEntrySchema = z.object({
-  institutionName: z.string().min(1, "Institution name is required"),
-  degreeOrCertification: z
-    .string()
-    .min(1, "Degree or certification is required"),
-  yearCompleted: z
-    .string()
-    .min(1, "Year completed is required")
-    .regex(/^\d{4}$/, "Enter a valid year (YYYY)"),
+  institutionName: institutionNameSchema,
+  degreeOrCertification: requiredField("Degree or certification"),
+  yearCompleted: completedYearSchema,
 });
 
 export const secondaryEntrySchema = z.object({
-  institutionName: z.string().min(1, "Institution name is required"),
-  highestGradePassed: z.string().min(1, "Highest grade passed is required"),
-  yearCompleted: z
-    .string()
-    .min(1, "Year completed is required")
-    .regex(/^\d{4}$/, "Enter a valid year (YYYY)"),
+  institutionName: institutionNameSchema,
+  highestGradePassed: requiredField("Highest grade passed"),
+  yearCompleted: completedYearSchema,
 });
+
+export const getTertiaryYearIndexesBeforeSecondary = (
+  tertiaryEducation: readonly { yearCompleted: string }[],
+  secondaryEducation: readonly { yearCompleted: string }[],
+): number[] => {
+  const latestSecondaryYear = Math.max(
+    ...secondaryEducation
+      .map((entry) => entry.yearCompleted.trim())
+      .filter((year) => /^\d{4}$/.test(year) && year !== "0000")
+      .map(Number),
+  );
+
+  if (!Number.isFinite(latestSecondaryYear)) return [];
+
+  return tertiaryEducation.flatMap((entry, index) => {
+    const year = entry.yearCompleted.trim();
+    return /^\d{4}$/.test(year) && Number(year) < latestSecondaryYear
+      ? [index]
+      : [];
+  });
+};
 
 export const createCvBuilderSchema = (isVisitor = false) =>
   z
@@ -485,6 +507,18 @@ export const createCvBuilderSchema = (isVisitor = false) =>
       otherLanguage: z.string(),
     })
     .superRefine((data, ctx) => {
+      getTertiaryYearIndexesBeforeSecondary(
+        data.tertiaryEducation,
+        data.secondaryEducation,
+      ).forEach((index) => {
+        ctx.addIssue({
+          code: "custom",
+          message:
+            "Tertiary year completed cannot be earlier than secondary year completed.",
+          path: ["tertiaryEducation", index, "yearCompleted"],
+        });
+      });
+
       if (!data.personalDetails.currentCompany.trim()) return;
 
       data.careerHistory.forEach((entry, entryIndex) => {

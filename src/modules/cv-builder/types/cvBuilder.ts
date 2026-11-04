@@ -1,3 +1,5 @@
+import { AVAILABILITY_LABELS } from "@/modules/candidate/utils/profileEnums";
+
 export type CvBuilderView = 'launcher' | 'review'
 
 export type StepItem = {
@@ -53,15 +55,15 @@ export const RACE_OPTIONS = ['African', 'Coloured', 'Indian', 'White', 'Asian', 
 export const GENDER_OPTIONS = ['Male', 'Female', 'Non-binary', 'Prefer not to say']
 export const DISABILITY_OPTIONS = [
   'None',
-  'Physical disability',
-  'Visual impairment',
-  'Hearing impairment',
-  'Intellectual disability',
-  'Mental health condition',
-  'Prefer not to say',
+  'Physical Disability',
+  'Visual Impairment',
+  'Hearing Impairment',
+  'Intellectual Disability',
+  'Mental Health Condition',
+  'Other',
 ]
 export const LOCATION_OPTIONS = ['Johannesburg', 'Cape Town', 'Durban', 'Pretoria', 'Remote']
-export const NOTICE_PERIOD_OPTIONS = ['IMMEDIATELY', '2_WEEKS', '1_MONTH', '2_MONTHS', '3_MONTHS', 'NOTICE_REQUIRED']
+export const NOTICE_PERIOD_OPTIONS = Object.keys(AVAILABILITY_LABELS)
 
 // ─── Career History ───────────────────────────────────────────────────────────
 

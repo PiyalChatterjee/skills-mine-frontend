@@ -7,6 +7,7 @@ import {
   careerHistoryEntrySchema,
   tertiaryEntrySchema,
   secondaryEntrySchema,
+  getTertiaryYearIndexesBeforeSecondary,
   type CvBuilderFormValues,
 } from "@/app/validation.schema";
 import {
@@ -354,7 +355,11 @@ const useCvBuilder = (
       ) &&
       (secondaryValues ?? []).every(
         (e) => secondaryEntrySchema.safeParse(e).success,
-      )
+      ) &&
+      getTertiaryYearIndexesBeforeSecondary(
+        tertiaryValues ?? [],
+        secondaryValues ?? [],
+      ).length === 0
     );
   }, [tertiaryValues, secondaryValues]);
   const isLanguagesValid = useMemo(() => {
