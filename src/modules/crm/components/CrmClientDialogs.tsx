@@ -1,5 +1,6 @@
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import dayjs from "dayjs";
 import {
   Alert, Button, Dialog, IconButton, FormControlLabel, Radio, RadioGroup,
 } from "@mui/material";
@@ -23,6 +24,11 @@ type DialogProps = {
   onSaved: () => void;
 };
 
+const getDateFromDayOffset = (days?: number | null): string =>
+  days != null && Number.isInteger(days)
+    ? dayjs().add(days, "day").format("YYYY-MM-DD")
+    : "";
+
 export function UpdateCrmClientDialog({ client, onClose, onSaved }: DialogProps & { client: CrmClient }) {
   const [addNote, { isLoading }] = useAddCrmClientNoteMutation();
   const { control, handleSubmit, setError, formState: { errors, isValid } } =
@@ -30,7 +36,15 @@ export function UpdateCrmClientDialog({ client, onClose, onSaved }: DialogProps 
       resolver: zodResolver(crmNoteSchema),
       defaultValues: {
         classification: crmClassifications.find((value) => value === client.status),
-        note: client.lastNote ?? "", followupDate: "", lastcontactDate: "",
+        note: client.lastNote ?? "",
+        followupDate: getDateFromDayOffset(
+          client.overdueDays != null && client.overdueDays > 0
+            ? -client.overdueDays
+            : client.followupDays,
+        ),
+        lastcontactDate: getDateFromDayOffset(
+          client.lastContactDays == null ? null : -client.lastContactDays,
+        ),
       },
       mode: "onChange",
     });

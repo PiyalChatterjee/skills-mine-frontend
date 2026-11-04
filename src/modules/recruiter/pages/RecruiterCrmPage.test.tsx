@@ -1,7 +1,7 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { Provider } from "react-redux";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { crmApi } from "@/services/api/crmApi";
 import { apiSlice } from "@/store/api/apiSlice";
 import RecruiterCrmPage from "./RecruiterCrmPage";
@@ -36,12 +36,46 @@ function renderPage(navigation: 'recruiter' | 'exco' = 'recruiter') {
 describe("live CRM screen", () => {
   beforeEach(() => {
     vi.resetAllMocks();
+    vi.setSystemTime(new Date(2026, 10, 4, 12));
     vi.mocked(crmApi.listClients).mockResolvedValue(response);
     vi.mocked(crmApi.getEmployerByName).mockResolvedValue({
       ...client, contactName: "Account contact", contactNumber: "+27111234567",
       emailId: "contact@example.com", clientRate: 15,
     });
     vi.mocked(crmApi.addClientNote).mockResolvedValue(client);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it.each(['recruiter', 'exco'] as const)("populates contact and overdue dates on the %s CRM screen", async (navigation) => {
+    vi.mocked(crmApi.listClients).mockResolvedValue({
+      ...response,
+      clients: [{ ...client, lastContactDays: 7, overdueDays: 3, followupDays: 5 }],
+    });
+    renderPage(navigation);
+    fireEvent.click(await screen.findByRole("button", { name: "Update Live Employer" }));
+    const dialog = screen.getByRole("dialog");
+    expect(within(dialog).getByRole("textbox", { name: "Last Contact Date" })).toHaveValue("2026-10-28");
+    expect(within(dialog).getByRole("textbox", { name: "Last Follow-up Date" })).toHaveValue("2026-11-01");
+  });
+
+  it.each([
+    { lastContactDays: 0, followupDays: 0, overdueDays: 0, contactDate: "2026-11-04", followupDate: "2026-11-04" },
+    { lastContactDays: 4, followupDays: 30, overdueDays: 0, contactDate: "2026-10-31", followupDate: "2026-12-04" },
+    { lastContactDays: null, followupDays: null, overdueDays: null, contactDate: "", followupDate: "" },
+    { lastContactDays: undefined, followupDays: undefined, overdueDays: undefined, contactDate: "", followupDate: "" },
+    { lastContactDays: NaN, followupDays: Infinity, overdueDays: 0, contactDate: "", followupDate: "" },
+  ])("initializes dates from $lastContactDays contact days and $followupDays follow-up days", async ({ contactDate, followupDate, ...timing }) => {
+    vi.mocked(crmApi.listClients).mockResolvedValue({
+      ...response, clients: [{ ...client, ...timing }],
+    });
+    renderPage();
+    fireEvent.click(await screen.findByRole("button", { name: "Update Live Employer" }));
+    const dialog = screen.getByRole("dialog");
+    expect(within(dialog).getByRole("textbox", { name: "Last Contact Date" })).toHaveValue(contactDate);
+    expect(within(dialog).getByRole("textbox", { name: "Last Follow-up Date" })).toHaveValue(followupDate);
   });
 
   it("renders server counts, names, notes and zero-day timing", async () => {
@@ -87,6 +121,7 @@ describe("live CRM screen", () => {
     fireEvent.click(within(dialog).getByRole("button", { name: "Update" }));
     await waitFor(() => expect(crmApi.addClientNote).toHaveBeenCalledExactlyOnceWith("client-1", {
       classification: "hot_lead", note: "Spoke to contact", followupDate: "2026-11-01",
+      lastcontactDate: "2026-11-04",
     }));
     expect(await screen.findByText("Client updated successfully.")).toBeInTheDocument();
     await waitFor(() => expect(crmApi.listClients).toHaveBeenCalledTimes(2));
@@ -102,6 +137,7 @@ describe("live CRM screen", () => {
     fireEvent.click(within(dialog).getByRole("button", { name: "Update" }));
     await waitFor(() => expect(crmApi.addClientNote).toHaveBeenCalledExactlyOnceWith("client-1", {
       classification: "warm_contact", note: "Hiring next month",
+      lastcontactDate: "2026-11-04", followupDate: "2026-11-04",
     }));
   });
 
