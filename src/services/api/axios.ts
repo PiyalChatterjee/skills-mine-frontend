@@ -35,6 +35,7 @@ const serviceBaseUrls = {
   visitor: `${gateway}/api/visitor-service`,
   pipeline: `${gateway}/api/pipeline-service`,
   manco: `${gateway}/api/manco-exco-service/v1`,
+  externalJobs: `${gateway}/api/external-job-integration-service`,
 } as const;
 
 // Tune here — no .env variable needed.
@@ -99,6 +100,7 @@ export const aiApiClient = createApiClient(
 export const visitorApiClient = createApiClient(serviceBaseUrls.visitor);
 export const pipelineApiClient = createApiClient(serviceBaseUrls.pipeline);
 export const mancoApiClient = createApiClient(serviceBaseUrls.manco);
+export const externalJobsApiClient = createApiClient(serviceBaseUrls.externalJobs);
 
 export const unwrapResponseData = async <T>(
   responsePromise: Promise<AxiosResponse<T>>,

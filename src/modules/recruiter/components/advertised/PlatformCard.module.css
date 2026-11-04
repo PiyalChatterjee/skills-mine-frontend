@@ -1,0 +1,88 @@
+.card {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  width: 100%;
+  padding: 18px 17px 19px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(15, 45, 82, 0.08);
+  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  text-align: left;
+  cursor: pointer;
+}
+
+.cardSelected {
+  border-color: #1565c0;
+}
+
+.card:focus-visible {
+  outline: 2px solid #1565c0;
+  outline-offset: 2px;
+}
+
+.logo {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  color: #ffffff;
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.name {
+  color: #101828;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 20px;
+}
+
+.description {
+  margin-top: 3px;
+  color: #6b7380;
+  font-size: 11px;
+  line-height: 16px;
+}
+
+.radio {
+  position: relative;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  width: 18px;
+  height: 18px;
+  margin-top: 3px;
+  border: 1.5px solid #c9ced8;
+  border-radius: 50%;
+  background: #ffffff;
+}
+
+.radioSelected {
+  border-color: #1565c0;
+}
+
+.radioSelected::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  background: #1565c0;
+}
+.card:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+

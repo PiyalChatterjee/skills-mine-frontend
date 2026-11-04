@@ -140,6 +140,15 @@ export const apiEndpoints = {
     update: "/job-posts/:mandateId",
     delete: "/job-posts/:mandateId",
   },
+  externalJobs: {
+    providers: "/external-jobs/providers",
+    bizCommunityPrefill: "/external-jobs/publish/bizcommunity/prefill",
+    bizCommunityPublish: "/external-jobs/publish/bizcommunity",
+    bizCommunityPublishes: "/external-jobs/bizcommunity/publishes",
+    bizCommunityJobs: "/external-jobs/bizcommunity/jobs",
+    bizCommunityJobUpdate: "/external-jobs/bizcommunity/jobs/:bizJobId",
+    bizCommunityJobDelete: "/external-jobs/bizcommunity/jobs/:bizJobId",
+  },
   crm: {
     clients: "/crm/clients",
     clientNotes: "/crm/clients/:clientId/notes",

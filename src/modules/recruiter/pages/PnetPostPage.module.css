@@ -1,0 +1,259 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: #f3f6fb;
+  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+}
+
+.main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 16px;
+  padding: 22px 24px 32px;
+}
+
+/* ── Top bar ───────────────────────────────────────────────────────────── */
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #1565c0;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #1565c0;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  cursor: pointer;
+}
+
+.crumbSep {
+  color: #9aa3b2;
+  font-weight: 400;
+}
+
+.crumbCurrent {
+  color: #1565c0;
+}
+
+.statusPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 20px;
+  padding: 0 9px;
+  border: 1px solid #b7e6dc;
+  border-radius: 999px;
+  background: #e3f6f1;
+  color: #0f766e;
+  font-size: 8.5px;
+  font-weight: 600;
+}
+
+.statusDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #0d8c7e;
+}
+
+/* ── Platform card ─────────────────────────────────────────────────────── */
+.platformCard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px 14px;
+  border: 1px solid #e8ebf1;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.platformLogo {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: #0d8c7e;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.platformInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.platformTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.platformTitle {
+  margin: 0;
+  color: #101828;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 16px;
+}
+
+.locationTag {
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: #eef1f7;
+  color: #4a5568;
+  font-size: 8px;
+  font-weight: 500;
+  line-height: 12px;
+}
+
+.platformSub {
+  margin: 3px 0 0;
+  color: #6b7380;
+  font-size: 8.5px;
+  line-height: 12px;
+}
+
+.backToJobs {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 24px;
+  padding: 0 11px;
+  border: 1px solid #dfe3ea;
+  border-radius: 6px;
+  background: #f8f9fc;
+  color: #1f2733;
+  font-family: inherit;
+  font-size: 9px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+/* ── Form card ─────────────────────────────────────────────────────────── */
+.formCard {
+  padding: 20px 18px 18px;
+  border: 1px solid #e8ebf1;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.formTitle {
+  margin: 0;
+  color: #101828;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 18px;
+}
+
+.formDivider {
+  height: 1px;
+  margin: 10px 0 14px;
+  background: #f0f2f6;
+}
+
+.rowTop {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 137px;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.rowTwo {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.rowLast {
+  margin-bottom: 0;
+}
+
+.centered {
+  text-align: center;
+}
+
+/* ── Contact / keywords card ───────────────────────────────────────────── */
+.contactCard {
+  padding: 16px 18px 14px;
+  border: 1px solid #e8ebf1;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.keywordsInput {
+  height: 26px;
+}
+
+.contactRow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.contactInput {
+  height: 25px;
+}
+
+.dateWrap {
+  position: relative;
+  display: block;
+}
+
+.dateNative {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.dateNative::-webkit-calendar-picker-indicator {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+.calendarIcon {
+  position: absolute;
+  top: 50%;
+  right: 9px;
+  transform: translateY(-50%);
+  color: #6b7380;
+  pointer-events: none;
+}
+
+@media (max-width: 900px) {
+  .rowTop,
+  .rowTwo,
+  .contactRow {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

@@ -1,0 +1,104 @@
+.rowThree,
+.rowFour {
+  display: grid;
+  gap: 20px;
+}
+
+.rowThree {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.rowFour {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 32px;
+}
+
+.toggleRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.toggleLabel {
+  color: #2A3132;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 16px;
+  line-height: 150%;
+  cursor: pointer;
+}
+
+.toggle {
+  position: relative;
+  flex-shrink: 0;
+  width: 40px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 11px;
+  background: #c9d1d9;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.toggle:focus-visible {
+  outline: 2px solid #2B96D9;
+  outline-offset: 2px;
+}
+
+.toggleOn {
+  background: #2B96D9;
+}
+
+.toggleThumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(15, 45, 82, 0.3);
+  transition: transform 0.15s ease;
+}
+
+.toggleOn .toggleThumb {
+  transform: translateX(18px);
+}
+
+.note {
+  margin: 0;
+  color: #57606a;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 12px;
+}
+.notices {
+  margin: 0 0 16px;
+  padding: 10px 16px 10px 32px;
+  border: 1px solid #f5d98b;
+  border-radius: 8px;
+  background: #fff8e1;
+  color: #6b4e00;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+
+
+@media (max-width: 1100px) {
+  .rowFour {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 680px) {
+  .rowThree,
+  .rowFour {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
