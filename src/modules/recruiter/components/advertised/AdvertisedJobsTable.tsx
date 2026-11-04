@@ -17,7 +17,6 @@ import styles from './AdvertisedJobsTable.module.css'
 type AdvertisedJobsTableProps = {
   jobs: AdvertisedJob[]
   onEdit?: (job: AdvertisedJob) => void
-  onSync?: (job: AdvertisedJob) => void
   onDelete?: (job: AdvertisedJob) => void
 }
 
@@ -38,15 +37,6 @@ const EditIcon = () => (
   </svg>
 )
 
-const SyncIcon = () => (
-  <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <path d="M13.5 6A5.5 5.5 0 0 0 3.6 4.6L2.5 6" />
-    <path d="M2.5 2.8V6h3.2" />
-    <path d="M2.5 10a5.5 5.5 0 0 0 9.9 1.4l1.1-1.4" />
-    <path d="M13.5 13.2V10h-3.2" />
-  </svg>
-)
-
 const DeleteIcon = () => (
   <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
     <path d="M2.5 4h11" />
@@ -56,7 +46,7 @@ const DeleteIcon = () => (
   </svg>
 )
 
-export const AdvertisedJobsTable = ({ jobs, onEdit, onSync, onDelete }: AdvertisedJobsTableProps) => {
+export const AdvertisedJobsTable = ({ jobs, onEdit, onDelete }: AdvertisedJobsTableProps) => {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
   const [activeJob, setActiveJob] = useState<AdvertisedJob | null>(null)
   const [pendingDeleteJob, setPendingDeleteJob] = useState<AdvertisedJob | null>(null)
@@ -156,10 +146,6 @@ export const AdvertisedJobsTable = ({ jobs, onEdit, onSync, onDelete }: Advertis
           <EditIcon />
           Edit
         </button>
-        <button type="button" className={styles.menuItem} onClick={() => handleAction(onSync)}>
-          <SyncIcon />
-          Sync
-        </button>
         <div className={styles.menuDivider} />
         <button
           type="button"
@@ -183,8 +169,8 @@ export const AdvertisedJobsTable = ({ jobs, onEdit, onSync, onDelete }: Advertis
         </DialogTitle>
         <DialogContent>
           <DialogContentText id="confirm-delete-advert-desc" className={styles.confirmDialogBody}>
-            Are you sure you want to delete the job advert for{' '}
-            <strong>"{pendingDeleteJob?.title}"</strong> on {pendingDeleteJob?.platform}? This will permanently remove the advert from the live site.
+            Are you sure you want to delete the job advertisement for{' '}
+            <strong>"{pendingDeleteJob?.title}"</strong> on {pendingDeleteJob?.platform}? This action is permanent and will remove the advertisement from the live site immediately.
           </DialogContentText>
         </DialogContent>
         <DialogActions className={styles.confirmDialogActions}>

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { Box, ButtonBase } from '@mui/material'
 import { useLocation, useNavigate } from 'react-router-dom'
@@ -21,6 +21,9 @@ import { ROUTE_PATHS } from '@/routes/routePaths'
 import styles from './AdvertisedJobsPage.module.css'
 
 type PlatformFilter = 'All' | AdvertisedPlatform
+
+const FINAL_STATUSES = ['live', 'deleted', 'suspended', 'expired']
+const STATUS_POLL_INTERVAL_MS = 60_000
 
 const BackArrowIcon = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -135,7 +138,23 @@ const AdvertisedJobsPage = () => {
     }
   }, [])
 
+  const fetchListedJobs = useCallback(async () => {
+    try {
+      const listedJobs = await externalJobsApi.getBizCommunityJobs()
+      if (Array.isArray(listedJobs)) {
+        setBizListedJobs(listedJobs)
+      }
+    } catch {
+      // keep previous statuses
+    }
+  }, [])
+
+  // Guard against React StrictMode's double-invoke in development
+  const initialFetchDoneRef = useRef(false)
+
   useEffect(() => {
+    if (initialFetchDoneRef.current) return
+    initialFetchDoneRef.current = true
     fetchJobsData()
   }, [fetchJobsData])
 
@@ -156,6 +175,17 @@ const AdvertisedJobsPage = () => {
     return bizPublishes.map((record) => mapBizRecordToAdvertisedJob(record, listedLookup))
   }, [bizPublishes, bizListedJobs])
 
+  const hasNonFinalStatus = useMemo(
+    () => allJobs.some((job) => !FINAL_STATUSES.includes(String(job.status).trim().toLowerCase())),
+    [allJobs],
+  )
+
+  useEffect(() => {
+    if (!hasNonFinalStatus) return undefined
+    const intervalId = window.setInterval(fetchListedJobs, STATUS_POLL_INTERVAL_MS)
+    return () => window.clearInterval(intervalId)
+  }, [hasNonFinalStatus, fetchListedJobs])
+
   const countFor = (platform: AdvertisedPlatform) =>
     allJobs.filter((job) => job.platform === platform).length
 
@@ -172,29 +202,6 @@ const AdvertisedJobsPage = () => {
       count: countFor(platform),
     })),
   ]
-
-  const handleSync = async (job?: AdvertisedJob) => {
-    try {
-      await fetchJobsData()
-      dispatch(
-        pushNotification({
-          level: 'success',
-          title: 'Status Updated',
-          message: job
-            ? `Latest status for "${job.title}" has been updated.`
-            : 'Latest job statuses synchronized.',
-        }),
-      )
-    } catch {
-      dispatch(
-        pushNotification({
-          level: 'error',
-          title: 'Sync Failed',
-          message: 'Failed to synchronize latest job status. Please try again.',
-        }),
-      )
-    }
-  }
 
   const handleEdit = (job: AdvertisedJob) => {
     if (job.jobProfileIdRef && job.platform === 'bizCommunity') {
@@ -289,7 +296,6 @@ const AdvertisedJobsPage = () => {
 
         <AdvertisedJobsTable
           jobs={visibleJobs}
-          onSync={handleSync}
           onEdit={handleEdit}
           onDelete={handleDelete}
         />
