@@ -3,6 +3,7 @@ import type { Control, UseFormSetValue } from 'react-hook-form'
 import { Controller, useFormState } from 'react-hook-form'
 import type { MandateFormValues } from './types'
 import { mandateApi } from '@/services/api/mandateApi'
+import { locationApi } from '@/services/api/locationApi'
 import { getPhoneNumberInputProps } from '@/app/phoneNumber'
 import { LocationSelect } from './LocationSelect'
 import styles from './form.module.css'
@@ -25,6 +26,7 @@ const todayStr = new Date().toISOString().split('T')[0]
 export const BasicInformationSection = ({ control, setValue }: Props) => {
   const { errors } = useFormState({ control })
   const [companyOptions, setCompanyOptions] = useState<string[]>([])
+  const [workTypeOptions, setWorkTypeOptions] = useState<string[]>([...WORK_TYPES])
   const [contactMap, setContactMap] = useState<Map<string, ContactInfo>>(new Map())
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [activeIndex, setActiveIndex] = useState(-1)
@@ -51,6 +53,25 @@ export const BasicInformationSection = ({ control, setValue }: Props) => {
       })
       .catch(() => {
         // silently degrade — user can still type a new name
+      })
+  }, [])
+
+  // Work options live in the master locations list — surface them as work type values
+  useEffect(() => {
+    locationApi
+      .getMasterLocations()
+      .then((locations) => {
+        const apiOptions = locations
+          .filter((item) => item.type === 'WORK_OPTION')
+          .map((item) => item.name)
+        setWorkTypeOptions((current) => {
+          const seen = new Set(current.map((option) => option.trim().toLowerCase()))
+          const extra = apiOptions.filter((option) => !seen.has(option.trim().toLowerCase()))
+          return [...current, ...extra]
+        })
+      })
+      .catch(() => {
+        // silently degrade — default work types remain available
       })
   }, [])
 
@@ -311,7 +332,7 @@ export const BasicInformationSection = ({ control, setValue }: Props) => {
               render={({ field }) => (
                 <select {...field} className={`${styles.select} ${errors.workType ? styles.hasError : ''}`}>
                   <option value="">Select</option>
-                  {WORK_TYPES.map(o => <option key={o} value={o}>{o}</option>)}
+                  {workTypeOptions.map(o => <option key={o} value={o}>{o}</option>)}
                 </select>
               )}
             />

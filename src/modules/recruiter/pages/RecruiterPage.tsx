@@ -67,8 +67,8 @@ const PIPELINE_COLUMNS: PipelineColumn[] = [
   { label: PipelineLabel.INBOUND, colorClass: styles.colInbound, cards: [] },
   { label: PipelineLabel.SCREENING, colorClass: styles.colScreening, cards: [] },
   { label: PipelineLabel.ASSESSMENT, colorClass: styles.colAssessment, cards: [] },
-  { label: PipelineLabel.INTERVIEW, colorClass: styles.colInterview, cards: [] },
   { label: PipelineLabel.SHORTLIST, colorClass: styles.colShortlist, cards: [] },
+  { label: PipelineLabel.INTERVIEW, colorClass: styles.colInterview, cards: [] },
   { label: PipelineLabel.OFFER, colorClass: styles.colOffer, cards: [] },
   { label: PipelineLabel.CLOSED, colorClass: styles.colClosed, cards: [] },
 ];

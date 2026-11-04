@@ -1,0 +1,114 @@
+.block {
+  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.label {
+  color: #2b323d;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.required {
+  color: #e02d2d;
+}
+
+.count {
+  color: #6b7380;
+  font-size: 8.5px;
+}
+
+.editor {
+  overflow: hidden;
+  border: 1px solid #e8ebf1;
+  border-radius: 8px;
+  background: #f8f9fc;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  height: 34px;
+  padding: 0 8px;
+}
+
+.group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding-right: 8px;
+  margin-right: 8px;
+  border-right: 1px solid #e2e6ee;
+}
+
+.group:last-child {
+  margin-right: 0;
+  padding-right: 0;
+  border-right: 0;
+}
+
+.tool {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: #2b323d;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.tool:hover {
+  background: #eceff5;
+}
+
+.toolText {
+  padding: 0 4px;
+}
+
+.bodyText {
+  font-size: 8.5px;
+  font-weight: 500;
+}
+
+.bold {
+  font-size: 9.5px;
+  font-weight: 800;
+}
+
+.italic {
+  font-size: 9.5px;
+  font-style: italic;
+  font-weight: 600;
+}
+
+.underline {
+  font-size: 9.5px;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.textarea {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 12px 11px;
+  border: 0;
+  background: #ffffff;
+  color: #1f2733;
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 17px;
+  resize: vertical;
+  outline: none;
+}
