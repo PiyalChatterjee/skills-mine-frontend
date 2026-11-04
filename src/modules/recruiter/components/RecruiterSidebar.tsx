@@ -45,6 +45,15 @@ const CandidatesIcon = () => (
   </svg>
 )
 
+/** Megaphone — Advertised Jobs (no dedicated asset) */
+const AdvertisedJobsIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path d="M3 10v4a1 1 0 0 0 1 1h3l8 4V5L7 9H4a1 1 0 0 0-1 1Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+    <path d="M18.5 9.5a4 4 0 0 1 0 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    <path d="M7 15l1.5 5h2.5l-1-4.5" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+  </svg>
+)
+
 // ── Component ──────────────────────────────────────────────────────────
 
 export const RecruiterSidebar = ({ variant = 'recruiter' }: { variant?: 'recruiter' | 'exco' }) => {
@@ -75,6 +84,7 @@ export const RecruiterSidebar = ({ variant = 'recruiter' }: { variant?: 'recruit
     { id: 'pipeline',  label: 'Pipeline',   to: ROUTE_PATHS.recruiterDashboard, icon: <img src={gridOnIcon} width={18} height={18} alt="" aria-hidden="true" /> },
     { id: 'jobPosts',   label: 'Job Posts',   to: ROUTE_PATHS.recruiterJobPosts, icon: <img src={mandatesIcon}  width={18} height={18} alt="" aria-hidden="true" /> },
     { id: 'newJobPost', label: 'New Job Post', icon: <PlusIcon />,       onClick: handleNewJobPostClick },
+    { id: 'advertisedJobs', label: 'Advertised Jobs', to: ROUTE_PATHS.recruiterAdvertisedJobs, icon: <AdvertisedJobsIcon /> },
     { id: 'candidates', label: 'Candidates',  to: ROUTE_PATHS.recruiterCandidates, icon: <CandidatesIcon /> },
     { id: 'crm',        label: 'CRM',         to: ROUTE_PATHS.recruiterCrm, icon: <img src={crmIcon}      width={18} height={18} alt="" aria-hidden="true" /> },
     { id: 'manco',      label: 'MANCO',       to: ROUTE_PATHS.recruiterManco, icon: <img src={mancoIcon} width={18} height={18} alt="" aria-hidden="true" /> },

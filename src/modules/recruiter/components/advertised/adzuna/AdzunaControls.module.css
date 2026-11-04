@@ -1,0 +1,149 @@
+.card {
+  padding: 18px 18px 20px;
+  border: 1px solid #e8ebf1;
+  border-radius: 10px;
+  background: #ffffff;
+  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.cardTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: #1f2733;
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 18px;
+}
+
+.marker {
+  width: 6px;
+  height: 13px;
+  border-radius: 3px;
+  background: #e02d2d;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+}
+
+.label {
+  margin-bottom: 7px;
+  color: #2b323d;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+.required {
+  color: #e02d2d;
+}
+
+.hint {
+  margin-top: 6px;
+  color: #6b7380;
+  font-size: 8.5px;
+  line-height: 12px;
+}
+
+.input {
+  box-sizing: border-box;
+  width: 100%;
+  height: 30px;
+  padding: 0 10px;
+  border: 1px solid #e3e7ee;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #1f2733;
+  font-family: inherit;
+  font-size: 12px;
+  outline: none;
+}
+
+.input::placeholder {
+  color: #9aa3b2;
+}
+
+.input:focus,
+.input:focus-within {
+  border-color: #e02d2d;
+}
+
+.selectWrap {
+  position: relative;
+  display: block;
+}
+
+.select {
+  height: 31px;
+  padding-right: 28px;
+  appearance: none;
+  cursor: pointer;
+}
+
+.chevron {
+  position: absolute;
+  top: 50%;
+  right: 11px;
+  transform: translateY(-50%);
+  color: #3a4352;
+  pointer-events: none;
+}
+
+.chipBox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 31px;
+  background: #f6f7fa;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 20px;
+  padding: 0 7px;
+  border: 1px solid #dfe3ea;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #2b323d;
+  font-size: 9.5px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.chipRemove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #3a4352;
+  cursor: pointer;
+}
+
+.addSelect {
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #3a4352;
+  font-family: inherit;
+  font-size: 9.5px;
+  appearance: none;
+  outline: none;
+  cursor: pointer;
+}

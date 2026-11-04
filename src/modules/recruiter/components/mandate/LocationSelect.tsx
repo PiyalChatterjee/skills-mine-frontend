@@ -13,25 +13,21 @@ interface Props {
 
 type LocationGroup = { label: string; options: MasterLocation[] }
 
-const WORK_OPTION_GROUP = 'Work Options'
 const COUNTRY_GROUP = 'Other African Countries'
 
-/** Group master locations: provinces first, then other African countries, then work options. */
+/** Group master locations: provinces first, then other African countries. */
 const groupLocations = (locations: MasterLocation[]): LocationGroup[] => {
   const groups = new Map<string, MasterLocation[]>()
   for (const location of locations) {
     const label =
-      location.type === 'WORK_OPTION'
-        ? WORK_OPTION_GROUP
-        : location.type === 'COUNTRY'
-          ? COUNTRY_GROUP
-          : location.province || location.country || 'Other'
+      location.type === 'COUNTRY'
+        ? COUNTRY_GROUP
+        : location.province || location.country || 'Other'
     const bucket = groups.get(label)
     if (bucket) bucket.push(location)
     else groups.set(label, [location])
   }
-  const rank = (label: string) =>
-    label === WORK_OPTION_GROUP ? 2 : label === COUNTRY_GROUP ? 1 : 0
+  const rank = (label: string) => (label === COUNTRY_GROUP ? 1 : 0)
   return [...groups.entries()]
     .map(([label, options]) => ({ label, options }))
     .sort((a, b) => rank(a.label) - rank(b.label))
@@ -49,7 +45,7 @@ export const LocationSelect = ({ control, setValue }: Props) => {
   useEffect(() => {
     locationApi
       .getMasterLocations()
-      .then(setLocations)
+      .then((items) => setLocations(items.filter((item) => item.type !== 'WORK_OPTION')))
       .catch(() => {
         // silently degrade — the select will simply have no options
       })

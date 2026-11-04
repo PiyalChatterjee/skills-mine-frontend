@@ -258,6 +258,20 @@ export const MandatesScreen = ({
   };
 
   const activeRowPost = jobPosts.find((p) => p.mandateId === activeRowId);
+  const isActiveRowPosted =
+    activeRowPost?.status.toUpperCase() === JobPostStatus.POSTED;
+
+  const handleAdvertiseJob = () => {
+    if (activeRowId) {
+      navigate(
+        ROUTE_PATHS.recruiterAdvertiseJob.replace(
+          ":mandateId",
+          encodeURIComponent(activeRowId),
+        ),
+      );
+    }
+    handleClose();
+  };
 
   const handleCloseJobClick = () => {
     const idToClose = activeRowId;
@@ -825,6 +839,26 @@ export const MandatesScreen = ({
           />
           Edit post
         </ButtonBase>
+
+        {isActiveRowPosted && (
+          <ButtonBase
+            className={styles.menuItem}
+            onClick={handleAdvertiseJob}
+            disableRipple
+          >
+            <svg
+              className={styles.menuIcon}
+              viewBox="0 0 24 24"
+              fill="none"
+              aria-hidden="true"
+            >
+              <path d="M3 10v4a1 1 0 0 0 1 1h3l8 4V5L7 9H4a1 1 0 0 0-1 1Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+              <path d="M18.5 9.5a4 4 0 0 1 0 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+              <path d="M7 15l1.5 5h2.5l-1-4.5" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+            </svg>
+            Advertise this job
+          </ButtonBase>
+        )}
 
         <ButtonBase
           className={styles.menuItem}
