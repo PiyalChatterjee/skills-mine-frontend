@@ -36,6 +36,7 @@ type JobProfileSkill = {
 
 type JobProfileDetail = JobProfileSummary & {
   workType: string | null;
+  experienceLevel?: string;
   salaryMin: number | null;
   salaryMax: number | null;
   jobDescription: string | null;
@@ -43,6 +44,8 @@ type JobProfileDetail = JobProfileSummary & {
   responsibilities: string[];
   skills: JobProfileSkill[];
   applicantCount: number | null;
+  benefitsText?: string[];
+  fillByDate?: string;
 };
 
 export type JobsSearchFilters = {
@@ -146,6 +149,9 @@ export const jobsApi = {
       applicationCount: data.applicantCount ?? 0,
       postedDate: data.publishedAt ?? "",
       recruiterId: undefined,
+      experienceLevel: data.experienceLevel ?? undefined,
+      benefitsText: data.benefitsText ?? undefined,
+      fillByDate: data.fillByDate ?? undefined,
     };
   },
 

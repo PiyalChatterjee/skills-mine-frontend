@@ -201,6 +201,7 @@ export const useJobDetailsViewModel = () => {
   const locationName = getJobCity(displayJob?.location, "Johannesburg");
   const workType = formatEnumLabel(toDisplayTitle(displayJob?.workType, ""));
   const employmentType = formatEnumLabel(toDisplayTitle(displayJob?.employmentType, ""));
+  const experienceLevel = toDisplayTitle(displayJob?.experienceLevel, "");
   const requirements =
     displayJob?.requirements && displayJob.requirements.length > 0
       ? displayJob.requirements
@@ -208,6 +209,10 @@ export const useJobDetailsViewModel = () => {
   const responsibilities =
     displayJob?.responsibilities && displayJob.responsibilities.length > 0
       ? displayJob.responsibilities
+      : [];
+  const benefitsText =
+    displayJob?.benefitsText && displayJob.benefitsText.length > 0
+      ? displayJob.benefitsText
       : [];
   const skills =
     displayJob?.skills && displayJob.skills.length > 0
@@ -218,9 +223,12 @@ export const useJobDetailsViewModel = () => {
     applyButtonLabel: isApplying ? "Applying..." : isApplied ? ApplicationStatusLabel.APPLIED : "Apply now",
     applyError,
     backRoute,
+    benefitsText,
     companyName,
     description: displayJob?.description ?? "",
     employmentType,
+    experienceLevel,
+    fillByDate: displayJob?.fillByDate ?? "",
     handleApply,
     handleBack: () => navigate(backRoute),
     handleBackToLatest: () => navigate(ROUTE_PATHS.latestJobs),

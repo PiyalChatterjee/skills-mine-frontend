@@ -236,6 +236,9 @@ export interface Job {
   applicationCount: number;
   postedDate: string;
   recruiterId?: string;
+  experienceLevel?: string;
+  benefitsText?: string[];
+  fillByDate?: string;
 }
 
 export interface JobsResponse {
