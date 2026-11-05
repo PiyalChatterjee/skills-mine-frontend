@@ -1,5 +1,5 @@
 export const AVAILABILITY_LABELS: Record<string, string> = {
-  IMMEDIATELY: "Immediately",
+  IMMEDIATELY: "None/Immediate",
   "2_WEEKS": "2 weeks",
   "30_DAYS": "30 days",
   "1_MONTH": "1 month",
