@@ -226,13 +226,14 @@ const JobDetailsPage = () => {
               </ul>
             </Box>
 
-            {benefitsText && benefitsText.length > 0 && (
+            {(salaryRange || (benefitsText && benefitsText.length > 0)) && (
               <Box>
                 <Typography component="h3" className={styles.subSectionTitle}>
                   Salary & Benefits
                 </Typography>
                 <ul className={styles.bulletList}>
-                  {benefitsText.map((item) => (
+                  {salaryRange && <li>{salaryRange} per year</li>}
+                  {benefitsText && benefitsText.map((item) => (
                     <li key={item}>{item}</li>
                   ))}
                 </ul>
