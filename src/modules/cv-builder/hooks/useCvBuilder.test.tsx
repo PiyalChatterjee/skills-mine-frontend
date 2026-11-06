@@ -183,6 +183,31 @@ describe("useCvBuilder", () => {
     expect(result.current.form.getValues("personalDetails.fullName")).toBe("Jane Doe");
   });
 
+  it("replaces saved details and ignores later saved prefill updates after an upload", async () => {
+    const { result, rerender } = renderHook(
+      ({ prefill }: { prefill: CvBuilderPrefillData }) => useCvBuilder(prefill, true),
+      { initialProps: { prefill: completePrefill } },
+    );
+
+    await waitFor(() => expect(result.current.form.getValues("secondaryEducation")).toEqual(completePrefill.secondaryEducation));
+    act(() => result.current.openReviewFlowBlank({
+      personalDetails: { fullName: "Ben Hur" },
+      skills: [{ name: "TypeScript" }],
+    }));
+    rerender({ prefill: { ...completePrefill } });
+
+    expect(result.current.form.getValues("personalDetails.fullName")).toBe("Ben Hur");
+    expect(result.current.form.getValues("personalDetails.nationality")).toBe("");
+    expect(result.current.form.getValues("secondaryEducation")).toEqual([
+      { institutionName: "", highestGradePassed: "", yearCompleted: "" },
+    ]);
+    expect(result.current.form.getValues("tertiaryEducation")).toEqual([
+      { institutionName: "", degreeOrCertification: "", yearCompleted: "" },
+    ]);
+    expect(result.current.form.getValues("skills")).toEqual([{ name: "TypeScript" }]);
+    expect(result.current.form.getValues("languages")).toEqual([]);
+  });
+
   it("tracks the selected upload file and resets the native input", () => {
     const { result } = renderHook(() => useCvBuilder());
     const file = new File(["cv"], "cv.pdf", { type: "application/pdf" });

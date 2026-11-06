@@ -195,7 +195,7 @@ const useCvBuilder = (
   });
 
   useEffect(() => {
-    if (!prefillData) return;
+    if (!prefillData || reviewSource === "upload") return;
 
     const {
       personalDetails: pd,
@@ -296,7 +296,7 @@ const useCvBuilder = (
     ) {
       form.setValue("otherLanguage", otherLanguage);
     }
-  }, [prefillData, forceApply]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [prefillData, forceApply, reviewSource]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const personalDetailsValues = useWatch({
     control: form.control,
@@ -388,8 +388,6 @@ const useCvBuilder = (
     setActiveView("review");
   };
   const goBack = () => setActiveView("launcher");
-  // Resume extraction isn't wired up to the mock API yet, so the uploaded-CV
-  // flow shows a blank form instead of stale/unrelated profile data.
   const openReviewFlowBlank = (prefillData?: CvBuilderPrefillData) => {
     form.reset({
       ...DEFAULT_FORM_VALUES,

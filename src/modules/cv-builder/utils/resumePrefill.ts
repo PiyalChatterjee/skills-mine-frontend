@@ -1,5 +1,6 @@
 import type { ResumeParseResponse } from "@/types";
 import type { CvBuilderFormValues } from "@/app/validation.schema";
+import { LANGUAGES_LIST } from "../types/cvBuilder";
 
 type CvBuilderPrefillData = Omit<
   Partial<CvBuilderFormValues>,
@@ -107,10 +108,15 @@ export const buildResumePrefillData = (
   const skills = asStringArray(
     responseRecord.skills ?? responseRecord.key_skills ?? responseRecord.suggested_skills,
   ).map((name) => ({ name }));
-  const languages = asStringArray(responseRecord.languages);
+  const parsedLanguages = asStringArray(responseRecord.languages);
+  const languages = parsedLanguages.length ? parsedLanguages : extractTextLanguages(extractedText);
+  const knownLanguages = languages.filter((language) => LANGUAGES_LIST.includes(language as never));
+  const otherLanguages = languages.filter((language) => !LANGUAGES_LIST.includes(language as never));
 
   const personalDetails = compactStrings({
       fullName: [asString(personal.first_name), asString(personal.last_name)].filter(Boolean).join(" "),
+      email: asString(personal.email),
+      phoneNumber: asString(personal.phone_number),
       race: asString(personal.race),
       gender: asString(personal.gender),
       disabilityStatus: asString(personal.disability_status),
@@ -135,6 +141,7 @@ export const buildResumePrefillData = (
     ...(tertiary.length ? { tertiaryEducation: tertiary } : {}),
     ...(secondary.length ? { secondaryEducation: secondary } : {}),
     skills: skills.length ? skills : extractTextSkills(extractedText).map((name) => ({ name })),
-    languages: languages.length ? languages : extractTextLanguages(extractedText),
+    languages: otherLanguages.length ? [...knownLanguages, "Other"] : knownLanguages,
+    otherLanguage: otherLanguages.join(", "),
   };
 };

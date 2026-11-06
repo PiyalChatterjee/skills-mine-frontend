@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { isoToMonthName, buildCvBuilderPrefillData, useCvBuilderDone } from './useCvBuilderDone'
+import { isoToMonthName, buildCvBuilderPrefillData, buildBuildMyCvRequest, useCvBuilderDone } from './useCvBuilderDone'
 import {
   createGuestApplicationDraft,
   getGuestApplicationDrafts,
@@ -318,6 +318,18 @@ const savedCvResult = {
   validation: [],
   lastModified: '2024-01-01',
 }
+
+describe('buildBuildMyCvRequest', () => {
+  it('includes empty career and education sections to clear saved CV details', () => {
+    const request = buildBuildMyCvRequest({
+      formValues: { ...defaultFormValues, careerHistory: [], tertiaryEducation: [] },
+      selectedLanguageEntries: [],
+    })
+
+    expect(request.careerHistory).toEqual([])
+    expect(request.education).toEqual({ tertiaryEducation: [], secondaryEducation: [] })
+  })
+})
 
 describe('useCvBuilderDone', () => {
   beforeEach(() => {

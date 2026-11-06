@@ -253,7 +253,7 @@ export const useCvBuilderPageViewModel = () => {
     undefined,
     isGuestApplication,
   );
-  const hasFormChanges = form.formState.isDirty;
+  const hasFormChanges = form.formState.isDirty || reviewSource === "upload";
 
   const validateForm = () => validateAndFocusForm(form);
 
@@ -291,22 +291,14 @@ export const useCvBuilderPageViewModel = () => {
       setVisitorId(parsedResume.visitor_id);
           setIsParsingResume(false);
       const prefillData = buildResumePrefillData(parsedResume, extractedText);
-      const mergedPrefillData = {
-        ...cvBuilderPrefillData,
-        ...prefillData,
-        personalDetails: {
-          ...cvBuilderPrefillData?.personalDetails,
-          ...prefillData.personalDetails,
-        },
-      };
 
-      if (isGuestApplication && mergedPrefillData.personalDetails?.email) {
-        void checkEmail(mergedPrefillData.personalDetails.email);
+      if (isGuestApplication && prefillData.personalDetails?.email) {
+        void checkEmail(prefillData.personalDetails.email);
       }
 
       if (isGuestApplication) {
         setUploadModalOpen(false);
-        openReviewFlowBlank(mergedPrefillData);
+        openReviewFlowBlank(prefillData);
         return;
       }
 
@@ -323,7 +315,7 @@ export const useCvBuilderPageViewModel = () => {
       }).unwrap();
 
       setUploadModalOpen(false);
-      openReviewFlowBlank(mergedPrefillData);
+      openReviewFlowBlank(prefillData);
       return;
     } catch {
       setUploadError(

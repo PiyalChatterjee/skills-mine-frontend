@@ -8,6 +8,8 @@ describe("buildResumePrefillData", () => {
         personal_details: {
           first_name: "Ben",
           last_name: "Hur",
+          email: "ben@example.com",
+          phone_number: "+27123456789",
           race: "African",
           gender: "Male",
           disability_status: "None",
@@ -33,6 +35,8 @@ describe("buildResumePrefillData", () => {
     );
 
     expect(result.personalDetails?.fullName).toBe("Ben Hur");
+    expect(result.personalDetails?.email).toBe("ben@example.com");
+    expect(result.personalDetails?.phoneNumber).toBe("+27123456789");
     expect(result.tertiaryEducation?.[0]).toEqual({
       institutionName: "University of Whitsand",
       degreeOrCertification: "BTech",
@@ -41,5 +45,15 @@ describe("buildResumePrefillData", () => {
     expect(result.secondaryEducation?.[0].highestGradePassed).toBe("Grade 12");
     expect(result.skills).toEqual([{ name: "React Js" }, { name: "Nest Js" }]);
     expect(result.languages).toEqual(["English"]);
+  });
+
+  it("maps parsed languages outside the preset list to Other", () => {
+    const result = buildResumePrefillData(
+      { languages: ["English", "Spanish"] } as never,
+      "",
+    );
+
+    expect(result.languages).toEqual(["English", "Other"]);
+    expect(result.otherLanguage).toBe("Spanish");
   });
 });
