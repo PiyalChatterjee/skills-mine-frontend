@@ -228,6 +228,7 @@ export interface Job {
   salaryMin?: number;
   salaryMax?: number;
   salaryRange: string;
+  isSalaryHidden?: boolean;
   description?: string;
   requirements?: string[];
   responsibilities: string[];

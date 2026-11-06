@@ -39,9 +39,8 @@ const JobDetailsPage = () => {
     handleBackToLatest,
     handleToggleSave,
     industry,
-    isApplied,
+    isApplyDisabled,
     isApplySuccessModalOpen,
-    isApplying,
     isAuthenticated,
     isInitialLoading,
     isNotFound,
@@ -166,14 +165,16 @@ const JobDetailsPage = () => {
                 {experienceLevel}
               </Typography>
             </Box>
-            <Box className={styles.metaItem}>
-              <Typography component="p" className={styles.metaLabel}>
-                Salary
-              </Typography>
-              <Typography component="p" className={styles.metaValue}>
-                {salaryRange}
-              </Typography>
-            </Box>
+            {salaryRange && (
+              <Box className={styles.metaItem}>
+                <Typography component="p" className={styles.metaLabel}>
+                  Salary
+                </Typography>
+                <Typography component="p" className={styles.metaValue}>
+                  {salaryRange}
+                </Typography>
+              </Box>
+            )}
             <Box className={styles.metaItem}>
               <Typography component="p" className={styles.metaLabel}>
                 Job published
@@ -286,7 +287,7 @@ const JobDetailsPage = () => {
           <Button
             variant="contained"
             className={styles.footerApply}
-            disabled={isApplying || isApplied}
+            disabled={isApplyDisabled}
             onClick={() => void handleApply()}
           >
             {applyButtonLabel}

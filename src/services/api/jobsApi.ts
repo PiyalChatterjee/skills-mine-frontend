@@ -21,6 +21,7 @@ type JobProfileSummary = {
   fillByDate: string;
   status: string;
   publishedAt: string | null;
+  isSalaryHidden?: boolean;
 };
 
 type JobProfilePage = {
@@ -65,6 +66,7 @@ const toJob = (job: JobProfileSummary): Job => ({
   employmentType: formatEnumLabel(job.employmentType),
   workType: "",
   salaryRange: "",
+  ...(typeof job.isSalaryHidden === "boolean" ? { isSalaryHidden: job.isSalaryHidden } : {}),
   description: job.jobDescriptionSnippet ?? "",
   responsibilities: [],
   status: job.status,
@@ -135,6 +137,7 @@ export const jobsApi = {
       workType: formatEnumLabel(data.workType),
       salaryMin: data.salaryMin ?? undefined,
       salaryMax: data.salaryMax ?? undefined,
+      ...(typeof data.isSalaryHidden === "boolean" ? { isSalaryHidden: data.isSalaryHidden } : {}),
       salaryRange:
         data.salaryMin && data.salaryMax
           ? `R${Number(data.salaryMin).toLocaleString()} – R${Number(data.salaryMax).toLocaleString()}`

@@ -132,6 +132,7 @@ describe("useJobDetailsViewModel", () => {
       isSaved: true,
       isSaving: false,
       isApplied: false,
+      isApplyDisabled: false,
       isApplySuccessModalOpen: false,
       applyButtonLabel: "Apply now",
       footerSaveLabel: "Saved",
@@ -153,6 +154,26 @@ describe("useJobDetailsViewModel", () => {
     expect(mocks.navigate).toHaveBeenCalledWith("/jobs/latest");
   });
 
+  it("hides salary from the latest profile while preserving benefits", () => {
+    mocks.useGetJobProfileQuery.mockReturnValue({
+      data: { ...listJob, salaryRange: "R900,000", isSalaryHidden: true, benefitsText: ["Medical aid"] },
+      isFetching: false,
+    });
+
+    const { result } = renderHook(() => useJobDetailsViewModel());
+
+    expect(result.current.salaryRange).toBe("");
+    expect(result.current.benefitsText).toEqual(["Medical aid"]);
+  });
+
+  it("does not reveal a cached salary while the job profile is loading", () => {
+    mocks.useGetJobProfileQuery.mockReturnValue({ data: undefined, isFetching: true });
+
+    const { result } = renderHook(() => useJobDetailsViewModel());
+
+    expect(result.current.salaryRange).toBe("");
+  });
+
   it("creates a guest application draft and navigates guests to CV builder", async () => {
     mocks.useAuth.mockReturnValue({ isAuthenticated: false, user: undefined });
 
@@ -166,6 +187,44 @@ describe("useJobDetailsViewModel", () => {
     expect(mocks.navigate).toHaveBeenCalledWith("/candidate/cv-builder?job=job-1", {
       state: { guestApplicationJobId: "job-1" },
     });
+  });
+
+  it.each([true, false])("blocks applications for a closed profile (authenticated: %s)", async (isAuthenticated) => {
+    mocks.useAuth.mockReturnValue({ isAuthenticated, user: isAuthenticated ? { role: "JOB_SEEKER" } : undefined });
+    mocks.useGetJobProfileQuery.mockReturnValue({
+      data: { ...listJob, status: " closed " },
+      isFetching: false,
+    });
+
+    const { result } = renderHook(() => useJobDetailsViewModel());
+
+    await act(async () => {
+      await result.current.handleApply();
+    });
+
+    expect(result.current.isApplyDisabled).toBe(true);
+    expect(result.current.applyButtonLabel).toBe("Closed");
+    expect(mocks.applyToJob).not.toHaveBeenCalled();
+    expect(mocks.createGuestApplicationDraft).not.toHaveBeenCalled();
+    expect(mocks.navigate).not.toHaveBeenCalled();
+  });
+
+  it("waits for the job profile before automatically applying", () => {
+    mocks.useLocation.mockReturnValue({ state: { job: listJob, autoApply: true } });
+    mocks.useGetJobProfileQuery.mockReturnValue({ data: undefined, isFetching: true });
+    const { result, rerender } = renderHook(() => useJobDetailsViewModel());
+
+    expect(result.current.isApplyDisabled).toBe(true);
+    expect(mocks.applyToJob).not.toHaveBeenCalled();
+
+    mocks.useGetJobProfileQuery.mockReturnValue({
+      data: { ...listJob, status: "CLOSED" },
+      isFetching: false,
+    });
+    rerender();
+
+    expect(result.current.isApplyDisabled).toBe(true);
+    expect(mocks.applyToJob).not.toHaveBeenCalled();
   });
 
   it("sets an error when an authenticated non-candidate applies", async () => {

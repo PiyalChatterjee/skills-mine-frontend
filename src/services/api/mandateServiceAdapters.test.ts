@@ -136,6 +136,7 @@ describe("Mandate Service v2 frontend adapters", () => {
         workType: "REMOTE",
         salaryMin: 28000,
         salaryMax: 46000,
+        isSalaryHidden: false,
         jobDescription: "Build reliable services.",
         requirements: ["Relevant tertiary qualification"],
         responsibilities: ["Own delivery outcomes"],
@@ -158,9 +159,21 @@ describe("Mandate Service v2 frontend adapters", () => {
       title: summary.positionTitle,
       workType: "Remote",
       salaryRange: "R28,000 – R46,000",
+      isSalaryHidden: false,
       skills: ["TypeScript"],
       applicationCount: 4,
     });
+  });
+
+  it("preserves hidden salary flags from job summaries and profiles", async () => {
+    mockGet.mockResolvedValueOnce({ data: { data: [{ ...summary, isSalaryHidden: true }], total: 1, page: 0, size: 10 } });
+    mockGet.mockResolvedValueOnce({ data: { ...summary, isSalaryHidden: true, salaryMin: 28000, salaryMax: 46000, skills: [] } });
+
+    const jobs = await jobsApi.list();
+    const job = await jobsApi.getJobProfile(summary.jobProfileId);
+
+    expect(jobs.jobs[0].isSalaryHidden).toBe(true);
+    expect(job.isSalaryHidden).toBe(true);
   });
 
   it("maps recruiter dashboard data into existing recruiter pipeline cards", async () => {
