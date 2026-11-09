@@ -24,6 +24,7 @@ import ClosedStageModal from '@/modules/recruiter/components/StageModals/ClosedS
 import CandidateHistoryModal from '@/modules/recruiter/components/StageModals/CandidateHistoryModal'
 import { ROUTE_PATHS } from '@/routes/routePaths'
 import { mandateApi } from '@/services/api/mandateApi'
+import { formatPhoneNumberDisplay } from '@/app/phoneNumber'
 import { jobProfileApi } from '@/services/api/recruiterCandidatesApi'
 import type { PipelineStage } from '@/modules/recruiter/types'
 import type { RecruiterPipelineCard, RecruiterPipelineStage } from '@/types/api'
@@ -257,6 +258,7 @@ const CandidatePipelinePage = () => {
   const [rejectedIds, setRejectedIds] = useState<Set<string>>(new Set())
   // Closed job → candidates in any stage other than Inbound cannot be moved (Advance / Move back disabled)
   const [isJobClosed, setIsJobClosed] = useState(false)
+  const [contact, setContact] = useState({ name: '', email: '', phone: '' })
 
   const [pipelineStages, setPipelineStages] = useState<RecruiterPipelineStage[]>([])
   const [loading, setLoading] = useState(true)
@@ -308,7 +310,10 @@ const CandidatePipelinePage = () => {
     if (!cardId) return
 
     const jobClosedPromise = jobProfileApi.getJobProfile(cardId)
-      .then(p => p.status?.toUpperCase() === JobPostStatus.CLOSED)
+      .then(p => {
+        setContact({ name: p.contactName, email: p.contactEmail, phone: p.contactPhone })
+        return p.status?.toUpperCase() === JobPostStatus.CLOSED
+      })
       .catch(() => false)
 
     mandateApi.listPipelines({ jobProfileId: cardId, page: 1, size: 100 })
@@ -476,11 +481,6 @@ const CandidatePipelinePage = () => {
     .find(c => c.jobProfile.positionTitle)
     ?.jobProfile.positionTitle ?? null
 
-  // Recruiter contact (static per image — "Zanele Ngcobo")
-  const RECRUITER_NAME  = 'Zanele Ngcobo'
-  const RECRUITER_EMAIL = 'zanele@buildright.co.za'
-  const RECRUITER_PHONE = '074 822 7669'
-
   return (
     <Box className={styles.shell}>
       <RecruiterSidebar />
@@ -506,21 +506,25 @@ const CandidatePipelinePage = () => {
           )}
         </Box>
 
-        {/* ── Recruiter contact strip ── */}
+        {/* ── Contact person strip (from job profile) ── */}
         <Box className={styles.contactStrip}>
           <Box className={styles.contactBox}>
-            <Typography component="span" className={styles.contactName} style={{ fontSize: '14px' }}>{RECRUITER_NAME}</Typography>
+            <Typography component="span" className={styles.contactName} style={{ fontSize: '14px' }}>{contact.name || '—'}</Typography>
             <Box className={styles.contactDivider} />
-            <Typography
-              component="a"
-              href={`mailto:${RECRUITER_EMAIL}`}
-              className={styles.contactEmail}
-              style={{ fontSize: '16px' }}
-            >
-              {RECRUITER_EMAIL}
-            </Typography>
+            {contact.email ? (
+              <Typography
+                component="a"
+                href={`mailto:${contact.email}`}
+                className={styles.contactEmail}
+                style={{ fontSize: '16px' }}
+              >
+                {contact.email}
+              </Typography>
+            ) : (
+              <Typography component="span" className={styles.contactPhone} style={{ fontSize: '16px' }}>—</Typography>
+            )}
             <Box className={styles.contactDivider} />
-            <Typography component="span" className={styles.contactPhone} style={{ fontSize: '16px' }}>{RECRUITER_PHONE}</Typography>
+            <Typography component="span" className={styles.contactPhone} style={{ fontSize: '16px' }}>{formatPhoneNumberDisplay(contact.phone) || '—'}</Typography>
           </Box>
         </Box>
 

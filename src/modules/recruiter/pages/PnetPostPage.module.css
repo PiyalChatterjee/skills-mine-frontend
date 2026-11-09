@@ -1,259 +1,187 @@
-.page {
+.rowThree {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.note {
+  margin: 0;
+  color: #57606a;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 12px;
+}
+
+/* ── Chip select (Multi-select) ────────────────────────────────────────── */
+.chipBox {
   display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  background: #f3f6fb;
-  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
-}
-
-.main {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: 16px;
-  padding: 22px 24px 32px;
-}
-
-/* ── Top bar ───────────────────────────────────────────────────────────── */
-.topBar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 10.5px;
-  font-weight: 600;
-  color: #1565c0;
-}
-
-.backLink {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: #1565c0;
-  font-family: inherit;
-  font-size: inherit;
-  font-weight: inherit;
-  cursor: pointer;
-}
-
-.crumbSep {
-  color: #9aa3b2;
-  font-weight: 400;
-}
-
-.crumbCurrent {
-  color: #1565c0;
-}
-
-.statusPill {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  height: 20px;
-  padding: 0 9px;
-  border: 1px solid #b7e6dc;
-  border-radius: 999px;
-  background: #e3f6f1;
-  color: #0f766e;
-  font-size: 8.5px;
-  font-weight: 600;
-}
-
-.statusDot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: #0d8c7e;
-}
-
-/* ── Platform card ─────────────────────────────────────────────────────── */
-.platformCard {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 15px 14px;
-  border: 1px solid #e8ebf1;
-  border-radius: 10px;
-  background: #ffffff;
-}
-
-.platformLogo {
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 8px;
-  background: #0d8c7e;
-  color: #ffffff;
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.platformInfo {
-  flex: 1;
-  min-width: 0;
-}
-
-.platformTitleRow {
-  display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
+  min-height: 42px;
+  padding: 6px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #ffffff;
+  box-sizing: border-box;
+  transition: border-color 0.12s;
 }
 
-.platformTitle {
-  margin: 0;
-  color: #101828;
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 16px;
+.chipBox:focus-within {
+  border-color: #2B96D9;
 }
 
-.locationTag {
-  padding: 1px 6px;
-  border-radius: 3px;
-  background: #eef1f7;
-  color: #4a5568;
-  font-size: 8px;
-  font-weight: 500;
-  line-height: 12px;
+.chipList {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
 }
 
-.platformSub {
-  margin: 3px 0 0;
-  color: #6b7380;
-  font-size: 8.5px;
-  line-height: 12px;
-}
-
-.backToJobs {
+.chip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 24px;
-  padding: 0 11px;
-  border: 1px solid #dfe3ea;
-  border-radius: 6px;
-  background: #f8f9fc;
-  color: #1f2733;
-  font-family: inherit;
-  font-size: 9px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #EBF5FB;
+  color: #03478C;
+  border: 1px solid #BCE0F7;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 13px;
   font-weight: 500;
-  white-space: nowrap;
+}
+
+.chipRemove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #03478C;
+  font-size: 14px;
+  line-height: 1;
   cursor: pointer;
+  border-radius: 50%;
+  transition: background 0.1s;
 }
 
-/* ── Form card ─────────────────────────────────────────────────────────── */
-.formCard {
-  padding: 20px 18px 18px;
-  border: 1px solid #e8ebf1;
-  border-radius: 10px;
-  background: #ffffff;
+.chipRemove:hover {
+  background: rgba(3, 71, 140, 0.15);
 }
 
-.formTitle {
-  margin: 0;
-  color: #101828;
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 18px;
-}
-
-.formDivider {
-  height: 1px;
-  margin: 10px 0 14px;
-  background: #f0f2f6;
-}
-
-.rowTop {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 137px;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.rowTwo {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-  margin-bottom: 14px;
-}
-
-.rowLast {
-  margin-bottom: 0;
-}
-
-.centered {
-  text-align: center;
-}
-
-/* ── Contact / keywords card ───────────────────────────────────────────── */
-.contactCard {
-  padding: 16px 18px 14px;
-  border: 1px solid #e8ebf1;
-  border-radius: 10px;
-  background: #ffffff;
-}
-
-.keywordsInput {
-  height: 26px;
-}
-
-.contactRow {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-  margin-top: 16px;
-}
-
-.contactInput {
-  height: 25px;
-}
-
-.dateWrap {
+.chipSelectWrap {
   position: relative;
-  display: block;
+  flex: 1;
+  min-width: 120px;
 }
 
-.dateNative {
-  position: absolute;
-  inset: 0;
+.chipSelect {
   width: 100%;
-  height: 100%;
-  opacity: 0;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 14px;
+  color: #57606a;
   cursor: pointer;
+  padding: 4px 18px 4px 4px;
+  appearance: none;
+  -webkit-appearance: none;
 }
 
-.dateNative::-webkit-calendar-picker-indicator {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  cursor: pointer;
-}
-
-.calendarIcon {
-  position: absolute;
-  top: 50%;
-  right: 9px;
-  transform: translateY(-50%);
-  color: #6b7380;
+.chipSelectWrap::after {
+  content: '';
   pointer-events: none;
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid #57606a;
+}
+
+/* ── Rich Editor ───────────────────────────────────────────────────────── */
+.richEditor {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #ffffff;
+  overflow: hidden;
+  transition: border-color 0.12s;
+}
+
+.richEditor:focus-within {
+  border-color: #2B96D9;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 8px 12px;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.toolbarGroup {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.toolbarGroup + .toolbarGroup {
+  padding-left: 8px;
+  border-left: 1px solid #e5e7eb;
+}
+
+.toolBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #4b5563;
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+}
+
+.toolBtn:hover {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+.richTextarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border: none;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  color: #2A3132;
+  background: transparent;
+  outline: none;
+  resize: vertical;
+}
+
+.richTextarea::placeholder {
+  color: #9ca3af;
 }
 
 @media (max-width: 900px) {
-  .rowTop,
-  .rowTwo,
-  .contactRow {
+  .rowThree {
     grid-template-columns: minmax(0, 1fr);
   }
 }
