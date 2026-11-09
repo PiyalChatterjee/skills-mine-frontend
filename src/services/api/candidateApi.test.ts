@@ -567,7 +567,7 @@ describe('candidateApi', () => {
       expect(result.lastModified).toBe('2024-01-01')
     })
 
-    it('omits empty current employment fields from the payload', async () => {
+    it('sends empty current employment and career history to clear saved values', async () => {
       mockPost.mockResolvedValue({ data: { success: true, data: {} } })
 
       await candidateApi.saveBuildMyCv('candidate-1', {
@@ -578,15 +578,20 @@ describe('candidateApi', () => {
           currentPosition: '',
           noticePeriod: '  ',
         },
+        careerHistory: [],
       })
 
       const requestBody = mockPost.mock.calls.at(-1)?.[1] as {
         personal_details: Record<string, unknown>
+        career_history: unknown[]
       }
 
-      expect(requestBody.personal_details).not.toHaveProperty('current_company')
-      expect(requestBody.personal_details).not.toHaveProperty('current_position')
-      expect(requestBody.personal_details).not.toHaveProperty('notice_period')
+      expect(requestBody.personal_details).toMatchObject({
+        current_company: '',
+        current_position: '',
+        notice_period: '',
+      })
+      expect(requestBody.career_history).toEqual([])
     })
   })
 

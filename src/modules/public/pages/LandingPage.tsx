@@ -293,7 +293,7 @@ const LandingPage = () => {
                 </Box>
                 <Box className={styles.applicationSubmittedText}>
                   <Typography component="h1" className={styles.applicationHeading} sx={{ m: 0 }}>
-                    Application submitted.
+                    Application Submitted.
                   </Typography>
                   {matchScore != null && (
                     <Typography component="p" className={styles.applicationSubtitle} sx={{ m: 0 }}>
@@ -313,7 +313,7 @@ const LandingPage = () => {
                   className={styles.heroCta}
                   onClick={handleKeepCvOnFile}
                 >
-                  Yes please
+                  Yes Please
                 </Button>
                 <Button
                   variant="outlined"
@@ -329,10 +329,10 @@ const LandingPage = () => {
               <Box className={styles.heroTextBlock}>
                 <Typography component="h2" className={styles.heroTitle} sx={{ m: 0 }}>
                   <Box component="span" className={styles.heroTitleStrong}>
-                    Sign up to find your perfect role,
+                    Sign Up To Find Your Perfect Role,
                   </Box>{" "}
                   <Box component="span" className={styles.heroTitleLight}>
-                    matched to you.
+                    Matched To You.
                   </Box>
                 </Typography>
 

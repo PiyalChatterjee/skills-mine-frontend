@@ -1,0 +1,56 @@
+.errorPage {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 32px 20px;
+  background: #f5f8fa;
+  color: #102a43;
+}
+
+.errorContent {
+  width: min(100%, 480px);
+  padding: 32px;
+  border: 1px solid #d5e0e7;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.eyebrow {
+  margin: 0 0 24px;
+  color: #03478c;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.title {
+  margin: 0;
+  font-size: 28px;
+  line-height: 1.25;
+}
+
+.message {
+  margin: 12px 0 24px;
+  color: #526777;
+  line-height: 1.5;
+}
+
+.reloadButton {
+  min-height: 44px;
+  padding: 10px 18px;
+  border: 0;
+  border-radius: 4px;
+  background: #03478c;
+  color: #ffffff;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+}
+
+.reloadButton:hover {
+  background: #02386f;
+}
+
+.reloadButton:focus-visible {
+  outline: 3px solid #32abbf;
+  outline-offset: 3px;
+}

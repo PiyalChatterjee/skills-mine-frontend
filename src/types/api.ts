@@ -228,6 +228,7 @@ export interface Job {
   salaryMin?: number;
   salaryMax?: number;
   salaryRange: string;
+  isSalaryHidden?: boolean;
   description?: string;
   requirements?: string[];
   responsibilities: string[];
@@ -236,6 +237,9 @@ export interface Job {
   applicationCount: number;
   postedDate: string;
   recruiterId?: string;
+  experienceLevel?: string;
+  benefitsText?: string[];
+  fillByDate?: string;
 }
 
 export interface JobsResponse {

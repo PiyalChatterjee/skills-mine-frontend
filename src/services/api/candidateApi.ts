@@ -492,13 +492,13 @@ export const toCvPayload = (payload: SaveBuildMyCvRequest) => {
           race: personalDetails.race,
           gender: personalDetails.gender,
           disability_status: personalDetails.disabilityStatus,
-          ...(personalDetails.currentCompany?.trim()
+          ...(personalDetails.currentCompany !== undefined
             ? { current_company: personalDetails.currentCompany.trim() }
             : {}),
-          ...(personalDetails.currentPosition?.trim()
+          ...(personalDetails.currentPosition !== undefined
             ? { current_position: personalDetails.currentPosition.trim() }
             : {}),
-          ...(personalDetails.noticePeriod?.trim()
+          ...(personalDetails.noticePeriod !== undefined
             ? { notice_period: personalDetails.noticePeriod.trim() }
             : {}),
         }
@@ -506,7 +506,7 @@ export const toCvPayload = (payload: SaveBuildMyCvRequest) => {
     // career_history entries require an array of responsibilities and an explicit
     // is_current flag — "Present" (set by the form when isCurrentRole is checked)
     // maps to is_current: true with no end date.
-    ...(careerHistory?.length ? { career_history: careerHistory } : {}),
+    ...(careerHistory ? { career_history: careerHistory } : {}),
     // Skills are { skill_name } objects, not plain strings.
     skills: payload.skills?.map((skillName) => ({ skill_name: skillName })),
     // Education is a single flat array; level_code distinguishes tertiary from secondary.

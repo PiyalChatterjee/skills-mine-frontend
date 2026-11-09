@@ -26,9 +26,11 @@ const JobDetailsPage = () => {
   const {
     applyButtonLabel,
     applyError,
-    companyName,
+    benefitsText,
     description,
     employmentType,
+    experienceLevel,
+    fillByDate,
     footerSaveLabel,
     handleApply,
     handleApplySuccessClose,
@@ -37,9 +39,8 @@ const JobDetailsPage = () => {
     handleBackToLatest,
     handleToggleSave,
     industry,
-    isApplied,
+    isApplyDisabled,
     isApplySuccessModalOpen,
-    isApplying,
     isAuthenticated,
     isInitialLoading,
     isNotFound,
@@ -54,7 +55,7 @@ const JobDetailsPage = () => {
     workType,
   } = useJobDetailsViewModel();
 
-  usePageTitle(title ? `${title}${companyName ? ` at ${companyName}` : ""}` : "Job Details");
+  usePageTitle(title || "Job Details");
 
   if (isInitialLoading) {
     return (
@@ -146,22 +147,8 @@ const JobDetailsPage = () => {
           Job Description
         </Typography>
 
-        {description ? (
-          <Typography component="p" className={styles.description}>
-            {description}
-          </Typography>
-        ) : null}
-
         <Box className={styles.contentRow}>
           <Box className={styles.metaCard}>
-            <Box className={styles.metaItem}>
-              <Typography component="p" className={styles.metaLabel}>
-                Company Name
-              </Typography>
-              <Typography component="p" className={styles.metaValue}>
-                {companyName}
-              </Typography>
-            </Box>
             <Box className={styles.metaItem}>
               <Typography component="p" className={styles.metaLabel}>
                 Employment Type
@@ -175,17 +162,19 @@ const JobDetailsPage = () => {
                 Experience
               </Typography>
               <Typography component="p" className={styles.metaValue}>
-                3 to 5 years
+                {experienceLevel}
               </Typography>
             </Box>
-            <Box className={styles.metaItem}>
-              <Typography component="p" className={styles.metaLabel}>
-                Salary
-              </Typography>
-              <Typography component="p" className={styles.metaValue}>
-                {salaryRange}
-              </Typography>
-            </Box>
+            {salaryRange && (
+              <Box className={styles.metaItem}>
+                <Typography component="p" className={styles.metaLabel}>
+                  Salary
+                </Typography>
+                <Typography component="p" className={styles.metaValue}>
+                  {salaryRange}
+                </Typography>
+              </Box>
+            )}
             <Box className={styles.metaItem}>
               <Typography component="p" className={styles.metaLabel}>
                 Job published
@@ -205,6 +194,17 @@ const JobDetailsPage = () => {
           </Box>
 
           <Box className={styles.detailsColumn}>
+            {description ? (
+              <Box>
+                <Typography component="h3" className={styles.subSectionTitle}>
+                  Introduction
+                </Typography>
+                <Typography component="p" className={styles.description}>
+                  {description}
+                </Typography>
+              </Box>
+            ) : null}
+
             <Box>
               <Typography component="h3" className={styles.subSectionTitle}>
                 Requirements
@@ -226,6 +226,31 @@ const JobDetailsPage = () => {
                 ))}
               </ul>
             </Box>
+
+            {(salaryRange || (benefitsText && benefitsText.length > 0)) && (
+              <Box>
+                <Typography component="h3" className={styles.subSectionTitle}>
+                  Salary & Benefits
+                </Typography>
+                <ul className={styles.bulletList}>
+                  {salaryRange && <li>{salaryRange} per year</li>}
+                  {benefitsText && benefitsText.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </Box>
+            )}
+
+            {fillByDate && (
+              <Box>
+                <Typography component="h3" className={styles.subSectionTitle}>
+                  Important Things To Note
+                </Typography>
+                <ul className={styles.bulletList}>
+                  <li>Fill by date: {fillByDate}</li>
+                </ul>
+              </Box>
+            )}
 
             <Box>
               <Typography component="h3" className={styles.subSectionTitle}>
@@ -262,7 +287,7 @@ const JobDetailsPage = () => {
           <Button
             variant="contained"
             className={styles.footerApply}
-            disabled={isApplying || isApplied}
+            disabled={isApplyDisabled}
             onClick={() => void handleApply()}
           >
             {applyButtonLabel}

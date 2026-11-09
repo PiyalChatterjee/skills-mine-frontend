@@ -226,7 +226,7 @@ export const buildBuildMyCvRequest = ({
       currentPosition: formValues.personalDetails.currentPosition.trim(),
       noticePeriod: formValues.personalDetails.noticePeriod.trim(),
     },
-    ...(careerHistory.length > 0 ? { careerHistory } : {}),
+    careerHistory,
     skills: formValues.skills.map((skill) => skill.name.trim()).filter(Boolean),
     education: {
       tertiaryEducation: formValues.tertiaryEducation

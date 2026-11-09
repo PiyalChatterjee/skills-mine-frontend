@@ -14,7 +14,7 @@ import {
 } from "@/modules/candidate/hooks/useCandidateQueries";
 import { getGuestApplicationDrafts } from "@/modules/candidate/utils/guestApplicationDraft";
 import { ROUTE_PATHS } from "@/routes/routePaths";
-import { aiApi } from "@/services/api/aiApi";
+import { documentApi } from "@/services/api/documentApi";
 import { useUploadDocumentMutation } from "@/store/api/apiSlice";
 import {
   selectBuildMyCv,
@@ -29,7 +29,6 @@ import {
   useCvBuilderDone,
 } from "./useCvBuilderDone";
 import { useVisitorEmailCheck } from "./useVisitorEmailCheck";
-import { extractResumeText } from "../utils/extractResumeText";
 import { buildResumePrefillData } from "../utils/resumePrefill";
 import { LANGUAGES_LIST, type CvActionCard } from "../types/cvBuilder";
 import type { CvBuilderFormValues } from "@/app/validation.schema";
@@ -43,19 +42,6 @@ const EMPTY_CAREER_HISTORY = {
   tasks: [""],
   projects: [""],
 };
-
-const RESUME_TEXT_EXTRACTION_TIMEOUT_MS = 30_000;
-
-const extractResumeTextWithTimeout = (file: File) =>
-  Promise.race([
-    extractResumeText(file),
-    new Promise<never>((_, reject) => {
-      setTimeout(
-        () => reject(new Error("Resume text extraction timed out.")),
-        RESUME_TEXT_EXTRACTION_TIMEOUT_MS,
-      );
-    }),
-  ]);
 
 const buildPrefillFromSavedCv = (
   buildMyCvData: BuildMyCvState,
@@ -160,7 +146,6 @@ const buildPrefillFromSavedCv = (
 export const useCvBuilderPageViewModel = () => {
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
-  const [isReadingResume, setIsReadingResume] = useState(false);
   const [isParsingResume, setIsParsingResume] = useState(false);
   const [visitorId, setVisitorId] = useState<string | undefined>();
   const [uploadDocument, { isLoading: isUploadingResume }] =
@@ -253,7 +238,7 @@ export const useCvBuilderPageViewModel = () => {
     undefined,
     isGuestApplication,
   );
-  const hasFormChanges = form.formState.isDirty;
+  const hasFormChanges = form.formState.isDirty || reviewSource === "upload";
 
   const validateForm = () => validateAndFocusForm(form);
 
@@ -274,39 +259,32 @@ export const useCvBuilderPageViewModel = () => {
   const handleUploadDone = async () => {
     if (!selectedUploadFile) return;
     setUploadError(null);
-    setIsReadingResume(true);
-    let hasStartedParsing = false;
+    setIsParsingResume(true);
 
     try {
-      const extractedText = await extractResumeTextWithTimeout(selectedUploadFile);
-      setIsReadingResume(false);
-      setIsParsingResume(true);
-      hasStartedParsing = true;
-      const parsedResume = await aiApi.parseResume({
-        extracted_text: extractedText,
-        ...(isGuestApplication
-          ? { owner_type: "VISITOR" as const }
-          : { owner_type: "CANDIDATE" as const }),
-      });
-      setVisitorId(parsedResume.visitor_id);
-          setIsParsingResume(false);
-      const prefillData = buildResumePrefillData(parsedResume, extractedText);
-      const mergedPrefillData = {
-        ...cvBuilderPrefillData,
-        ...prefillData,
-        personalDetails: {
-          ...cvBuilderPrefillData?.personalDetails,
-          ...prefillData.personalDetails,
+      const parsedResume = await documentApi.uploadAndParseResume(
+        selectedUploadFile,
+        selectedUploadFile.name,
+        {
+          ownerType: isGuestApplication ? "VISITOR" : "CANDIDATE",
+          ownerId: isGuestApplication ? undefined : candidateId || undefined,
+          title: selectedUploadFile.name,
         },
-      };
+      );
+      setVisitorId(parsedResume.visitor_id);
+      setIsParsingResume(false);
 
-      if (isGuestApplication && mergedPrefillData.personalDetails?.email) {
-        void checkEmail(mergedPrefillData.personalDetails.email);
+      // Extract plain text from the parsed resume for fallback text skill extraction
+      const plainText = JSON.stringify(parsedResume).toLowerCase();
+      const prefillData = buildResumePrefillData(parsedResume, plainText);
+
+      if (isGuestApplication && prefillData.personalDetails?.email) {
+        void checkEmail(prefillData.personalDetails.email);
       }
 
       if (isGuestApplication) {
         setUploadModalOpen(false);
-        openReviewFlowBlank(mergedPrefillData);
+        openReviewFlowBlank(prefillData);
         return;
       }
 
@@ -323,16 +301,11 @@ export const useCvBuilderPageViewModel = () => {
       }).unwrap();
 
       setUploadModalOpen(false);
-      openReviewFlowBlank(mergedPrefillData);
+      openReviewFlowBlank(prefillData);
       return;
     } catch {
-      setUploadError(
-        hasStartedParsing
-          ? "We could not process your CV. Please try again."
-          : "We could not read your CV. Please use a text-based PDF, DOC, or DOCX file and try again.",
-      );
+      setUploadError("We could not process your CV. Please try again.");
     } finally {
-      setIsReadingResume(false);
       setIsParsingResume(false);
     }
   };
@@ -395,7 +368,6 @@ export const useCvBuilderPageViewModel = () => {
     heroHeading,
     isGuestApplication,
     isParsingResume,
-    isReadingResume,
     isSavingCandidateProfile,
     isUploadingResume,
     openUploadPicker,

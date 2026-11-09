@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App'
 import { AppProviders } from './app/AppProviders'
+import { AppErrorBoundary } from './app/AppErrorBoundary'
 
 window.addEventListener('vite:preloadError', (event) => {
   event.preventDefault()
@@ -11,8 +12,10 @@ window.addEventListener('vite:preloadError', (event) => {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <AppProviders>
-      <App />
-    </AppProviders>
+    <AppErrorBoundary>
+      <AppProviders>
+        <App />
+      </AppProviders>
+    </AppErrorBoundary>
   </StrictMode>,
 )

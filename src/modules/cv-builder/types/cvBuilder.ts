@@ -60,7 +60,7 @@ export const DISABILITY_OPTIONS = [
   'Hearing Impairment',
   'Intellectual Disability',
   'Mental Health Condition',
-  'Other',
+  'Other Disability',
 ]
 export const LOCATION_OPTIONS = ['Johannesburg', 'Cape Town', 'Durban', 'Pretoria', 'Remote']
 export const NOTICE_PERIOD_OPTIONS = Object.keys(AVAILABILITY_LABELS)

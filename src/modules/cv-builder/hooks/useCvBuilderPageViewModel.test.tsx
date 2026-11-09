@@ -40,14 +40,10 @@ vi.mock("@/app/auth/AuthContext", () => ({
   useAuth: mocks.useAuth,
 }));
 
-vi.mock("@/services/api/aiApi", () => ({
-  aiApi: {
-    parseResume: mocks.parseResume,
+vi.mock("@/services/api/documentApi", () => ({
+  documentApi: {
+    uploadAndParseResume: mocks.parseResume,
   },
-}));
-
-vi.mock("../utils/extractResumeText", () => ({
-  extractResumeText: vi.fn().mockResolvedValue("cv"),
 }));
 
 vi.mock("@/app/formatEnumLabel", () => ({
@@ -401,7 +397,7 @@ describe("useCvBuilderPageViewModel", () => {
     expect(mocks.navigate).toHaveBeenCalledWith("/jobs/job-1");
   });
 
-  it("uploads a selected resume for authenticated candidates before opening blank review", async () => {
+  it("uploads a resume and opens review with only the parsed CV data", async () => {
     mocks.parseResume.mockResolvedValue({
       personal_details: {
         first_name: "Ben",
@@ -421,22 +417,36 @@ describe("useCvBuilderPageViewModel", () => {
       fileName: "jane-cv.pdf",
       documentType: "RESUME",
     });
-    expect(mocks.parseResume).toHaveBeenCalledWith({
-      extracted_text: "cv",
-      owner_type: "CANDIDATE",
-    });
-    expect(mocks.openReviewFlowBlank).toHaveBeenCalled();
-    expect(mocks.openReviewFlowBlank).toHaveBeenCalledWith(
-      expect.objectContaining({
-        personalDetails: expect.objectContaining({
-          fullName: "Ben Hur",
-          currentCompany: "Acme",
-          currentPosition: "Engineer",
-          noticePeriod: "1 month",
-        }),
-      }),
+    expect(mocks.parseResume).toHaveBeenCalledWith(
+      selectedUploadFile,
+      "jane-cv.pdf",
+      {
+        ownerType: "CANDIDATE",
+        ownerId: "c-1",
+        title: "jane-cv.pdf",
+      },
     );
+    expect(mocks.openReviewFlowBlank).toHaveBeenCalled();
+    expect(mocks.openReviewFlowBlank).toHaveBeenCalledWith({
+      personalDetails: { fullName: "Ben Hur" },
+      skills: [],
+      languages: [],
+      otherLanguage: "",
+    });
     expect(result.current.uploadModalOpen).toBe(false);
+  });
+
+  it("marks an uploaded CV for saving even without further edits", () => {
+    mocks.useCvBuilder.mockReturnValue({
+      ...mocks.useCvBuilder(),
+      reviewSource: "upload",
+    });
+
+    renderHook(() => useCvBuilderPageViewModel());
+
+    expect(mocks.useCvBuilderDone).toHaveBeenCalledWith(
+      expect.objectContaining({ hasFormChanges: true }),
+    );
   });
 
   it("reports when a new candidate identity is not ready for upload", async () => {
@@ -505,10 +515,15 @@ describe("useCvBuilderPageViewModel", () => {
     });
 
     expect(mocks.uploadDocument).not.toHaveBeenCalled();
-    expect(mocks.parseResume).toHaveBeenCalledWith({
-      extracted_text: "cv",
-      owner_type: "VISITOR",
-    });
+    expect(mocks.parseResume).toHaveBeenCalledWith(
+      selectedUploadFile,
+      "jane-cv.pdf",
+      {
+        ownerType: "VISITOR",
+        ownerId: undefined,
+        title: "jane-cv.pdf",
+      },
+    );
     expect(mocks.openReviewFlowBlank).toHaveBeenCalled();
   });
 });

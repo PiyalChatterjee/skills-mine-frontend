@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ApplicationStatusLabel } from "@/enums/statuses";
+import { ApplicationStatusLabel, JobPostStatus, JobPostStatusLabel } from "@/enums/statuses";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@/app/auth/AuthContext";
 import { extractErrorMessage } from "@/app/errorUtils";
@@ -135,6 +135,8 @@ export const useJobDetailsViewModel = () => {
   const isApplied = effectiveJob
     ? hasJustApplied || isJobApplied(effectiveJob.jobId)
     : false;
+  const isClosed = displayJob?.status?.trim().toUpperCase() === JobPostStatus.CLOSED;
+  const isApplyDisabled = isApplying || isApplied || isClosed || isJobProfileLoading;
 
   // Best-effort view tracking, once per job per page load.
   const hasTrackedViewRef = useRef<string | null>(null);
@@ -147,7 +149,7 @@ export const useJobDetailsViewModel = () => {
   }, [jobProfileId]);
 
   const handleApply = useCallback(async () => {
-    if (!effectiveJob || isApplied || isApplying) return;
+    if (!effectiveJob || isApplyDisabled) return;
     setApplyError(null);
 
     if (!isAuthenticated) {
@@ -170,7 +172,7 @@ export const useJobDetailsViewModel = () => {
     } catch (error) {
       setApplyError(extractErrorMessage(error, "Unable to submit your application."));
     }
-  }, [applyToJob, effectiveJob, isApplied, isApplying, isAuthenticated, navigate, user?.role]);
+  }, [applyToJob, effectiveJob, isApplyDisabled, isAuthenticated, navigate, user?.role]);
 
   // Auto-submits the pending application once, after login redirected here with autoApply state.
   const hasAutoAppliedRef = useRef(false);
@@ -179,15 +181,14 @@ export const useJobDetailsViewModel = () => {
       !locationState?.autoApply ||
       hasAutoAppliedRef.current ||
       !effectiveJob ||
-      isApplied ||
-      isApplying
+      isApplyDisabled
     ) {
       return;
     }
 
     hasAutoAppliedRef.current = true;
     void handleApply();
-  }, [effectiveJob, handleApply, isApplied, isApplying, locationState?.autoApply]);
+  }, [effectiveJob, handleApply, isApplyDisabled, locationState?.autoApply]);
 
   const handleToggleSave = () => {
     if (!effectiveJob) return;
@@ -201,6 +202,7 @@ export const useJobDetailsViewModel = () => {
   const locationName = getJobCity(displayJob?.location, "Johannesburg");
   const workType = formatEnumLabel(toDisplayTitle(displayJob?.workType, ""));
   const employmentType = formatEnumLabel(toDisplayTitle(displayJob?.employmentType, ""));
+  const experienceLevel = toDisplayTitle(displayJob?.experienceLevel, "");
   const requirements =
     displayJob?.requirements && displayJob.requirements.length > 0
       ? displayJob.requirements
@@ -209,18 +211,25 @@ export const useJobDetailsViewModel = () => {
     displayJob?.responsibilities && displayJob.responsibilities.length > 0
       ? displayJob.responsibilities
       : [];
+  const benefitsText =
+    displayJob?.benefitsText && displayJob.benefitsText.length > 0
+      ? displayJob.benefitsText
+      : [];
   const skills =
     displayJob?.skills && displayJob.skills.length > 0
       ? displayJob.skills.slice(0, 5)
       : fallbackSkills;
 
   return {
-    applyButtonLabel: isApplying ? "Applying..." : isApplied ? ApplicationStatusLabel.APPLIED : "Apply now",
+    applyButtonLabel: isApplying ? "Applying..." : isApplied ? ApplicationStatusLabel.APPLIED : isClosed ? JobPostStatusLabel.CLOSED : "Apply",
     applyError,
     backRoute,
+    benefitsText,
     companyName,
     description: displayJob?.description ?? "",
     employmentType,
+    experienceLevel,
+    fillByDate: displayJob?.fillByDate ?? "",
     handleApply,
     handleBack: () => navigate(backRoute),
     handleBackToLatest: () => navigate(ROUTE_PATHS.latestJobs),
@@ -229,6 +238,7 @@ export const useJobDetailsViewModel = () => {
     handleToggleSave,
     industry,
     isApplied,
+    isApplyDisabled,
     isApplySuccessModalOpen,
     isApplying,
     isAuthenticated,
@@ -241,7 +251,9 @@ export const useJobDetailsViewModel = () => {
     postedDate: formatPostedDate(displayJob?.postedDate),
     requirements,
     responsibilities,
-    salaryRange: displayJob?.salaryRange || "Negotiable",
+    salaryRange: displayJob?.isSalaryHidden || isJobProfileLoading
+      ? ""
+      : displayJob?.salaryRange || "Negotiable",
     saveAriaLabel: isSaved ? `Unsave ${title}` : `Save ${title}`,
     footerSaveLabel: isSaved ? "Saved" : "Save",
     skills,

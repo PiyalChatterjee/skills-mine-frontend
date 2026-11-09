@@ -21,6 +21,7 @@ type JobProfileSummary = {
   fillByDate: string;
   status: string;
   publishedAt: string | null;
+  isSalaryHidden?: boolean;
 };
 
 type JobProfilePage = {
@@ -36,6 +37,7 @@ type JobProfileSkill = {
 
 type JobProfileDetail = JobProfileSummary & {
   workType: string | null;
+  experienceLevel?: string;
   salaryMin: number | null;
   salaryMax: number | null;
   jobDescription: string | null;
@@ -43,6 +45,8 @@ type JobProfileDetail = JobProfileSummary & {
   responsibilities: string[];
   skills: JobProfileSkill[];
   applicantCount: number | null;
+  benefitsText?: string[];
+  fillByDate?: string;
 };
 
 export type JobsSearchFilters = {
@@ -62,6 +66,7 @@ const toJob = (job: JobProfileSummary): Job => ({
   employmentType: formatEnumLabel(job.employmentType),
   workType: "",
   salaryRange: "",
+  ...(typeof job.isSalaryHidden === "boolean" ? { isSalaryHidden: job.isSalaryHidden } : {}),
   description: job.jobDescriptionSnippet ?? "",
   responsibilities: [],
   status: job.status,
@@ -132,6 +137,7 @@ export const jobsApi = {
       workType: formatEnumLabel(data.workType),
       salaryMin: data.salaryMin ?? undefined,
       salaryMax: data.salaryMax ?? undefined,
+      ...(typeof data.isSalaryHidden === "boolean" ? { isSalaryHidden: data.isSalaryHidden } : {}),
       salaryRange:
         data.salaryMin && data.salaryMax
           ? `R${Number(data.salaryMin).toLocaleString()} – R${Number(data.salaryMax).toLocaleString()}`
@@ -146,6 +152,9 @@ export const jobsApi = {
       applicationCount: data.applicantCount ?? 0,
       postedDate: data.publishedAt ?? "",
       recruiterId: undefined,
+      experienceLevel: data.experienceLevel ?? undefined,
+      benefitsText: data.benefitsText ?? undefined,
+      fillByDate: data.fillByDate ?? undefined,
     };
   },
 
