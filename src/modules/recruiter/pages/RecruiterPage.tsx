@@ -497,7 +497,7 @@ const RecruiterPage = () => {
               Hi{" "}
               {recruiterId
                 ? (employeeQuery.data?.recruiter.fullName.split(" ")[0] ?? "")
-                : "Michael"}
+                : "Team"}
             </Typography>
             <Typography component="p" className={styles.welcomeSubtitle}>
               Here's a snapshot of what you need to do this week
