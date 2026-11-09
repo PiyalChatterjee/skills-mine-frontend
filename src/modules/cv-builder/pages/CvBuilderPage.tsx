@@ -29,7 +29,6 @@ const CvBuilderPage = () => {
     heroHeading,
     isGuestApplication,
     isParsingResume,
-    isReadingResume,
     isSavingCandidateProfile,
     isUploadingResume,
     setUploadModalOpen,
@@ -115,7 +114,6 @@ const CvBuilderPage = () => {
             onClose={() => setUploadModalOpen(false)}
             onDone={handleUploadDone}
             isUploading={isUploadingResume}
-            isReading={isReadingResume}
             isParsing={isParsingResume}
             submitError={uploadError}
           />

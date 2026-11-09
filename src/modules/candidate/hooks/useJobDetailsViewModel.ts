@@ -221,7 +221,7 @@ export const useJobDetailsViewModel = () => {
       : fallbackSkills;
 
   return {
-    applyButtonLabel: isApplying ? "Applying..." : isApplied ? ApplicationStatusLabel.APPLIED : isClosed ? JobPostStatusLabel.CLOSED : "Apply now",
+    applyButtonLabel: isApplying ? "Applying..." : isApplied ? ApplicationStatusLabel.APPLIED : isClosed ? JobPostStatusLabel.CLOSED : "Apply",
     applyError,
     backRoute,
     benefitsText,

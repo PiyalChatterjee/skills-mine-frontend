@@ -134,7 +134,7 @@ describe("useJobDetailsViewModel", () => {
       isApplied: false,
       isApplyDisabled: false,
       isApplySuccessModalOpen: false,
-      applyButtonLabel: "Apply now",
+      applyButtonLabel: "Apply",
       footerSaveLabel: "Saved",
       saveAriaLabel: "Unsave Senior Frontend Engineer",
     });

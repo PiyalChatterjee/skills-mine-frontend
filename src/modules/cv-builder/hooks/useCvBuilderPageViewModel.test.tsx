@@ -40,14 +40,10 @@ vi.mock("@/app/auth/AuthContext", () => ({
   useAuth: mocks.useAuth,
 }));
 
-vi.mock("@/services/api/aiApi", () => ({
-  aiApi: {
-    parseResume: mocks.parseResume,
+vi.mock("@/services/api/documentApi", () => ({
+  documentApi: {
+    uploadAndParseResume: mocks.parseResume,
   },
-}));
-
-vi.mock("../utils/extractResumeText", () => ({
-  extractResumeText: vi.fn().mockResolvedValue("cv"),
 }));
 
 vi.mock("@/app/formatEnumLabel", () => ({
@@ -421,10 +417,15 @@ describe("useCvBuilderPageViewModel", () => {
       fileName: "jane-cv.pdf",
       documentType: "RESUME",
     });
-    expect(mocks.parseResume).toHaveBeenCalledWith({
-      extracted_text: "cv",
-      owner_type: "CANDIDATE",
-    });
+    expect(mocks.parseResume).toHaveBeenCalledWith(
+      selectedUploadFile,
+      "jane-cv.pdf",
+      {
+        ownerType: "CANDIDATE",
+        ownerId: "c-1",
+        title: "jane-cv.pdf",
+      },
+    );
     expect(mocks.openReviewFlowBlank).toHaveBeenCalled();
     expect(mocks.openReviewFlowBlank).toHaveBeenCalledWith({
       personalDetails: { fullName: "Ben Hur" },
@@ -514,10 +515,15 @@ describe("useCvBuilderPageViewModel", () => {
     });
 
     expect(mocks.uploadDocument).not.toHaveBeenCalled();
-    expect(mocks.parseResume).toHaveBeenCalledWith({
-      extracted_text: "cv",
-      owner_type: "VISITOR",
-    });
+    expect(mocks.parseResume).toHaveBeenCalledWith(
+      selectedUploadFile,
+      "jane-cv.pdf",
+      {
+        ownerType: "VISITOR",
+        ownerId: undefined,
+        title: "jane-cv.pdf",
+      },
+    );
     expect(mocks.openReviewFlowBlank).toHaveBeenCalled();
   });
 });
