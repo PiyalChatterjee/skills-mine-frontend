@@ -21,7 +21,8 @@ const snapshot: ExcoDashboard = {
     { industryName: "Education", placementCount: 12 },
   ],
   riskIndicators: { clientChurnRate: 4.1, atRiskClientCount: 2 },
-  activeClientsCount: 42, placementVelocity: 3.6, avgTimeToFillDays: 21, offerAcceptanceRate: 89,
+  activeClientsCount: 42, avgPostedJobsPerActiveClientPerWeek: 1.33,
+  placementVelocity: 3.6, avgTimeToFillDays: 21, offerAcceptanceRate: 89,
 };
 
 function renderPage() {
@@ -51,10 +52,9 @@ describe("live EXCO dashboard", () => {
     expect(within(industries).getByText("51")).toBeInTheDocument();
     expect(screen.getByText("4.1%")).toBeInTheDocument();
     expect(screen.getByText("2 at risk")).toBeInTheDocument();
-    for (const value of ["42", "3.6", "21", "89%", "per week", "days"]) {
+    for (const value of ["42", "1.33 reqs/week avg", "3.6", "21", "89%", "per week", "days"]) {
       expect(screen.getByText(value)).toBeInTheDocument();
     }
-    expect(screen.queryByText("5.2 reqs/week avg")).not.toBeInTheDocument();
     expect(excoApi.getDashboard).toHaveBeenCalledExactlyOnceWith();
   });
 
@@ -64,13 +64,15 @@ describe("live EXCO dashboard", () => {
       strategicKpis: { placementsYtd: 0, avgContractValue: 0, revenueEarnedYtd: 0, revenueEarnedMtd: 0 },
       topHiringIndustries: [],
       riskIndicators: { clientChurnRate: 0, atRiskClientCount: 0 },
-      activeClientsCount: 0, placementVelocity: 0, avgTimeToFillDays: 0, offerAcceptanceRate: 0,
+      activeClientsCount: 0, avgPostedJobsPerActiveClientPerWeek: 0,
+      placementVelocity: 0, avgTimeToFillDays: 0, offerAcceptanceRate: 0,
     });
     renderPage();
     expect(await screen.findByText("No hiring industry data for this snapshot.")).toBeInTheDocument();
     expect(screen.getAllByText("R0")).toHaveLength(3);
     expect(screen.getAllByText("0")).toHaveLength(4);
     expect(screen.getAllByText("0%")).toHaveLength(2);
+    expect(screen.getByText("0 reqs/week avg")).toBeInTheDocument();
     expect(screen.getByText("0 at risk")).toBeInTheDocument();
     expect(screen.queryByText("Not available")).not.toBeInTheDocument();
   });
@@ -80,7 +82,8 @@ describe("live EXCO dashboard", () => {
       ...snapshot,
       strategicKpis: { placementsYtd: 83, avgContractValue: null, revenueEarnedYtd: null, revenueEarnedMtd: null },
       riskIndicators: { clientChurnRate: null, atRiskClientCount: null },
-      activeClientsCount: null, placementVelocity: null, avgTimeToFillDays: null, offerAcceptanceRate: null,
+      activeClientsCount: null, avgPostedJobsPerActiveClientPerWeek: null,
+      placementVelocity: null, avgTimeToFillDays: null, offerAcceptanceRate: null,
     });
     renderPage();
     expect(await screen.findAllByText("Not available")).toHaveLength(8);
@@ -88,6 +91,7 @@ describe("live EXCO dashboard", () => {
     expect(screen.queryByText("per week")).not.toBeInTheDocument();
     expect(screen.queryByText("days")).not.toBeInTheDocument();
     expect(screen.queryByText("0%")).not.toBeInTheDocument();
+    expect(screen.queryByText(/reqs\/week avg/)).not.toBeInTheDocument();
   });
 
   it("shows loading without sample metrics until the request resolves", () => {
