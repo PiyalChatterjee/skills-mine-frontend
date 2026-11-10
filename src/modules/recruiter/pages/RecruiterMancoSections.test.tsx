@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, useLocation } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { MancoRecruiterDetail } from "@/services/api/mancoApi";
 import { MancoAttentionSection, MancoRecruiterSection } from "./RecruiterMancoSections";
@@ -54,6 +54,11 @@ const recruiterDetail: MancoRecruiterDetail = {
     totalPipeline: 7,
   },
   performanceSummary: { averageCandidatesPerRole: null },
+};
+
+const LocationProbe = () => {
+  const location = useLocation();
+  return <div data-testid="location">{location.pathname}</div>;
 };
 
 describe("MancoAttentionSection API alert text", () => {
@@ -159,5 +164,21 @@ describe("MancoRecruiterSection pipeline distribution", () => {
     expect(
       screen.getByRole("meter", { name: "Rejected: 1" }),
     ).toHaveTextContent("Rejected");
+  });
+
+  it("routes View Pipeline to the universal recruiter dashboard", () => {
+    render(
+      <MemoryRouter>
+        <MancoRecruiterSection />
+        <LocationProbe />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "View Details" }));
+    fireEvent.click(screen.getByRole("button", { name: "View Pipeline" }));
+
+    expect(screen.getByTestId("location")).toHaveTextContent(
+      "/recruiter/dashboard",
+    );
   });
 });
