@@ -1,7 +1,7 @@
 import { Box } from "@mui/material";
 import { useEffect, useState, type MouseEvent } from "react";
 import { useSelector } from "react-redux";
-import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/app/auth/AuthContext";
 import { isJwtExpired } from "@/app/auth/jwt";
 import { completeLogoutNavigation } from "@/app/auth/logoutNavigation";
@@ -15,6 +15,7 @@ import { OpportunitySearchModal } from "@/modules/candidate/components/Opportuni
 import { CandidateSignUpDrawer } from "@/modules/public/components/CandidateSignUpDrawer";
 import { RecruiterSignUpDrawer } from "@/modules/public/components/RecruiterSignUpDrawer";
 import { ROUTE_PATHS } from "@/routes/routePaths";
+import { roleToDefaultRoute } from "@/routes/roleDefaultRoutes";
 import type { RootState } from "@/store";
 import { PublicFooter } from "./components/PublicFooter";
 import { PublicHeader } from "./components/PublicHeader";
@@ -146,6 +147,10 @@ export const PublicLayout = () => {
   const resolvedNavItems = shouldUseAuthHeaderVariant
     ? resetPasswordCandidateNavItems
     : navItems;
+
+  if (isLandingPage && canAccessProtectedRoutes && user) {
+    return <Navigate to={roleToDefaultRoute[user.role]} replace />;
+  }
 
   return (
     <Box className={styles.layoutRoot}>
