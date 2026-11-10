@@ -148,8 +148,21 @@ export const PublicLayout = () => {
     ? resetPasswordCandidateNavItems
     : navItems;
 
-  if (isLandingPage && canAccessProtectedRoutes && user) {
-    return <Navigate to={roleToDefaultRoute[user.role]} replace />;
+  if ((isLandingPage || isLoginPage) && canAccessProtectedRoutes && user) {
+    let destination = roleToDefaultRoute[user.role];
+
+    if (isLoginPage && user.role === "JOB_SEEKER") {
+      const searchParams = new URLSearchParams(location.search);
+      const pendingJobId = searchParams.get("job");
+
+      if (searchParams.get("postSignup") === "candidate") {
+        destination = ROUTE_PATHS.profileCreation;
+      } else if (pendingJobId) {
+        destination = `${ROUTE_PATHS.candidateDashboard}?job=${encodeURIComponent(pendingJobId)}`;
+      }
+    }
+
+    return <Navigate to={destination} replace />;
   }
 
   return (
