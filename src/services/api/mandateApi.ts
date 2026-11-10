@@ -48,6 +48,7 @@ export type CreateMandateRequest = {
     minimum: number;
     maximum: number;
   };
+  isSalaryHidden?: boolean;
   jobDescription: string;
   requirements: string;
   responsibilities: string;
@@ -77,6 +78,7 @@ type CreateJobPostBody = {
   priority: string;
   salaryMin: number;
   salaryMax: number;
+  isSalaryHidden?: boolean;
   currencyCode: string;
   clientRate: number | null;
   jobDescription: string | null;
@@ -120,6 +122,7 @@ type JobProfile = JobProfileSummary & {
   priority: string;
   salaryMin: number | null;
   salaryMax: number | null;
+  isSalaryHidden?: boolean;
   currencyCode: string;
   clientRate: number | null;
   jobDescription: string | null;
@@ -173,6 +176,7 @@ const toJobPost = (job: JobProfileSummary | JobProfile): JobPost => {
       : "",
     salaryMin: detail.salaryMin ?? 0,
     salaryMax: detail.salaryMax ?? 0,
+    isSalaryHidden: detail.isSalaryHidden ?? false,
     location: job.locationText,
     workType: formatEnumLabel(detail.workType),
     employmentType: formatEnumLabel(job.employmentType),
@@ -251,6 +255,8 @@ const toPatchBody = async (
     patch.priority = normalizePriority(current.priority || "NORMAL");
   if (current.salary.minimum !== original.salary.minimum) patch.salaryMin = current.salary.minimum;
   if (current.salary.maximum !== original.salary.maximum) patch.salaryMax = current.salary.maximum;
+  if (Boolean(current.isSalaryHidden) !== Boolean(original.isSalaryHidden))
+    patch.isSalaryHidden = Boolean(current.isSalaryHidden);
   if ((current.jobDescription ?? "") !== (original.jobDescription ?? ""))
     patch.jobDescription = current.jobDescription || null;
 
@@ -316,6 +322,7 @@ const toJobWriteRequest = async (payload: CreateMandateRequest): Promise<CreateJ
     priority: normalizePriority(payload.priority || "NORMAL"),
     salaryMin: payload.salary.minimum,
     salaryMax: payload.salary.maximum,
+    isSalaryHidden: Boolean(payload.isSalaryHidden),
     currencyCode: "ZAR",
     clientRate: payload.clientRate ? Number(payload.clientRate) : null,
     jobDescription: payload.jobDescription || null,

@@ -32,6 +32,7 @@ const NewMandatePage = () => {
         minimum: Number(values.salaryMin),
         maximum: Number(values.salaryMax),
       },
+      isSalaryHidden: values.isSalaryHidden,
       jobDescription: values.jobDescription,
       requirements: values.requirements,
       responsibilities: values.responsibilities,

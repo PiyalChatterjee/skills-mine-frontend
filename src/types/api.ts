@@ -1072,6 +1072,7 @@ export interface JobPost {
   salaryBand: string
   salaryMin: number
   salaryMax: number
+  isSalaryHidden?: boolean
   location: string
   workType: string
   employmentType: string

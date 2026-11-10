@@ -248,8 +248,15 @@ const MandateDetailPage = () => {
                 </Box>
                 <Box className={`${styles.statCard} ${styles.statCardTransformation}`}>
                   <Box>
-                    <Typography component="p" className={styles.statValue}>
-                      {jobProfile.daysLeftToFill ?? '—'}
+                    <Typography
+                      component="p"
+                      className={`${styles.statValue} ${jobProfile.daysLeftToFill != null && jobProfile.daysLeftToFill < 0 ? styles.statValueOverdue : ''}`}
+                    >
+                      {jobProfile.daysLeftToFill == null
+                        ? '—'
+                        : jobProfile.daysLeftToFill < 0
+                        ? 'Overdue'
+                        : jobProfile.daysLeftToFill}
                     </Typography>
                     <Typography component="p" className={styles.statLabel}>Days left to fill the role</Typography>
                   </Box>
