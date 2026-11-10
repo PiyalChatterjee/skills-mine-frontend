@@ -14,6 +14,7 @@ export interface MandateFormValues {
   priority: string
   salaryMin: number | ''
   salaryMax: number | ''
+  isSalaryHidden: boolean
   jobDescription: string
   requirements: string
   responsibilities: string
