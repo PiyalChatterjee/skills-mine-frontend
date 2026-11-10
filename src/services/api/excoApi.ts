@@ -18,6 +18,7 @@ export type ExcoDashboard = {
     atRiskClientCount: number | null;
   };
   activeClientsCount: number | null;
+  avgPostedJobsPerActiveClientPerWeek: number | null;
   placementVelocity: number | null;
   avgTimeToFillDays: number | null;
   offerAcceptanceRate: number | null;
