@@ -51,10 +51,23 @@ export const SalarySection = ({ control }: Props) => {
           {errors.salaryMax && <p className={styles.errorText}>{errors.salaryMax.message}</p>}
         </div>
       </div>
-      <label className={styles.checkboxLabel}>
-        <input type="checkbox" className={styles.checkbox} />
-        Hide salary range from candidate
-      </label>
+      <Controller
+        name="isSalaryHidden"
+        control={control}
+        render={({ field }) => (
+          <label className={styles.checkboxLabel}>
+            <input
+              type="checkbox"
+              className={styles.checkbox}
+              checked={field.value}
+              onChange={e => field.onChange(e.target.checked)}
+              onBlur={field.onBlur}
+              ref={field.ref}
+            />
+            Hide salary range from candidate
+          </label>
+        )}
+      />
     </section>
   )
 }
