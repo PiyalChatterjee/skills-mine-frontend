@@ -146,6 +146,10 @@ describe("MancoRecruiterSection pipeline distribution", () => {
       </MemoryRouter>,
     );
 
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Conversion rates in employee cards reflect the current month. Conversion rates in the attention alerts above reflect last month.",
+    );
+
     fireEvent.click(
       screen.getByRole("button", {
         name: "Pipeline distribution for Swastika Basu",

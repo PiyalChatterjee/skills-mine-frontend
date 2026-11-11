@@ -5,6 +5,7 @@ import {
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
+  Alert,
   Box,
   ButtonBase,
   Dialog,
@@ -226,6 +227,10 @@ export const MancoRecruiterSection = () => {
 
   return (
     <>
+      <Alert severity="info">
+        Conversion rates in employee cards reflect the current month. Conversion
+        rates in the attention alerts above reflect last month.
+      </Alert>
       <Box className={styles.searchSection}>
         <Typography component="h2" className={styles.searchSectionTitle}>
           Search Employees
