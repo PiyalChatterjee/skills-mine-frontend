@@ -173,7 +173,7 @@ export const MancoAttentionSection = () => {
 export const MancoCrmCard = () => (
   <Box className={styles.crmCard}>
     <Typography component="p" className={styles.crmCardLabel}>
-      CRM Integration
+      CRM Integration (Coming soon)
     </Typography>
     <Box className={styles.crmCardIcon}>
       <img src={groupsIcon} alt="" aria-hidden="true" />
