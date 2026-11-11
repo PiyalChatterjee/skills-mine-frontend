@@ -170,16 +170,24 @@ export const MancoAttentionSection = () => {
   );
 };
 
-export const MancoCrmCard = () => (
-  <Box className={styles.crmCard}>
-    <Typography component="p" className={styles.crmCardLabel}>
-      CRM Integration (Coming soon)
-    </Typography>
-    <Box className={styles.crmCardIcon}>
-      <img src={groupsIcon} alt="" aria-hidden="true" />
-    </Box>
-  </Box>
-);
+export const MancoCrmCard = () => {
+  const navigate = useNavigate();
+
+  return (
+    <ButtonBase
+      className={styles.crmCard}
+      onClick={() => navigate(ROUTE_PATHS.recruiterCrm)}
+      disableRipple
+    >
+      <Typography component="span" className={styles.crmCardLabel}>
+        CRM Integration
+      </Typography>
+      <Box component="span" className={styles.crmCardIcon}>
+        <img src={groupsIcon} alt="" aria-hidden="true" />
+      </Box>
+    </ButtonBase>
+  );
+};
 
 export const MancoRecruiterSection = () => {
   const navigate = useNavigate();

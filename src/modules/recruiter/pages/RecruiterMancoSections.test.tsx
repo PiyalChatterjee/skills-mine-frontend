@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter, useLocation } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { MancoRecruiterDetail } from "@/services/api/mancoApi";
-import { MancoAttentionSection, MancoRecruiterSection } from "./RecruiterMancoSections";
+import { MancoAttentionSection, MancoCrmCard, MancoRecruiterSection } from "./RecruiterMancoSections";
 
 const mocks = vi.hoisted(() => ({
   useMancoAttention: vi.fn(),
@@ -60,6 +60,20 @@ const LocationProbe = () => {
   const location = useLocation();
   return <div data-testid="location">{location.pathname}</div>;
 };
+
+describe("MancoCrmCard", () => {
+  it("navigates to the recruiter CRM page using a button", () => {
+    render(
+      <MemoryRouter>
+        <MancoCrmCard />
+        <LocationProbe />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "CRM Integration" }));
+    expect(screen.getByTestId("location")).toHaveTextContent("/recruiter/crm");
+  });
+});
 
 describe("MancoAttentionSection API alert text", () => {
   const alert = {

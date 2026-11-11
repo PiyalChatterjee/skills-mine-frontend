@@ -137,7 +137,7 @@
 }
 
 /* ── CRM Integration Card (cyan/teal) ────────────────────────────────── */
-.crmCard {
+.crmCard:global(.MuiButtonBase-root) {
   align-self: start;
   background: #2b96d9;
   border-radius: 10px;
@@ -146,6 +146,11 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+
+.crmCard:focus-visible {
+  outline: 2px solid #03478c;
+  outline-offset: 4px;
 }
 
 .crmCardLabel,
