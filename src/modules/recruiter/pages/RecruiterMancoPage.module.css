@@ -1016,6 +1016,18 @@
     left: calc(100% + 16px);
     color: #2a3132;
   }
+
+  .detailPipelineBar[data-stage='filled'] .detailPipelineTextGroup {
+    left: 12px;
+    color: #ffffff;
+  }
+}
+
+@container detailPipelineRow (max-width: 96px) {
+  .detailPipelineBar[data-stage='filled'] .detailPipelineTextGroup {
+    left: calc(100% + 16px);
+    color: #2a3132;
+  }
 }
 
 .detailPerformanceSection {
