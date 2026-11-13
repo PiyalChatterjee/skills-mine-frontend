@@ -49,7 +49,7 @@ const PIPELINE_STAGES: {
   { key: "interview", label: PipelineLabel.INTERVIEW },
   { key: "offer", label: PipelineLabel.OFFER },
   { key: "rejected", label: ClosedReason.REJECTED },
-  { key: "filled", label: "Filled" },
+  { key: "filled", label: "Placement" },
   { key: "totalPipeline", label: "Total pipeline" },
 ];
 const PIPELINE_DISTRIBUTION_STAGES = PIPELINE_STAGES.filter(
