@@ -586,9 +586,68 @@ describe('useCvBuilderDone', () => {
     expect(mockNavigate).toHaveBeenCalled()
   })
 
-  it('dispatches error notification when save fails', async () => {
+  it.each([
+    { buildMyCvExists: false, action: 'creation' },
+    { buildMyCvExists: true, action: 'update' },
+  ])(
+    'does not upload documents when CV $action fails to save',
+    async ({ buildMyCvExists }) => {
+      const saveMutation = buildMyCvExists
+        ? mockUpdateBuildMyCv
+        : mockSaveBuildMyCv
+      saveMutation.mockReturnValue({
+        unwrap: () => Promise.reject({ message: 'Save failed' }),
+      })
+      const store = makeTestStore()
+      const { result } = renderHook(
+        () =>
+          useCvBuilderDone({
+            getFormValues: () => defaultFormValues,
+            selectedLanguageEntries: [],
+            buildMyCvExists,
+          }),
+        { wrapper: makeWrapper(store) },
+      )
+      await act(async () => {
+        await result.current.handleDone()
+      })
+
+      expect(saveMutation).toHaveBeenCalledOnce()
+      expect(mockUploadResumeDocument).not.toHaveBeenCalled()
+      expect(mockUploadVisitorDocument).not.toHaveBeenCalled()
+      expect(mockNavigate).not.toHaveBeenCalled()
+      await waitFor(() => {
+        const notifications = store.getState().notification.items
+        expect(notifications).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              title: 'Save failed',
+              level: 'error',
+              message: 'Save failed',
+            }),
+          ]),
+        )
+      })
+    },
+  )
+
+  it('uses the invalid field from a CV validation error in the message', async () => {
     mockSaveBuildMyCv.mockReturnValue({
-      unwrap: () => Promise.reject({ message: 'Save failed' }),
+      unwrap: () => Promise.reject({
+        message: 'Some details are invalid. Please check your entries and try again.',
+        code: 'VALIDATION_ERROR',
+        details: {
+          message: 'Request validation failed',
+          code: 'VALIDATION_ERROR',
+          details: {
+            errors: [{
+              field: 'requestBody/personal_details/notice_period',
+              rule: 'enum',
+              message: 'must be equal to one of the allowed values',
+            }],
+          },
+        },
+      }),
     })
     const store = makeTestStore()
     const { result } = renderHook(
@@ -600,13 +659,21 @@ describe('useCvBuilderDone', () => {
         }),
       { wrapper: makeWrapper(store) },
     )
+
     await act(async () => {
       await result.current.handleDone()
     })
-    await waitFor(() => {
-      const notifications = store.getState().notification.items
-      expect(notifications.some((n) => n.level === 'error')).toBe(true)
-    })
+
+    expect(store.getState().notification.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          title: 'Save failed',
+          message: 'Choose a valid option for Notice Period.',
+          level: 'error',
+        }),
+      ]),
+    )
+    expect(mockUploadResumeDocument).not.toHaveBeenCalled()
   })
 
   it('returns isSavingCandidateProfile as false when not loading', () => {
