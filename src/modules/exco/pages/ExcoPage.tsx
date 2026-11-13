@@ -60,23 +60,17 @@ const ExcoPage = () => {
         {
           label: "Active Clients",
           value: data.activeClientsCount,
-          caption:
-            data.avgPostedJobsPerActiveClientPerWeek == null
-              ? null
-              : `${data.avgPostedJobsPerActiveClientPerWeek} reqs/week avg`,
           unit: "",
         },
         {
           label: "Placement Velocity",
           value: data.placementVelocity,
           unit: "per week",
-          caption: null,
         },
         {
           label: "Avg Time to Fill",
           value: data.avgTimeToFillDays,
           unit: "days",
-          caption: null,
         },
         {
           label: "Offer Acceptance",
@@ -85,7 +79,6 @@ const ExcoPage = () => {
               ? null
               : formatPercentage(data.offerAcceptanceRate),
           unit: "",
-          caption: null,
         },
       ]
     : [];
@@ -245,9 +238,6 @@ const ExcoPage = () => {
                   </dd>
                   {metric.value != null && metric.unit && (
                     <dd className={styles.caption}>{metric.unit}</dd>
-                  )}
-                  {metric.caption != null && (
-                    <dd className={styles.caption}>{metric.caption}</dd>
                   )}
                 </Box>
               ))}

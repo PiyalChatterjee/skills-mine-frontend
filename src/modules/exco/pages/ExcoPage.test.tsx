@@ -52,9 +52,10 @@ describe("live EXCO dashboard", () => {
     expect(within(industries).getByText("51")).toBeInTheDocument();
     expect(screen.getByText("4.1%")).toBeInTheDocument();
     expect(screen.getByText("2 at risk")).toBeInTheDocument();
-    for (const value of ["42", "1.33 reqs/week avg", "3.6", "21", "89%", "per week", "days"]) {
+    for (const value of ["42", "3.6", "21", "89%", "per week", "days"]) {
       expect(screen.getByText(value)).toBeInTheDocument();
     }
+    expect(screen.queryByText(/reqs\/week avg/)).not.toBeInTheDocument();
     expect(excoApi.getDashboard).toHaveBeenCalledExactlyOnceWith();
   });
 
@@ -72,7 +73,7 @@ describe("live EXCO dashboard", () => {
     expect(screen.getAllByText("R0")).toHaveLength(3);
     expect(screen.getAllByText("0")).toHaveLength(4);
     expect(screen.getAllByText("0%")).toHaveLength(2);
-    expect(screen.getByText("0 reqs/week avg")).toBeInTheDocument();
+    expect(screen.queryByText(/reqs\/week avg/)).not.toBeInTheDocument();
     expect(screen.getByText("0 at risk")).toBeInTheDocument();
     expect(screen.queryByText("Not available")).not.toBeInTheDocument();
   });
