@@ -16,7 +16,7 @@ vi.mock("@/services/api/crmApi", () => ({
 
 const client = {
   clientId: "client-1", clientName: "Live Employer", status: "hot_lead",
-  lastContactDays: 0, followupDays: 0, overdueDays: 0, lastNote: "Hiring next month",
+  lastContactDays: 1, followupDays: 0, overdueDays: 0, lastNote: "Hiring next month",
   contactName: "Account contact", contactNumber: "+27111234567", emailId: "contact@example.com",
 };
 const response = {
@@ -58,12 +58,12 @@ describe("live CRM screen", () => {
     fireEvent.click(await screen.findByRole("button", { name: "Update Live Employer" }));
     const dialog = screen.getByRole("dialog");
     expect(within(dialog).getByRole("textbox", { name: "Last Contact Date" })).toHaveValue("2026-10-28");
-    expect(within(dialog).getByRole("textbox", { name: "Last Follow-up Date" })).toHaveValue("2026-11-01");
+    expect(within(dialog).getByRole("textbox", { name: "Follow-up Date" })).toHaveValue("2026-11-01");
   });
 
   it.each([
     { lastContactDays: 0, followupDays: 0, overdueDays: 0, contactDate: "2026-11-04", followupDate: "2026-11-04" },
-    { lastContactDays: 4, followupDays: 30, overdueDays: 0, contactDate: "2026-10-31", followupDate: "" },
+    { lastContactDays: 4, followupDays: 30, overdueDays: 0, contactDate: "2026-10-31", followupDate: "2026-12-04" },
     { lastContactDays: null, followupDays: null, overdueDays: null, contactDate: "", followupDate: "" },
     { lastContactDays: undefined, followupDays: undefined, overdueDays: undefined, contactDate: "", followupDate: "" },
     { lastContactDays: NaN, followupDays: Infinity, overdueDays: 0, contactDate: "", followupDate: "" },
@@ -75,10 +75,13 @@ describe("live CRM screen", () => {
     fireEvent.click(await screen.findByRole("button", { name: "Update Live Employer" }));
     const dialog = screen.getByRole("dialog");
     expect(within(dialog).getByRole("textbox", { name: "Last Contact Date" })).toHaveValue(contactDate);
-    expect(within(dialog).getByRole("textbox", { name: "Last Follow-up Date" })).toHaveValue(followupDate);
+    expect(within(dialog).getByRole("textbox", { name: "Follow-up Date" })).toHaveValue(followupDate);
   });
 
   it("renders server counts, names, notes and zero-day timing", async () => {
+    vi.mocked(crmApi.listClients).mockResolvedValue({
+      ...response, clients: [{ ...client, lastContactDays: 0 }],
+    });
     renderPage();
     expect(await screen.findByRole("heading", { name: "Live Employer" })).toBeInTheDocument();
     expect(screen.getByText("42")).toBeInTheDocument();
@@ -116,18 +119,18 @@ describe("live CRM screen", () => {
     expect(within(dialog).getByLabelText(/Add Note/)).toHaveValue(client.lastNote);
     expect(crmApi.addClientNote).not.toHaveBeenCalled();
     fireEvent.change(within(dialog).getByLabelText(/Add Note/), { target: { value: "  Spoke to contact  " } });
-    fireEvent.change(within(dialog).getByRole("textbox", { name: "Last Follow-up Date" }), { target: { value: "2026-11-01" } });
+    fireEvent.change(within(dialog).getByRole("textbox", { name: "Follow-up Date" }), { target: { value: "2026-11-05" } });
     await waitFor(() => expect(within(dialog).getByRole("button", { name: "Update" })).toBeEnabled());
     fireEvent.click(within(dialog).getByRole("button", { name: "Update" }));
     await waitFor(() => expect(crmApi.addClientNote).toHaveBeenCalledExactlyOnceWith("client-1", {
-      classification: "hot_lead", note: "Spoke to contact", followupDate: "2026-11-01",
-      lastcontactDate: "2026-11-04",
+      classification: "hot_lead", note: "Spoke to contact", followupDate: "2026-11-05",
+      lastcontactDate: "2026-11-03",
     }));
     expect(await screen.findByText("Client updated successfully.")).toBeInTheDocument();
     await waitFor(() => expect(crmApi.listClients).toHaveBeenCalledTimes(2));
   });
 
-  it.each(["Last Contact Date", "Last Follow-up Date"])(
+  it.each(["Last Contact Date"])(
     "rejects a future %s",
     async (label) => {
       renderPage();
@@ -143,7 +146,7 @@ describe("live CRM screen", () => {
     },
   );
 
-  it.each(["Last Contact Date", "Last Follow-up Date"])(
+  it.each(["Last Contact Date"])(
     "disables future dates in the %s calendar",
     async (label) => {
       renderPage();
@@ -160,6 +163,52 @@ describe("live CRM screen", () => {
     },
   );
 
+  it.each(["2026-11-02", "2026-11-03"])(
+    "rejects follow-up %s on or before the contact date and revalidates when contact changes",
+    async (followupDate) => {
+      renderPage();
+      fireEvent.click(await screen.findByRole("button", { name: "Update Live Employer" }));
+      const dialog = screen.getByRole("dialog");
+      fireEvent.change(within(dialog).getByRole("textbox", { name: "Follow-up Date" }), {
+        target: { value: followupDate },
+      });
+
+      expect(await within(dialog).findByText("Follow-up Date must be after Last Contact Date")).toBeInTheDocument();
+      expect(within(dialog).getByRole("button", { name: "Update" })).toBeDisabled();
+      expect(crmApi.addClientNote).not.toHaveBeenCalled();
+
+      fireEvent.change(within(dialog).getByRole("textbox", { name: "Last Contact Date" }), {
+        target: { value: "2026-11-01" },
+      });
+      await waitFor(() => {
+        expect(within(dialog).queryByText("Follow-up Date must be after Last Contact Date")).not.toBeInTheDocument();
+        expect(within(dialog).getByRole("button", { name: "Update" })).toBeEnabled();
+      });
+
+      fireEvent.change(within(dialog).getByRole("textbox", { name: "Last Contact Date" }), {
+        target: { value: "2026-11-04" },
+      });
+      expect(await within(dialog).findByText("Follow-up Date must be after Last Contact Date")).toBeInTheDocument();
+      expect(within(dialog).getByRole("button", { name: "Update" })).toBeDisabled();
+    },
+  );
+
+  it.each(["recruiter", "exco"] as const)(
+    "limits the follow-up calendar to dates after last contact on %s",
+    async (navigation) => {
+      renderPage(navigation);
+      fireEvent.click(await screen.findByRole("button", { name: "Update Live Employer" }));
+      const dialog = screen.getByRole("dialog");
+      fireEvent.click(within(dialog).getByRole("button", { name: "Choose follow-up date" }));
+      const calendar = await screen.findByRole("dialog", { name: "Follow-up Date calendar" });
+      const days = within(calendar).getAllByRole("gridcell");
+      expect(days.find((cell) => cell.textContent === "2")).toBeDisabled();
+      expect(days.find((cell) => cell.textContent === "3")).toBeDisabled();
+      expect(days.find((cell) => cell.textContent === "4")).toBeEnabled();
+      expect(days.find((cell) => cell.textContent === "5")).toBeEnabled();
+    },
+  );
+
   it("submits the existing note when only classification changes", async () => {
     renderPage();
     fireEvent.click(await screen.findByRole("button", { name: "Update Live Employer" }));
@@ -170,7 +219,7 @@ describe("live CRM screen", () => {
     fireEvent.click(within(dialog).getByRole("button", { name: "Update" }));
     await waitFor(() => expect(crmApi.addClientNote).toHaveBeenCalledExactlyOnceWith("client-1", {
       classification: "warm_contact", note: "Hiring next month",
-      lastcontactDate: "2026-11-04", followupDate: "2026-11-04",
+      lastcontactDate: "2026-11-03", followupDate: "2026-11-04",
     }));
   });
 

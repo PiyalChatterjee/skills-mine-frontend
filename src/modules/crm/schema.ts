@@ -21,9 +21,6 @@ const dateSchema = z.string().refine(
     new Date(value).toISOString().slice(0, 10) === value
   ),
   "Enter a valid date",
-).refine(
-  (value) => value === "" || value <= dayjs().format("YYYY-MM-DD"),
-  "Date cannot be in the future",
 );
 
 export const crmNoteSchema = z.object({
@@ -33,7 +30,20 @@ export const crmNoteSchema = z.object({
     "Note must be no more than 4 lines",
   ),
   followupDate: dateSchema,
-  lastcontactDate: dateSchema,
-});
+  lastcontactDate: dateSchema.refine(
+    (value) => value === "" || value <= dayjs().format("YYYY-MM-DD"),
+    "Date cannot be in the future",
+  ),
+}).refine(
+  ({ followupDate, lastcontactDate }) =>
+    !followupDate || !lastcontactDate ||
+    !dateSchema.safeParse(followupDate).success ||
+    !dateSchema.safeParse(lastcontactDate).success ||
+    followupDate > lastcontactDate,
+  {
+    path: ["followupDate"],
+    message: "Follow-up Date must be after Last Contact Date",
+  },
+);
 
 export type CrmNoteValues = z.infer<typeof crmNoteSchema>;

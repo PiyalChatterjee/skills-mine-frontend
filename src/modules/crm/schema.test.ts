@@ -17,7 +17,7 @@ describe("CRM validation", () => {
     expect(crmNoteSchema.safeParse({ ...note, followupDate: "tomorrow" }).success).toBe(false);
   });
 
-  it("rejects future contact and follow-up dates", () => {
+  it("allows future follow-up dates but rejects future contact dates", () => {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     const futureDate = [
@@ -26,8 +26,30 @@ describe("CRM validation", () => {
       String(tomorrow.getDate()).padStart(2, "0"),
     ].join("-");
 
-    expect(crmNoteSchema.safeParse({ ...note, followupDate: futureDate }).success).toBe(false);
+    expect(crmNoteSchema.safeParse({ ...note, followupDate: futureDate }).success).toBe(true);
     expect(crmNoteSchema.safeParse({ ...note, lastcontactDate: futureDate }).success).toBe(false);
+  });
+
+  it.each(["2026-11-03", "2026-11-04"])(
+    "rejects a follow-up date of %s on or before the contact date",
+    (followupDate) => {
+      const result = crmNoteSchema.safeParse({
+        ...note, lastcontactDate: "2026-11-04", followupDate,
+      });
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues).toContainEqual(expect.objectContaining({
+          path: ["followupDate"],
+          message: "Follow-up Date must be after Last Contact Date",
+        }));
+      }
+    },
+  );
+
+  it("accepts a follow-up after the contact date, including an overdue follow-up", () => {
+    expect(crmNoteSchema.safeParse({
+      ...note, lastcontactDate: "2026-11-01", followupDate: "2026-11-02",
+    }).success).toBe(true);
   });
 
   it("allows four note lines and rejects five lines with Unix or Windows line endings", () => {

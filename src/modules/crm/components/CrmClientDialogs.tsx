@@ -1,4 +1,4 @@
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import dayjs from "dayjs";
 import {
@@ -27,10 +27,7 @@ type DialogProps = {
 const getDateFromDayOffset = (days?: number | null): string => {
   if (days == null || !Number.isInteger(days)) return "";
 
-  const date = dayjs().add(days, "day");
-  return date.format("YYYY-MM-DD") > dayjs().format("YYYY-MM-DD")
-    ? ""
-    : date.format("YYYY-MM-DD");
+  return dayjs().add(days, "day").format("YYYY-MM-DD");
 };
 
 export function UpdateCrmClientDialog({ client, onClose, onSaved }: DialogProps & { client: CrmClient }) {
@@ -52,6 +49,11 @@ export function UpdateCrmClientDialog({ client, onClose, onSaved }: DialogProps 
       },
       mode: "onChange",
     });
+  const lastcontactDate = useWatch({ control, name: "lastcontactDate" });
+  const contactDate = dayjs(lastcontactDate);
+  const followupMinDate = lastcontactDate && contactDate.isValid()
+    ? contactDate.add(1, "day").format("YYYY-MM-DD")
+    : undefined;
 
   const submit = handleSubmit(async ({ followupDate, lastcontactDate, ...values }) => {
     try {
@@ -106,11 +108,15 @@ export function UpdateCrmClientDialog({ client, onClose, onSaved }: DialogProps 
           <div className={styles.dateRow}>
             {([
               ["lastcontactDate", "Last Contact Date"],
-              ["followupDate", "Last Follow-up Date"],
+              ["followupDate", "Follow-up Date"],
             ] as const).map(([name, label]) => (
-              <Controller key={name} name={name} control={control} render={({ field: { ref, ...field }, fieldState }) => (
+              <Controller key={name} name={name} control={control}
+                rules={name === "lastcontactDate" ? { deps: ["followupDate"] } : undefined}
+                render={({ field: { ref, ...field }, fieldState }) => (
                 <FormDateField {...field} inputRef={ref} label={label} disabled={isLoading}
-                  disableFuture error={Boolean(fieldState.error)} helperText={fieldState.error?.message} />
+                  disableFuture={name === "lastcontactDate"}
+                  minDate={name === "followupDate" ? followupMinDate : undefined}
+                  error={Boolean(fieldState.error)} helperText={fieldState.error?.message} />
               )} />
             ))}
           </div>
