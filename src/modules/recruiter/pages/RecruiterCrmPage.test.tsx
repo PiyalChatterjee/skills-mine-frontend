@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { crmApi } from "@/services/api/crmApi";
 import { apiSlice } from "@/store/api/apiSlice";
 import RecruiterCrmPage from "./RecruiterCrmPage";
+import styles from "./RecruiterCrmPage.module.css";
 
 vi.mock("@/modules/recruiter/components/RecruiterSidebar", () => ({ RecruiterSidebar: () => null }));
 vi.mock("@/services/api/crmApi", () => ({
@@ -86,13 +87,32 @@ describe("live CRM screen", () => {
     expect(await screen.findByRole("heading", { name: "Live Employer" })).toBeInTheDocument();
     expect(screen.getByText("42")).toBeInTheDocument();
     expect(screen.getByText("Hiring next month")).toBeInTheDocument();
-    expect(screen.getByText(/0 days/, { selector: "span" })).toHaveTextContent("Follow up: 0 days");
+    expect(screen.getByText("Due today")).toBeInTheDocument();
     expect(screen.getByText("Last Contact: 0 days ago")).toBeInTheDocument();
     expect(screen.getByText("Account contact").tagName).toBe("SPAN");
     expect(screen.queryByRole("link", { name: "Account contact" })).not.toBeInTheDocument();
     expect(screen.getByText("+27111234567").tagName).toBe("SPAN");
     expect(screen.queryByRole("link", { name: "+27111234567" })).not.toBeInTheDocument();
     expect(crmApi.listClients).toHaveBeenCalledWith({ page: 1, size: 20 });
+  });
+
+  it.each([
+    { lastContactDays: 3, followupDays: 5, overdueDays: 0, text: "Follow up: 8 days", tone: styles.statusTagFollowUp },
+    { lastContactDays: 3, followupDays: 0, overdueDays: 8, text: "Overdue: 5 days", tone: styles.statusTagOverdue },
+    { lastContactDays: 16, followupDays: 0, overdueDays: 12, text: "Follow up: 4 days", tone: styles.statusTagFollowUp },
+    { lastContactDays: 8, followupDays: 0, overdueDays: 8, text: "Due today", tone: styles.statusTagNeutral },
+    { lastContactDays: null, followupDays: 5, overdueDays: 0, text: "Follow-up timing unavailable", tone: styles.statusTagNeutral },
+    { lastContactDays: 3, followupDays: null, overdueDays: 0, text: "No follow-up scheduled", tone: styles.statusTagNeutral },
+  ])("renders the calculated status $text with its appropriate tone", async ({ text, tone, ...timing }) => {
+    vi.mocked(crmApi.listClients).mockResolvedValue({
+      ...response, clients: [{ ...client, status: "warm_contact", ...timing }],
+    });
+    renderPage();
+    const status = await screen.findByText(
+      (_, element) => element?.textContent === text,
+      { selector: "span" },
+    );
+    expect(status.parentElement).toHaveClass(tone);
   });
 
   it.each(['recruiter', 'exco'] as const)("shows only search on the %s CRM screen", async (navigation) => {

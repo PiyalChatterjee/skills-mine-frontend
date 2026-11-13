@@ -13,6 +13,7 @@ import {
   useAddCrmClientNoteMutation,
 } from "@/store/api/apiSlice";
 import type { CrmClient } from "@/types/api";
+import { getFollowupDayOffset } from "../presentation";
 import {
   crmClassificationLabels, crmClassifications, crmNoteSchema,
   type CrmNoteValues,
@@ -38,11 +39,7 @@ export function UpdateCrmClientDialog({ client, onClose, onSaved }: DialogProps 
       defaultValues: {
         classification: crmClassifications.find((value) => value === client.status),
         note: client.lastNote ?? "",
-        followupDate: getDateFromDayOffset(
-          client.overdueDays != null && client.overdueDays > 0
-            ? -client.overdueDays
-            : client.followupDays,
-        ),
+        followupDate: getDateFromDayOffset(getFollowupDayOffset(client)),
         lastcontactDate: getDateFromDayOffset(
           client.lastContactDays == null ? null : -client.lastContactDays,
         ),
