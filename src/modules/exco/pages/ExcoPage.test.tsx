@@ -47,7 +47,7 @@ describe("live EXCO dashboard", () => {
     for (const value of ["83", "R32 100", "R720 000", "R65 400"]) {
       expect(within(strategic).getByText(value)).toBeInTheDocument();
     }
-    const industries = screen.getByRole("region", { name: "Top Hiring Industries (12mo)" });
+    const industries = screen.getByRole("region", { name: "Top Hiring Industries (YTD)" });
     expect(within(industries).getAllByRole("term").map((term) => term.textContent)).toEqual(["Energy", "Education"]);
     expect(within(industries).getByText("51")).toBeInTheDocument();
     expect(screen.getByText("4.1%")).toBeInTheDocument();

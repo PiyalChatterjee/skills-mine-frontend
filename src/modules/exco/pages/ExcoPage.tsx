@@ -167,7 +167,7 @@ const ExcoPage = () => {
                   className={styles.sectionTitle}
                 >
                   <img src={barChartIcon} alt="" aria-hidden="true" />
-                  Top Hiring Industries (12mo)
+                  Top Hiring Industries (YTD)
                 </Typography>
                 <Box component="dl" className={styles.industryList}>
                   {data.topHiringIndustries.map((industry, index) => (
