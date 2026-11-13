@@ -17,6 +17,19 @@ describe("CRM validation", () => {
     expect(crmNoteSchema.safeParse({ ...note, followupDate: "tomorrow" }).success).toBe(false);
   });
 
+  it("rejects future contact and follow-up dates", () => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const futureDate = [
+      tomorrow.getFullYear(),
+      String(tomorrow.getMonth() + 1).padStart(2, "0"),
+      String(tomorrow.getDate()).padStart(2, "0"),
+    ].join("-");
+
+    expect(crmNoteSchema.safeParse({ ...note, followupDate: futureDate }).success).toBe(false);
+    expect(crmNoteSchema.safeParse({ ...note, lastcontactDate: futureDate }).success).toBe(false);
+  });
+
   it("allows four note lines and rejects five lines with Unix or Windows line endings", () => {
     expect(crmNoteSchema.safeParse({ ...note, note: "1\n2\n3\n4" }).success).toBe(true);
     expect(crmNoteSchema.safeParse({ ...note, note: "1\n2\n3\n4\n5" }).success).toBe(false);

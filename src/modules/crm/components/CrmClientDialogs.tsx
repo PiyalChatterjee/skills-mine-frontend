@@ -24,10 +24,14 @@ type DialogProps = {
   onSaved: () => void;
 };
 
-const getDateFromDayOffset = (days?: number | null): string =>
-  days != null && Number.isInteger(days)
-    ? dayjs().add(days, "day").format("YYYY-MM-DD")
-    : "";
+const getDateFromDayOffset = (days?: number | null): string => {
+  if (days == null || !Number.isInteger(days)) return "";
+
+  const date = dayjs().add(days, "day");
+  return date.format("YYYY-MM-DD") > dayjs().format("YYYY-MM-DD")
+    ? ""
+    : date.format("YYYY-MM-DD");
+};
 
 export function UpdateCrmClientDialog({ client, onClose, onSaved }: DialogProps & { client: CrmClient }) {
   const [addNote, { isLoading }] = useAddCrmClientNoteMutation();
@@ -106,7 +110,7 @@ export function UpdateCrmClientDialog({ client, onClose, onSaved }: DialogProps 
             ] as const).map(([name, label]) => (
               <Controller key={name} name={name} control={control} render={({ field: { ref, ...field }, fieldState }) => (
                 <FormDateField {...field} inputRef={ref} label={label} disabled={isLoading}
-                  error={Boolean(fieldState.error)} helperText={fieldState.error?.message} />
+                  disableFuture error={Boolean(fieldState.error)} helperText={fieldState.error?.message} />
               )} />
             ))}
           </div>

@@ -63,7 +63,7 @@ describe("live CRM screen", () => {
 
   it.each([
     { lastContactDays: 0, followupDays: 0, overdueDays: 0, contactDate: "2026-11-04", followupDate: "2026-11-04" },
-    { lastContactDays: 4, followupDays: 30, overdueDays: 0, contactDate: "2026-10-31", followupDate: "2026-12-04" },
+    { lastContactDays: 4, followupDays: 30, overdueDays: 0, contactDate: "2026-10-31", followupDate: "" },
     { lastContactDays: null, followupDays: null, overdueDays: null, contactDate: "", followupDate: "" },
     { lastContactDays: undefined, followupDays: undefined, overdueDays: undefined, contactDate: "", followupDate: "" },
     { lastContactDays: NaN, followupDays: Infinity, overdueDays: 0, contactDate: "", followupDate: "" },
@@ -126,6 +126,39 @@ describe("live CRM screen", () => {
     expect(await screen.findByText("Client updated successfully.")).toBeInTheDocument();
     await waitFor(() => expect(crmApi.listClients).toHaveBeenCalledTimes(2));
   });
+
+  it.each(["Last Contact Date", "Last Follow-up Date"])(
+    "rejects a future %s",
+    async (label) => {
+      renderPage();
+      fireEvent.click(await screen.findByRole("button", { name: "Update Live Employer" }));
+      const dialog = screen.getByRole("dialog");
+      fireEvent.change(within(dialog).getByRole("textbox", { name: label }), {
+        target: { value: "2026-11-05" },
+      });
+
+      expect(await within(dialog).findByText("Date cannot be in the future")).toBeInTheDocument();
+      expect(within(dialog).getByRole("button", { name: "Update" })).toBeDisabled();
+      expect(crmApi.addClientNote).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each(["Last Contact Date", "Last Follow-up Date"])(
+    "disables future dates in the %s calendar",
+    async (label) => {
+      renderPage();
+      fireEvent.click(await screen.findByRole("button", { name: "Update Live Employer" }));
+      const dialog = screen.getByRole("dialog");
+      fireEvent.click(within(dialog).getByRole("button", {
+        name: `Choose ${label.toLowerCase()}`,
+      }));
+
+      const calendar = await screen.findByRole("dialog", { name: `${label} calendar` });
+      const tomorrow = within(calendar).getAllByRole("gridcell")
+        .find((cell) => cell.textContent === "5");
+      expect(tomorrow).toBeDisabled();
+    },
+  );
 
   it("submits the existing note when only classification changes", async () => {
     renderPage();

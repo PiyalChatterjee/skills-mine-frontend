@@ -1,4 +1,5 @@
 import { z } from "zod";
+import dayjs from "dayjs";
 import { CrmClassification, CrmClassificationLabel } from "@/enums/statuses";
 
 export const crmClassificationLabels = {
@@ -20,6 +21,9 @@ const dateSchema = z.string().refine(
     new Date(value).toISOString().slice(0, 10) === value
   ),
   "Enter a valid date",
+).refine(
+  (value) => value === "" || value <= dayjs().format("YYYY-MM-DD"),
+  "Date cannot be in the future",
 );
 
 export const crmNoteSchema = z.object({
