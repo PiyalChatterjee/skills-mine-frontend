@@ -46,10 +46,6 @@ vi.mock("@/services/api/documentApi", () => ({
   },
 }));
 
-vi.mock("@/app/formatEnumLabel", () => ({
-  formatEnumLabel: (value?: string) => value ?? "",
-}));
-
 vi.mock("@/modules/candidate/hooks/useCandidateQueries", () => ({
   useBuildMyCvQuery: mocks.useBuildMyCvQuery,
   useCandidateProfileQuery: mocks.useCandidateProfileQuery,
@@ -378,7 +374,7 @@ describe("useCvBuilderPageViewModel", () => {
           title: "Frontend Engineer",
           industry: "Technology",
           location: "Cape Town, Western Cape",
-          workType: "Remote",
+          workType: "ONSITE",
           employmentType: "Permanent",
         },
       },
@@ -388,7 +384,7 @@ describe("useCvBuilderPageViewModel", () => {
 
     expect(result.current.isGuestApplication).toBe(true);
     expect(result.current.heroHeading).toBe("Frontend Engineer");
-    expect(result.current.guestJobTags).toEqual(["Technology", "Cape Town", "Remote", "Permanent"]);
+    expect(result.current.guestJobTags).toEqual(["Technology", "Cape Town", "On-site", "Permanent"]);
 
     act(() => {
       result.current.heroBackHandler?.();
