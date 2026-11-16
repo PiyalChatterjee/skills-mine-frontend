@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { OpportunityJobCard } from './OpportunityJobCard'
 import { jobMatchConfig } from './jobMatch.config'
@@ -66,6 +67,51 @@ describe('OpportunityJobCard', () => {
     expect(screen.getByRole('heading', { name: 'Frontend Engineer' })).toBeInTheDocument()
     expect(screen.getByText('Technology')).toBeInTheDocument()
     expect(screen.getByLabelText('100% match')).toBeInTheDocument()
+  })
+
+  it.each([
+    [jobMatchConfig.high.threshold, 'a great'],
+    [jobMatchConfig.high.threshold - 1, 'a good'],
+    [jobMatchConfig.medium.threshold, 'a good'],
+    [jobMatchConfig.medium.threshold - 1, 'an ok'],
+  ])('describes a score of %s as a %s match', async (matchScore, description) => {
+    const user = userEvent.setup()
+    renderCard({ matchScore })
+    const badge = screen.getByRole('button', { name: `${matchScore}% match` })
+    await user.click(badge)
+    const tooltip = screen.getByRole('tooltip')
+    expect(tooltip).toHaveTextContent(`Based on your CV, this job is ${description} match for you.`)
+    expect(badge).toHaveAttribute('aria-describedby', tooltip.id)
+  })
+
+  it('toggles the tooltip and dismisses it on outside click', async () => {
+    const user = userEvent.setup()
+    renderCard({ matchScore: 33 })
+    const badge = screen.getByRole('button', { name: '33% match' })
+
+    await user.click(badge)
+    const tooltip = screen.getByRole('tooltip')
+    expect(tooltip).toHaveTextContent('Based on your CV, this job is an ok match for you.')
+    expect(badge).toHaveAttribute('aria-describedby', tooltip.id)
+    expect(badge).toHaveAttribute('aria-expanded', 'true')
+
+    await user.click(badge)
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
+    await user.click(badge)
+    await user.click(screen.getByRole('heading', { name: 'Frontend Engineer' }))
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
+  })
+
+  it('opens the tooltip with the keyboard and dismisses it with Escape', async () => {
+    const user = userEvent.setup()
+    renderCard({ matchScore: 80 })
+    await user.tab()
+    expect(screen.getByRole('button', { name: '80% match' })).toHaveFocus()
+    await user.keyboard('{Enter}')
+    expect(screen.getByRole('tooltip')).toHaveTextContent('great match')
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '80% match' })).toHaveFocus()
   })
 
   it('exposes accessible save and action controls', () => {
