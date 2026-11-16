@@ -315,7 +315,8 @@
   background: #ffffff;
 }
 
-.matchBadgeLabel {
+.matchBadgeLabel,
+.matchBadgeLabel:global(.MuiTypography-root) {
   margin: 0;
   position: relative;
   z-index: 1;
