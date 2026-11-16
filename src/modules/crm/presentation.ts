@@ -12,16 +12,6 @@ export function getFollowupDayOffset(contact: CrmClient): number | null {
     : null
 }
 
-export function getFollowupDayDifference(contact: CrmClient): number | null {
-  const followupOffset = getFollowupDayOffset(contact)
-  if (
-    followupOffset == null || contact.lastContactDays == null ||
-    !Number.isInteger(contact.lastContactDays) || contact.lastContactDays < 0
-  ) return null
-
-  return followupOffset + contact.lastContactDays
-}
-
 export function leadLabel(status: string): string {
   const classification = crmClassifications.find((value) => value === status)
   return classification ? crmClassificationLabels[classification] : status || 'Unclassified'

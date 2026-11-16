@@ -97,11 +97,11 @@ describe("live CRM screen", () => {
   });
 
   it.each([
-    { lastContactDays: 3, followupDays: 5, overdueDays: 0, text: "Follow up: 8 days", tone: styles.statusTagFollowUp },
-    { lastContactDays: 3, followupDays: 0, overdueDays: 8, text: "Overdue: 5 days", tone: styles.statusTagOverdue },
-    { lastContactDays: 16, followupDays: 0, overdueDays: 12, text: "Follow up: 4 days", tone: styles.statusTagFollowUp },
-    { lastContactDays: 8, followupDays: 0, overdueDays: 8, text: "Due today", tone: styles.statusTagNeutral },
-    { lastContactDays: null, followupDays: 5, overdueDays: 0, text: "Follow-up timing unavailable", tone: styles.statusTagNeutral },
+    { lastContactDays: 3, followupDays: 5, overdueDays: 0, text: "Follow up: 5 days", tone: styles.statusTagFollowUp },
+    { lastContactDays: 3, followupDays: 0, overdueDays: 8, text: "Overdue: 8 days", tone: styles.statusTagOverdue },
+    { lastContactDays: 16, followupDays: 0, overdueDays: 12, text: "Overdue: 12 days", tone: styles.statusTagOverdue },
+    { lastContactDays: 8, followupDays: 0, overdueDays: 0, text: "Due today", tone: styles.statusTagNeutral },
+    { lastContactDays: null, followupDays: 5, overdueDays: 0, text: "Follow up: 5 days", tone: styles.statusTagFollowUp },
     { lastContactDays: 3, followupDays: null, overdueDays: 0, text: "No follow-up scheduled", tone: styles.statusTagNeutral },
   ])("renders the calculated status $text with its appropriate tone", async ({ text, tone, ...timing }) => {
     vi.mocked(crmApi.listClients).mockResolvedValue({

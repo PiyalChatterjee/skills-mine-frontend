@@ -1,7 +1,7 @@
 import { CrmClassification as CrmStatus, CrmClassificationLabel } from "@/enums/statuses";
 import { Box, ButtonBase, Typography } from '@mui/material'
 import { crmClassificationLabels } from '@/modules/crm/schema'
-import { cardColorClass, getFollowupDayDifference, getFollowupDayOffset, leadLabel } from '@/modules/crm/presentation'
+import { cardColorClass, getFollowupDayOffset, leadLabel } from '@/modules/crm/presentation'
 import type { CrmClassification, CrmClient } from '@/types/api'
 import attentionIcon from '@/assets/crm/attention.svg'
 import hotIcon from '@/assets/crm/hot.svg'
@@ -61,7 +61,7 @@ type CrmCardProps = {
 export const CrmCard = ({ contact, onUpdate }: CrmCardProps) => {
   const leadType = leadLabel(contact.status)
   const isWarm = contact.status === CrmStatus.WARM_CONTACT
-  const difference = getFollowupDayDifference(contact)
+  const difference = getFollowupDayOffset(contact)
   const isOverdue = difference != null && difference < 0
   const days = difference == null ? null : Math.abs(difference)
   const statusClass = difference == null || difference === 0
@@ -79,9 +79,7 @@ export const CrmCard = ({ contact, onUpdate }: CrmCardProps) => {
         <Box className={`${styles.statusTag} ${statusClass}`}>
           <img src={isOverdue ? calendarIcon : calendarDarkIcon} alt="" aria-hidden="true" />
           <Typography component="span" className={styles.statusTagText}>
-            {days == null ? (
-              getFollowupDayOffset(contact) == null ? 'No follow-up scheduled' : 'Follow-up timing unavailable'
-            ) : days === 0 ? 'Due today' : (
+            {days == null ? 'No follow-up scheduled' : days === 0 ? 'Due today' : (
               <><strong>{isOverdue ? 'Overdue:' : 'Follow up:'}</strong> {days} day{days !== 1 ? 's' : ''}</>
             )}
           </Typography>
