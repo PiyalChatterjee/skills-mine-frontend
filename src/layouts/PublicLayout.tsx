@@ -22,7 +22,8 @@ import { PublicHeader } from "./components/PublicHeader";
 import styles from "./PublicLayout.module.css";
 
 export type PublicLayoutOutletContext = {
-  openSignUpDrawer: (email?: string) => void;
+  openSignUpDrawer: () => void;
+  dismissVisitorSignUp: () => void;
 };
 
 export const PublicLayout = () => {
@@ -30,9 +31,12 @@ export const PublicLayout = () => {
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const [visitorEmail, setVisitorEmail] = useState(
-    () => (location.state as { email?: string } | null)?.email ?? "",
-  );
+  const [visitorContext, setVisitorContext] = useState(() => {
+    const state = location.state as { visitorId?: string; email?: string } | null;
+    return location.pathname === ROUTE_PATHS.landing && state?.visitorId
+      ? { id: state.visitorId, email: state.email ?? "" }
+      : null;
+  });
   const { isAuthenticated, tokens, user } = useAuth();
   const isLoginPage = location.pathname === ROUTE_PATHS.login;
   const isSignupPage =
@@ -42,11 +46,6 @@ export const PublicLayout = () => {
   const landingMode = useSelector((state: RootState) => state.ui.landingMode);
   const isLandingPage = location.pathname === ROUTE_PATHS.landing;
   const isHiringLandingMode = isLandingPage && landingMode === "startHiring";
-  // Set by the CV builder after a visitor applies, so sign-up converts that visitor into a candidate.
-  // Snapshotted once so it survives LandingPage clearing location.state (e.g. on a hard refresh).
-  const [visitorId] = useState(
-    () => (location.state as { visitorId?: string } | null)?.visitorId,
-  );
   const accessToken = tokens?.accessToken;
   const hasValidAccessToken = accessToken ? !isJwtExpired(accessToken) : false;
   const canAccessProtectedRoutes = isAuthenticated && hasValidAccessToken;
@@ -60,6 +59,8 @@ export const PublicLayout = () => {
 
     if (location.pathname === ROUTE_PATHS.landing) {
       completeLogoutNavigation();
+    } else {
+      setVisitorContext(null);
     }
   }, [location.pathname, location.search]);
 
@@ -68,12 +69,6 @@ export const PublicLayout = () => {
   };
 
   const handleSignUpClick = () => {
-    setVisitorEmail("");
-    setSignUpDrawerOpen(true);
-  };
-
-  const handleVisitorSignUpClick = (email?: string) => {
-    setVisitorEmail(email ?? "");
     setSignUpDrawerOpen(true);
   };
 
@@ -198,7 +193,8 @@ export const PublicLayout = () => {
       <Box component="main" className={styles.contentArea}>
         <Outlet
           context={{
-            openSignUpDrawer: handleVisitorSignUpClick,
+            openSignUpDrawer: handleSignUpClick,
+            dismissVisitorSignUp: () => setVisitorContext(null),
           }}
         />
       </Box>
@@ -214,8 +210,8 @@ export const PublicLayout = () => {
         <CandidateSignUpDrawer
           open={isSignUpDrawerOpen}
           onClose={handleSignUpDrawerClose}
-          visitorId={visitorId}
-          visitorEmail={visitorEmail}
+          visitorId={visitorContext?.id}
+          visitorEmail={visitorContext?.email}
         />
       )}
     </Box>

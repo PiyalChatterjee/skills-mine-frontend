@@ -163,7 +163,7 @@ const LandingJobResults = ({ query, shouldFilter, onSignUp }: LandingJobResultsP
 
 const LandingPage = () => {
   usePageTitle("Strategic Recruitment Solutions Home");
-  const { openSignUpDrawer } = useOutletContext<PublicLayoutOutletContext>();
+  const { openSignUpDrawer, dismissVisitorSignUp } = useOutletContext<PublicLayoutOutletContext>();
   const dispatch = useDispatch();
   const location = useLocation();
   const navigate = useNavigate();
@@ -172,7 +172,7 @@ const LandingPage = () => {
   const [appliedJobState] = useState(
     () => location.state as { visitorId?: string; matchScore?: number; email?: string } | null,
   );
-  const { visitorId, matchScore, email: visitorEmail } = appliedJobState ?? {};
+  const { visitorId, matchScore } = appliedJobState ?? {};
   const [isApplicationSubmittedDismissed, setIsApplicationSubmittedDismissed] =
     useState(false);
   const [isDeclineConfirmationVisible, setIsDeclineConfirmationVisible] = useState(false);
@@ -224,10 +224,11 @@ const LandingPage = () => {
   };
 
   const handleKeepCvOnFile = () => {
-    openSignUpDrawer(visitorEmail);
+    openSignUpDrawer();
   };
 
   const handleDeclineKeepCvOnFile = () => {
+    dismissVisitorSignUp();
     setIsDeclineConfirmationVisible(true);
   };
 
