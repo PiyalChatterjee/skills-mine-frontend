@@ -1,11 +1,14 @@
 import { CrmClassificationLabel } from "@/enums/statuses";
 import { useState } from 'react'
+import { useDispatch } from 'react-redux'
 import { Alert, Box, Button, CircularProgress, Pagination, Typography } from '@mui/material'
 import { RecruiterSidebar } from '@/modules/recruiter/components/RecruiterSidebar'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useSearchQueryState } from '@/hooks/useSearchQueryState'
 import { extractErrorMessage } from '@/app/errorUtils'
 import { useGetCrmClientsQuery } from '@/store/api/apiSlice'
+import type { AppDispatch } from '@/store'
+import { pushNotification } from '@/store/slices/notificationSlice'
 import { UpdateCrmClientDialog } from '@/modules/crm/components/CrmClientDialogs'
 import { CrmCard, MagnifierIcon, StatTile } from '@/modules/crm/components/CrmPresentation'
 import type { CrmClient } from '@/types/api'
@@ -13,10 +16,10 @@ import styles from './RecruiterCrmPage.module.css'
 
 const RecruiterCrmPage = ({ navigation = 'recruiter' }: { navigation?: 'recruiter' | 'exco' }) => {
   usePageTitle('CRM')
+  const dispatch = useDispatch<AppDispatch>()
   const search = useSearchQueryState({ minCharacters: 1 })
   const [pagination, setPagination] = useState({ key: '', page: 1 })
   const [selectedClient, setSelectedClient] = useState<CrmClient | null>(null)
-  const [successMessage, setSuccessMessage] = useState('')
   const filterKey = search.debouncedValue
   const page = pagination.key === filterKey ? pagination.page : 1
   const { currentData: data, isFetching, isError, error, refetch } = useGetCrmClientsQuery({
@@ -32,7 +35,6 @@ const RecruiterCrmPage = ({ navigation = 'recruiter' }: { navigation?: 'recruite
         <Box className={styles.pageHeader}>
           <Typography component="h1" className={styles.pageTitle}>CRM Dashboard</Typography>
         </Box>
-        {successMessage && <Alert severity="success" onClose={() => setSuccessMessage('')}>{successMessage}</Alert>}
         {isError && (
           <Alert severity="error" action={<Button onClick={() => void refetch()}>Retry</Button>}>
             {extractErrorMessage(error, 'Failed to load CRM clients.')}
@@ -69,10 +71,7 @@ const RecruiterCrmPage = ({ navigation = 'recruiter' }: { navigation?: 'recruite
             <Typography>No CRM clients found.</Typography>
           )}
           {data?.clients.map((contact) => (
-            <CrmCard key={contact.clientId} contact={contact} onUpdate={(client) => {
-              setSuccessMessage('')
-              setSelectedClient(client)
-            }} />
+            <CrmCard key={contact.clientId} contact={contact} onUpdate={setSelectedClient} />
           ))}
         </Box>
         {data && data.totalPages > 1 && (
@@ -83,7 +82,10 @@ const RecruiterCrmPage = ({ navigation = 'recruiter' }: { navigation?: 'recruite
       {selectedClient && <UpdateCrmClientDialog key={selectedClient.clientId} client={selectedClient}
         onClose={() => setSelectedClient(null)} onSaved={() => {
           setSelectedClient(null)
-          setSuccessMessage('Client updated successfully.')
+          dispatch(pushNotification({
+            level: 'success',
+            title: `${selectedClient.clientName} details updated successfully.`,
+          }))
         }} />}
     </Box>
   )

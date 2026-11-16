@@ -3,7 +3,9 @@ import { Provider } from "react-redux";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { crmApi } from "@/services/api/crmApi";
+import { NotificationToaster } from "@/components/NotificationToaster";
 import { apiSlice } from "@/store/api/apiSlice";
+import notificationReducer from "@/store/slices/notificationSlice";
 import RecruiterCrmPage from "./RecruiterCrmPage";
 import styles from "./RecruiterCrmPage.module.css";
 
@@ -27,10 +29,10 @@ const response = {
 
 function renderPage(navigation: 'recruiter' | 'exco' = 'recruiter') {
   const store = configureStore({
-    reducer: { [apiSlice.reducerPath]: apiSlice.reducer },
+    reducer: { [apiSlice.reducerPath]: apiSlice.reducer, notification: notificationReducer },
     middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(apiSlice.middleware),
   });
-  render(<Provider store={store}><RecruiterCrmPage navigation={navigation} /></Provider>);
+  render(<Provider store={store}><RecruiterCrmPage navigation={navigation} /><NotificationToaster /></Provider>);
   return store;
 }
 
@@ -131,8 +133,8 @@ describe("live CRM screen", () => {
     await waitFor(() => expect(crmApi.listClients).toHaveBeenLastCalledWith({ page: 1, size: 20, search: "Bank" }));
   });
 
-  it("validates notes, submits exact payload and refreshes clients from the redesigned popup", async () => {
-    renderPage();
+  it.each(['recruiter', 'exco'] as const)("saves and shows a client-specific toast on the %s CRM screen", async (navigation) => {
+    renderPage(navigation);
     fireEvent.click(await screen.findByRole("button", { name: "Update Live Employer" }));
     const dialog = screen.getByRole("dialog");
     expect(within(dialog).getByRole("radio", { name: "Hot Lead" })).toBeChecked();
@@ -146,7 +148,7 @@ describe("live CRM screen", () => {
       classification: "hot_lead", note: "Spoke to contact", followupDate: "2026-11-05",
       lastcontactDate: "2026-11-03",
     }));
-    expect(await screen.findByText("Client updated successfully.")).toBeInTheDocument();
+    expect(await screen.findByRole("alert")).toHaveTextContent("Live Employer details updated successfully.");
     await waitFor(() => expect(crmApi.listClients).toHaveBeenCalledTimes(2));
   });
 
@@ -277,13 +279,14 @@ describe("live CRM screen", () => {
 
   it("retains note drafts and displays server errors when a mutation fails", async () => {
     vi.mocked(crmApi.addClientNote).mockRejectedValue({ response: { status: 403, data: { message: "No permission to update" } } });
-    renderPage();
+    const store = renderPage();
     fireEvent.click(await screen.findByRole("button", { name: "Update Live Employer" }));
     fireEvent.change(screen.getByLabelText(/Add Note/), { target: { value: "Keep this draft" } });
     await waitFor(() => expect(within(screen.getByRole("dialog")).getByRole("button", { name: "Update" })).toBeEnabled());
     fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Update" }));
     expect(await screen.findByText("No permission to update")).toBeInTheDocument();
     expect(screen.getByLabelText(/Add Note/)).toHaveValue("Keep this draft");
+    expect(store.getState().notification.items).toHaveLength(0);
     expect(crmApi.listClients).toHaveBeenCalledTimes(1);
   });
 
