@@ -567,7 +567,7 @@ describe('candidateApi', () => {
       expect(result.lastModified).toBe('2024-01-01')
     })
 
-    it('sends empty current employment and career history to clear saved values', async () => {
+    it('clears current employment and career history without sending a blank notice period', async () => {
       mockPost.mockResolvedValue({ data: { success: true, data: {} } })
 
       await candidateApi.saveBuildMyCv('candidate-1', {
@@ -589,13 +589,39 @@ describe('candidateApi', () => {
       expect(requestBody.personal_details).toMatchObject({
         current_company: '',
         current_position: '',
-        notice_period: '',
       })
+      expect(requestBody.personal_details).not.toHaveProperty('notice_period')
       expect(requestBody.career_history).toEqual([])
+    })
+
+    it.each([
+      { noticePeriod: '', expected: undefined },
+      { noticePeriod: '  ', expected: undefined },
+      { noticePeriod: undefined, expected: undefined },
+      { noticePeriod: ' 30_DAYS ', expected: '30_DAYS' },
+    ])('omits blank notice periods and sends selected values: $noticePeriod', async ({ noticePeriod, expected }) => {
+      mockPost.mockResolvedValue({ data: { success: true, data: {} } })
+      await candidateApi.saveBuildMyCv('candidate-1', {
+        personalDetails: { firstName: 'Jane', lastName: 'Doe', currentCompany: '', noticePeriod },
+      })
+      const personalDetails = mockPost.mock.calls.at(-1)?.[1].personal_details
+      if (expected === undefined) {
+        expect(personalDetails).not.toHaveProperty('notice_period')
+      } else {
+        expect(personalDetails.notice_period).toBe(expected)
+      }
     })
   })
 
   describe('updateBuildMyCv', () => {
+    it('omits a blank notice period when updating a CV', async () => {
+      mockPost.mockResolvedValue({ data: { success: true, data: {} } })
+      await candidateApi.updateBuildMyCv('candidate-1', {
+        personalDetails: { firstName: 'Jane', lastName: 'Doe', currentCompany: '', noticePeriod: '' },
+      })
+      expect(mockPost.mock.calls.at(-1)?.[1].personal_details).not.toHaveProperty('notice_period')
+    })
+
     it('calls POST /candidates/cv-build/', async () => {
       mockPost.mockResolvedValue({ data: { success: true, data: { lastModified: '2024-06-01' } } })
       const result = await candidateApi.updateBuildMyCv('candidate-1', {

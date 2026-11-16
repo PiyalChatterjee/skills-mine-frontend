@@ -5,6 +5,7 @@ import {
   visitorApiClient,
 } from "./axios";
 import { apiEndpoints, resolveEndpoint } from "./endpoints";
+import { omitEmptyValues } from "./payloadUtils";
 import type {
   ResumeDocumentUploadResult,
   SaveBuildMyCvRequest,
@@ -166,7 +167,9 @@ const toVisitorProfileRequest = ({
     disability_status: personalDetails?.disabilityStatus,
     current_company: personalDetails?.currentCompany,
     current_position: personalDetails?.currentPosition,
-    notice_period: personalDetails?.noticePeriod,
+    ...omitEmptyValues({
+      notice_period: personalDetails?.noticePeriod?.trim(),
+    }),
   },
   career_history: careerHistory?.map((entry) => {
     const isCurrent = entry.endDate.toLowerCase() === "present";

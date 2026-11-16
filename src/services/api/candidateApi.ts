@@ -57,6 +57,7 @@ import type { CandidateProfileUpdatePayload } from "@/modules/candidate/types";
 import { toSouthAfricaApiPhoneNumber } from "@/app/phoneNumber";
 import { formatEnumLabel } from "@/app/formatEnumLabel";
 import { resolveIndustryId, resolveIndustryName } from "@/services/api/industryApi";
+import { omitEmptyValues } from "@/services/api/payloadUtils";
 
 const isUserSkill = (value: unknown): value is UserSkill => {
   if (!value || typeof value !== "object") {
@@ -151,15 +152,6 @@ const responseData = <T>(payload: T | { data?: T }): T => {
 
   return payload as T;
 };
-
-// Drops keys with no meaningful value (undefined, null, or empty string) so
-// optional/untouched fields aren't sent to the API at all.
-const omitUndefined = <T extends object>(input: T): Partial<T> =>
-  Object.fromEntries(
-    Object.entries(input).filter(
-      ([, value]) => value !== undefined && value !== null && value !== "",
-    ),
-  ) as Partial<T>;
 
 type RawDashboardPipelineStage =
   | string
@@ -498,9 +490,9 @@ export const toCvPayload = (payload: SaveBuildMyCvRequest) => {
           ...(personalDetails.currentPosition !== undefined
             ? { current_position: personalDetails.currentPosition.trim() }
             : {}),
-          ...(personalDetails.noticePeriod !== undefined
-            ? { notice_period: personalDetails.noticePeriod.trim() }
-            : {}),
+          ...omitEmptyValues({
+            notice_period: personalDetails.noticePeriod?.trim(),
+          }),
         }
       : undefined,
     // career_history entries require an array of responsibilities and an explicit
@@ -1048,7 +1040,7 @@ export const candidateApi = {
     await candidateApiClient.put(
       resolveEndpoint(apiEndpoints.candidate.profile, { candidateId }),
       {
-        personal_details: omitUndefined({
+        personal_details: omitEmptyValues({
           first_name: personalDetails.firstName,
           last_name: personalDetails.lastName,
           email: personalDetails.email,
@@ -1057,7 +1049,7 @@ export const candidateApi = {
           alternate_email: personalDetails.alternateEmail,
           alternate_phone_number: personalDetails.alternateMobileNumber,
         }),
-        job_details: omitUndefined({
+        job_details: omitEmptyValues({
           role_title: payload.desiredJob?.jobTitle,
           targeted_industry_id: targetedIndustriesId,
           preferred_location: toPreferredLocationEnum(payload.desiredJob?.workType),
@@ -1177,7 +1169,7 @@ export const candidateApi = {
     const raw = await unwrapResponseData(
       candidateApiClient.post<Record<string, any>>(
         apiEndpoints.candidate.applications,
-        omitUndefined({
+        omitEmptyValues({
           job_profile_id: jobProfileId,
           match_score_latest: payload.matchScoreLatest,
         }),
