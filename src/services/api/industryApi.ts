@@ -5,6 +5,7 @@ import type { Industry, SuccessEnvelope } from "@/types/api";
 type IndustryItem = {
   industryId: string;
   industryName: string;
+  bizCommunityIndustryId?: number | null;
 };
 
 export const industryApi = {
@@ -18,6 +19,7 @@ export const industryApi = {
         data: response.data.map((industry) => ({
           industryId: industry.industryId,
           name: industry.industryName,
+          bizCommunityIndustryId: industry.bizCommunityIndustryId ?? undefined,
         })),
       }));
   },
@@ -53,6 +55,31 @@ export const resolveIndustryIds = async (
     );
     return match?.industryId ?? industryName;
   });
+};
+
+// Resolves an industry display name to its BizCommunity industry id, if any.
+export const resolveBizCommunityIndustryId = async (
+  industryName?: string,
+): Promise<number | undefined> => {
+  if (!industryName) return undefined;
+
+  const { data: industries } = await industryApi.getIndustries();
+  return industries.find(
+    (industry) => industry.name.toLowerCase() === industryName.toLowerCase(),
+  )?.bizCommunityIndustryId;
+};
+
+// Resolves a BizCommunity industry id to its display name, if any.
+export const resolveBizCommunityIndustryName = async (
+  bizCommunityIndustryId?: number,
+): Promise<string | undefined> => {
+  if (bizCommunityIndustryId == null) return undefined;
+
+  const { data: industries } = await industryApi.getIndustries();
+  return industries.find(
+    (industry) =>
+      Number(industry.bizCommunityIndustryId) === Number(bizCommunityIndustryId),
+  )?.name;
 };
 
 export const resolveIndustryName = async (

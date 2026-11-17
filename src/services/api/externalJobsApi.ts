@@ -16,12 +16,18 @@ export type BizCommunityPrefill = {
   job_description?: string;
   city_name?: string;
   country_id?: number;
+  area_id?: number;
   remote_work?: number;
   industry_id?: number;
   skills_required?: string;
   remuneration_minimum?: number;
   remuneration_maximum?: number;
   remuneration_currency?: number;
+  remuneration_package?: number;
+  remuneration_basis?: number;
+  seniority_level?: number;
+  education_level?: number;
+  employment_equity_policy?: number;
   is_permanent?: boolean;
   contact_name?: string;
   contact_telephone_number?: string;
@@ -76,6 +82,8 @@ export type BizCommunityPublishRecord = {
   remuneration_minimum?: number;
   remuneration_maximum?: number;
   remuneration_currency?: number;
+  remuneration_package?: number;
+  remuneration_basis?: number;
   remuneration_description?: string;
   benefits?: string;
   is_permanent?: boolean;
@@ -84,6 +92,7 @@ export type BizCommunityPublishRecord = {
   contract_period?: string;
   seniority_level?: number;
   education_level?: number;
+  employment_equity_policy?: number;
   reference_number?: string;
   company_name?: string;
   contact_name?: string;
@@ -92,6 +101,9 @@ export type BizCommunityPublishRecord = {
   expiry_date?: string;
   is_test_job?: boolean;
   job_url?: string;
+  admin_email_address?: string;
+  admin_first_name?: string;
+  admin_last_name?: string;
   provider_message?: string;
   error_detail?: string;
   published_by_user_id?: string;
@@ -139,6 +151,49 @@ export type UpdateBizCommunityJobRequest = BizCommunityPrefill & {
   job_profile_id_ref?: string;
 };
 
+export type PnetPrefill = {
+  reference_id?: string;
+  action?: string;
+  channel?: string;
+  categorization?: {
+    experience?: string[];
+    contracttype?: string[];
+    contractime?: string[];
+    workpolicy?: string[];
+  };
+  jobdetails?: {
+    language?: string;
+    jobtitle?: string;
+    introduction?: string;
+    tasks?: string;
+    profile?: string;
+    offer?: string;
+    joblocations?: { countrycode?: string; city?: string }[];
+    apply?: { url?: string };
+    salary?: {
+      minimum?: number;
+      maximum?: number;
+      currency?: string;
+      period?: string;
+    };
+  };
+  companydetails?: {
+    companyname?: string;
+    recruiter?: {
+      firstname?: string;
+      lastname?: string;
+      email?: string;
+    };
+  };
+};
+
+export type PnetPrefillResponse = {
+  job_profile_id: string;
+  missing_fields: string[];
+  warnings: string[];
+  prefill: PnetPrefill;
+};
+
 // The BizCommunity webservice call is forwarded as XML and can be slower than
 // the default client timeout.
 const PUBLISH_TIMEOUT_MS = 30000;
@@ -164,6 +219,14 @@ export const externalJobsApi = {
     return unwrapResponseData(
       externalJobsApiClient.get<BizCommunityPrefillResponse>(
         apiEndpoints.externalJobs.bizCommunityPrefill,
+        { params: { job_profile_id: jobProfileId } },
+      ),
+    );
+  },
+  getPnetPrefill(jobProfileId: string) {
+    return unwrapResponseData(
+      externalJobsApiClient.get<PnetPrefillResponse>(
+        apiEndpoints.externalJobs.pnetPrefill,
         { params: { job_profile_id: jobProfileId } },
       ),
     );

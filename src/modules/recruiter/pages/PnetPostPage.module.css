@@ -180,6 +180,19 @@
   color: #9ca3af;
 }
 
+.notices {
+  margin: 0 0 16px;
+  padding: 10px 16px 10px 32px;
+  border: 1px solid #f5d98b;
+  border-radius: 8px;
+  background: #fff8e1;
+  color: #6b4e00;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+
 @media (max-width: 900px) {
   .rowThree {
     grid-template-columns: minmax(0, 1fr);

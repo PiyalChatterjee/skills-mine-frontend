@@ -6,16 +6,19 @@ import { Box, Typography } from '@mui/material'
 import { RecruiterSidebar } from '@/modules/recruiter/components/RecruiterSidebar'
 import { StickyFooter } from '@/modules/recruiter/components/mandate/StickyFooter'
 import {
-  BIZ_BENEFITS,
-  BIZ_CATEGORIES,
   BIZ_CITY_PROVINCE,
+  BIZ_EDUCATION_LEVEL_IDS,
   BIZ_EDUCATION_LEVELS,
   BIZ_EMPLOYMENT_EQUITY,
+  BIZ_EMPLOYMENT_EQUITY_IDS,
   BIZ_EMPLOYMENT_TYPES,
-  BIZ_INDUSTRIES,
+  BIZ_PROVINCE_IDS,
   BIZ_PROVINCES,
   BIZ_REMUNERATION_BASES,
+  BIZ_REMUNERATION_BASIS_IDS,
+  BIZ_REMUNERATION_PACKAGE_IDS,
   BIZ_REMUNERATION_PACKAGES,
+  BIZ_SENIORITY_LEVEL_IDS,
   BIZ_SENIORITY_LEVELS,
   BIZ_TRAVEL_REQUIREMENTS,
 } from '@/modules/recruiter/data/bizcommunityOptions'
@@ -23,15 +26,16 @@ import {
   externalJobsApi,
   type BizCommunityPrefill,
   type BizCommunityPrefillResponse,
+  type BizCommunityPublishRecord,
   type PublishBizCommunityJobRequest,
   type UpdateBizCommunityJobRequest,
 } from '@/services/api/externalJobsApi'
-import { mandateApi } from '@/services/api/mandateApi'
+import { resolveBizCommunityIndustryId, resolveBizCommunityIndustryName } from '@/services/api/industryApi'
 import { extractErrorMessage } from '@/app/errorUtils'
 import { pushNotification } from '@/store/slices/notificationSlice'
+import { useGetIndustriesQuery } from '@/store/api/apiSlice'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { ROUTE_PATHS } from '@/routes/routePaths'
-import type { JobPost } from '@/types/api'
 import pageStyles from './NewMandatePage.module.css'
 import formStyles from '@/modules/recruiter/components/mandate/form.module.css'
 import styles from './BizCommunityPostPage.module.css'
@@ -44,7 +48,6 @@ type BizFormValues = {
   city: string
   description: string
   industry: string
-  category: string
   travel: string
   skillsRequired: string
   advantageousSkills: string
@@ -75,7 +78,6 @@ const initialValues: BizFormValues = {
   city: '',
   description: '',
   industry: '',
-  category: '',
   travel: '',
   skillsRequired: '',
   advantageousSkills: '',
@@ -100,45 +102,8 @@ const initialValues: BizFormValues = {
   expiryDate: '',
 }
 
-const toBullets = (lines: string[] | undefined) =>
-  (lines ?? []).map((line) => `• ${line.replace(/^•\s*/, '')}`).join('\n')
-
-const toDescription = (post: JobPost) => {
-  const requirements = toBullets(post.requirements)
-  const responsibilities = toBullets(post.responsibilities)
-  return [
-    requirements && `Requirements:\n${requirements}`,
-    responsibilities && `Responsibilities:\n${responsibilities}`,
-  ]
-    .filter(Boolean)
-    .join('\n\n')
-}
-
-const toValues = (post: JobPost): BizFormValues => {
-  const city = post.location?.split(',')[0]?.trim() ?? ''
-  const [firstName = '', ...rest] = (post.contactPersonName ?? '').trim().split(/\s+/)
-  return {
-    ...initialValues,
-    jobTitle: post.title ?? '',
-    city,
-    province: BIZ_CITY_PROVINCE[city] ?? '',
-    description: toDescription(post),
-    industry: post.industry ?? '',
-    skillsRequired: (post.skills ?? []).join(', '),
-    remunerationFrom: String(post.salaryMin || 0),
-    remunerationTo: String(post.salaryMax || 0),
-    employmentType: post.employmentType ?? '',
-    seniority: post.experienceLevel ?? '',
-    clientDescription: post.industry ? `Our client is in the ${post.industry} industry.` : '',
-    adminEmail: post.contactPersonEmail ?? '',
-    adminFirstName: firstName,
-    adminLastName: rest.join(' '),
-    expiryDate: post.targetCloseDate ? post.targetCloseDate.split('T')[0] : '',
-  }
-}
-
 // Overlays the BizCommunity prefill on the form values. Only fields the API
-// actually returned are applied, so job-post-derived values remain as fallbacks.
+// actually returned are applied; everything else keeps its default.
 // Numeric ids (country_id, industry_id, remote_work, remuneration_currency) and the
 // contact/reference fields have no matching UI field yet.
 const applyPrefill = (base: BizFormValues, { prefill }: BizCommunityPrefillResponse): BizFormValues => {
@@ -150,12 +115,64 @@ const applyPrefill = (base: BizFormValues, { prefill }: BizCommunityPrefillRespo
     next.province = BIZ_CITY_PROVINCE[prefill.city_name] ?? next.province
   }
   if (prefill.skills_required) next.skillsRequired = prefill.skills_required
+  const provinceLabel = Object.entries(BIZ_PROVINCE_IDS).find(([, id]) => id === prefill.area_id)?.[0]
+  if (provinceLabel) next.province = provinceLabel
   if (prefill.remuneration_minimum != null) next.remunerationFrom = String(prefill.remuneration_minimum)
   if (prefill.remuneration_maximum != null) next.remunerationTo = String(prefill.remuneration_maximum)
+  const packageLabel = Object.entries(BIZ_REMUNERATION_PACKAGE_IDS).find(([, id]) => id === prefill.remuneration_package)?.[0]
+  if (packageLabel) next.remunerationPackage = packageLabel
+  const basisLabel = Object.entries(BIZ_REMUNERATION_BASIS_IDS).find(([, id]) => id === prefill.remuneration_basis)?.[0]
+  if (basisLabel) next.remunerationBasis = basisLabel
+  const seniorityLabel = Object.entries(BIZ_SENIORITY_LEVEL_IDS).find(([, id]) => id === prefill.seniority_level)?.[0]
+  if (seniorityLabel) next.seniority = seniorityLabel
+  const educationLabel = Object.entries(BIZ_EDUCATION_LEVEL_IDS).find(([, id]) => id === prefill.education_level)?.[0]
+  if (educationLabel) next.education = educationLabel
+  const equityLabel = Object.entries(BIZ_EMPLOYMENT_EQUITY_IDS).find(([, id]) => id === prefill.employment_equity_policy)?.[0]
+  if (equityLabel) next.equity = equityLabel
   if (prefill.is_permanent) next.employmentType = 'Permanent'
   if (prefill.admin_email_address) next.adminEmail = prefill.admin_email_address
   if (prefill.admin_first_name) next.adminFirstName = prefill.admin_first_name
   if (prefill.admin_last_name) next.adminLastName = prefill.admin_last_name
+  return next
+}
+
+// Edit mode: maps a stored publish record onto the same shape the prefill uses.
+const publishRecordToPrefill = (record: BizCommunityPublishRecord): BizCommunityPrefill => ({
+  job_title: record.job_title,
+  job_description: record.job_description,
+  city_name: record.city_name,
+  country_id: record.country_id,
+  area_id: record.area_id,
+  remote_work: record.remote_work,
+  industry_id: record.industry_id,
+  skills_required: record.skills_required,
+  remuneration_minimum: record.remuneration_minimum,
+  remuneration_maximum: record.remuneration_maximum,
+  remuneration_currency: record.remuneration_currency,
+  remuneration_package: record.remuneration_package,
+  remuneration_basis: record.remuneration_basis,
+  seniority_level: record.seniority_level,
+  education_level: record.education_level,
+  employment_equity_policy: record.employment_equity_policy,
+  is_permanent: record.is_permanent,
+  contact_name: record.contact_name,
+  contact_telephone_number: record.contact_telephone_number,
+  reference_number: record.reference_number,
+  admin_email_address: record.admin_email_address,
+  admin_first_name: record.admin_first_name,
+  admin_last_name: record.admin_last_name,
+})
+
+const applyPublishRecord = (record: BizCommunityPublishRecord): BizFormValues => {
+  const next = applyPrefill(initialValues, {
+    job_profile_id: record.job_profile_id_ref,
+    missing_fields: [],
+    warnings: [],
+    prefill: publishRecordToPrefill(record),
+  })
+  if (record.is_contract) next.employmentType = 'Contract'
+  else if (record.is_temporary) next.employmentType = 'Temporary'
+  if (record.company_name) next.companyName = record.company_name
   return next
 }
 
@@ -171,6 +188,7 @@ const buildPublishRequest = (
   prefill: BizCommunityPrefill,
   jobProfileId: string,
   countryId: number,
+  industryId?: number,
 ): PublishBizCommunityJobRequest => {
   const from = Number(values.remunerationFrom)
   const to = Number(values.remunerationTo)
@@ -179,6 +197,7 @@ const buildPublishRequest = (
     // IDs / contact data that only the prefill knows about
     ...prefill,
     country_id: countryId,
+    industry_id: industryId ?? prefill.industry_id,
     job_profile_id_ref: jobProfileId,
     // Portal redirect URL for applicants
     response_handler_url: `${window.location.origin}${ROUTE_PATHS.jobDetails.replace(':jobId', jobProfileId)}`,
@@ -186,12 +205,18 @@ const buildPublishRequest = (
     job_title: values.jobTitle.trim(),
     job_description: values.description.trim(),
     city_name: values.city.trim(),
+    area_id: BIZ_PROVINCE_IDS[values.province] ?? prefill.area_id,
     admin_email_address: values.adminEmail.trim(),
     admin_first_name: values.adminFirstName.trim(),
     admin_last_name: values.adminLastName.trim(),
     skills_required: values.skillsRequired.trim() || undefined,
     remuneration_minimum: from > 0 ? from : undefined,
     remuneration_maximum: to > 0 ? to : undefined,
+    remuneration_package: BIZ_REMUNERATION_PACKAGE_IDS[values.remunerationPackage],
+    remuneration_basis: BIZ_REMUNERATION_BASIS_IDS[values.remunerationBasis],
+    seniority_level: BIZ_SENIORITY_LEVEL_IDS[values.seniority],
+    education_level: BIZ_EDUCATION_LEVEL_IDS[values.education],
+    employment_equity_policy: BIZ_EMPLOYMENT_EQUITY_IDS[values.equity],
     remuneration_negotiable: values.negotiable,
     own_transport: values.ownTransport,
     is_permanent: employmentType === 'Permanent',
@@ -210,6 +235,7 @@ const buildUpdateRequest = (
   prefill: BizCommunityPrefill,
   jobProfileId: string,
   countryId?: number,
+  industryId?: number,
 ): UpdateBizCommunityJobRequest => {
   const from = Number(values.remunerationFrom)
   const to = Number(values.remunerationTo)
@@ -217,11 +243,13 @@ const buildUpdateRequest = (
   const request: UpdateBizCommunityJobRequest = {
     ...prefill,
     country_id: countryId,
+    industry_id: industryId ?? prefill.industry_id,
     job_profile_id_ref: jobProfileId,
     response_handler_url: `${window.location.origin}${ROUTE_PATHS.jobDetails.replace(':jobId', jobProfileId)}`,
     job_title: values.jobTitle.trim(),
     job_description: values.description.trim(),
     city_name: values.city.trim(),
+    area_id: BIZ_PROVINCE_IDS[values.province] ?? prefill.area_id,
     admin_email_address: values.adminEmail.trim(),
     admin_first_name: values.adminFirstName.trim(),
     admin_last_name: values.adminLastName.trim(),
@@ -230,6 +258,11 @@ const buildUpdateRequest = (
     personal_skills: values.personalSkills.trim() || undefined,
     remuneration_minimum: from > 0 ? from : undefined,
     remuneration_maximum: to > 0 ? to : undefined,
+    remuneration_package: BIZ_REMUNERATION_PACKAGE_IDS[values.remunerationPackage],
+    remuneration_basis: BIZ_REMUNERATION_BASIS_IDS[values.remunerationBasis],
+    seniority_level: BIZ_SENIORITY_LEVEL_IDS[values.seniority],
+    education_level: BIZ_EDUCATION_LEVEL_IDS[values.education],
+    employment_equity_policy: BIZ_EMPLOYMENT_EQUITY_IDS[values.equity],
     remuneration_negotiable: values.negotiable,
     own_transport: values.ownTransport,
     is_permanent: employmentType === 'Permanent',
@@ -344,44 +377,56 @@ const BizCommunityPostPage = () => {
   const [values, setValues] = useState<BizFormValues>(initialValues)
   const [prefill, setPrefill] = useState<BizCommunityPrefill>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [clientName, setClientName] = useState('')
   const [notices, setNotices] = useState<string[]>([])
+  const { data: industries = [] } = useGetIndustriesQuery()
 
   useEffect(() => {
     if (!mandateId) return
     let cancelled = false
-    Promise.allSettled([
-      mandateApi.getJobPostDetail(mandateId),
-      externalJobsApi.getBizCommunityPrefill(mandateId),
-    ]).then(([postResult, prefillResult]) => {
-      if (cancelled) return
-      let next = initialValues
-      if (postResult.status === 'fulfilled') {
-        next = toValues(postResult.value.data)
-        setClientName(postResult.value.data.client ?? '')
+    if (bizJobId) {
+      // Edit: load the saved advert from our publishes table instead of the prefill.
+      externalJobsApi
+        .getBizCommunityPublishes({ biz_job_id: String(bizJobId) })
+        .then(async (records) => {
+          const record = Array.isArray(records) ? records[0] : undefined
+          if (cancelled || !record) return
+          const industry = await resolveBizCommunityIndustryName(record.industry_id).catch(() => undefined)
+          if (cancelled) return
+          setValues({ ...applyPublishRecord(record), industry: industry ?? '' })
+          setPrefill(publishRecordToPrefill(record))
+          setNotices([])
+        })
+        .catch(() => {
+          // fields stay as-is and can be filled in manually
+        })
+      return () => {
+        cancelled = true
       }
-      if (prefillResult.status === 'fulfilled') {
-        const response = prefillResult.value
-        next = applyPrefill(next, response)
+    }
+    externalJobsApi
+      .getBizCommunityPrefill(mandateId)
+      .then((response) => {
+        if (cancelled) return
+        setValues(applyPrefill(initialValues, response))
         setPrefill(response.prefill)
         setNotices([
           ...response.warnings,
           ...response.missing_fields.map((field) => `Missing required field: ${field}`),
         ])
-      }
-      // on failure the fields stay as-is and can be filled in manually
-      setValues(next)
-    })
+      })
+      .catch(() => {
+        // fields stay as-is and can be filled in manually
+      })
     return () => {
       cancelled = true
     }
-  }, [mandateId])
+  }, [mandateId, bizJobId])
 
   const update = <K extends keyof BizFormValues>(key: K, value: BizFormValues[K]) =>
     setValues((prev) => ({ ...prev, [key]: value }))
 
   const handleBack = () => navigate(ROUTE_PATHS.recruiterAdvertiseJob.replace(':mandateId', mandateId ?? ''))
-  const heading = clientName ? `${clientName} – Bizcommunity` : 'Bizcommunity'
+  const heading = 'Bizcommunity'
 
   const isValid =
     isFilled(values.jobTitle) &&
@@ -406,10 +451,11 @@ const BizCommunityPostPage = () => {
 
     setIsSubmitting(true)
     try {
+      const industryId = await resolveBizCommunityIndustryId(values.industry)
       if (bizJobId) {
         await externalJobsApi.updateBizCommunityJob(
           bizJobId,
-          buildUpdateRequest(values, prefill, mandateId, prefill.country_id),
+          buildUpdateRequest(values, prefill, mandateId, prefill.country_id, industryId),
         )
         dispatch(pushNotification({
           level: 'success',
@@ -424,7 +470,7 @@ const BizCommunityPostPage = () => {
         })
       } else {
         await externalJobsApi.publishToBizCommunity(
-          buildPublishRequest(values, prefill, mandateId, prefill.country_id),
+          buildPublishRequest(values, prefill, mandateId, prefill.country_id, industryId),
         )
         dispatch(pushNotification({
           level: 'success',
@@ -507,18 +553,8 @@ const BizCommunityPostPage = () => {
                   <SelectInput
                     ariaLabel="Industry"
                     value={values.industry}
-                    options={BIZ_INDUSTRIES}
-                    onChange={(v) => setValues((prev) => ({ ...prev, industry: v, category: '' }))}
-                  />
-                </Field>
-                <Field label="Category">
-                  <SelectInput
-                    ariaLabel="Category"
-                    placeholder={values.industry ? 'Select' : 'Select industry first'}
-                    disabled={!values.industry}
-                    value={values.category}
-                    options={BIZ_CATEGORIES}
-                    onChange={(v) => update('category', v)}
+                    options={industries}
+                    onChange={(v) => update('industry', v)}
                   />
                 </Field>
                 <Field label="Travel Requirement">
@@ -572,13 +608,12 @@ const BizCommunityPostPage = () => {
               </div>
 
               <div className={formStyles.row}>
-                <Field label="Benefits">
-                  <SelectInput ariaLabel="Benefits" value={values.benefits} options={BIZ_BENEFITS} onChange={(v) => update('benefits', v)} />
-                </Field>
                 <Field label="Employment Type" required>
                   <SelectInput ariaLabel="Employment Type" value={values.employmentType} options={BIZ_EMPLOYMENT_TYPES} onChange={(v) => update('employmentType', v)} />
                 </Field>
               </div>
+
+              <TextAreaField label="Benefits" rows={3} value={values.benefits} onChange={(v) => update('benefits', v)} />
             </section>
 
             {/* ── Candidate Profile ── */}
@@ -600,7 +635,7 @@ const BizCommunityPostPage = () => {
             {/* ── Company Information ── */}
             <section className={formStyles.section}>
               <h2 className={formStyles.sectionTitle}>Company Information</h2>
-              <TextAreaField label="Client Description" rows={3} value={values.clientDescription} onChange={(v) => update('clientDescription', v)} />
+              <TextAreaField label="Company Description" rows={3} value={values.clientDescription} onChange={(v) => update('clientDescription', v)} />
 
               <div className={formStyles.row}>
                 <Field label="Company Name">

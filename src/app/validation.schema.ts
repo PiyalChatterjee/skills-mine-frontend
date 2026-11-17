@@ -28,7 +28,7 @@ export const optionalEmailSchema = z
     message: INVALID_EMAIL_MESSAGE,
   });
 
-const requiredField = (label: string) =>
+export const requiredField = (label: string) =>
   z.string().trim().min(1, `${label} is required`);
 
 const completedYearSchema = z
@@ -44,7 +44,7 @@ const institutionNameSchema = requiredField("Institution name").refine(
 
 const signupNamePattern =
   /^\p{L}[\p{L}\p{M}]*(?:[ '\u2019-]\p{L}[\p{L}\p{M}]*)*$/u;
-const signupName = (label: string) =>
+export const signupName = (label: string) =>
   z
     .string()
     .trim()
@@ -170,7 +170,7 @@ const profilePhoneNumberSchema = z
   .max(10, "Phone number must be at most 10 digits")
   .regex(/^\d+$/, "Phone number must contain digits only");
 
-const restrictedTextField = (
+export const restrictedTextField = (
   label: string,
   allowedPattern: RegExp,
   allowedDescription: string,
