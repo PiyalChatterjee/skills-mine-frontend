@@ -3,8 +3,11 @@ import { Provider } from "react-redux";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { crmApi } from "@/services/api/crmApi";
+import { NotificationToaster } from "@/components/NotificationToaster";
 import { apiSlice } from "@/store/api/apiSlice";
+import notificationReducer from "@/store/slices/notificationSlice";
 import RecruiterCrmPage from "./RecruiterCrmPage";
+import styles from "./RecruiterCrmPage.module.css";
 
 vi.mock("@/modules/recruiter/components/RecruiterSidebar", () => ({ RecruiterSidebar: () => null }));
 vi.mock("@/services/api/crmApi", () => ({
@@ -16,7 +19,7 @@ vi.mock("@/services/api/crmApi", () => ({
 
 const client = {
   clientId: "client-1", clientName: "Live Employer", status: "hot_lead",
-  lastContactDays: 0, followupDays: 0, overdueDays: 0, lastNote: "Hiring next month",
+  lastContactDays: 1, followupDays: 0, overdueDays: 0, lastNote: "Hiring next month",
   contactName: "Account contact", contactNumber: "+27111234567", emailId: "contact@example.com",
 };
 const response = {
@@ -26,10 +29,10 @@ const response = {
 
 function renderPage(navigation: 'recruiter' | 'exco' = 'recruiter') {
   const store = configureStore({
-    reducer: { [apiSlice.reducerPath]: apiSlice.reducer },
+    reducer: { [apiSlice.reducerPath]: apiSlice.reducer, notification: notificationReducer },
     middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(apiSlice.middleware),
   });
-  render(<Provider store={store}><RecruiterCrmPage navigation={navigation} /></Provider>);
+  render(<Provider store={store}><RecruiterCrmPage navigation={navigation} /><NotificationToaster /></Provider>);
   return store;
 }
 
@@ -58,7 +61,7 @@ describe("live CRM screen", () => {
     fireEvent.click(await screen.findByRole("button", { name: "Update Live Employer" }));
     const dialog = screen.getByRole("dialog");
     expect(within(dialog).getByRole("textbox", { name: "Last Contact Date" })).toHaveValue("2026-10-28");
-    expect(within(dialog).getByRole("textbox", { name: "Last Follow-up Date" })).toHaveValue("2026-11-01");
+    expect(within(dialog).getByRole("textbox", { name: "Follow-up Date" })).toHaveValue("2026-11-01");
   });
 
   it.each([
@@ -75,21 +78,43 @@ describe("live CRM screen", () => {
     fireEvent.click(await screen.findByRole("button", { name: "Update Live Employer" }));
     const dialog = screen.getByRole("dialog");
     expect(within(dialog).getByRole("textbox", { name: "Last Contact Date" })).toHaveValue(contactDate);
-    expect(within(dialog).getByRole("textbox", { name: "Last Follow-up Date" })).toHaveValue(followupDate);
+    expect(within(dialog).getByRole("textbox", { name: "Follow-up Date" })).toHaveValue(followupDate);
   });
 
   it("renders server counts, names, notes and zero-day timing", async () => {
+    vi.mocked(crmApi.listClients).mockResolvedValue({
+      ...response, clients: [{ ...client, lastContactDays: 0 }],
+    });
     renderPage();
     expect(await screen.findByRole("heading", { name: "Live Employer" })).toBeInTheDocument();
     expect(screen.getByText("42")).toBeInTheDocument();
     expect(screen.getByText("Hiring next month")).toBeInTheDocument();
-    expect(screen.getByText(/0 days/, { selector: "span" })).toHaveTextContent("Follow up: 0 days");
+    expect(screen.getByText("Due today")).toBeInTheDocument();
     expect(screen.getByText("Last Contact: 0 days ago")).toBeInTheDocument();
     expect(screen.getByText("Account contact").tagName).toBe("SPAN");
     expect(screen.queryByRole("link", { name: "Account contact" })).not.toBeInTheDocument();
     expect(screen.getByText("+27111234567").tagName).toBe("SPAN");
     expect(screen.queryByRole("link", { name: "+27111234567" })).not.toBeInTheDocument();
     expect(crmApi.listClients).toHaveBeenCalledWith({ page: 1, size: 20 });
+  });
+
+  it.each([
+    { lastContactDays: 3, followupDays: 5, overdueDays: 0, text: "Follow up: 5 days", tone: styles.statusTagFollowUp },
+    { lastContactDays: 3, followupDays: 0, overdueDays: 8, text: "Overdue: 8 days", tone: styles.statusTagOverdue },
+    { lastContactDays: 16, followupDays: 0, overdueDays: 12, text: "Overdue: 12 days", tone: styles.statusTagOverdue },
+    { lastContactDays: 8, followupDays: 0, overdueDays: 0, text: "Due today", tone: styles.statusTagNeutral },
+    { lastContactDays: null, followupDays: 5, overdueDays: 0, text: "Follow up: 5 days", tone: styles.statusTagFollowUp },
+    { lastContactDays: 3, followupDays: null, overdueDays: 0, text: "No follow-up scheduled", tone: styles.statusTagNeutral },
+  ])("renders the calculated status $text with its appropriate tone", async ({ text, tone, ...timing }) => {
+    vi.mocked(crmApi.listClients).mockResolvedValue({
+      ...response, clients: [{ ...client, status: "warm_contact", ...timing }],
+    });
+    renderPage();
+    const status = await screen.findByText(
+      (_, element) => element?.textContent === text,
+      { selector: "span" },
+    );
+    expect(status.parentElement).toHaveClass(tone);
   });
 
   it.each(['recruiter', 'exco'] as const)("shows only search on the %s CRM screen", async (navigation) => {
@@ -108,24 +133,103 @@ describe("live CRM screen", () => {
     await waitFor(() => expect(crmApi.listClients).toHaveBeenLastCalledWith({ page: 1, size: 20, search: "Bank" }));
   });
 
-  it("validates notes, submits exact payload and refreshes clients from the redesigned popup", async () => {
-    renderPage();
+  it.each(['recruiter', 'exco'] as const)("saves and shows a client-specific toast on the %s CRM screen", async (navigation) => {
+    renderPage(navigation);
     fireEvent.click(await screen.findByRole("button", { name: "Update Live Employer" }));
     const dialog = screen.getByRole("dialog");
     expect(within(dialog).getByRole("radio", { name: "Hot Lead" })).toBeChecked();
     expect(within(dialog).getByLabelText(/Add Note/)).toHaveValue(client.lastNote);
     expect(crmApi.addClientNote).not.toHaveBeenCalled();
     fireEvent.change(within(dialog).getByLabelText(/Add Note/), { target: { value: "  Spoke to contact  " } });
-    fireEvent.change(within(dialog).getByRole("textbox", { name: "Last Follow-up Date" }), { target: { value: "2026-11-01" } });
+    fireEvent.change(within(dialog).getByRole("textbox", { name: "Follow-up Date" }), { target: { value: "2026-11-05" } });
     await waitFor(() => expect(within(dialog).getByRole("button", { name: "Update" })).toBeEnabled());
     fireEvent.click(within(dialog).getByRole("button", { name: "Update" }));
     await waitFor(() => expect(crmApi.addClientNote).toHaveBeenCalledExactlyOnceWith("client-1", {
-      classification: "hot_lead", note: "Spoke to contact", followupDate: "2026-11-01",
-      lastcontactDate: "2026-11-04",
+      classification: "hot_lead", note: "Spoke to contact", followupDate: "2026-11-05",
+      lastcontactDate: "2026-11-03",
     }));
-    expect(await screen.findByText("Client updated successfully.")).toBeInTheDocument();
+    expect(await screen.findByRole("alert")).toHaveTextContent("Live Employer details updated successfully.");
     await waitFor(() => expect(crmApi.listClients).toHaveBeenCalledTimes(2));
   });
+
+  it.each(["Last Contact Date"])(
+    "rejects a future %s",
+    async (label) => {
+      renderPage();
+      fireEvent.click(await screen.findByRole("button", { name: "Update Live Employer" }));
+      const dialog = screen.getByRole("dialog");
+      fireEvent.change(within(dialog).getByRole("textbox", { name: label }), {
+        target: { value: "2026-11-05" },
+      });
+
+      expect(await within(dialog).findByText("Date cannot be in the future")).toBeInTheDocument();
+      expect(within(dialog).getByRole("button", { name: "Update" })).toBeDisabled();
+      expect(crmApi.addClientNote).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each(["Last Contact Date"])(
+    "disables future dates in the %s calendar",
+    async (label) => {
+      renderPage();
+      fireEvent.click(await screen.findByRole("button", { name: "Update Live Employer" }));
+      const dialog = screen.getByRole("dialog");
+      fireEvent.click(within(dialog).getByRole("button", {
+        name: `Choose ${label.toLowerCase()}`,
+      }));
+
+      const calendar = await screen.findByRole("dialog", { name: `${label} calendar` });
+      const tomorrow = within(calendar).getAllByRole("gridcell")
+        .find((cell) => cell.textContent === "5");
+      expect(tomorrow).toBeDisabled();
+    },
+  );
+
+  it.each(["2026-11-02", "2026-11-03"])(
+    "rejects follow-up %s on or before the contact date and revalidates when contact changes",
+    async (followupDate) => {
+      renderPage();
+      fireEvent.click(await screen.findByRole("button", { name: "Update Live Employer" }));
+      const dialog = screen.getByRole("dialog");
+      fireEvent.change(within(dialog).getByRole("textbox", { name: "Follow-up Date" }), {
+        target: { value: followupDate },
+      });
+
+      expect(await within(dialog).findByText("Follow-up Date must be after Last Contact Date")).toBeInTheDocument();
+      expect(within(dialog).getByRole("button", { name: "Update" })).toBeDisabled();
+      expect(crmApi.addClientNote).not.toHaveBeenCalled();
+
+      fireEvent.change(within(dialog).getByRole("textbox", { name: "Last Contact Date" }), {
+        target: { value: "2026-11-01" },
+      });
+      await waitFor(() => {
+        expect(within(dialog).queryByText("Follow-up Date must be after Last Contact Date")).not.toBeInTheDocument();
+        expect(within(dialog).getByRole("button", { name: "Update" })).toBeEnabled();
+      });
+
+      fireEvent.change(within(dialog).getByRole("textbox", { name: "Last Contact Date" }), {
+        target: { value: "2026-11-04" },
+      });
+      expect(await within(dialog).findByText("Follow-up Date must be after Last Contact Date")).toBeInTheDocument();
+      expect(within(dialog).getByRole("button", { name: "Update" })).toBeDisabled();
+    },
+  );
+
+  it.each(["recruiter", "exco"] as const)(
+    "limits the follow-up calendar to dates after last contact on %s",
+    async (navigation) => {
+      renderPage(navigation);
+      fireEvent.click(await screen.findByRole("button", { name: "Update Live Employer" }));
+      const dialog = screen.getByRole("dialog");
+      fireEvent.click(within(dialog).getByRole("button", { name: "Choose follow-up date" }));
+      const calendar = await screen.findByRole("dialog", { name: "Follow-up Date calendar" });
+      const days = within(calendar).getAllByRole("gridcell");
+      expect(days.find((cell) => cell.textContent === "2")).toBeDisabled();
+      expect(days.find((cell) => cell.textContent === "3")).toBeDisabled();
+      expect(days.find((cell) => cell.textContent === "4")).toBeEnabled();
+      expect(days.find((cell) => cell.textContent === "5")).toBeEnabled();
+    },
+  );
 
   it("submits the existing note when only classification changes", async () => {
     renderPage();
@@ -137,7 +241,7 @@ describe("live CRM screen", () => {
     fireEvent.click(within(dialog).getByRole("button", { name: "Update" }));
     await waitFor(() => expect(crmApi.addClientNote).toHaveBeenCalledExactlyOnceWith("client-1", {
       classification: "warm_contact", note: "Hiring next month",
-      lastcontactDate: "2026-11-04", followupDate: "2026-11-04",
+      lastcontactDate: "2026-11-03", followupDate: "2026-11-04",
     }));
   });
 
@@ -175,13 +279,14 @@ describe("live CRM screen", () => {
 
   it("retains note drafts and displays server errors when a mutation fails", async () => {
     vi.mocked(crmApi.addClientNote).mockRejectedValue({ response: { status: 403, data: { message: "No permission to update" } } });
-    renderPage();
+    const store = renderPage();
     fireEvent.click(await screen.findByRole("button", { name: "Update Live Employer" }));
     fireEvent.change(screen.getByLabelText(/Add Note/), { target: { value: "Keep this draft" } });
     await waitFor(() => expect(within(screen.getByRole("dialog")).getByRole("button", { name: "Update" })).toBeEnabled());
     fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Update" }));
     expect(await screen.findByText("No permission to update")).toBeInTheDocument();
     expect(screen.getByLabelText(/Add Note/)).toHaveValue("Keep this draft");
+    expect(store.getState().notification.items).toHaveLength(0);
     expect(crmApi.listClients).toHaveBeenCalledTimes(1);
   });
 

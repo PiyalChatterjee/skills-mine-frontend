@@ -1,6 +1,16 @@
 import { CrmClassificationLabel } from "@/enums/statuses";
 import { crmClassificationLabels, crmClassifications } from './schema'
 import styles from '@/modules/recruiter/pages/RecruiterCrmPage.module.css'
+import type { CrmClient } from '@/types/api'
+
+export function getFollowupDayOffset(contact: CrmClient): number | null {
+  if (contact.overdueDays != null && Number.isInteger(contact.overdueDays) && contact.overdueDays > 0) {
+    return -contact.overdueDays
+  }
+  return contact.followupDays != null && Number.isInteger(contact.followupDays)
+    ? contact.followupDays
+    : null
+}
 
 export function leadLabel(status: string): string {
   const classification = crmClassifications.find((value) => value === status)

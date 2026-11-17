@@ -176,7 +176,33 @@ describe("useJobDetailsViewModel", () => {
 
   it("creates a guest application draft and navigates guests to CV builder", async () => {
     mocks.useAuth.mockReturnValue({ isAuthenticated: false, user: undefined });
+    const summaryJob = { ...listJob, workType: "" };
+    mocks.useLocation.mockReturnValue({ state: { job: summaryJob } });
+    mocks.useJobs.mockReturnValue({ data: { pages: [{ jobs: [summaryJob] }] }, isLoading: false });
+    mocks.useGetJobProfileQuery.mockReturnValue({
+      data: { ...listJob, title: "Senior Frontend Engineer", workType: "ONSITE" },
+      isFetching: false,
+    });
 
+    const { result } = renderHook(() => useJobDetailsViewModel());
+    expect(result.current.workType).toBe("On-site");
+
+    await act(async () => {
+      await result.current.handleApply();
+    });
+
+    expect(mocks.createGuestApplicationDraft).toHaveBeenCalledWith(
+      expect.objectContaining({ jobId: "job-1", title: "Senior Frontend Engineer", workType: "ONSITE" }),
+    );
+    expect(mocks.navigate).toHaveBeenCalledWith("/candidate/cv-builder?job=job-1", {
+      state: { guestApplicationJobId: "job-1" },
+    });
+
+  });
+
+  it("uses the available job for a guest draft when profile details are unavailable", async () => {
+    mocks.useAuth.mockReturnValue({ isAuthenticated: false, user: undefined });
+    mocks.useGetJobProfileQuery.mockReturnValue({ data: undefined, isFetching: false });
     const { result } = renderHook(() => useJobDetailsViewModel());
 
     await act(async () => {
@@ -184,9 +210,6 @@ describe("useJobDetailsViewModel", () => {
     });
 
     expect(mocks.createGuestApplicationDraft).toHaveBeenCalledWith(listJob);
-    expect(mocks.navigate).toHaveBeenCalledWith("/candidate/cv-builder?job=job-1", {
-      state: { guestApplicationJobId: "job-1" },
-    });
   });
 
   it.each([true, false])("blocks applications for a closed profile (authenticated: %s)", async (isAuthenticated) => {

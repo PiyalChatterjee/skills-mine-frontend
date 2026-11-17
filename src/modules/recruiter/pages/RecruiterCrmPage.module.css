@@ -187,11 +187,10 @@
   box-shadow: none;
 }
 
-.statusTagFollowUp { background: rgb(255 255 255 / 40%); }
-.crmCardGreen .statusTagFollowUp { background: #93cfab; }
+.statusTagFollowUp { background: #93cfab; color: #123b25; }
+.statusTagNeutral { background: #eef1f4; color: #2a3132; }
 .statusTagOverdue { background: #e68f8f; color: #ffffff; }
 .crmCardTeal .statusTagOverdue { background: #d64545; }
-.crmCardAmber .statusTagFollowUp { background: #ebb962; }
 
 .companyRow {
   display: flex;

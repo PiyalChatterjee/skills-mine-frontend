@@ -1,4 +1,4 @@
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import dayjs from "dayjs";
 import {
@@ -13,6 +13,7 @@ import {
   useAddCrmClientNoteMutation,
 } from "@/store/api/apiSlice";
 import type { CrmClient } from "@/types/api";
+import { getFollowupDayOffset } from "../presentation";
 import {
   crmClassificationLabels, crmClassifications, crmNoteSchema,
   type CrmNoteValues,
@@ -24,10 +25,11 @@ type DialogProps = {
   onSaved: () => void;
 };
 
-const getDateFromDayOffset = (days?: number | null): string =>
-  days != null && Number.isInteger(days)
-    ? dayjs().add(days, "day").format("YYYY-MM-DD")
-    : "";
+const getDateFromDayOffset = (days?: number | null): string => {
+  if (days == null || !Number.isInteger(days)) return "";
+
+  return dayjs().add(days, "day").format("YYYY-MM-DD");
+};
 
 export function UpdateCrmClientDialog({ client, onClose, onSaved }: DialogProps & { client: CrmClient }) {
   const [addNote, { isLoading }] = useAddCrmClientNoteMutation();
@@ -37,17 +39,18 @@ export function UpdateCrmClientDialog({ client, onClose, onSaved }: DialogProps 
       defaultValues: {
         classification: crmClassifications.find((value) => value === client.status),
         note: client.lastNote ?? "",
-        followupDate: getDateFromDayOffset(
-          client.overdueDays != null && client.overdueDays > 0
-            ? -client.overdueDays
-            : client.followupDays,
-        ),
+        followupDate: getDateFromDayOffset(getFollowupDayOffset(client)),
         lastcontactDate: getDateFromDayOffset(
           client.lastContactDays == null ? null : -client.lastContactDays,
         ),
       },
       mode: "onChange",
     });
+  const lastcontactDate = useWatch({ control, name: "lastcontactDate" });
+  const contactDate = dayjs(lastcontactDate);
+  const followupMinDate = lastcontactDate && contactDate.isValid()
+    ? contactDate.add(1, "day").format("YYYY-MM-DD")
+    : undefined;
 
   const submit = handleSubmit(async ({ followupDate, lastcontactDate, ...values }) => {
     try {
@@ -102,10 +105,14 @@ export function UpdateCrmClientDialog({ client, onClose, onSaved }: DialogProps 
           <div className={styles.dateRow}>
             {([
               ["lastcontactDate", "Last Contact Date"],
-              ["followupDate", "Last Follow-up Date"],
+              ["followupDate", "Follow-up Date"],
             ] as const).map(([name, label]) => (
-              <Controller key={name} name={name} control={control} render={({ field: { ref, ...field }, fieldState }) => (
+              <Controller key={name} name={name} control={control}
+                rules={name === "lastcontactDate" ? { deps: ["followupDate"] } : undefined}
+                render={({ field: { ref, ...field }, fieldState }) => (
                 <FormDateField {...field} inputRef={ref} label={label} disabled={isLoading}
+                  disableFuture={name === "lastcontactDate"}
+                  minDate={name === "followupDate" ? followupMinDate : undefined}
                   error={Boolean(fieldState.error)} helperText={fieldState.error?.message} />
               )} />
             ))}

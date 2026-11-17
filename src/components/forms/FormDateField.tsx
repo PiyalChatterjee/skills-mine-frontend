@@ -15,12 +15,14 @@ type FormDateFieldProps = {
   inputRef?: Ref<HTMLInputElement>;
   name?: string;
   disabled?: boolean;
+  disableFuture?: boolean;
+  minDate?: string;
   error?: boolean;
   helperText?: string;
 };
 
 export function FormDateField({
-  label, value, onChange, onBlur, inputRef, name, disabled, error, helperText,
+  label, value, onChange, onBlur, inputRef, name, disabled, disableFuture, minDate, error, helperText,
 }: FormDateFieldProps) {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const parsed = value ? dayjs(value) : null;
@@ -80,6 +82,8 @@ export function FormDateField({
               onBlur?.();
             }}
             disabled={disabled}
+            disableFuture={disableFuture}
+            minDate={minDate ? dayjs(minDate) : undefined}
           />
         </LocalizationProvider>
       </Popover>

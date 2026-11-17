@@ -47,14 +47,15 @@ describe("live EXCO dashboard", () => {
     for (const value of ["83", "R32 100", "R720 000", "R65 400"]) {
       expect(within(strategic).getByText(value)).toBeInTheDocument();
     }
-    const industries = screen.getByRole("region", { name: "Top Hiring Industries (12mo)" });
+    const industries = screen.getByRole("region", { name: "Top Hiring Industries (YTD)" });
     expect(within(industries).getAllByRole("term").map((term) => term.textContent)).toEqual(["Energy", "Education"]);
     expect(within(industries).getByText("51")).toBeInTheDocument();
     expect(screen.getByText("4.1%")).toBeInTheDocument();
     expect(screen.getByText("2 at risk")).toBeInTheDocument();
-    for (const value of ["42", "1.33 reqs/week avg", "3.6", "21", "89%", "per week", "days"]) {
+    for (const value of ["42", "3.6", "21", "89%", "per week", "days"]) {
       expect(screen.getByText(value)).toBeInTheDocument();
     }
+    expect(screen.queryByText(/reqs\/week avg/)).not.toBeInTheDocument();
     expect(excoApi.getDashboard).toHaveBeenCalledExactlyOnceWith();
   });
 
@@ -72,7 +73,7 @@ describe("live EXCO dashboard", () => {
     expect(screen.getAllByText("R0")).toHaveLength(3);
     expect(screen.getAllByText("0")).toHaveLength(4);
     expect(screen.getAllByText("0%")).toHaveLength(2);
-    expect(screen.getByText("0 reqs/week avg")).toBeInTheDocument();
+    expect(screen.queryByText(/reqs\/week avg/)).not.toBeInTheDocument();
     expect(screen.getByText("0 at risk")).toBeInTheDocument();
     expect(screen.queryByText("Not available")).not.toBeInTheDocument();
   });

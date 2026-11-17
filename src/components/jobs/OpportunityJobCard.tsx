@@ -1,5 +1,5 @@
-import { Button, Card, Chip, IconButton, Typography } from "@mui/material";
-import type { CSSProperties } from "react";
+import { Button, Card, Chip, ClickAwayListener, IconButton, Popper, Typography } from "@mui/material";
+import { useId, useState, type CSSProperties } from "react";
 import { BookmarkIcon } from "@/components/icons/BookmarkIcon";
 import styles from "./OpportunityJobCard.module.css";
 import { jobMatchConfig } from "./jobMatch.config";
@@ -49,6 +49,8 @@ export const OpportunityJobCard = ({
   applicationStatus,
   applicationStatusKey,
 }: OpportunityJobCardProps) => {
+  const [matchAnchor, setMatchAnchor] = useState<HTMLButtonElement | null>(null);
+  const tooltipId = useId();
   // Match scores are display data; clamp malformed API values before calculating the ring angle.
   const clampedMatchScore =
     typeof matchScore === "number"
@@ -82,15 +84,38 @@ export const OpportunityJobCard = ({
           className={`${styles.header} ${typeof clampedMatchScore === "number" ? "" : styles.headerWithoutMatch}`}
         >
           {typeof clampedMatchScore === "number" ? (
-            <div
-              className={styles.matchBadge}
-              style={ringStyle}
-              aria-label={`${clampedMatchScore}% match`}
-            >
-              <Typography component="span" className={styles.matchBadgeLabel}>
-                {clampedMatchScore}%
-              </Typography>
-            </div>
+            <ClickAwayListener onClickAway={() => setMatchAnchor(null)}>
+              <div>
+                <button
+                  type="button"
+                  className={styles.matchBadge}
+                  style={ringStyle}
+                  aria-label={`${clampedMatchScore}% match`}
+                  aria-describedby={matchAnchor ? tooltipId : undefined}
+                  aria-expanded={Boolean(matchAnchor)}
+                  onClick={(event) => setMatchAnchor(matchAnchor ? null : event.currentTarget)}
+                  onBlur={() => setMatchAnchor(null)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Escape") setMatchAnchor(null);
+                  }}
+                >
+                  <Typography component="span" className={styles.matchBadgeLabel}>
+                    {clampedMatchScore}%
+                  </Typography>
+                </button>
+                <Popper
+                  id={tooltipId}
+                  role="tooltip"
+                  open={Boolean(matchAnchor)}
+                  anchorEl={matchAnchor}
+                  placement="bottom-start"
+                  modifiers={[{ name: "offset", options: { offset: [0, 8] } }]}
+                  className={styles.matchTooltip}
+                >
+                  Based on your CV, this job is {matchAppearance.description} match for you.
+                </Popper>
+              </div>
+            </ClickAwayListener>
           ) : null}
 
           <Typography component="h3" className={styles.title}>

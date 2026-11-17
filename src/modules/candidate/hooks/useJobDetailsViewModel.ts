@@ -153,7 +153,7 @@ export const useJobDetailsViewModel = () => {
     setApplyError(null);
 
     if (!isAuthenticated) {
-      createGuestApplicationDraft(effectiveJob);
+      createGuestApplicationDraft(displayJob ?? effectiveJob);
       navigate(`${ROUTE_PATHS.cvBuilder}?job=${encodeURIComponent(effectiveJob.jobId)}`, {
         state: { guestApplicationJobId: effectiveJob.jobId },
       });
@@ -172,7 +172,7 @@ export const useJobDetailsViewModel = () => {
     } catch (error) {
       setApplyError(extractErrorMessage(error, "Unable to submit your application."));
     }
-  }, [applyToJob, effectiveJob, isApplyDisabled, isAuthenticated, navigate, user?.role]);
+  }, [applyToJob, displayJob, effectiveJob, isApplyDisabled, isAuthenticated, navigate, user?.role]);
 
   // Auto-submits the pending application once, after login redirected here with autoApply state.
   const hasAutoAppliedRef = useRef(false);

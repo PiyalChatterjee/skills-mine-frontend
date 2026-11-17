@@ -1,8 +1,8 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, useLocation } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { MancoRecruiterDetail } from "@/services/api/mancoApi";
-import { MancoAttentionSection, MancoRecruiterSection } from "./RecruiterMancoSections";
+import { MancoAttentionSection, MancoCrmCard, MancoRecruiterSection } from "./RecruiterMancoSections";
 
 const mocks = vi.hoisted(() => ({
   useMancoAttention: vi.fn(),
@@ -55,6 +55,25 @@ const recruiterDetail: MancoRecruiterDetail = {
   },
   performanceSummary: { averageCandidatesPerRole: null },
 };
+
+const LocationProbe = () => {
+  const location = useLocation();
+  return <div data-testid="location">{location.pathname}</div>;
+};
+
+describe("MancoCrmCard", () => {
+  it("navigates to the recruiter CRM page using a button", () => {
+    render(
+      <MemoryRouter>
+        <MancoCrmCard />
+        <LocationProbe />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "CRM Integration" }));
+    expect(screen.getByTestId("location")).toHaveTextContent("/recruiter/crm");
+  });
+});
 
 describe("MancoAttentionSection API alert text", () => {
   const alert = {
@@ -141,6 +160,8 @@ describe("MancoRecruiterSection pipeline distribution", () => {
       </MemoryRouter>,
     );
 
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+
     fireEvent.click(
       screen.getByRole("button", {
         name: "Pipeline distribution for Swastika Basu",
@@ -159,5 +180,21 @@ describe("MancoRecruiterSection pipeline distribution", () => {
     expect(
       screen.getByRole("meter", { name: "Rejected: 1" }),
     ).toHaveTextContent("Rejected");
+  });
+
+  it("routes View Pipeline to the universal recruiter dashboard", () => {
+    render(
+      <MemoryRouter>
+        <MancoRecruiterSection />
+        <LocationProbe />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "View Details" }));
+    fireEvent.click(screen.getByRole("button", { name: "View Pipeline" }));
+
+    expect(screen.getByTestId("location")).toHaveTextContent(
+      "/recruiter/dashboard",
+    );
   });
 });

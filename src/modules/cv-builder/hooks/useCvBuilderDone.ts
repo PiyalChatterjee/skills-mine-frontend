@@ -59,7 +59,10 @@ const resolveSuccessRoute = (
 };
 
 const sanitizeFileNamePart = (value: string): string =>
-  value.trim().replace(/[^a-zA-Z0-9]+/g, "").toLowerCase() || "candidate";
+  value
+    .trim()
+    .replace(/[^a-zA-Z0-9]+/g, "")
+    .toLowerCase() || "candidate";
 
 const formatFileNameTimestamp = (date: Date): string => {
   const pad = (n: number) => String(n).padStart(2, "0");
@@ -74,6 +77,62 @@ const buildResumeFileName = (
   extension: "pdf" | "docx" = "pdf",
 ): string =>
   `${sanitizeFileNamePart(firstName)}_${sanitizeFileNamePart(lastName)}_${roleLabel}_${formatFileNameTimestamp(new Date())}.${extension}`;
+
+const asRecord = (value: unknown): Record<string, unknown> | undefined =>
+  typeof value === "object" && value !== null
+    ? (value as Record<string, unknown>)
+    : undefined;
+
+const getValidationErrorMessage = (error: unknown): string | undefined => {
+  const source = asRecord(error);
+  const responseData = asRecord(asRecord(source?.response)?.data);
+  const sources = [
+    responseData,
+    asRecord(source?.data),
+    asRecord(source?.details),
+    source,
+  ];
+
+  const errors = sources.flatMap((candidate) => {
+    const details = asRecord(candidate?.details);
+    const nestedErrors = details?.errors;
+    const directErrors = candidate?.errors;
+    if (Array.isArray(nestedErrors)) return nestedErrors;
+    return Array.isArray(directErrors) ? directErrors : [];
+  });
+
+  const messages = errors.flatMap((value) => {
+    const validationError = asRecord(value);
+    const fieldPath =
+      typeof validationError?.field === "string" ? validationError.field : "";
+    const field = fieldPath
+      .split(/[/.]/)
+      .filter((part) => part && !/^\d+$/.test(part))
+      .at(-1)
+      ?.replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+      .replace(/[_-]+/g, " ")
+      .replace(/\b[a-z]/g, (letter) => letter.toUpperCase());
+
+    if (!field) return [];
+
+    const rule =
+      typeof validationError?.rule === "string"
+        ? validationError.rule.toLowerCase()
+        : "";
+    if (rule === "enum") {
+      return [`Choose a valid option for ${field}.`];
+    }
+    if (rule === "required") {
+      return [`${field} is required.`];
+    }
+    if (rule === "type" || rule === "format") {
+      return [`Enter a valid ${field.toLowerCase()}.`];
+    }
+    return [`${field} is invalid. Please check the value and try again.`];
+  });
+
+  return messages.length > 0 ? messages.join(" ") : undefined;
+};
 
 const monthNames = [
   "January",
@@ -97,8 +156,10 @@ const monthNameToIso = (value: string): string => {
 
   // Legacy "DD MMMM YYYY" values (previously saved with a day) drop the day.
   const dayMatch = normalized.match(/^(\d{1,2})[ ,]([A-Za-z]+)[ ,](\d{4})$/);
-  const month = dayMatch?.[2] ?? normalized.match(/^([A-Za-z]+)(?:-|,\s?| )(\d{4})$/)?.[1];
-  const year = dayMatch?.[3] ?? normalized.match(/^([A-Za-z]+)(?:-|,\s?| )(\d{4})$/)?.[2];
+  const month =
+    dayMatch?.[2] ?? normalized.match(/^([A-Za-z]+)(?:-|,\s?| )(\d{4})$/)?.[1];
+  const year =
+    dayMatch?.[3] ?? normalized.match(/^([A-Za-z]+)(?:-|,\s?| )(\d{4})$/)?.[2];
   if (!month || !year || !/^\d{4}$/.test(year)) {
     return value;
   }
@@ -118,14 +179,17 @@ const normalizeTextEntry = (value: unknown): string => {
   if (!value || typeof value !== "object") return "";
 
   const entry = value as Record<string, unknown>;
-  const nestedValue = entry.text ?? entry.description ?? entry.value ?? entry.name;
+  const nestedValue =
+    entry.text ?? entry.description ?? entry.value ?? entry.name;
   return typeof nestedValue === "string" ? nestedValue.trim() : "";
 };
 
 // Converts an ISO yyyy-mm(-dd) date back into the UI's "MMMM YYYY" format;
 // the day (if present) is dropped since the UI no longer tracks it.
 export const isoToMonthName = (value: string): string => {
-  const match = value.match(/^(19|20)\d{2}-(0[1-9]|1[0-2])(?:-(0[1-9]|[12]\d|3[01]))?$/);
+  const match = value.match(
+    /^(19|20)\d{2}-(0[1-9]|1[0-2])(?:-(0[1-9]|[12]\d|3[01]))?$/,
+  );
   if (!match) {
     return value;
   }
@@ -306,11 +370,14 @@ export const useCvBuilderDone = ({
         const email = payload.personalDetails?.email?.trim() ?? "";
         const emailCheck = await visitorApi.checkEmail(email);
         if (emailCheck.is_present && emailCheck.type === "CANDIDATE") {
-          throw new Error("Please sign in to apply with your candidate account.");
+          throw new Error(
+            "Please sign in to apply with your candidate account.",
+          );
         }
-        const visitor = emailCheck.is_present && emailCheck.type === "VISITOR"
-          ? await visitorApi.getByEmail(email)
-          : await visitorApi.createProfile(payload);
+        const visitor =
+          emailCheck.is_present && emailCheck.type === "VISITOR"
+            ? await visitorApi.getByEmail(email)
+            : await visitorApi.createProfile(payload);
         visitorId = visitor.visitor_id;
         if (!visitorId) {
           throw new Error("Visitor profile did not return a visitor id.");
@@ -319,7 +386,10 @@ export const useCvBuilderDone = ({
         dispatch(
           pushNotification({
             title: "Application failed",
-            message: extractErrorMessage(error, `We could not submit your application for ${guestApplicationDraft.jobTitle}. Please try again.`),
+            message: extractErrorMessage(
+              error,
+              `We could not submit your application for ${guestApplicationDraft.jobTitle}. Please try again.`,
+            ),
             level: "error",
           }),
         );
@@ -328,25 +398,39 @@ export const useCvBuilderDone = ({
 
       try {
         const payloadText = JSON.stringify(payload, null, 2);
-        const [{ generateCvPdfBlobFromText }, { generateCvDocxBlob }, headerImageModule] =
-          await Promise.all([
-            import("../utils/downloadCvPdf"),
-            import("../utils/generateCvDocx"),
-            import("@/assets/cv-builder/skills-mine-cv-hero-img.png"),
-          ]);
+        const [
+          { generateCvPdfBlobFromText },
+          { generateCvDocxBlob },
+          headerImageModule,
+        ] = await Promise.all([
+          import("../utils/downloadCvPdf"),
+          import("../utils/generateCvDocx"),
+          import("@/assets/cv-builder/skills-mine-cv-hero-img.png"),
+        ]);
         [pdfBlob, docxBlob] = await Promise.all([
           generateCvPdfBlobFromText(payloadText),
           generateCvDocxBlob(payloadText, headerImageModule.default),
         ]);
         const firstName = payload.personalDetails?.firstName ?? "";
         const lastName = payload.personalDetails?.lastName ?? "";
-        pdfFileName = buildResumeFileName(firstName, lastName, "visitor", "pdf");
-        docxFileName = buildResumeFileName(firstName, lastName, "visitor", "docx");
+        pdfFileName = buildResumeFileName(
+          firstName,
+          lastName,
+          "visitor",
+          "pdf",
+        );
+        docxFileName = buildResumeFileName(
+          firstName,
+          lastName,
+          "visitor",
+          "docx",
+        );
       } catch {
         dispatch(
           pushNotification({
             title: "CV generation failed",
-            message: "We could not generate your CV documents. Please try again.",
+            message:
+              "We could not generate your CV documents. Please try again.",
             level: "error",
           }),
         );
@@ -357,14 +441,18 @@ export const useCvBuilderDone = ({
         const application = await visitorApi.applyToJob({
           visitorId,
           jobProfileId:
-            guestApplicationDraft.job.jobProfileId ?? guestApplicationDraft.jobId,
+            guestApplicationDraft.job.jobProfileId ??
+            guestApplicationDraft.jobId,
         });
         matchScore = application.match_score_latest;
       } catch (error) {
         dispatch(
           pushNotification({
             title: "Application failed",
-            message: extractErrorMessage(error, `We could not submit your application for ${guestApplicationDraft.jobTitle}. Please try again.`),
+            message: extractErrorMessage(
+              error,
+              `We could not submit your application for ${guestApplicationDraft.jobTitle}. Please try again.`,
+            ),
             level: "error",
           }),
         );
@@ -386,7 +474,8 @@ export const useCvBuilderDone = ({
         dispatch(
           pushNotification({
             title: "CV upload failed",
-            message: "Your application was submitted, but we could not attach your CV documents. Please try again.",
+            message:
+              "Your application was submitted, but we could not attach your CV documents. Please try again.",
             level: "error",
           }),
         );
@@ -412,7 +501,11 @@ export const useCvBuilderDone = ({
     }
 
     const roleLabel = resolveResumeRoleLabel(userId, userRole);
-    const successRoute = resolveSuccessRoute(roleLabel, candidateId, pendingJobId);
+    const successRoute = resolveSuccessRoute(
+      roleLabel,
+      candidateId,
+      pendingJobId,
+    );
 
     if (buildMyCvExists && !hasFormChanges) {
       dispatch(
@@ -430,14 +523,57 @@ export const useCvBuilderDone = ({
     const firstName = payload.personalDetails?.firstName ?? "";
     const lastName = payload.personalDetails?.lastName ?? "";
 
+    try {
+      const result = buildMyCvExists
+        ? await triggerUpdate({ candidateId, payload }).unwrap()
+        : await triggerCreate({ candidateId, payload }).unwrap();
+
+      dispatch(setBuildMyCv(result));
+      dispatch(
+        apiSlice.util.upsertQueryData("getBuildMyCv", { candidateId }, result),
+      );
+      dispatch(
+        setBuildMyCvMetadata({
+          exists: true,
+          lastModified: result.lastModified ?? new Date().toISOString(),
+        }),
+      );
+
+      dispatch(
+        pushNotification({
+          title: buildMyCvExists ? "Changes saved" : "CV created",
+          message: buildMyCvExists
+            ? "Your CV has been updated successfully."
+            : "CV information saved successfully.",
+          level: "success",
+        }),
+      );
+
+      navigate(successRoute.pathname, { state: successRoute.state });
+    } catch (error) {
+      const fallbackMessage =
+        "We could not save your CV right now. Please try again.";
+      const errorMessage =
+        getValidationErrorMessage(error) ??
+        extractErrorMessage(error, fallbackMessage);
+
+      dispatch(
+        pushNotification({
+          title: "Save failed",
+          message: errorMessage,
+          level: "error",
+        }),
+      );
+      return;
+    }
+
     // ── PDF generation + upload (required) ───────────────────────────────────
     let pdfBlob: Blob;
     let pdfFileName: string;
 
     try {
-      const { generateCvPdfBlobFromText } = await import(
-        "../utils/downloadCvPdf"
-      );
+      const { generateCvPdfBlobFromText } =
+        await import("../utils/downloadCvPdf");
       pdfBlob = await generateCvPdfBlobFromText(payloadText);
       pdfFileName = buildResumeFileName(firstName, lastName, roleLabel, "pdf");
     } catch {
@@ -474,8 +610,16 @@ export const useCvBuilderDone = ({
         import("../utils/generateCvDocx"),
         import("@/assets/cv-builder/skills-mine-cv-hero-img.png"),
       ]);
-      const docxBlob = await generateCvDocxBlob(payloadText, headerImageModule.default);
-      const docxFileName = buildResumeFileName(firstName, lastName, roleLabel, "docx");
+      const docxBlob = await generateCvDocxBlob(
+        payloadText,
+        headerImageModule.default,
+      );
+      const docxFileName = buildResumeFileName(
+        firstName,
+        lastName,
+        roleLabel,
+        "docx",
+      );
       await triggerResumeUpload({
         candidateId,
         file: docxBlob,
@@ -485,56 +629,9 @@ export const useCvBuilderDone = ({
       dispatch(
         pushNotification({
           title: "Word document upload skipped",
-          message: "Your CV was saved as PDF. The Word copy could not be generated.",
+          message:
+            "Your CV was saved as PDF. The Word copy could not be generated.",
           level: "info",
-        }),
-      );
-    }
-
-    try {
-      const result = buildMyCvExists
-        ? await triggerUpdate({ candidateId, payload }).unwrap()
-        : await triggerCreate({ candidateId, payload }).unwrap();
-
-      dispatch(setBuildMyCv(result));
-      dispatch(
-        apiSlice.util.upsertQueryData(
-          "getBuildMyCv",
-          { candidateId },
-          result,
-        ),
-      );
-      dispatch(
-        setBuildMyCvMetadata({
-          exists: true,
-          lastModified: result.lastModified ?? new Date().toISOString(),
-        }),
-      );
-
-      dispatch(
-        pushNotification({
-          title: buildMyCvExists ? "Changes saved" : "CV created",
-          message: buildMyCvExists
-            ? "Your CV has been updated successfully."
-            : "CV information saved successfully.",
-          level: "success",
-        }),
-      );
-
-      navigate(successRoute.pathname, { state: successRoute.state });
-    } catch (error) {
-      const fallbackMessage =
-        "We could not save your CV right now. Please try again.";
-      const errorMessage =
-        typeof error === "object" && error !== null && "message" in error
-          ? String((error as { message?: unknown }).message ?? fallbackMessage)
-          : fallbackMessage;
-
-      dispatch(
-        pushNotification({
-          title: "Save failed",
-          message: errorMessage,
-          level: "error",
         }),
       );
     }

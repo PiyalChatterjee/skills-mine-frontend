@@ -137,7 +137,7 @@
 }
 
 /* ── CRM Integration Card (cyan/teal) ────────────────────────────────── */
-.crmCard {
+.crmCard:global(.MuiButtonBase-root) {
   align-self: start;
   background: #2b96d9;
   border-radius: 10px;
@@ -146,6 +146,11 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+
+.crmCard:focus-visible {
+  outline: 2px solid #03478c;
+  outline-offset: 4px;
 }
 
 .crmCardLabel,
@@ -774,7 +779,9 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  width: min(1008px, calc(100vw - 32px));
+  width: max-content;
+  min-width: min(1120px, calc(100vw - 32px));
+  max-width: calc(100vw - 32px);
   max-height: calc(100vh - 32px);
   margin: 16px;
   padding: 24px;
@@ -831,14 +838,14 @@
   flex: 1 1 auto;
   min-height: 0;
   padding: 0;
-  overflow-x: hidden;
+  overflow-x: auto;
   overflow-y: auto;
   border: 0;
 }
 
 .detailMetricsGrid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(max-content, 1fr));
   padding: 16px 0;
   border-bottom: 1px solid #e1e3e6;
 }
@@ -874,7 +881,7 @@
   font-size: 32px;
   font-weight: 600;
   line-height: 1.5;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
 }
 
 .detailPipelineSection {
@@ -1011,6 +1018,18 @@
     left: calc(100% + 16px);
     color: #2a3132;
   }
+
+  .detailPipelineBar[data-stage='filled'] .detailPipelineTextGroup {
+    left: 12px;
+    color: #ffffff;
+  }
+}
+
+@container detailPipelineRow (max-width: 96px) {
+  .detailPipelineBar[data-stage='filled'] .detailPipelineTextGroup {
+    left: calc(100% + 16px);
+    color: #2a3132;
+  }
 }
 
 .detailPerformanceSection {
@@ -1096,9 +1115,24 @@
   }
 }
 
+@media (max-width: 1152px) {
+  .detailMetricsGrid {
+    grid-template-columns: repeat(3, minmax(max-content, 1fr));
+  }
+
+  .detailMetric:nth-child(3n) {
+    border-right: 0;
+  }
+
+  .detailMetric:nth-child(n + 4) {
+    padding-top: 12px;
+    border-top: 1px solid #e1e3e6;
+  }
+}
+
 @media (max-width: 720px) {
   .detailMetricsGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(max-content, 1fr));
   }
 
   .detailMetric {
@@ -1141,6 +1175,8 @@
     margin: 8px;
     padding: 16px;
     width: calc(100vw - 16px);
+    min-width: 0;
+    max-width: calc(100vw - 16px);
     max-height: calc(100vh - 16px);
   }
 
