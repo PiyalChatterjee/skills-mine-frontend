@@ -199,6 +199,11 @@ describe("MancoRecruiterSection pipeline distribution", () => {
       expect(
         screen.getByRole("heading", { level: 3, name: "Nick Fury" }),
       ).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", {
+          name: "Pipeline distribution for Nick Fury",
+        }),
+      ).toBeInTheDocument();
     },
   );
 
