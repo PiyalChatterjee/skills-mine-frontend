@@ -182,6 +182,26 @@ describe("MancoRecruiterSection pipeline distribution", () => {
     ).toHaveTextContent("Rejected");
   });
 
+  it.each(["nick fury", "NICK FURY", "nIcK fUrY"])(
+    "displays recruiter names in title case regardless of input casing: %s",
+    (fullName) => {
+      mocks.useMancoRecruiters.mockReturnValue({
+        ...mocks.useMancoRecruiters(),
+        recruiters: [{ ...recruiter, fullName }],
+      });
+
+      render(
+        <MemoryRouter>
+          <MancoRecruiterSection />
+        </MemoryRouter>,
+      );
+
+      expect(
+        screen.getByRole("heading", { level: 3, name: "Nick Fury" }),
+      ).toBeInTheDocument();
+    },
+  );
+
   it("routes View Pipeline to the universal recruiter dashboard", () => {
     render(
       <MemoryRouter>

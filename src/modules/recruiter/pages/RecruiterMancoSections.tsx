@@ -29,6 +29,7 @@ import {
   useMancoRecruiters,
 } from "@/modules/recruiter/hooks/useMancoDashboard";
 import {
+  formatName,
   formatPercentage,
   formatRevenue,
 } from "@/modules/recruiter/utils/mancoFormatters";
@@ -347,7 +348,7 @@ const EmployeeCard = ({
       <Box className={styles.employeeCardTopRow}>
         <Box>
           <Typography component="h3" className={styles.employeeName}>
-            {recruiter.fullName}
+            {formatName(recruiter.fullName)}
           </Typography>
           <Typography component="p" className={styles.employeeMeta}>
             <span className={styles.employeeRole}>{recruiter.roleName}</span>
