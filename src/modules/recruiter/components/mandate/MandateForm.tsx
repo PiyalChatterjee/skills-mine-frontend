@@ -11,36 +11,89 @@ import { SkillsInput } from './SkillsInput'
 import { IndustriesInput } from './IndustriesInput'
 import { StickyFooter } from './StickyFooter'
 import type { MandateFormValues } from './types'
-import { emailSchema } from '@/app/validation.schema'
+import { focusFirstErrorField } from '@/app/formValidation'
+import { localPhoneNumberSchema } from '@/app/phoneNumber'
+import {
+  emailSchema,
+  requiredField,
+} from '@/app/validation.schema'
 import styles from '@/modules/recruiter/pages/NewMandatePage.module.css'
 
 // ── Validation schema ──────────────────────────────────────────────────
+// Field rules mirror the CV builder / profile forms (shared helpers from
+// @/app/validation.schema): values are trimmed, whitespace-only input is
+// rejected, text fields must contain a letter, and email / phone use the
+// same validators.
+
+const companyNameSchema = requiredField('Company name').refine(
+  value => value === '' || /\p{L}/u.test(value),
+  'Company name must include at least one letter',
+)
+
+const contactPersonSchema = requiredField('Contact person').refine(
+  value => value === '' || /^[\p{L}\p{M} ]+$/u.test(value),
+  'Contact person can only contain letters and spaces',
+)
+
+const positionTitleSchema = requiredField('Position title')
+  .refine(
+    value => value === '' || /^[\p{L}\p{M}\d ]+$/u.test(value),
+    'Position title can only contain letters, numbers and spaces',
+  )
+  .refine(
+    value => value === '' || /\p{L}/u.test(value),
+    'Position title must include at least one letter',
+  )
+
+const clientRateSchema = requiredField('Client rate').refine(
+  value => value === '' || /^\d+(\.\d+)?$/.test(value),
+  'Use a valid client rate',
+)
+
+const fillByDateSchema = requiredField('Fill by date').refine(
+  value =>
+    value === '' ||
+    (/^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(new Date(value).getTime())),
+  'Enter a valid date',
+)
+
+/** Bullet textareas are seeded with "• " — a bullet alone is not content. */
+const bulletTextField = (requiredMessage: string) =>
+  z
+    .string()
+    .trim()
+    .refine(
+      value => value.split('\n').some(line => line.replace(/^•\s*/, '').trim() !== ''),
+      requiredMessage,
+    )
+
+const salarySchema = (requiredMessage: string) =>
+  z
+    .union([z.number().min(0, 'Must be ≥ 0'), z.literal('')])
+    .refine(v => v !== '', { message: requiredMessage })
 
 export const mandateSchema = z
   .object({
-    companyName:          z.string().min(1, 'Company name is required'),
-    clientRate:           z.string().min(1, 'Client rate is required'),
-    contactPerson:        z.string().min(1, 'Contact person is required'),
+    companyName:          companyNameSchema,
+    clientRate:           clientRateSchema,
+    contactPerson:        contactPersonSchema,
     contactPersonEmail:   emailSchema,
-    contactPersonPhone:   z
-      .string()
-      .min(1, 'Phone number is required')
-      .regex(/^\d{10}$/, 'Phone number must be exactly 10 digits'),
-    positionTitle:        z.string().min(1, 'Position title is required'),
-    location:             z.string().min(1, 'Location is required'),
+    contactPersonPhone:   localPhoneNumberSchema,
+    positionTitle:        positionTitleSchema,
+    location:             requiredField('Location'),
     locationId:           z.string(),
-    fillByDate:           z.string().min(1, 'Fill by date is required'),
-    workType:             z.string().min(1, 'Work type is required'),
-    employmentType:       z.string().min(1, 'Employment type is required'),
-    experienceLevel:      z.string().min(1, 'Experience level is required'),
-    priority:             z.string().min(1, 'Priority is required'),
-    salaryMin:            z.union([z.number().min(0, 'Must be ≥ 0'), z.literal('')]).refine(v => v !== '', { message: 'Minimum salary is required' }),
-    salaryMax:            z.union([z.number().min(0, 'Must be ≥ 0'), z.literal('')]).refine(v => v !== '', { message: 'Maximum salary is required' }),
+    fillByDate:           fillByDateSchema,
+    workType:             requiredField('Work type'),
+    employmentType:       requiredField('Employment type'),
+    experienceLevel:      requiredField('Experience level'),
+    priority:             requiredField('Priority'),
+    salaryMin:            salarySchema('Minimum salary is required'),
+    salaryMax:            salarySchema('Maximum salary is required'),
     isSalaryHidden:       z.boolean(),
-    jobDescription:       z.string().min(1, 'Job description is required'),
-    requirements:         z.string().min(1, 'Requirements are required'),
-    responsibilities:     z.string().min(1, 'Responsibilities are required'),
-    benefits:             z.string().min(1, 'Benefits are required'),
+    jobDescription:       requiredField('Job description'),
+    requirements:         bulletTextField('Requirements are required'),
+    responsibilities:     bulletTextField('Responsibilities are required'),
+    benefits:             bulletTextField('Benefits are required'),
     skills:               z.array(z.string()).min(1, 'At least one skill is required'),
     industries:           z.array(z.string()).min(1, 'At least one industry is required').max(1, 'Only one industry may be added'),
     jobBoards:            z.array(z.string()),
@@ -116,7 +169,9 @@ export const MandateForm = ({
   } = useForm<MandateFormValues>({
     resolver: zodResolver(mandateSchema),
     defaultValues: initialValues,
-    mode: 'onTouched',
+    // Validate on blur (as the CV builder does); reValidateMode clears errors
+    // immediately once a field is fixed.
+    mode: 'onBlur',
     reValidateMode: 'onChange',
   })
 
@@ -139,7 +194,7 @@ export const MandateForm = ({
       </Box>
 
       {/* ── Form ── */}
-      <form onSubmit={handleSubmit(handleFormSubmit)} noValidate>
+      <form onSubmit={handleSubmit(handleFormSubmit, errors => { focusFirstErrorField(errors) })} noValidate>
         <Box className={styles.card}>
           <BasicInformationSection control={control} setValue={setValue} />
           <SalarySection control={control} />

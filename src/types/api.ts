@@ -1103,6 +1103,7 @@ export interface JobPostsParams {
 export interface Industry {
   industryId: string
   name: string
+  bizCommunityIndustryId?: number
 }
 
 export interface SimpleCandidateProfileInput {

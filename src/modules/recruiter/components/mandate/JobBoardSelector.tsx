@@ -5,7 +5,6 @@ import styles from './form.module.css'
 
 import allIcon       from '../../../../assets/recruiter/Frame 242.svg'
 import linkedInIcon  from '../../../../assets/recruiter/Frame 241.svg'
-import indeedIcon    from '../../../../assets/recruiter/Frame 243.svg'
 import glassdoorIcon from '../../../../assets/recruiter/Frame 244.svg'
 import careers24Icon from '../../../../assets/recruiter/Frame 245.svg'
 import pnetIcon      from '../../../../assets/recruiter/Frame 246.svg'
@@ -15,12 +14,11 @@ interface Props {
   errors: FieldErrors<MandateFormValues>
 }
 
-const JOB_BOARDS = ['All', 'LinkedIn', 'Indeed', 'Glassdoor', 'Careers24', 'PNet'] as const
+const JOB_BOARDS = ['All', 'LinkedIn', 'Glassdoor', 'Careers24', 'PNet'] as const
 type JobBoard = typeof JOB_BOARDS[number]
 
 const BOARD_URLS: Partial<Record<JobBoard, string>> = {
   LinkedIn:  'https://www.linkedin.com/jobs/',
-  Indeed:    'https://www.indeed.com/',
   Glassdoor: 'https://www.glassdoor.com/Job/index.htm',
   Careers24: 'https://www.careers24.com/',
   PNet:      'https://www.pnet.co.za/',
@@ -29,7 +27,6 @@ const BOARD_URLS: Partial<Record<JobBoard, string>> = {
 const BOARD_LOGOS: Record<JobBoard, React.ReactNode> = {
   All:       <img src={allIcon}       alt="All"       style={{ display: 'block' }} />,
   LinkedIn:  <img src={linkedInIcon}  alt="LinkedIn"  style={{ display: 'block' }} />,
-  Indeed:    <img src={indeedIcon}    alt="Indeed"    style={{ display: 'block' }} />,
   Glassdoor: <img src={glassdoorIcon} alt="Glassdoor" style={{ display: 'block' }} />,
   Careers24: <img src={careers24Icon} alt="Careers24" style={{ display: 'block' }} />,
   PNet:      <img src={pnetIcon}      alt="PNet"      style={{ display: 'block' }} />,

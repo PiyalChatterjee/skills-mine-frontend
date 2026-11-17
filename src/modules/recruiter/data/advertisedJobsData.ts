@@ -1,4 +1,4 @@
-export type AdvertisedPlatform = 'bizCommunity' | 'Indeed' | 'pNet' | 'Harambee' | 'Adzuna'
+export type AdvertisedPlatform = 'bizCommunity' | 'pNet' | 'Harambee' | 'Adzuna'
 
 export type AdvertisedJobStatus = 'Live' | 'Suspended' | 'SUCCESS' | 'FAILED' | 'PENDING' | string
 
@@ -21,7 +21,6 @@ export type AdvertisedJob = {
 
 export const ADVERTISED_PLATFORMS: AdvertisedPlatform[] = [
   'bizCommunity',
-  'Indeed',
   'pNet',
   'Harambee',
   'Adzuna',
@@ -29,7 +28,6 @@ export const ADVERTISED_PLATFORMS: AdvertisedPlatform[] = [
 
 export const PLATFORM_META: Record<AdvertisedPlatform, { initials: string; color: string }> = {
   bizCommunity: { initials: 'bC', color: '#e0561b' },
-  Indeed: { initials: 'In', color: '#2557a7' },
   pNet: { initials: 'pN', color: '#0e8f7e' },
   Harambee: { initials: 'Hi', color: '#6a1fa6' },
   Adzuna: { initials: 'Az', color: '#1f9d55' },

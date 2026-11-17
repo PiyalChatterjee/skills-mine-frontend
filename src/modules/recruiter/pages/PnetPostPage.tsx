@@ -14,12 +14,11 @@ import {
   PNET_WORK_FIELDS,
   PNET_WORK_TYPES,
 } from '@/modules/recruiter/data/pnetOptions'
-import { mandateApi } from '@/services/api/mandateApi'
+import { externalJobsApi, type PnetPrefillResponse } from '@/services/api/externalJobsApi'
 import { extractErrorMessage } from '@/app/errorUtils'
 import { pushNotification } from '@/store/slices/notificationSlice'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { ROUTE_PATHS } from '@/routes/routePaths'
-import type { JobPost } from '@/types/api'
 import pageStyles from './NewMandatePage.module.css'
 import formStyles from '@/modules/recruiter/components/mandate/form.module.css'
 import styles from './PnetPostPage.module.css'
@@ -68,40 +67,61 @@ const initialValues: PnetFormValues = {
   clientDescription: '',
 }
 
-const toBullets = (lines: string[] | undefined) =>
-  (lines ?? []).map((line) => `• ${line.replace(/^•\s*/, '')}`).join('\n')
-
-const toDescription = (post: JobPost) => {
-  const requirements = toBullets(post.requirements)
-  const responsibilities = toBullets(post.responsibilities)
-  return [
-    requirements && `Requirements:\n${requirements}`,
-    responsibilities && `Responsibilities:\n${responsibilities}`,
-  ]
-    .filter(Boolean)
-    .join('\n\n')
+// StepStone/PNet codes returned by the prefill endpoint -> labels used by this form.
+const PNET_EXPERIENCE_LABELS: Record<string, string> = {
+  WithProfessionalExperience: 'Experience required',
+  WithoutProfessionalExperience: 'No experience required',
 }
 
-const toValues = (post: JobPost): PnetFormValues => {
-  const city = post.location?.split(',')[0]?.trim() ?? ''
-  return {
-    ...initialValues,
-    jobTitle: post.title ?? '',
-    jobLocation: post.location ?? '',
-    location: city,
-    sectors: post.industries ?? (post.industry ? [post.industry] : []),
-    contractTypes: post.employmentType ? [post.employmentType] : [],
-    workType: post.workType ?? '',
-    experience: post.experienceLevel ?? '',
-    salary: post.salaryMin && post.salaryMax
-      ? `R ${post.salaryMin.toLocaleString()} - R ${post.salaryMax.toLocaleString()}`
-      : 'Market Related',
-    description: toDescription(post),
-    contactName: post.contactPersonName ?? '',
-    contactEmail: post.contactPersonEmail ?? '',
-    expiryDate: post.targetCloseDate ? post.targetCloseDate.split('T')[0] : '',
-    clientDescription: post.industry ? `Our client is in the ${post.industry} industry.` : '',
+const PNET_WORK_TYPE_LABELS: Record<string, string> = {
+  FullTime: 'Full Time',
+  PartTime: 'Part Time',
+}
+
+// Overlays the PNet prefill on the form values. Only fields the API actually
+// returned are applied; everything else keeps its default.
+const applyPrefill = (
+  base: PnetFormValues,
+  { prefill }: PnetPrefillResponse,
+): PnetFormValues => {
+  const next = { ...base }
+  const details = prefill.jobdetails
+  const categorization = prefill.categorization
+  const recruiter = prefill.companydetails?.recruiter
+
+  if (details?.jobtitle) next.jobTitle = details.jobtitle
+  const description = [details?.introduction, details?.tasks].filter(Boolean).join('\n\n')
+  if (description) next.description = description
+  if (details?.profile) next.candidateProfile = details.profile
+  if (details?.offer) next.offerDescription = details.offer.replace(/\\n/g, '\n')
+
+  const city = details?.joblocations?.[0]?.city
+  if (city) {
+    next.jobLocation = city
+    next.location = city
   }
+
+  const { minimum, maximum, currency, period } = details?.salary ?? {}
+  if (minimum != null && maximum != null) {
+    next.salary = [
+      currency,
+      `${minimum.toLocaleString()} - ${maximum.toLocaleString()}`,
+      period && `(${period})`,
+    ]
+      .filter(Boolean)
+      .join(' ')
+  }
+
+  const experience = categorization?.experience?.[0]
+  if (experience) next.experience = PNET_EXPERIENCE_LABELS[experience] ?? experience
+  if (categorization?.contracttype?.length) next.contractTypes = categorization.contracttype
+  const workType = categorization?.workpolicy?.[0] ?? categorization?.contractime?.[0]
+  if (workType) next.workType = PNET_WORK_TYPE_LABELS[workType] ?? workType
+
+  const contactName = [recruiter?.firstname, recruiter?.lastname].filter(Boolean).join(' ')
+  if (contactName) next.contactName = contactName
+  if (recruiter?.email) next.contactEmail = recruiter.email
+  return next
 }
 
 const isFilled = (value: string) => value.trim().length > 0
@@ -317,17 +337,20 @@ const PnetPostPage = () => {
 
   const [values, setValues] = useState<PnetFormValues>(initialValues)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [clientName, setClientName] = useState('')
+  const [notices, setNotices] = useState<string[]>([])
 
   useEffect(() => {
     if (!mandateId) return
     let cancelled = false
-    mandateApi
-      .getJobPostDetail(mandateId)
-      .then((envelope) => {
+    externalJobsApi
+      .getPnetPrefill(mandateId)
+      .then((response) => {
         if (cancelled) return
-        setValues(toValues(envelope.data))
-        setClientName(envelope.data.client ?? '')
+        setValues(applyPrefill(initialValues, response))
+        setNotices([
+          ...response.warnings,
+          ...response.missing_fields.map((field) => `Missing required field: ${field}`),
+        ])
       })
       .catch(() => {
         // fields stay as-is and can be filled in manually
@@ -341,7 +364,7 @@ const PnetPostPage = () => {
     setValues((prev) => ({ ...prev, [key]: value }))
 
   const handleBack = () => navigate(ROUTE_PATHS.recruiterAdvertiseJob.replace(':mandateId', mandateId ?? ''))
-  const heading = clientName ? `${clientName} – PNet` : 'PNet'
+  const heading = 'PNet'
 
   const isValid =
     isFilled(values.jobTitle) &&
@@ -396,6 +419,14 @@ const PnetPostPage = () => {
             {heading}
           </Typography>
         </Box>
+
+        {notices.length > 0 && (
+          <ul className={styles.notices} role="status">
+            {notices.map((notice) => (
+              <li key={notice}>{notice}</li>
+            ))}
+          </ul>
+        )}
 
         <form onSubmit={handleSubmit} noValidate>
           <Box className={pageStyles.card}>

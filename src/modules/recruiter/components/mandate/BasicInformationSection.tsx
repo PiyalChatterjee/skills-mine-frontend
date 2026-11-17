@@ -207,7 +207,7 @@ export const BasicInformationSection = ({ control, setValue }: Props) => {
               <input
                 {...field}
                 className={`${styles.input} ${errors.clientRate ? styles.hasError : ''}`}
-                placeholder="R/h"
+                placeholder="Percentage value"
               />
             )}
           />
@@ -226,6 +226,7 @@ export const BasicInformationSection = ({ control, setValue }: Props) => {
               {...field}
               className={`${styles.input} ${errors.contactPerson ? styles.hasError : ''}`}
               placeholder="Contact Person"
+              onChange={e => field.onChange(e.target.value.replace(/[^\p{L}\p{M} ]/gu, ''))}
             />
           )}
         />
@@ -294,6 +295,7 @@ export const BasicInformationSection = ({ control, setValue }: Props) => {
               {...field}
               className={`${styles.input} ${errors.positionTitle ? styles.hasError : ''}`}
               placeholder="Position Title"
+              onChange={e => field.onChange(e.target.value.replace(/[^\p{L}\p{M}\d ]/gu, ''))}
             />
           )}
         />

@@ -144,6 +144,7 @@ export const apiEndpoints = {
     providers: "/external-jobs/providers",
     bizCommunityPrefill: "/external-jobs/publish/bizcommunity/prefill",
     bizCommunityPublish: "/external-jobs/publish/bizcommunity",
+    pnetPrefill: "/external-jobs/publish/pnet/prefill",
     bizCommunityPublishes: "/external-jobs/bizcommunity/publishes",
     bizCommunityJobs: "/external-jobs/bizcommunity/jobs",
     bizCommunityJobUpdate: "/external-jobs/bizcommunity/jobs/:bizJobId",
