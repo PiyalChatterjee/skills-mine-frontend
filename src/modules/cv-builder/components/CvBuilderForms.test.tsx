@@ -325,6 +325,130 @@ describe("CvBuilderEducationForm", () => {
     ).toBeInTheDocument();
   });
 
+  it("rejects an earlier tertiary year across multiple education entries", async () => {
+    const user = userEvent.setup();
+    const values = buildValues();
+    values.tertiaryEducation = [
+    {
+      institutionName: "University",
+      degreeOrCertification: "BTech",
+      yearCompleted: "2007",
+    },
+    {
+      institutionName: "College",
+      degreeOrCertification: "Diploma",
+      yearCompleted: "2011",
+    },
+    ];
+    values.secondaryEducation = [
+    {
+      institutionName: "High School",
+      highestGradePassed: "Grade 12",
+      yearCompleted: "2008",
+    },
+    {
+      institutionName: "Secondary School",
+      highestGradePassed: "Grade 10",
+      yearCompleted: "2010",
+    },
+    ];
+    renderInForm(<CvBuilderEducationForm />, values);
+
+    await user.click(screen.getByRole("button", { name: "Validate form" }));
+
+    expect(
+    await screen.findByText(
+      "Tertiary year completed cannot be earlier than secondary year completed.",
+    ),
+    ).toBeInTheDocument();
+  });
+
+  it("accepts equal tertiary and latest secondary years across multiple entries", async () => {
+    const user = userEvent.setup();
+    const values = buildValues();
+    values.tertiaryEducation = [
+    {
+      institutionName: "University",
+      degreeOrCertification: "BTech",
+      yearCompleted: "2010",
+    },
+    {
+      institutionName: "College",
+      degreeOrCertification: "Diploma",
+      yearCompleted: "2012",
+    },
+    ];
+    values.secondaryEducation = [
+    {
+      institutionName: "High School",
+      highestGradePassed: "Grade 12",
+      yearCompleted: "2008",
+    },
+    {
+      institutionName: "Secondary School",
+      highestGradePassed: "Grade 10",
+      yearCompleted: "2010",
+    },
+    ];
+    renderInForm(<CvBuilderEducationForm />, values);
+
+    await user.click(screen.getByRole("button", { name: "Validate form" }));
+
+    expect(
+    screen.queryByText(
+      "Tertiary year completed cannot be earlier than secondary year completed.",
+    ),
+    ).not.toBeInTheDocument();
+  });
+
+  it.each(["tertiaryEducation", "secondaryEducation"] as const)(
+    "rejects duplicate years within %s entries",
+    async (sectionName) => {
+    const user = userEvent.setup();
+    const values = buildValues();
+    const errorMessage =
+      sectionName === "tertiaryEducation"
+        ? "Year completed must be unique within tertiary education."
+        : "Year completed must be unique within secondary education.";
+
+    if (sectionName === "tertiaryEducation") {
+      values.tertiaryEducation = [
+        {
+          institutionName: "University",
+          degreeOrCertification: "BTech",
+          yearCompleted: "2010",
+        },
+        {
+          institutionName: "College",
+          degreeOrCertification: "Diploma",
+          yearCompleted: "2010",
+        },
+      ];
+      values.secondaryEducation[0].yearCompleted = "2008";
+    } else {
+      values.tertiaryEducation[0].yearCompleted = "2010";
+      values.secondaryEducation = [
+        {
+          institutionName: "High School",
+          highestGradePassed: "Grade 12",
+          yearCompleted: "2008",
+        },
+        {
+          institutionName: "Secondary School",
+          highestGradePassed: "Grade 10",
+          yearCompleted: "2008",
+        },
+      ];
+    }
+
+    renderInForm(<CvBuilderEducationForm />, values);
+
+    await user.click(screen.getByRole("button", { name: "Validate form" }));
+
+    expect(await screen.findAllByText(errorMessage)).toHaveLength(2);
+    },
+  );
+
   it("adds and removes a tertiary entry", async () => {
     const user = userEvent.setup();
     renderInForm(<CvBuilderEducationForm />);

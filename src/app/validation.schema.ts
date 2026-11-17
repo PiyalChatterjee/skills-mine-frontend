@@ -469,6 +469,26 @@ export const secondaryEntrySchema = z.object({
   yearCompleted: completedYearSchema,
 });
 
+export const getDuplicateEducationYearIndexes = (
+  education: readonly { yearCompleted: string }[],
+): number[] => {
+  const indexesByYear = new Map<string, number[]>();
+
+  education.forEach((entry, index) => {
+    const year = entry.yearCompleted.trim();
+    if (!/^(?!0000)\d{4}$/.test(year)) return;
+
+    const indexes = indexesByYear.get(year) ?? [];
+    indexes.push(index);
+    indexesByYear.set(year, indexes);
+  });
+
+  return [...indexesByYear.values()]
+    .filter((indexes) => indexes.length > 1)
+    .flat()
+    .sort((left, right) => left - right);
+};
+
 export const getTertiaryYearIndexesBeforeSecondary = (
   tertiaryEducation: readonly { yearCompleted: string }[],
   secondaryEducation: readonly { yearCompleted: string }[],
@@ -507,6 +527,27 @@ export const createCvBuilderSchema = (isVisitor = false) =>
       otherLanguage: z.string(),
     })
     .superRefine((data, ctx) => {
+      [
+        {
+          field: "tertiaryEducation",
+          label: "tertiary",
+          entries: data.tertiaryEducation,
+        },
+        {
+          field: "secondaryEducation",
+          label: "secondary",
+          entries: data.secondaryEducation,
+        },
+      ].forEach(({ field, label, entries }) => {
+        getDuplicateEducationYearIndexes(entries).forEach((index) => {
+          ctx.addIssue({
+            code: "custom",
+            message: `Year completed must be unique within ${label} education.`,
+            path: [field, index, "yearCompleted"],
+          });
+        });
+      });
+
       getTertiaryYearIndexesBeforeSecondary(
         data.tertiaryEducation,
         data.secondaryEducation,
