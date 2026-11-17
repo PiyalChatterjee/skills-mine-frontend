@@ -489,7 +489,7 @@ export const getDuplicateEducationYearIndexes = (
     .sort((left, right) => left - right);
 };
 
-export const getTertiaryYearIndexesBeforeSecondary = (
+export const getTertiaryYearIndexesAtOrBeforeSecondary = (
   tertiaryEducation: readonly { yearCompleted: string }[],
   secondaryEducation: readonly { yearCompleted: string }[],
 ): number[] => {
@@ -504,7 +504,7 @@ export const getTertiaryYearIndexesBeforeSecondary = (
 
   return tertiaryEducation.flatMap((entry, index) => {
     const year = entry.yearCompleted.trim();
-    return /^\d{4}$/.test(year) && Number(year) < latestSecondaryYear
+    return /^\d{4}$/.test(year) && Number(year) <= latestSecondaryYear
       ? [index]
       : [];
   });
@@ -548,14 +548,13 @@ export const createCvBuilderSchema = (isVisitor = false) =>
         });
       });
 
-      getTertiaryYearIndexesBeforeSecondary(
+      getTertiaryYearIndexesAtOrBeforeSecondary(
         data.tertiaryEducation,
         data.secondaryEducation,
       ).forEach((index) => {
         ctx.addIssue({
           code: "custom",
-          message:
-            "Tertiary year completed cannot be earlier than secondary year completed.",
+          message: "Tertiary year completed must be later than secondary year completed.",
           path: ["tertiaryEducation", index, "yearCompleted"],
         });
       });

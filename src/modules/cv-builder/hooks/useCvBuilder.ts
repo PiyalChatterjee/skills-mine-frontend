@@ -8,7 +8,7 @@ import {
   tertiaryEntrySchema,
   secondaryEntrySchema,
   getDuplicateEducationYearIndexes,
-  getTertiaryYearIndexesBeforeSecondary,
+  getTertiaryYearIndexesAtOrBeforeSecondary,
   type CvBuilderFormValues,
 } from "@/app/validation.schema";
 import {
@@ -359,7 +359,7 @@ const useCvBuilder = (
       ) &&
       getDuplicateEducationYearIndexes(tertiaryValues ?? []).length === 0 &&
       getDuplicateEducationYearIndexes(secondaryValues ?? []).length === 0 &&
-      getTertiaryYearIndexesBeforeSecondary(
+      getTertiaryYearIndexesAtOrBeforeSecondary(
         tertiaryValues ?? [],
         secondaryValues ?? [],
       ).length === 0

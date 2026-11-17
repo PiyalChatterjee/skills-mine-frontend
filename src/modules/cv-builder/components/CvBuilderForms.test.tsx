@@ -301,7 +301,7 @@ describe("CvBuilderEducationForm", () => {
     expect(tertiaryYear).toHaveValue("2024");
   });
 
-  it("shows an error when tertiary education predates secondary education", async () => {
+  it("shows an error when tertiary education is not later than secondary education", async () => {
     const user = userEvent.setup();
     const values = buildValues();
     values.tertiaryEducation[0] = {
@@ -320,7 +320,7 @@ describe("CvBuilderEducationForm", () => {
 
     expect(
       await screen.findByText(
-        "Tertiary year completed cannot be earlier than secondary year completed.",
+        "Tertiary year completed must be later than secondary year completed.",
       ),
     ).toBeInTheDocument();
   });
@@ -357,13 +357,13 @@ describe("CvBuilderEducationForm", () => {
     await user.click(screen.getByRole("button", { name: "Validate form" }));
 
     expect(
-    await screen.findByText(
-      "Tertiary year completed cannot be earlier than secondary year completed.",
-    ),
+      await screen.findByText(
+        "Tertiary year completed must be later than secondary year completed.",
+      ),
     ).toBeInTheDocument();
   });
 
-  it("accepts equal tertiary and latest secondary years across multiple entries", async () => {
+  it("rejects equal tertiary and latest secondary years across multiple entries", async () => {
     const user = userEvent.setup();
     const values = buildValues();
     values.tertiaryEducation = [
@@ -395,57 +395,57 @@ describe("CvBuilderEducationForm", () => {
     await user.click(screen.getByRole("button", { name: "Validate form" }));
 
     expect(
-    screen.queryByText(
-      "Tertiary year completed cannot be earlier than secondary year completed.",
-    ),
-    ).not.toBeInTheDocument();
+      await screen.findByText(
+        "Tertiary year completed must be later than secondary year completed.",
+      ),
+    ).toBeInTheDocument();
   });
 
   it.each(["tertiaryEducation", "secondaryEducation"] as const)(
     "rejects duplicate years within %s entries",
     async (sectionName) => {
-    const user = userEvent.setup();
-    const values = buildValues();
-    const errorMessage =
-      sectionName === "tertiaryEducation"
-        ? "Year completed must be unique within tertiary education."
-        : "Year completed must be unique within secondary education.";
+      const user = userEvent.setup();
+      const values = buildValues();
+      const errorMessage =
+        sectionName === "tertiaryEducation"
+          ? "Year completed must be unique within tertiary education."
+          : "Year completed must be unique within secondary education.";
 
-    if (sectionName === "tertiaryEducation") {
-      values.tertiaryEducation = [
-        {
-          institutionName: "University",
-          degreeOrCertification: "BTech",
-          yearCompleted: "2010",
-        },
-        {
-          institutionName: "College",
-          degreeOrCertification: "Diploma",
-          yearCompleted: "2010",
-        },
-      ];
-      values.secondaryEducation[0].yearCompleted = "2008";
-    } else {
-      values.tertiaryEducation[0].yearCompleted = "2010";
-      values.secondaryEducation = [
-        {
-          institutionName: "High School",
-          highestGradePassed: "Grade 12",
-          yearCompleted: "2008",
-        },
-        {
-          institutionName: "Secondary School",
-          highestGradePassed: "Grade 10",
-          yearCompleted: "2008",
-        },
-      ];
-    }
+      if (sectionName === "tertiaryEducation") {
+        values.tertiaryEducation = [
+          {
+            institutionName: "University",
+            degreeOrCertification: "BTech",
+            yearCompleted: "2010",
+          },
+          {
+            institutionName: "College",
+            degreeOrCertification: "Diploma",
+            yearCompleted: "2010",
+          },
+        ];
+        values.secondaryEducation[0].yearCompleted = "2008";
+      } else {
+        values.tertiaryEducation[0].yearCompleted = "2010";
+        values.secondaryEducation = [
+          {
+            institutionName: "High School",
+            highestGradePassed: "Grade 12",
+            yearCompleted: "2008",
+          },
+          {
+            institutionName: "Secondary School",
+            highestGradePassed: "Grade 10",
+            yearCompleted: "2008",
+          },
+        ];
+      }
 
-    renderInForm(<CvBuilderEducationForm />, values);
+      renderInForm(<CvBuilderEducationForm />, values);
 
-    await user.click(screen.getByRole("button", { name: "Validate form" }));
+      await user.click(screen.getByRole("button", { name: "Validate form" }));
 
-    expect(await screen.findAllByText(errorMessage)).toHaveLength(2);
+      expect(await screen.findAllByText(errorMessage)).toHaveLength(2);
     },
   );
 
