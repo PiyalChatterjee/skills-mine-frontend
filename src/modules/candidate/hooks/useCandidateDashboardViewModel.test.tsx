@@ -210,7 +210,9 @@ describe("useCandidateDashboardViewModel", () => {
         label: "Closed",
         color: "#D64545",
       });
-      expect(app.message).toBe(DASHBOARD_APPLICATION_STATUS_CONFIG.rejected.caption);
+      expect(app.message).toBe(
+        "Unfortunately, this position has been filled and the offer wasn't extended. Thank you for your interest!",
+      );
       expect(app.pipelineStages.find((stage) => stage.isActive)?.key).toBe(rejectedAtStage);
     },
   );
