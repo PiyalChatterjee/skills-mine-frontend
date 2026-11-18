@@ -284,9 +284,17 @@ describe("live CRM screen", () => {
     fireEvent.change(screen.getByLabelText(/Add Note/), { target: { value: "Keep this draft" } });
     await waitFor(() => expect(within(screen.getByRole("dialog")).getByRole("button", { name: "Update" })).toBeEnabled());
     fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Update" }));
-    expect(await screen.findByText("No permission to update")).toBeInTheDocument();
+    await waitFor(() =>
+      expect(store.getState().notification.items).toContainEqual(
+        expect.objectContaining({
+          level: "error",
+          title: "CRM update failed",
+          message: "You don't have permission to access this CRM information.",
+        }),
+      ),
+    );
+    expect(screen.queryByText("No permission to update")).not.toBeInTheDocument();
     expect(screen.getByLabelText(/Add Note/)).toHaveValue("Keep this draft");
-    expect(store.getState().notification.items).toHaveLength(0);
     expect(crmApi.listClients).toHaveBeenCalledTimes(1);
   });
 
@@ -304,13 +312,13 @@ describe("live CRM screen", () => {
     expect(crmApi.addClientNote).not.toHaveBeenCalled();
   });
 
-  it("shows errors with retry, then an empty state after recovery", async () => {
-    vi.mocked(crmApi.listClients).mockRejectedValueOnce(new Error("CRM unavailable"))
-      .mockResolvedValueOnce({ ...response, clients: [], totalElements: 0, totalPages: 0 });
+  it("shows a friendly toast when the CRM API times out without exposing technical details", async () => {
+    vi.mocked(crmApi.listClients).mockRejectedValueOnce(new Error("timeout of 5000ms exceeded"));
     renderPage();
-    expect(await screen.findByText("CRM unavailable")).toBeInTheDocument();
-    expect(screen.queryByText("No CRM clients found.")).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Retry" }));
-    expect(await screen.findByText("No CRM clients found.")).toBeInTheDocument();
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "CRM contacts could not be loaded: We couldn't load CRM contacts right now. Please try again.",
+    );
+    expect(screen.queryByText(/timeout of 5000ms exceeded/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Retry" })).not.toBeInTheDocument();
   });
 });
