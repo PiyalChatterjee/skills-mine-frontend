@@ -349,6 +349,7 @@ export const recruiterCandidatesApi = {
     if (params?.companyName) requestParams.companyName = params.companyName;
     if (params?.status) requestParams.status = params.status;
     if (params?.jobProfileId) requestParams.jobProfileId = params.jobProfileId;
+    if (params?.includeTopScored !== undefined) requestParams.includeTopScored = params.includeTopScored;
 
     return mandateApiClient
       .get<CandidatePage>(apiEndpoints.candidates.list, {

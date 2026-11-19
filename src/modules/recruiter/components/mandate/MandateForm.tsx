@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Box, Typography } from '@mui/material'
@@ -165,7 +165,6 @@ export const MandateForm = ({
     control,
     handleSubmit,
     setValue,
-    formState: {  isValid },
   } = useForm<MandateFormValues>({
     resolver: zodResolver(mandateSchema),
     defaultValues: initialValues,
@@ -174,6 +173,12 @@ export const MandateForm = ({
     mode: 'onBlur',
     reValidateMode: 'onChange',
   })
+
+  // formState.isValid only refreshes on blur in onBlur mode, and the chip
+  // inputs (skills / industries) never blur the form field — so derive
+  // validity from the live values instead.
+  const values = useWatch({ control }) as MandateFormValues
+  const isValid = mandateSchema.safeParse(values).success
 
   const handleFormSubmit = async (values: MandateFormValues) => {
     setIsSubmitting(true)

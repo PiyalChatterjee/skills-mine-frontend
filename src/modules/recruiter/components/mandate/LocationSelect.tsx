@@ -65,18 +65,19 @@ export const LocationSelect = ({ control, setValue }: Props) => {
   const hasError = Boolean(errors.location)
 
   return (
-    <div className={styles.field}>
+    <div className={styles.field} data-field="location">
       <label className={styles.label} id="location-select-label">Location *</label>
+      {/* Bound to `location` (the validated field) so blur triggers its validation; `locationId` is synced manually. */}
       <Controller
-        name="locationId"
+        name="location"
         control={control}
         render={({ field }) => (
           <Select
-            value={locations.some((item) => item.locationId === field.value) ? field.value : ''}
+            value={locations.some((item) => item.locationId === locationId) ? locationId : ''}
             onChange={(event) => {
               const selected = locations.find((item) => item.locationId === event.target.value)
-              field.onChange(selected?.locationId ?? '')
-              setValue('location', selected?.name ?? '', { shouldValidate: true, shouldDirty: true })
+              setValue('locationId', selected?.locationId ?? '', { shouldDirty: true })
+              field.onChange(selected?.name ?? '')
             }}
             onBlur={field.onBlur}
             displayEmpty

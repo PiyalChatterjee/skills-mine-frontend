@@ -151,16 +151,31 @@ export type UpdateBizCommunityJobRequest = BizCommunityPrefill & {
   job_profile_id_ref?: string;
 };
 
+export type PnetFieldOption = {
+  id: number;
+  name: string;
+};
+
+export type PnetFieldKey =
+  | "workfield"
+  | "geography"
+  | "sector"
+  | "contracttype"
+  | "worktype"
+  | "experience"
+  | "situation";
+
+export type PnetFields = Partial<Record<PnetFieldKey, PnetFieldOption[]>>;
+
 export type PnetPrefill = {
   reference_id?: string;
+  job_profile_id_ref?: string;
   action?: string;
   channel?: string;
-  categorization?: {
-    experience?: string[];
-    contracttype?: string[];
-    contractime?: string[];
-    workpolicy?: string[];
-  };
+  listingtype?: string;
+  // PNet option ids per dropdown; 0 means "not set".
+  idFields?: Partial<Record<PnetFieldKey, number>>;
+  categorization?: PnetCategorization;
   jobdetails?: {
     language?: string;
     jobtitle?: string;
@@ -168,8 +183,9 @@ export type PnetPrefill = {
     tasks?: string;
     profile?: string;
     offer?: string;
+    keywords?: string;
     joblocations?: { countrycode?: string; city?: string }[];
-    apply?: { url?: string };
+    apply?: { url?: string; email?: string };
     salary?: {
       minimum?: number;
       maximum?: number;
@@ -183,6 +199,7 @@ export type PnetPrefill = {
       firstname?: string;
       lastname?: string;
       email?: string;
+      phone?: string;
     };
   };
 };
@@ -192,6 +209,91 @@ export type PnetPrefillResponse = {
   missing_fields: string[];
   warnings: string[];
   prefill: PnetPrefill;
+  pnetFields?: PnetFields;
+};
+
+export type PnetCategorization = {
+  experience?: string[];
+  contracttype?: string[];
+  contractime?: string[];
+  workpolicy?: string[];
+};
+
+export type PnetAction = "INSERT" | "UPDATE" | "OFFLINE";
+export type PnetChannel = "ZA" | string;
+export type PnetLanguage = "EN" | "DE" | string;
+
+export type PnetIdBasedFields = {
+  workfield: number;
+  geography: number;
+  sector: number;
+  contracttype: number;
+  worktype: number;
+  experience: number;
+  situation: number;
+};
+
+export type PnetJobLocation = {
+  countrycode: string;
+  city: string;
+};
+
+export type PnetApply = {
+  url?: string;
+  email?: string;
+};
+
+export type PnetSalary = {
+  minimum?: number;
+  maximum?: number;
+  currency?: string;
+  period?: string;
+};
+
+export type PnetJobDetails = {
+  language: string;
+  jobtitle: string;
+  introduction: string;
+  tasks: string;
+  profile: string;
+  offer?: string;
+  keywords?: string;
+  contactinfo?: string;
+  joblocations: PnetJobLocation[];
+  apply: PnetApply;
+  salary?: PnetSalary;
+};
+
+export type PnetLayoutDetails = {
+  images?: Record<string, unknown>;
+  video?: unknown[];
+};
+
+export type PnetRecruiter = {
+  firstname?: string;
+  lastname?: string;
+  email?: string;
+  phone?: string;
+};
+
+export type PnetCompanyDetails = {
+  companyname?: string;
+  recruiter?: PnetRecruiter;
+};
+
+export type PublishPnetJobRequest = {
+  reference_id: string;
+  action: PnetAction;
+  channel: PnetChannel;
+  idFields: PnetIdBasedFields;
+  listingtype?: string;
+  categorization?: PnetCategorization;
+  jobdetails: PnetJobDetails;
+  layoutdetails?: PnetLayoutDetails;
+  companydetails?: PnetCompanyDetails;
+  job_profile_id_ref: string;
+  sender_id?: string;
+  organisation_id?: string;
 };
 
 // The BizCommunity webservice call is forwarded as XML and can be slower than
@@ -228,6 +330,15 @@ export const externalJobsApi = {
       externalJobsApiClient.get<PnetPrefillResponse>(
         apiEndpoints.externalJobs.pnetPrefill,
         { params: { job_profile_id: jobProfileId } },
+      ),
+    );
+  },
+  publishToPnet(body: PublishPnetJobRequest) {
+    return unwrapResponseData(
+      externalJobsApiClient.post<unknown>(
+        apiEndpoints.externalJobs.pnetPublish,
+        body,
+        { timeout: PUBLISH_TIMEOUT_MS },
       ),
     );
   },

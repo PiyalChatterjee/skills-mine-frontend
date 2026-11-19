@@ -1044,6 +1044,7 @@ export interface CandidateListParams {
   companyName?: string
   status?: string
   jobProfileId?: string
+  includeTopScored?: boolean
 }
 
 export interface CandidateListData {
