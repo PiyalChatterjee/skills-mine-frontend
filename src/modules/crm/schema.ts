@@ -26,7 +26,10 @@ const dateSchema = z.string().refine(
 export const crmNoteSchema = z.object({
   classification: z.enum(crmClassifications, { error: "Select a classification" }),
   note: z.string().trim().min(1, "Note is required").refine(
-    (value) => value.split(/\r\n|\r|\n/).length <= 4,
+    (value) => {
+      const lines = value.split(/\r\n|\r|\n/);
+      return lines.length <= 4 && lines.every((line) => line.length <= 98);
+    },
     "Note must be no more than 4 lines",
   ),
   followupDate: dateSchema,

@@ -41,6 +41,7 @@ const serviceBaseUrls = {
 // Tune here — no .env variable needed.
 const REQUEST_TIMEOUT_MS = 5000;
 const AI_REQUEST_TIMEOUT_MS = 60000;
+const DOCUMENT_UPLOAD_TIMEOUT_MS = 30000;
 
 const createApiClient = (
   baseURL: string,
@@ -53,6 +54,10 @@ const createApiClient = (
     const tokens = tokenStorage.getTokens();
     if (includeAuth && tokens?.accessToken) {
       config.headers.Authorization = `Bearer ${tokens.accessToken}`;
+    }
+    // Don't set Content-Type for FormData - let the browser handle it with boundary
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type'];
     }
     return config;
   });
@@ -86,7 +91,10 @@ export const apiClient = createApiClient(serviceBaseUrls.default);
 export const authApiClient = createApiClient(serviceBaseUrls.auth);
 export const candidateApiClient = createApiClient(serviceBaseUrls.candidate);
 export const mandateApiClient = createApiClient(serviceBaseUrls.mandate);
-export const documentApiClient = createApiClient(serviceBaseUrls.document);
+export const documentApiClient = createApiClient(
+  serviceBaseUrls.document,
+  DOCUMENT_UPLOAD_TIMEOUT_MS,
+);
 export const publicDocumentApiClient = createApiClient(
   serviceBaseUrls.document,
   REQUEST_TIMEOUT_MS,
