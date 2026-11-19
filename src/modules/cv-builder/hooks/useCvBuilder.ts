@@ -392,13 +392,21 @@ const useCvBuilder = (
   };
   const goBack = () => setActiveView("launcher");
   const openReviewFlowBlank = (prefillData?: CvBuilderPrefillData) => {
+    const {
+      languages,
+      otherLanguage,
+      ...rest
+    } = prefillData ?? {};
+
     form.reset({
       ...DEFAULT_FORM_VALUES,
-      ...prefillData,
+      ...rest,
       personalDetails: {
         ...DEFAULT_FORM_VALUES.personalDetails,
         ...prefillData?.personalDetails,
       },
+      languages: languages ?? DEFAULT_FORM_VALUES.languages,
+      otherLanguage: otherLanguage ?? DEFAULT_FORM_VALUES.otherLanguage,
     });
     setReviewSource("upload");
     setActiveView("review");
