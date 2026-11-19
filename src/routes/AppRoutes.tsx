@@ -162,9 +162,14 @@ export const AppRoutes = () => {
 
           <Route element={<RecruiterLayout />}>
             <Route
-              path={ROUTE_PATHS.recruiterDashboard}
-              element={<RecruiterPage />}
-            />
+              element={
+                <RoleGuard allowedRoles={["RECRUITER"]} />
+              }
+            >
+              <Route
+                path={ROUTE_PATHS.recruiterDashboard}
+                element={<RecruiterPage />}
+              />
             <Route
               path={ROUTE_PATHS.recruiterJobPosts}
               element={<RecruiterMandatesPage />}
@@ -245,10 +250,11 @@ export const AppRoutes = () => {
               path={ROUTE_PATHS.recruiterManco}
               element={<RecruiterMancoPage />}
             />
-            <Route
-              path={ROUTE_PATHS.recruiterMancoPipeline}
-              element={<RecruiterPage />}
-            />
+              <Route
+                path={ROUTE_PATHS.recruiterMancoPipeline}
+                element={<RecruiterPage />}
+              />
+            </Route>
             <Route
               element={<PermissionGuard requiredPermissions={["CRM_EDIT"]} />}
             >

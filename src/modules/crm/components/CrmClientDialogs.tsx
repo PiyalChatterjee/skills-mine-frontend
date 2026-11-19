@@ -1,17 +1,20 @@
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import dayjs from "dayjs";
+import { useDispatch } from "react-redux";
 import {
-  Alert, Button, Dialog, IconButton, FormControlLabel, Radio, RadioGroup,
+  Button, Dialog, IconButton, FormControlLabel, Radio, RadioGroup,
 } from "@mui/material";
-import { extractErrorMessage } from "@/app/errorUtils";
 import { FormField } from "@/components/forms/FormField";
 import { FormDateField } from "@/components/forms/FormDateField";
 import closeIcon from "@/assets/crm/close.svg";
 import radioDot from "@/assets/crm/radio-dot.svg";
+import type { AppDispatch } from "@/store";
+import { pushNotification } from "@/store/slices/notificationSlice";
 import {
   useAddCrmClientNoteMutation,
 } from "@/store/api/apiSlice";
+import { getCrmApiErrorMessage } from "../errorMessages";
 import type { CrmClient } from "@/types/api";
 import { getFollowupDayOffset } from "../presentation";
 import {
@@ -32,8 +35,9 @@ const getDateFromDayOffset = (days?: number | null): string => {
 };
 
 export function UpdateCrmClientDialog({ client, onClose, onSaved }: DialogProps & { client: CrmClient }) {
+  const dispatch = useDispatch<AppDispatch>();
   const [addNote, { isLoading }] = useAddCrmClientNoteMutation();
-  const { control, handleSubmit, setError, formState: { errors, isValid } } =
+  const { control, handleSubmit, formState: { isValid } } =
     useForm<CrmNoteValues>({
       resolver: zodResolver(crmNoteSchema),
       defaultValues: {
@@ -64,7 +68,14 @@ export function UpdateCrmClientDialog({ client, onClose, onSaved }: DialogProps 
       }).unwrap();
       onSaved();
     } catch (error) {
-      setError("root", { message: extractErrorMessage(error, "Failed to update client.") });
+      dispatch(pushNotification({
+        level: "error",
+        title: "CRM update failed",
+        message: getCrmApiErrorMessage(
+          error,
+          "We couldn't update this CRM contact. Please try again.",
+        ),
+      }));
     }
   });
 
@@ -73,15 +84,16 @@ export function UpdateCrmClientDialog({ client, onClose, onSaved }: DialogProps 
       aria-labelledby="crm-update-title" aria-describedby="crm-update-client"
       slotProps={{ paper: { className: styles.updatePaper } }}>
       <form onSubmit={submit} noValidate aria-busy={isLoading} className={styles.updateForm}>
-        <div className={styles.closeRow}>
-          <IconButton aria-label="Close update dialog" className={styles.closeButton} onClick={onClose} disabled={isLoading}>
-            <img src={closeIcon} alt="" aria-hidden="true" />
-          </IconButton>
+        <div className={styles.stickyHeader}>
+          <div className={styles.closeRow}>
+            <IconButton aria-label="Close update dialog" className={styles.closeButton} onClick={onClose} disabled={isLoading}>
+              <img src={closeIcon} alt="" aria-hidden="true" />
+            </IconButton>
+          </div>
+          <h2 id="crm-update-title" className={styles.updateTitle}>Update</h2>
         </div>
-        <h2 id="crm-update-title" className={styles.updateTitle}>Update</h2>
         <span id="crm-update-client" className={styles.srOnly}>Update {client.clientName}</span>
         <div className={styles.updateContent}>
-          {errors.root && <Alert severity="error">{errors.root.message}</Alert>}
           <fieldset className={styles.classifications} disabled={isLoading}>
             <legend className={styles.classificationLabel} id="crm-classification-label">Classification*</legend>
             <Controller name="classification" control={control} render={({ field, fieldState }) => (
@@ -120,6 +132,7 @@ export function UpdateCrmClientDialog({ client, onClose, onSaved }: DialogProps 
           <Controller name="note" control={control} render={({ field: { ref, ...field }, fieldState }) => (
             <FormField {...field} inputRef={ref} label="Add Note (Max 4 lines)" placeholder="Note"
               className={styles.noteField} multiline rows={4} required disabled={isLoading}
+              slotProps={{ htmlInput: { maxLength: 320 } }}
               error={Boolean(fieldState.error)} helperText={fieldState.error?.message} />
           )} />
           <div className={styles.updateActions}>

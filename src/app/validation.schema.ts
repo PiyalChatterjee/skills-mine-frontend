@@ -469,7 +469,27 @@ export const secondaryEntrySchema = z.object({
   yearCompleted: completedYearSchema,
 });
 
-export const getTertiaryYearIndexesBeforeSecondary = (
+export const getDuplicateEducationYearIndexes = (
+  education: readonly { yearCompleted: string }[],
+): number[] => {
+  const indexesByYear = new Map<string, number[]>();
+
+  education.forEach((entry, index) => {
+    const year = entry.yearCompleted.trim();
+    if (!/^(?!0000)\d{4}$/.test(year)) return;
+
+    const indexes = indexesByYear.get(year) ?? [];
+    indexes.push(index);
+    indexesByYear.set(year, indexes);
+  });
+
+  return [...indexesByYear.values()]
+    .filter((indexes) => indexes.length > 1)
+    .flat()
+    .sort((left, right) => left - right);
+};
+
+export const getTertiaryYearIndexesAtOrBeforeSecondary = (
   tertiaryEducation: readonly { yearCompleted: string }[],
   secondaryEducation: readonly { yearCompleted: string }[],
 ): number[] => {
@@ -484,7 +504,7 @@ export const getTertiaryYearIndexesBeforeSecondary = (
 
   return tertiaryEducation.flatMap((entry, index) => {
     const year = entry.yearCompleted.trim();
-    return /^\d{4}$/.test(year) && Number(year) < latestSecondaryYear
+    return /^\d{4}$/.test(year) && Number(year) <= latestSecondaryYear
       ? [index]
       : [];
   });
@@ -507,14 +527,34 @@ export const createCvBuilderSchema = (isVisitor = false) =>
       otherLanguage: z.string(),
     })
     .superRefine((data, ctx) => {
-      getTertiaryYearIndexesBeforeSecondary(
+      [
+        {
+          field: "tertiaryEducation",
+          label: "tertiary",
+          entries: data.tertiaryEducation,
+        },
+        {
+          field: "secondaryEducation",
+          label: "secondary",
+          entries: data.secondaryEducation,
+        },
+      ].forEach(({ field, label, entries }) => {
+        getDuplicateEducationYearIndexes(entries).forEach((index) => {
+          ctx.addIssue({
+            code: "custom",
+            message: `Year completed must be unique within ${label} education.`,
+            path: [field, index, "yearCompleted"],
+          });
+        });
+      });
+
+      getTertiaryYearIndexesAtOrBeforeSecondary(
         data.tertiaryEducation,
         data.secondaryEducation,
       ).forEach((index) => {
         ctx.addIssue({
           code: "custom",
-          message:
-            "Tertiary year completed cannot be earlier than secondary year completed.",
+          message: "Tertiary year completed must be later than secondary year completed.",
           path: ["tertiaryEducation", index, "yearCompleted"],
         });
       });

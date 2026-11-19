@@ -29,6 +29,7 @@ import {
   useMancoRecruiters,
 } from "@/modules/recruiter/hooks/useMancoDashboard";
 import {
+  formatName,
   formatPercentage,
   formatRevenue,
 } from "@/modules/recruiter/utils/mancoFormatters";
@@ -139,7 +140,7 @@ export const MancoAttentionSection = () => {
             {alerts.map((alert) => (
               <Box className={styles.alertListItem} key={alert.alertId}>
                 <Typography className={styles.alertListName}>
-                  {alert.fullName}
+                  {formatName(alert.fullName)}
                 </Typography>
                 <Box className={styles.alertListDetails}>
                   <Typography className={styles.alertListIssue}>
@@ -341,13 +342,14 @@ const EmployeeCard = ({
     recruiter.recruiterId,
     pipelineOpen,
   );
+  const recruiterName = formatName(recruiter.fullName);
 
   return (
     <Box className={styles.employeeCard}>
       <Box className={styles.employeeCardTopRow}>
         <Box>
           <Typography component="h3" className={styles.employeeName}>
-            {recruiter.fullName}
+            {recruiterName}
           </Typography>
           <Typography component="p" className={styles.employeeMeta}>
             <span className={styles.employeeRole}>{recruiter.roleName}</span>
@@ -391,7 +393,7 @@ const EmployeeCard = ({
         component="button"
         aria-expanded={pipelineOpen}
         aria-controls={`pipeline-${recruiter.recruiterId}`}
-        aria-label={`Pipeline distribution for ${recruiter.fullName}`}
+        aria-label={`Pipeline distribution for ${recruiterName}`}
       >
         <Typography component="p" className={styles.pipelineRowLabel}>
           Pipeline distribution
@@ -546,7 +548,7 @@ const AlertDetailsDialog = ({
       <Box className={styles.alertDialogHeading}>
         {alert && <img src={alertWarningIcon} alt="" aria-hidden="true" />}
         <Typography component="h2" className={styles.alertDialogName}>
-          {alert?.fullName ?? "Alert details"}
+          {alert ? formatName(alert.fullName) : "Alert details"}
         </Typography>
       </Box>
       <ButtonBase
@@ -647,7 +649,9 @@ const RecruiterDetailsDialog = ({
       >
         <Box className={styles.detailHeading}>
           <Typography component="h2" className={styles.detailName}>
-            {detailQuery.data?.recruiter.fullName ?? "Recruiter details"}
+            {detailQuery.data
+              ? formatName(detailQuery.data.recruiter.fullName)
+              : "Recruiter details"}
           </Typography>
           {detailQuery.data && (
             <Typography className={styles.detailRole}>

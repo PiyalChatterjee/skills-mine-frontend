@@ -14,3 +14,13 @@ export const formatRevenue = (value?: number | null): string => {
 
 export const formatPercentage = (value?: number | null): string =>
   value == null ? "-" : `${value}%`;
+
+export const formatName = (name: string): string =>
+  name
+    .trim()
+    .toLowerCase()
+    .replace(
+      /(^|[\s'\u2019-])(\p{L})/gu,
+      (_match, separator: string, letter: string) =>
+        `${separator}${letter.toUpperCase()}`,
+    );

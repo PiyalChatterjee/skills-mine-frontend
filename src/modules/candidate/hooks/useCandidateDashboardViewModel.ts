@@ -166,7 +166,9 @@ const transformApplicationToDisplay = (
       isActive: getApplicationStatusKey(stageKey) === progressStatus,
     })),
     fillPercent: isClosedRejection || displayStatus === ApplicationStatusValue.OFFER_DECLINED ? 100 : getPipelineFillPercent(progressStage, pipeline),
-    message: DASHBOARD_APPLICATION_STATUS_CONFIG[displayStatus].caption,
+    message: isClosedRejection
+      ? "Unfortunately, this position has been filled and the offer wasn't extended. Thank you for your interest!"
+      : DASHBOARD_APPLICATION_STATUS_CONFIG[displayStatus].caption,
     offerAccepted: false,
   };
 };

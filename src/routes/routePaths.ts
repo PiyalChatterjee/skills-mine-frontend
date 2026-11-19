@@ -40,6 +40,6 @@ export const ROUTE_PATHS = {
   recruiterCrm: '/recruiter/crm',
   manco: '/manco',
   recruiterManco: '/recruiter/manco',
-  exco: '/exco',
+  exco: '/exco/dashboard',
   excoCrm: '/exco/crm',
 } as const

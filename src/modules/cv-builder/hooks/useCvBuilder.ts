@@ -7,7 +7,8 @@ import {
   careerHistoryEntrySchema,
   tertiaryEntrySchema,
   secondaryEntrySchema,
-  getTertiaryYearIndexesBeforeSecondary,
+  getDuplicateEducationYearIndexes,
+  getTertiaryYearIndexesAtOrBeforeSecondary,
   type CvBuilderFormValues,
 } from "@/app/validation.schema";
 import {
@@ -356,7 +357,9 @@ const useCvBuilder = (
       (secondaryValues ?? []).every(
         (e) => secondaryEntrySchema.safeParse(e).success,
       ) &&
-      getTertiaryYearIndexesBeforeSecondary(
+      getDuplicateEducationYearIndexes(tertiaryValues ?? []).length === 0 &&
+      getDuplicateEducationYearIndexes(secondaryValues ?? []).length === 0 &&
+      getTertiaryYearIndexesAtOrBeforeSecondary(
         tertiaryValues ?? [],
         secondaryValues ?? [],
       ).length === 0

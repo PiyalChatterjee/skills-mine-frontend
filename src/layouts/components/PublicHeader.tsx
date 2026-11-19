@@ -224,8 +224,14 @@ export const PublicHeader = ({
                           anchorEl={isMenuOpen ? navMenuAnchor.element : null}
                           open={isMenuOpen}
                           onClose={handleNavMenuClose}
-                          anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-                          transformOrigin={{ vertical: "top", horizontal: "left" }}
+                          anchorOrigin={{
+                            vertical: "bottom",
+                            horizontal: "left",
+                          }}
+                          transformOrigin={{
+                            vertical: "top",
+                            horizontal: "left",
+                          }}
                           slotProps={{
                             paper: { className: styles.navMenuPaper },
                             list: {
@@ -308,7 +314,11 @@ export const PublicHeader = ({
                 })}
               </Box>
               <IconButton
-                aria-label={isMobileNavOpen ? "Close navigation menu" : "Open navigation menu"}
+                aria-label={
+                  isMobileNavOpen
+                    ? "Close navigation menu"
+                    : "Open navigation menu"
+                }
                 aria-expanded={isMobileNavOpen ? "true" : undefined}
                 aria-controls="mobile-nav-menu"
                 onClick={() => {
@@ -323,139 +333,139 @@ export const PublicHeader = ({
                   <span />
                 </Box>
               </IconButton>
-            {showSignUp ? (
-              <Button
-                variant="contained"
-                onClick={onSignUpClick}
-                className={styles.signUpButton}
-              >
-                Sign up
-              </Button>
-            ) : null}
-            {showNotificationButton ? (
-              <IconButton
-                aria-label="Notifications"
-                onClick={onNotificationClick}
-                className={styles.notificationButton}
-              >
-                <Box
-                  className={styles.notificationBadgeDot}
-                  aria-hidden="true"
-                />
-                <Box
-                  component="img"
-                  src={notificationBell}
-                  aria-hidden="true"
-                  alt=""
-                />
-              </IconButton>
-            ) : null}
-            {showProfileBadge ? (
-              <>
-                <Box
-                  component="button"
-                  type="button"
-                  onClick={handleProfileBadgeClick}
-                  aria-label="Open profile menu"
-                  aria-controls={isProfileMenuOpen ? "profile-menu" : undefined}
-                  aria-expanded={isProfileMenuOpen ? "true" : undefined}
-                  aria-haspopup="menu"
-                  className={styles.profileBadgeButton}
+              {showSignUp ? (
+                <Button
+                  variant="contained"
+                  onClick={onSignUpClick}
+                  className={styles.signUpButton}
+                >
+                  Sign up
+                </Button>
+              ) : null}
+              {showNotificationButton ? (
+                <IconButton
+                  aria-label="Notifications"
+                  onClick={onNotificationClick}
+                  className={styles.notificationButton}
                 >
                   <Box
-                    component="span"
+                    className={styles.notificationBadgeDot}
                     aria-hidden="true"
-                    className={styles.profileBadge}
-                  >
-                    <Box
-                      component="img"
-                      src={userIconWhite}
-                      alt=""
-                      className={styles.profileIcon}
-                    />
-                  </Box>
-                </Box>
-
-                <Menu
-                  id="profile-menu"
-                  anchorEl={profileAnchorEl}
-                  open={isProfileMenuOpen}
-                  onClose={handleProfileMenuClose}
-                  anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-                  transformOrigin={{ vertical: "top", horizontal: "right" }}
-                  slotProps={{
-                    paper: {
-                      className: styles.profileMenuPaper,
-                    },
-                    list: {
-                      className: styles.profileMenuList,
-                    },
-                  }}
-                >
+                  />
                   <Box
-                    className={styles.profileMenuUserBlock}
+                    component="img"
+                    src={notificationBell}
+                    aria-hidden="true"
+                    alt=""
+                  />
+                </IconButton>
+              ) : null}
+              {showProfileBadge ? (
+                <>
+                  <Box
+                    component="button"
+                    type="button"
+                    onClick={handleProfileBadgeClick}
+                    aria-label="Open profile menu"
+                    aria-controls={
+                      isProfileMenuOpen ? "profile-menu" : undefined
+                    }
+                    aria-expanded={isProfileMenuOpen ? "true" : undefined}
+                    aria-haspopup="menu"
+                    className={styles.profileBadgeButton}
                   >
                     <Box
-                      className={styles.profileMenuUserAvatar}
+                      component="span"
                       aria-hidden="true"
+                      className={styles.profileBadge}
                     >
                       <Box
                         component="img"
                         src={userIconWhite}
                         alt=""
-                        className={styles.profileMenuUserAvatarIcon}
+                        className={styles.profileIcon}
                       />
-                    </Box>
-                    <Box className={styles.profileMenuUserText}>
-                      <Typography className={styles.profileMenuUserName}>
-                        {user?.displayName ?? "SkillsMine User"}
-                      </Typography>
-                      <Typography className={styles.profileMenuUserEmail}>
-                        {user?.email ?? ""}
-                      </Typography>
                     </Box>
                   </Box>
 
-                  <Box
-                    className={styles.profileMenuDivider}
-                    aria-hidden="true"
-                  />
+                  <Menu
+                    id="profile-menu"
+                    anchorEl={profileAnchorEl}
+                    open={isProfileMenuOpen}
+                    onClose={handleProfileMenuClose}
+                    anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+                    transformOrigin={{ vertical: "top", horizontal: "right" }}
+                    slotProps={{
+                      paper: {
+                        className: styles.profileMenuPaper,
+                      },
+                      list: {
+                        className: styles.profileMenuList,
+                      },
+                    }}
+                  >
+                    <Box className={styles.profileMenuUserBlock}>
+                      <Box
+                        className={styles.profileMenuUserAvatar}
+                        aria-hidden="true"
+                      >
+                        <Box
+                          component="img"
+                          src={userIconWhite}
+                          alt=""
+                          className={styles.profileMenuUserAvatarIcon}
+                        />
+                      </Box>
+                      <Box className={styles.profileMenuUserText}>
+                        <Typography className={styles.profileMenuUserName}>
+                          {user?.displayName ?? "SkillsMine User"}
+                        </Typography>
+                        <Typography className={styles.profileMenuUserEmail}>
+                          {user?.email ?? ""}
+                        </Typography>
+                      </Box>
+                    </Box>
 
-                  <MenuItem
-                    onClick={handleProfileSettingsClick}
-                    className={styles.profileMenuItem}
-                  >
-                    Profile Settings
-                  </MenuItem>
-                  <MenuItem
-                    onClick={handleChangePasswordClick}
-                    className={styles.profileMenuItem}
-                  >
-                    Change Password
-                  </MenuItem>
-                  <MenuItem
-                    onClick={handleSignOutClick}
-                    className={styles.profileMenuItem}
-                  >
-                    Log Out
-                  </MenuItem>
-                </Menu>
-              </>
-            ) : null}
-            {showSearchButton ? (
-              <IconButton
-                aria-label="Search site"
-                onClick={onSearchClick}
-                className={styles.searchButton}
-              >
-                <Box
-                  component="img"
-                  src={searchIcon}
-                  alt=""
-                  className={styles.searchButtonIcon}
-                />
-              </IconButton>
-            ) : null}
+                    <Box
+                      className={styles.profileMenuDivider}
+                      aria-hidden="true"
+                    />
+
+                    <MenuItem
+                      onClick={handleProfileSettingsClick}
+                      className={styles.profileMenuItem}
+                    >
+                      Profile Settings
+                    </MenuItem>
+                    <MenuItem
+                      onClick={handleChangePasswordClick}
+                      className={styles.profileMenuItem}
+                    >
+                      Change Password
+                    </MenuItem>
+                    <MenuItem
+                      onClick={handleSignOutClick}
+                      className={styles.profileMenuItem}
+                    >
+                      Log Out
+                    </MenuItem>
+                  </Menu>
+                </>
+              ) : null}
+              {showSearchButton ? (
+                <IconButton
+                  aria-label="Search site"
+                  onClick={onSearchClick}
+                  className={styles.searchButton}
+                >
+                  <Box
+                    component="img"
+                    src={searchIcon}
+                    alt=""
+                    className={styles.searchButtonIcon}
+                  />
+                </IconButton>
+              ) : null}
             </Box>
             <Box
               id="mobile-nav-menu"
@@ -473,7 +483,10 @@ export const PublicHeader = ({
                   const isExpanded = expandedMobileMenuId === item.id;
 
                   return (
-                    <Box key={`mobile-${item.id}`} className={styles.mobileNavGroup}>
+                    <Box
+                      key={`mobile-${item.id}`}
+                      className={styles.mobileNavGroup}
+                    >
                       <Box
                         component="button"
                         type="button"
@@ -525,7 +538,9 @@ export const PublicHeader = ({
                       key={`mobile-${item.id}`}
                       component={NavLink}
                       to={targetPath}
-                      aria-disabled={item.requiresAuth && !canAccessProtectedRoutes}
+                      aria-disabled={
+                        item.requiresAuth && !canAccessProtectedRoutes
+                      }
                       onClick={(event) => {
                         if (item.requiresAuth) {
                           onProtectedNavClick(event, targetPath);
@@ -597,7 +612,10 @@ export const PublicHeader = ({
                         alt=""
                         className={styles.searchButtonIcon}
                       />
-                      <Box component="span" className={styles.mobileSearchLabel}>
+                      <Box
+                        component="span"
+                        className={styles.mobileSearchLabel}
+                      >
                         Search
                       </Box>
                     </IconButton>

@@ -1,14 +1,14 @@
 import { CrmClassificationLabel } from "@/enums/statuses";
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
-import { Alert, Box, Button, CircularProgress, Pagination, Typography } from '@mui/material'
+import { Box, CircularProgress, Pagination, Typography } from '@mui/material'
 import { RecruiterSidebar } from '@/modules/recruiter/components/RecruiterSidebar'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useSearchQueryState } from '@/hooks/useSearchQueryState'
-import { extractErrorMessage } from '@/app/errorUtils'
 import { useGetCrmClientsQuery } from '@/store/api/apiSlice'
 import type { AppDispatch } from '@/store'
 import { pushNotification } from '@/store/slices/notificationSlice'
+import { getCrmApiErrorMessage } from '@/modules/crm/errorMessages'
 import { UpdateCrmClientDialog } from '@/modules/crm/components/CrmClientDialogs'
 import { CrmCard, MagnifierIcon, StatTile } from '@/modules/crm/components/CrmPresentation'
 import type { CrmClient } from '@/types/api'
@@ -22,10 +22,23 @@ const RecruiterCrmPage = ({ navigation = 'recruiter' }: { navigation?: 'recruite
   const [selectedClient, setSelectedClient] = useState<CrmClient | null>(null)
   const filterKey = search.debouncedValue
   const page = pagination.key === filterKey ? pagination.page : 1
-  const { currentData: data, isFetching, isError, error, refetch } = useGetCrmClientsQuery({
+  const { currentData: data, isFetching, isError, error } = useGetCrmClientsQuery({
     page, size: 20,
     ...(search.debouncedValue ? { search: search.debouncedValue } : {}),
   })
+
+  useEffect(() => {
+    if (!isError) return
+
+    dispatch(pushNotification({
+      level: 'error',
+      title: 'CRM contacts could not be loaded',
+      message: getCrmApiErrorMessage(
+        error,
+        "We couldn't load CRM contacts right now. Please try again.",
+      ),
+    }))
+  }, [dispatch, error, isError])
 
   return (
     <Box className={`${styles.shell} ${navigation === 'exco' ? styles.excoShell : ''}`}>
@@ -35,12 +48,6 @@ const RecruiterCrmPage = ({ navigation = 'recruiter' }: { navigation?: 'recruite
         <Box className={styles.pageHeader}>
           <Typography component="h1" className={styles.pageTitle}>CRM Dashboard</Typography>
         </Box>
-        {isError && (
-          <Alert severity="error" action={<Button onClick={() => void refetch()}>Retry</Button>}>
-            {extractErrorMessage(error, 'Failed to load CRM clients.')}
-          </Alert>
-        )}
-
         {/* Stat tiles */}
         <Box className={styles.statTilesPanel}>
           <StatTile value={data?.summary.needsAttention} label={CrmClassificationLabel.NEEDS_ATTENTION} colorClass={styles.statTileRed}   leadType={CrmClassificationLabel.NEEDS_ATTENTION} />

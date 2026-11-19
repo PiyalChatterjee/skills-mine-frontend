@@ -63,6 +63,61 @@ describe("useCvBuilder", () => {
     expect(result.current.form.getValues("personalDetails.race")).toBe("African");
   });
 
+  it.each(["tertiaryEducation", "secondaryEducation"] as const)(
+    "does not allow CV preview when %s contains duplicate years",
+    async (sectionName) => {
+      const prefill: CvBuilderPrefillData =
+        sectionName === "tertiaryEducation"
+          ? {
+              ...completePrefill,
+              tertiaryEducation: [
+                {
+                  institutionName: "UCT",
+                  degreeOrCertification: "BSc",
+                  yearCompleted: "2020",
+                },
+                {
+                  institutionName: "University of Cape Town",
+                  degreeOrCertification: "MSc",
+                  yearCompleted: "2020",
+                },
+              ],
+              secondaryEducation: [
+                {
+                  institutionName: "High School",
+                  highestGradePassed: "Grade 12",
+                  yearCompleted: "2015",
+                },
+              ],
+            }
+          : {
+              ...completePrefill,
+              tertiaryEducation: [
+                {
+                  institutionName: "UCT",
+                  degreeOrCertification: "BSc",
+                  yearCompleted: "2020",
+                },
+              ],
+              secondaryEducation: [
+                {
+                  institutionName: "High School",
+                  highestGradePassed: "Grade 12",
+                  yearCompleted: "2015",
+                },
+                {
+                  institutionName: "Secondary School",
+                  highestGradePassed: "Grade 10",
+                  yearCompleted: "2015",
+                },
+              ],
+            };
+      const { result } = renderHook(() => useCvBuilder(prefill, true));
+
+      await waitFor(() => expect(result.current.canViewCv).toBe(false));
+    },
+  );
+
   it("merges prefill without overwriting values the user already entered", async () => {
     const { result, rerender } = renderHook(
       ({ prefill }: { prefill?: CvBuilderPrefillData }) => useCvBuilder(prefill, false),
