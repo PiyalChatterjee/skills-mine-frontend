@@ -56,4 +56,33 @@ describe("buildResumePrefillData", () => {
     expect(result.languages).toEqual(["English", "Other"]);
     expect(result.otherLanguage).toBe("Spanish");
   });
+
+  it("normalizes language codes to display names from LANGUAGES_LIST", () => {
+    const result = buildResumePrefillData(
+      { languages: ["Sepedi", "English", "isiZulu"] } as never,
+      "",
+    );
+
+    expect(result.languages).toEqual([
+      "Sepedi (Northern Sotho)",
+      "English",
+      "isiZulu",
+    ]);
+    expect(result.otherLanguage).toBe("");
+  });
+
+  it("handles mixed short codes and full names", () => {
+    const result = buildResumePrefillData(
+      { languages: ["Sepedi", "English", "isiZulu", "Spanish"] } as never,
+      "",
+    );
+
+    expect(result.languages).toEqual([
+      "Sepedi (Northern Sotho)",
+      "English",
+      "isiZulu",
+      "Other",
+    ]);
+    expect(result.otherLanguage).toBe("Spanish");
+  });
 });

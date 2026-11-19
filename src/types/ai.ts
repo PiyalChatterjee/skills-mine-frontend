@@ -12,6 +12,7 @@ export interface ResumeParseResponse {
   career_history?: Array<Record<string, unknown>> | null;
   education?: Record<string, unknown> | null;
   job_preferences?: Record<string, unknown> | null;
+  languages?: string[] | null;
 }
 
 export interface AiSuggestedSkill {

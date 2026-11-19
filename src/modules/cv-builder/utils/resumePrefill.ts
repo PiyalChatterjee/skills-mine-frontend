@@ -23,6 +23,41 @@ const asStringArray = (value: unknown): string[] =>
       ? value.split(/[,;\n]/).map((item) => item.trim()).filter(Boolean)
       : [];
 
+// Map language codes/short names to full display names from LANGUAGES_LIST
+const languageCodeToDisplayName: Record<string, string> = {
+  "Afrikaans": "Afrikaans",
+  "Sesotho": "Sesotho (Southern Sotho)",
+  "Sesotho (Southern Sotho)": "Sesotho (Southern Sotho)",
+  "siSwati": "siSwati (Swazi)",
+  "siSwati (Swazi)": "siSwati (Swazi)",
+  "Swazi": "siSwati (Swazi)",
+  "English": "English",
+  "Sepedi": "Sepedi (Northern Sotho)",
+  "Sepedi (Northern Sotho)": "Sepedi (Northern Sotho)",
+  "Northern Sotho": "Sepedi (Northern Sotho)",
+  "isiNdebele": "isiNdebele",
+  "Ndebele": "isiNdebele",
+  "isiXhosa": "isiXhosa",
+  "Xhosa": "isiXhosa",
+  "Tshivenda": "Tshivenda (Venda)",
+  "Tshivenda (Venda)": "Tshivenda (Venda)",
+  "Venda": "Tshivenda (Venda)",
+  "Xitsonga": "Xitsonga",
+  "Tsonga": "Xitsonga",
+  "isiZulu": "isiZulu",
+  "Zulu": "isiZulu",
+  "Setswana": "Setswana (Tswana)",
+  "Setswana (Tswana)": "Setswana (Tswana)",
+  "Tswana": "Setswana (Tswana)",
+  "South African Sign": "South African Sign",
+  "SASL": "South African Sign",
+};
+
+const normalizeLanguage = (language: string): string => {
+  const normalized = language.trim();
+  return languageCodeToDisplayName[normalized] || normalized;
+};
+
 // The UI tracks month/year only, so any day component in the parsed date is dropped.
 const toMonthYear = (value: unknown) => {
   const text = asString(value);
@@ -110,8 +145,13 @@ export const buildResumePrefillData = (
   ).map((name) => ({ name }));
   const parsedLanguages = asStringArray(responseRecord.languages);
   const languages = parsedLanguages.length ? parsedLanguages : extractTextLanguages(extractedText);
-  const knownLanguages = languages.filter((language) => LANGUAGES_LIST.includes(language as never));
-  const otherLanguages = languages.filter((language) => !LANGUAGES_LIST.includes(language as never));
+  
+  // Normalize language codes to display names
+  const normalizedLanguages = languages.map(normalizeLanguage);
+  
+  // Separate known and unknown languages
+  const knownLanguages = normalizedLanguages.filter((language) => LANGUAGES_LIST.includes(language as never));
+  const otherLanguages = normalizedLanguages.filter((language) => !LANGUAGES_LIST.includes(language as never));
 
   const personalDetails = compactStrings({
       fullName: [asString(personal.first_name), asString(personal.last_name)].filter(Boolean).join(" "),

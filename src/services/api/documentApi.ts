@@ -52,6 +52,7 @@ export const documentApi = {
         career_history: raw.career_history,
         education: raw.education,
         job_preferences: raw.job_preferences,
+        languages: raw.languages,
       };
     } catch (error) {
       console.error('Resume upload error:', error);
