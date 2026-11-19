@@ -29,6 +29,15 @@ export const IndustriesInput = ({ control }: Props) => {
       })
   }, [])
 
+ // ── Scroll the page so the whole dropdown is visible when it opens ──
+ useEffect(() => {
+   if (!isTyping) return
+   const frame = requestAnimationFrame(() => {
+     listRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+   })
+   return () => cancelAnimationFrame(frame)
+ }, [isTyping, inputValue, allIndustries.length])
+
   return (
     <section className={styles.section}>
       <h2 className={styles.sectionTitle}>Industries *</h2>

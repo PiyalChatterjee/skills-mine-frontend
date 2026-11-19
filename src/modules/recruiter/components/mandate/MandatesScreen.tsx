@@ -172,21 +172,33 @@ export const MandatesScreen = ({
     setCurrentPage(1);
   }, [searchQuery, selectedStatuses, selectedLocations, selectedClientId]);
 
-  // ── Strip CANCELLED rows, then optionally sort by fill-by date ───────────
+  // ── Strip CANCELLED rows, optionally sort by fill-by date, then group by company ──
   const filteredRows = useMemo(() => {
     const rows = jobPosts.filter(
       (post) => post.status.toUpperCase() !== JobPostStatus.CANCELLED,
     );
-    if (!timelineSortDir) return rows;
-    return [...rows].sort((a, b) => {
-      const aTime = a.targetCloseDate
-        ? new Date(a.targetCloseDate).getTime()
-        : 0;
-      const bTime = b.targetCloseDate
-        ? new Date(b.targetCloseDate).getTime()
-        : 0;
-      return timelineSortDir === "asc" ? aTime - bTime : bTime - aTime;
+    const sorted = timelineSortDir
+      ? [...rows].sort((a, b) => {
+          const aTime = a.targetCloseDate
+            ? new Date(a.targetCloseDate).getTime()
+            : 0;
+          const bTime = b.targetCloseDate
+            ? new Date(b.targetCloseDate).getTime()
+            : 0;
+          return timelineSortDir === "asc" ? aTime - bTime : bTime - aTime;
+        })
+      : rows;
+
+    // Group posts of the same company together; companies keep first-appearance
+    // order and posts keep their relative order within each company.
+    const groups = new Map<string, JobPost[]>();
+    sorted.forEach((post) => {
+      const key = post.clientId || post.client || "";
+      const group = groups.get(key);
+      if (group) group.push(post);
+      else groups.set(key, [post]);
     });
+    return [...groups.values()].flat();
   }, [jobPosts, timelineSortDir]);
 
   const totalPages = Math.max(1, Math.ceil(filteredRows.length / PAGE_SIZE));
@@ -194,6 +206,19 @@ export const MandatesScreen = ({
     (currentPage - 1) * PAGE_SIZE,
     currentPage * PAGE_SIZE,
   );
+
+  // Rows are already ordered by company, so consecutive posts of the same
+  // company on this page share a single company header.
+  const paginatedGroups = useMemo(() => {
+    const groups: { key: string; client: string; posts: JobPost[] }[] = [];
+    paginatedRows.forEach((post) => {
+      const key = post.clientId || post.client || "";
+      const last = groups[groups.length - 1];
+      if (last && last.key === key) last.posts.push(post);
+      else groups.push({ key, client: post.client, posts: [post] });
+    });
+    return groups;
+  }, [paginatedRows]);
 
   const goToPage = useCallback((page: number) => {
     setCurrentPage(page);
@@ -339,7 +364,7 @@ export const MandatesScreen = ({
 
     setDeleteCheckLoading(true);
     recruiterCandidatesApi
-      .listCandidates({ jobProfileId: idToDelete, limit: 1 })
+      .listCandidates({ jobProfileId: idToDelete, limit: 1, includeTopScored: false })
       .then((envelope) => {
         const total = envelope.data?.pagination?.total ?? 0;
         if (total > 0) {
@@ -617,154 +642,154 @@ export const MandatesScreen = ({
 
         {!loading && !error && filteredRows.length > 0 && (
           <Box className={styles.table}>
-            {paginatedRows.map((post) => {
-              const displayStatus = toTitleCase(post.status);
-              const isDraft = post.status.toUpperCase() === JobPostStatus.DRAFT;
-              const timeline = `${formatDate(post.openDate)} – ${formatDate(post.targetCloseDate)}`;
+            {paginatedGroups.map((group) => (
+              <Box key={group.key} className={styles.tableRow}>
+                <Box className={styles.companyStrip}>
+                  <Typography component="span" className={styles.companyName}>
+                    {group.client}
+                  </Typography>
+                </Box>
 
-              return (
-                <Box
-                  key={post.mandateId}
-                  className={`${styles.tableRow} ${styles.tableRowClickable}`}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() =>
+                <Box className={styles.gridHeader}>
+                  <Typography component="span" className={styles.gridLabel}>
+                    JOB TITLE
+                  </Typography>
+                  <Typography component="span" className={styles.gridLabel}>
+                    CLIENT RATE
+                  </Typography>
+                  <Typography component="span" className={styles.gridLabel}>
+                    INDUSTRY
+                  </Typography>
+                  <Typography component="span" className={styles.gridLabel}>
+                    LOCATION
+                  </Typography>
+                  <Box className={styles.timelineHeader}>
+                    <Typography component="span" className={styles.gridLabel}>
+                      TIMELINE
+                    </Typography>
+                    <Box
+                      component="span"
+                      className={styles.timelineSortBtns}
+                      aria-label="Sort by timeline"
+                    >
+                      <button
+                        type="button"
+                        className={`${styles.timelineSortBtn} ${timelineSortDir === "asc" ? styles.timelineSortBtnActive : ""}`}
+                        aria-label="Sort ascending"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setTimelineSortDir((prev) =>
+                            prev === "asc" ? null : "asc",
+                          );
+                        }}
+                      >
+                        <span
+                          className={`${styles.assetMask} ${styles.sortAscendingIcon}`}
+                          aria-hidden="true"
+                        />
+                      </button>
+                      <button
+                        type="button"
+                        className={`${styles.timelineSortBtn} ${timelineSortDir === "desc" ? styles.timelineSortBtnActive : ""}`}
+                        aria-label="Sort descending"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setTimelineSortDir((prev) =>
+                            prev === "desc" ? null : "desc",
+                          );
+                        }}
+                      >
+                        <span
+                          className={`${styles.assetMask} ${styles.sortDescendingIcon}`}
+                          aria-hidden="true"
+                        />
+                      </button>
+                    </Box>
+                  </Box>
+                  <Typography component="span" className={styles.gridLabel}>
+                    STATUS
+                  </Typography>
+                </Box>
+
+                {group.posts.map((post) => {
+                  const displayStatus = toTitleCase(post.status);
+                  const isDraft =
+                    post.status.toUpperCase() === JobPostStatus.DRAFT;
+                  const timeline = `${formatDate(post.openDate)} - ${formatDate(post.targetCloseDate)}`;
+                  const openPost = () =>
                     navigate(
                       ROUTE_PATHS.recruiterMandate.replace(
                         ":cardId",
                         post.mandateId,
                       ),
-                    )
-                  }
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      navigate(
-                        ROUTE_PATHS.recruiterMandate.replace(
-                          ":cardId",
-                          post.mandateId,
-                        ),
-                      );
-                    }
-                  }}
-                >
-                  <Box className={styles.companyStrip}>
-                    <Typography component="span" className={styles.companyName}>
-                      {post.client}
-                    </Typography>
-                  </Box>
+                    );
 
-                  <Box className={styles.gridHeader}>
-                    <Typography component="span" className={styles.gridLabel}>
-                      JOB TITLE
-                    </Typography>
-                    <Typography component="span" className={styles.gridLabel}>
-                      CLIENT RATE
-                    </Typography>
-                    <Typography component="span" className={styles.gridLabel}>
-                      INDUSTRY
-                    </Typography>
-                    <Typography component="span" className={styles.gridLabel}>
-                      LOCATION
-                    </Typography>
-                    <Box className={styles.timelineHeader}>
-                      <Typography component="span" className={styles.gridLabel}>
-                        TIMELINE
-                      </Typography>
-                      <Box
-                        component="span"
-                        className={styles.timelineSortBtns}
-                        aria-label="Sort by timeline"
-                      >
-                        <button
-                          type="button"
-                          className={`${styles.timelineSortBtn} ${timelineSortDir === "asc" ? styles.timelineSortBtnActive : ""}`}
-                          aria-label="Sort ascending"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setTimelineSortDir((prev) =>
-                              prev === "asc" ? null : "asc",
-                            );
-                          }}
-                        >
-                          <span
-                            className={`${styles.assetMask} ${styles.sortAscendingIcon}`}
-                            aria-hidden="true"
-                          />
-                        </button>
-                        <button
-                          type="button"
-                          className={`${styles.timelineSortBtn} ${timelineSortDir === "desc" ? styles.timelineSortBtnActive : ""}`}
-                          aria-label="Sort descending"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setTimelineSortDir((prev) =>
-                              prev === "desc" ? null : "desc",
-                            );
-                          }}
-                        >
-                          <span
-                            className={`${styles.assetMask} ${styles.sortDescendingIcon}`}
-                            aria-hidden="true"
-                          />
-                        </button>
-                      </Box>
-                    </Box>
-                    <Typography component="span" className={styles.gridLabel}>
-                      STATUS
-                    </Typography>
-                  </Box>
-
-                  <Box className={styles.gridBody}>
-                    <Typography component="span" className={styles.gridValue}>
-                      {post.title}
-                    </Typography>
-                    <Typography component="span" className={styles.gridValue}>
-                      {post.clientRate || "—"}
-                    </Typography>
-                    <Typography component="span" className={styles.gridValue}>
-                      {post.industry}
-                    </Typography>
-                    <Typography component="span" className={styles.gridValue}>
-                      {post.location}
-                    </Typography>
-                    <Typography component="span" className={styles.gridValue}>
-                      {timeline}
-                    </Typography>
-                    <Box className={styles.statusCell}>
-                      <Box
-                        className={`${styles.statusPill} ${isDraft ? styles.statusDraft : post.status.toUpperCase() === JobPostStatus.CLOSED ? styles.statusClosed : styles.statusPosted}`}
-                      >
-                        {displayStatus}
-                      </Box>
-                    </Box>
-                    <ButtonBase
-                      component="button"
-                      className={`${styles.moreButton} ${activeRowId === post.mandateId && open ? styles.moreButtonActive : ""}`}
-                      disableRipple
-                      aria-label={`More actions for ${post.title}`}
-                      aria-haspopup="true"
-                      aria-expanded={
-                        activeRowId === post.mandateId && open
-                          ? "true"
-                          : undefined
-                      }
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleMoreClick(
-                          e as React.MouseEvent<HTMLButtonElement>,
-                          post.mandateId,
-                        );
+                  return (
+                    <Box
+                      key={post.mandateId}
+                      className={`${styles.jobRow} ${styles.tableRowClickable}`}
+                      role="button"
+                      tabIndex={0}
+                      onClick={openPost}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          openPost();
+                        }
                       }}
                     >
-                      <Box component="span" className={styles.moreDot} />
-                      <Box component="span" className={styles.moreDot} />
-                      <Box component="span" className={styles.moreDot} />
-                    </ButtonBase>
-                  </Box>
-                </Box>
-              );
-            })}
+                      <Box className={styles.gridBody}>
+                        <Typography component="span" className={styles.gridValue}>
+                          {post.title}
+                        </Typography>
+                        <Typography component="span" className={styles.gridValue}>
+                          {post.clientRate || "—"}
+                        </Typography>
+                        <Typography component="span" className={styles.gridValue}>
+                          {post.industry}
+                        </Typography>
+                        <Typography component="span" className={styles.gridValue}>
+                          {post.location}
+                        </Typography>
+                        <Typography component="span" className={styles.gridValue}>
+                          {timeline}
+                        </Typography>
+                        <Box className={styles.statusCell}>
+                          <Box
+                            className={`${styles.statusPill} ${isDraft ? styles.statusDraft : post.status.toUpperCase() === JobPostStatus.CLOSED ? styles.statusClosed : styles.statusPosted}`}
+                          >
+                            {displayStatus}
+                          </Box>
+                        </Box>
+                        <ButtonBase
+                          component="button"
+                          className={`${styles.moreButton} ${activeRowId === post.mandateId && open ? styles.moreButtonActive : ""}`}
+                          disableRipple
+                          aria-label={`More actions for ${post.title}`}
+                          aria-haspopup="true"
+                          aria-expanded={
+                            activeRowId === post.mandateId && open
+                              ? "true"
+                              : undefined
+                          }
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleMoreClick(
+                              e as React.MouseEvent<HTMLButtonElement>,
+                              post.mandateId,
+                            );
+                          }}
+                        >
+                          <Box component="span" className={styles.moreDot} />
+                          <Box component="span" className={styles.moreDot} />
+                          <Box component="span" className={styles.moreDot} />
+                        </ButtonBase>
+                      </Box>
+                    </Box>
+                  );
+                })}
+              </Box>
+            ))}
           </Box>
         )}
       </Box>

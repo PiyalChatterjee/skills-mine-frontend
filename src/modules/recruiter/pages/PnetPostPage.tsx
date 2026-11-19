@@ -14,7 +14,19 @@ import {
   PNET_WORK_FIELDS,
   PNET_WORK_TYPES,
 } from '@/modules/recruiter/data/pnetOptions'
-import { externalJobsApi, type PnetPrefillResponse } from '@/services/api/externalJobsApi'
+import {
+  externalJobsApi,
+  type PnetAction,
+  type PnetApply,
+  type PnetCategorization,
+  type PnetChannel,
+  type PnetFieldKey,
+  type PnetFields,
+  type PnetIdBasedFields,
+  type PnetPrefill,
+  type PnetPrefillResponse,
+  type PublishPnetJobRequest,
+} from '@/services/api/externalJobsApi'
 import { extractErrorMessage } from '@/app/errorUtils'
 import { pushNotification } from '@/store/slices/notificationSlice'
 import { usePageTitle } from '@/hooks/usePageTitle'
@@ -67,39 +79,84 @@ const initialValues: PnetFormValues = {
   clientDescription: '',
 }
 
-// StepStone/PNet codes returned by the prefill endpoint -> labels used by this form.
+type PnetOptions = Record<PnetFieldKey, string[]>
+
+const DEFAULT_OPTIONS: PnetOptions = {
+  workfield: PNET_WORK_FIELDS,
+  geography: PNET_LOCATIONS,
+  sector: PNET_SECTORS,
+  contracttype: PNET_CONTRACT_TYPES,
+  worktype: PNET_WORK_TYPES,
+  experience: PNET_EXPERIENCE,
+  situation: PNET_SITUATION_TYPES,
+}
+
+// Dropdown options come from the prefill response (`pnetFields`); the static
+// lists are only a fallback when the API does not return a given list.
+const buildOptions = (fields?: PnetFields): PnetOptions => {
+  const options = { ...DEFAULT_OPTIONS }
+  ;(Object.keys(options) as PnetFieldKey[]).forEach((key) => {
+    const names = fields?.[key]?.map((option) => option.name)
+    if (names?.length) options[key] = names
+  })
+  return options
+}
+
+// StepStone/PNet codes returned by the prefill endpoint -> option names.
 const PNET_EXPERIENCE_LABELS: Record<string, string> = {
   WithProfessionalExperience: 'Experience required',
-  WithoutProfessionalExperience: 'No experience required',
+  WithoutProfessionalExperience: 'No Experience/ First Jobs',
 }
 
-const PNET_WORK_TYPE_LABELS: Record<string, string> = {
-  FullTime: 'Full Time',
-  PartTime: 'Part Time',
+const PNET_WORK_POLICY_LABELS: Record<string, string> = {
+  Remote: 'Work From Home',
 }
+
+const normalise = (value: string) => value.toLowerCase().replace(/[^a-z0-9]/g, '')
+
+const findOption = (options: string[], value?: string) =>
+  value ? options.find((option) => normalise(option) === normalise(value)) : undefined
 
 // Overlays the PNet prefill on the form values. Only fields the API actually
-// returned are applied; everything else keeps its default.
+// returned (and that exist in the PNet option lists) are applied; everything
+// else keeps its default.
 const applyPrefill = (
   base: PnetFormValues,
-  { prefill }: PnetPrefillResponse,
+  { prefill, pnetFields }: PnetPrefillResponse,
+  options: PnetOptions,
 ): PnetFormValues => {
   const next = { ...base }
   const details = prefill.jobdetails
   const categorization = prefill.categorization
   const recruiter = prefill.companydetails?.recruiter
 
+  // idFields carries the PNet option id (0 = not set); it wins over name matching.
+  const nameById = (key: PnetFieldKey) => {
+    const id = prefill.idFields?.[key]
+    return id ? pnetFields?.[key]?.find((option) => option.id === id)?.name : undefined
+  }
+  const resolve = (key: PnetFieldKey, ...candidates: (string | undefined)[]) =>
+    nameById(key) ??
+    candidates.map((candidate) => findOption(options[key], candidate)).find(Boolean)
+
   if (details?.jobtitle) next.jobTitle = details.jobtitle
-  const description = [details?.introduction, details?.tasks].filter(Boolean).join('\n\n')
-  if (description) next.description = description
+  if (details?.introduction) next.clientDescription = details.introduction
+  if (details?.tasks) next.description = details.tasks
   if (details?.profile) next.candidateProfile = details.profile
   if (details?.offer) next.offerDescription = details.offer.replace(/\\n/g, '\n')
+  if (details?.keywords) next.keywords = details.keywords
 
   const city = details?.joblocations?.[0]?.city
-  if (city) {
-    next.jobLocation = city
-    next.location = city
-  }
+  if (city) next.jobLocation = city
+  const location = resolve('geography', city)
+  if (location) next.location = location
+
+  const workField = nameById('workfield')
+  if (workField) next.workField = workField
+  const sector = nameById('sector')
+  if (sector) next.sectors = [sector]
+  const situation = nameById('situation')
+  if (situation) next.situationType = situation
 
   const { minimum, maximum, currency, period } = details?.salary ?? {}
   if (minimum != null && maximum != null) {
@@ -112,11 +169,27 @@ const applyPrefill = (
       .join(' ')
   }
 
-  const experience = categorization?.experience?.[0]
-  if (experience) next.experience = PNET_EXPERIENCE_LABELS[experience] ?? experience
-  if (categorization?.contracttype?.length) next.contractTypes = categorization.contracttype
-  const workType = categorization?.workpolicy?.[0] ?? categorization?.contractime?.[0]
-  if (workType) next.workType = PNET_WORK_TYPE_LABELS[workType] ?? workType
+  const experienceCode = categorization?.experience?.[0]
+  const experience = resolve(
+    'experience',
+    experienceCode && (PNET_EXPERIENCE_LABELS[experienceCode] ?? experienceCode),
+  )
+  if (experience) next.experience = experience
+
+  const contractTypes = [
+    nameById('contracttype'),
+    ...(categorization?.contracttype ?? []).map((code) => findOption(options.contracttype, code)),
+  ].filter((name, index, all): name is string => !!name && all.indexOf(name) === index)
+  if (contractTypes.length) next.contractTypes = contractTypes
+
+  const workPolicy = categorization?.workpolicy?.[0]
+  const workType = resolve(
+    'worktype',
+    categorization?.contractime?.[0],
+    workPolicy,
+    workPolicy && PNET_WORK_POLICY_LABELS[workPolicy],
+  )
+  if (workType) next.workType = workType
 
   const contactName = [recruiter?.firstname, recruiter?.lastname].filter(Boolean).join(' ')
   if (contactName) next.contactName = contactName
@@ -125,6 +198,126 @@ const applyPrefill = (
 }
 
 const isFilled = (value: string) => value.trim().length > 0
+
+const resolveFieldId = (
+  key: PnetFieldKey,
+  selectedName: string | undefined,
+  pnetFields?: PnetFields,
+  prefill?: PnetPrefill,
+): number => {
+  if (selectedName && pnetFields?.[key]) {
+    const found = pnetFields[key]?.find(
+      (opt) => normalise(opt.name) === normalise(selectedName) || opt.name === selectedName,
+    )
+    if (found && typeof found.id === 'number') return found.id
+  }
+  if (prefill?.idFields?.[key] && typeof prefill.idFields[key] === 'number') {
+    return prefill.idFields[key]!
+  }
+  if (pnetFields?.[key]?.[0]?.id) {
+    return pnetFields[key]![0].id
+  }
+  return 0
+}
+
+const PNET_EXPERIENCE_CODES: Record<string, string> = {
+  'Experience required': 'WithProfessionalExperience',
+  'No Experience/ First Jobs': 'WithoutProfessionalExperience',
+  'No experience required': 'WithoutProfessionalExperience',
+}
+
+const buildPublishRequest = (
+  values: PnetFormValues,
+  prefill: PnetPrefill,
+  pnetFields: PnetFields | undefined,
+  jobProfileId: string,
+): PublishPnetJobRequest => {
+  const referenceId = prefill.reference_id || jobProfileId
+
+  const nameParts = values.contactName.trim().split(/\s+/)
+  const firstname = nameParts[0] || prefill.companydetails?.recruiter?.firstname || ''
+  const lastname = nameParts.slice(1).join(' ') || prefill.companydetails?.recruiter?.lastname || ''
+
+  const city = values.jobLocation.trim() || prefill.jobdetails?.joblocations?.[0]?.city || ''
+  const countrycode = prefill.jobdetails?.joblocations?.[0]?.countrycode || 'ZA'
+
+  const contactEmail = values.contactEmail.trim()
+  const apply: PnetApply = prefill.jobdetails?.apply?.url
+    ? { url: prefill.jobdetails.apply.url }
+    : contactEmail
+      ? { email: contactEmail }
+      : prefill.jobdetails?.apply?.email
+        ? { email: prefill.jobdetails.apply.email }
+        : {}
+
+  const idFields: PnetIdBasedFields = {
+    workfield: resolveFieldId('workfield', values.workField, pnetFields, prefill),
+    geography: resolveFieldId('geography', values.location || values.jobLocation, pnetFields, prefill),
+    sector: resolveFieldId('sector', values.sectors[0], pnetFields, prefill),
+    contracttype: resolveFieldId('contracttype', values.contractTypes[0], pnetFields, prefill),
+    worktype: resolveFieldId('worktype', values.workType, pnetFields, prefill),
+    experience: resolveFieldId('experience', values.experience, pnetFields, prefill),
+    situation: resolveFieldId('situation', values.situationType, pnetFields, prefill),
+  }
+
+  const categorization: PnetCategorization = {
+    experience: values.experience
+      ? [PNET_EXPERIENCE_CODES[values.experience] ?? values.experience]
+      : (prefill.categorization?.experience ?? ['WithProfessionalExperience']),
+    contracttype: values.contractTypes.length
+      ? values.contractTypes
+      : (prefill.categorization?.contracttype ?? ['Permanent']),
+    workpolicy: values.workType
+      ? [values.workType === 'Work From Home' ? 'Remote' : values.workType]
+      : (prefill.categorization?.workpolicy ?? ['Hybrid']),
+  }
+
+  const introduction =
+    values.clientDescription.trim() ||
+    prefill.jobdetails?.introduction ||
+    ''
+
+  const tasks = values.description.trim() || prefill.jobdetails?.tasks || ''
+  const profile =
+    values.candidateProfile.trim() ||
+    prefill.jobdetails?.profile ||
+    ''
+
+  const offer = values.offerDescription.trim() || prefill.jobdetails?.offer || ''
+  const keywords = values.keywords.trim() || prefill.jobdetails?.keywords || undefined
+
+  const request: PublishPnetJobRequest = {
+    reference_id: referenceId,
+    action: (prefill.action as PnetAction) || 'INSERT',
+    channel: (prefill.channel as PnetChannel) || 'ZA',
+    idFields,
+    listingtype: prefill.listingtype || 'Standard',
+    categorization,
+    jobdetails: {
+      language: prefill.jobdetails?.language || 'EN',
+      jobtitle: values.jobTitle.trim().slice(0, 200),
+      introduction,
+      tasks,
+      profile,
+      offer,
+      joblocations: [{ countrycode, city }],
+      ...(keywords ? { keywords } : {}),
+      apply,
+      salary: prefill.jobdetails?.salary,
+    },
+    companydetails: {
+      companyname: prefill.companydetails?.companyname || 'SkillsMine',
+      recruiter: {
+        firstname: firstname || prefill.companydetails?.recruiter?.firstname || '',
+        lastname: lastname || prefill.companydetails?.recruiter?.lastname || '',
+        email: contactEmail || prefill.companydetails?.recruiter?.email || '',
+      },
+    },
+    job_profile_id_ref: prefill.job_profile_id_ref || referenceId,
+  }
+
+  return request
+}
 
 // ── Field helpers (use the mandate/BizCommunity form styles) ───────────────
 
@@ -336,6 +529,9 @@ const PnetPostPage = () => {
   const { mandateId } = useParams<{ mandateId: string }>()
 
   const [values, setValues] = useState<PnetFormValues>(initialValues)
+  const [options, setOptions] = useState<PnetOptions>(DEFAULT_OPTIONS)
+  const [prefill, setPrefill] = useState<PnetPrefill>({})
+  const [pnetFields, setPnetFields] = useState<PnetFields | undefined>(undefined)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [notices, setNotices] = useState<string[]>([])
 
@@ -346,7 +542,11 @@ const PnetPostPage = () => {
       .getPnetPrefill(mandateId)
       .then((response) => {
         if (cancelled) return
-        setValues(applyPrefill(initialValues, response))
+        setPrefill(response.prefill)
+        setPnetFields(response.pnetFields)
+        const responseOptions = buildOptions(response.pnetFields)
+        setOptions(responseOptions)
+        setValues(applyPrefill(initialValues, response, responseOptions))
         setNotices([
           ...response.warnings,
           ...response.missing_fields.map((field) => `Missing required field: ${field}`),
@@ -378,6 +578,8 @@ const PnetPostPage = () => {
 
     setIsSubmitting(true)
     try {
+      const payload = buildPublishRequest(values, prefill, pnetFields, mandateId)
+      await externalJobsApi.publishToPnet(payload)
       dispatch(
         pushNotification({
           level: 'success',
@@ -465,7 +667,7 @@ const PnetPostPage = () => {
                   <SelectInput
                     ariaLabel="Locations"
                     value={values.location}
-                    options={PNET_LOCATIONS}
+                    options={options.geography}
                     onChange={(v) => update('location', v)}
                     placeholder="Select location"
                   />
@@ -474,7 +676,7 @@ const PnetPostPage = () => {
                   <SelectInput
                     ariaLabel="Work Field"
                     value={values.workField}
-                    options={PNET_WORK_FIELDS}
+                    options={options.workfield}
                     onChange={(v) => update('workField', v)}
                     placeholder="Select work field"
                   />
@@ -486,7 +688,7 @@ const PnetPostPage = () => {
                   <ChipSelect
                     ariaLabel="Sector"
                     values={values.sectors}
-                    options={PNET_SECTORS}
+                    options={options.sector}
                     onChange={(v) => update('sectors', v)}
                     placeholder="Select sectors"
                   />
@@ -495,7 +697,7 @@ const PnetPostPage = () => {
                   <ChipSelect
                     ariaLabel="Contract Type"
                     values={values.contractTypes}
-                    options={PNET_CONTRACT_TYPES}
+                    options={options.contracttype}
                     onChange={(v) => update('contractTypes', v)}
                     placeholder="Select contract types"
                   />
@@ -507,7 +709,7 @@ const PnetPostPage = () => {
                   <SelectInput
                     ariaLabel="Work Type"
                     value={values.workType}
-                    options={PNET_WORK_TYPES}
+                    options={options.worktype}
                     onChange={(v) => update('workType', v)}
                     placeholder="Select work type"
                   />
@@ -516,7 +718,7 @@ const PnetPostPage = () => {
                   <SelectInput
                     ariaLabel="Experience"
                     value={values.experience}
-                    options={PNET_EXPERIENCE}
+                    options={options.experience}
                     onChange={(v) => update('experience', v)}
                     placeholder="Select experience"
                   />
@@ -528,7 +730,7 @@ const PnetPostPage = () => {
                   <SelectInput
                     ariaLabel="Situation Type"
                     value={values.situationType}
-                    options={PNET_SITUATION_TYPES}
+                    options={options.situation}
                     onChange={(v) => update('situationType', v)}
                     placeholder="Select situation"
                   />
@@ -620,11 +822,11 @@ const PnetPostPage = () => {
               </div>
             </section>
 
-            {/* ── Client Description ── */}
+            {/* ── Company Description ── */}
             <section className={formStyles.section}>
               <h2 className={formStyles.sectionTitle}>Company Information</h2>
               <RichTextAreaField
-                label="Client Description"
+                label="Company Description"
                 rows={4}
                 placeholder="Our client is in the Financial Services industry."
                 value={values.clientDescription}

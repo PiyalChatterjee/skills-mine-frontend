@@ -46,7 +46,7 @@ export const BasicInformationSection = ({ control, setValue }: Props) => {
             name: company.contactName,
             email: company.contactEmail,
             phone: company.contactPhoneNumber,
-            clientRate: '',
+            clientRate: company.clientRate == null ? '' : String(company.clientRate),
           })
         }
         setContactMap(map)

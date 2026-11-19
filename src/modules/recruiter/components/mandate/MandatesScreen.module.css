@@ -245,6 +245,10 @@
   cursor: pointer;
 }
 
+.jobRow + .jobRow {
+  border-top: 1px solid #d9e4ec;
+}
+
 .tableRowClickable:hover .gridBody {
   background: #edf3f8;
 }
