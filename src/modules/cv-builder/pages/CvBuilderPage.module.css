@@ -985,15 +985,24 @@
   width: 160px;
 }
 
-.moreSkillsButton,
-.moreSkillsButton:global(.MuiButton-root) {
+.moreSkillsButton:global(.MuiButton-text) {
   align-self: flex-start;
   min-width: 0;
-  padding: 4px 0;
+  padding: 0;
   color: #2b96d9;
   text-transform: none;
   font-family: "Red Hat Text", "Inclusive Sans", "Ubuntu", sans-serif;
   font-size: 15px;
+  text-decoration: underline;
+  text-decoration-color: #2b96d9;
+  background-color: transparent;
+  font-weight: 400;
+}
+
+.moreSkillsButton:global(.MuiButton-text):hover {
+  background-color: transparent;
+  color: #2b96d9;
+  text-decoration-thickness: 2px;
 }
 
 .skillRow {

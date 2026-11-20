@@ -154,8 +154,9 @@ const CvBuilderSkillsForm = ({ skillsFieldArray }: CvBuilderSkillsFormProps) => 
           <Button
             type="button"
             onClick={() => setShowAllSkills((current) => !current)}
-            className={styles.moreSkillsButton}
+            className={`${styles.moreSkillsButton} no-global-hover`}
             disableRipple
+            variant="text"
           >
             {showAllSkills
               ? "Show less"
