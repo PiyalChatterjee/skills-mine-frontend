@@ -85,4 +85,34 @@ describe("buildResumePrefillData", () => {
     ]);
     expect(result.otherLanguage).toBe("Spanish");
   });
+
+  it("handles case-insensitive language matching", () => {
+    const result = buildResumePrefillData(
+      { languages: ["sepedi", "ENGLISH", "isizulu", "english"] } as never,
+      "",
+    );
+
+    expect(result.languages).toEqual([
+      "Sepedi (Northern Sotho)",
+      "English",
+      "isiZulu",
+    ]);
+    expect(result.otherLanguage).toBe("");
+  });
+
+  it("handles mixed case variants of short codes", () => {
+    const result = buildResumePrefillData(
+      { languages: ["SEPEDI", "english", "IsiZulu", "xhosa", "TSWANA"] } as never,
+      "",
+    );
+
+    expect(result.languages).toEqual([
+      "Sepedi (Northern Sotho)",
+      "English",
+      "isiZulu",
+      "isiXhosa",
+      "Setswana (Tswana)",
+    ]);
+    expect(result.otherLanguage).toBe("");
+  });
 });

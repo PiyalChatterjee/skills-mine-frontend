@@ -22,7 +22,7 @@ const RecruiterCrmPage = ({ navigation = 'recruiter' }: { navigation?: 'recruite
   const [selectedClient, setSelectedClient] = useState<CrmClient | null>(null)
   const filterKey = search.debouncedValue
   const page = pagination.key === filterKey ? pagination.page : 1
-  const { currentData: data, isFetching, isError, error } = useGetCrmClientsQuery({
+  const { data, isFetching, isError, error } = useGetCrmClientsQuery({
     page, size: 20,
     ...(search.debouncedValue ? { search: search.debouncedValue } : {}),
   })
