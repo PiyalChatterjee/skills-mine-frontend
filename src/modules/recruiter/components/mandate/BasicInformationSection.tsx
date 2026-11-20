@@ -11,10 +11,12 @@ import styles from './form.module.css'
 interface Props {
   control: Control<MandateFormValues>
   setValue: UseFormSetValue<MandateFormValues>
+  /** When provided, company-name changes are held until the caller runs the given `apply` */
+  requestCompanyChange?: (apply: () => void) => void
 }
 
 /** Contact details keyed by company name (first post found per company is used) */
-type ContactInfo = { name: string; email: string; phone: string; clientRate: string }
+type ContactInfo = { clientId: string; name: string; email: string; phone: string; clientRate: string }
 
 const WORK_TYPES = ['Remote', 'Hybrid', 'On-site'] as const
 const EMPLOYMENT_TYPES = ['Full Time', 'Part Time', 'Contract', 'Internship', 'Temporary', 'Freelance'] as const
@@ -23,7 +25,7 @@ const PRIORITIES = ['Low', 'Medium', 'High', 'Urgent'] as const
 
 const todayStr = new Date().toISOString().split('T')[0]
 
-export const BasicInformationSection = ({ control, setValue }: Props) => {
+export const BasicInformationSection = ({ control, setValue, requestCompanyChange }: Props) => {
   const { errors } = useFormState({ control })
   const [companyOptions, setCompanyOptions] = useState<string[]>([])
   const [workTypeOptions, setWorkTypeOptions] = useState<string[]>([...WORK_TYPES])
@@ -31,6 +33,10 @@ export const BasicInformationSection = ({ control, setValue }: Props) => {
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [activeIndex, setActiveIndex] = useState(-1)
   const listRef = useRef<HTMLUListElement>(null)
+  const companyInputRef = useRef<HTMLInputElement | null>(null)
+
+  const gateCompanyChange = (apply: () => void) =>
+    requestCompanyChange ? requestCompanyChange(apply) : apply()
 
   // Fetch employers once on mount — build name list + contact map
   useEffect(() => {
@@ -43,6 +49,7 @@ export const BasicInformationSection = ({ control, setValue }: Props) => {
         const map = new Map<string, ContactInfo>()
         for (const company of companies) {
           map.set(company.clientName, {
+            clientId: company.clientId,
             name: company.contactName,
             email: company.contactEmail,
             phone: company.contactPhoneNumber,
@@ -79,6 +86,7 @@ export const BasicInformationSection = ({ control, setValue }: Props) => {
   const applyContactInfo = (companyName: string) => {
     const info = contactMap.get(companyName)
     if (!info) return
+    setValue('clientId',           info.clientId,   { shouldDirty: true })
     setValue('contactPerson',      info.name,       { shouldValidate: true, shouldDirty: true })
     setValue('contactPersonEmail', info.email,      { shouldValidate: true, shouldDirty: true })
     setValue('contactPersonPhone', info.phone,      { shouldValidate: true, shouldDirty: true })
@@ -116,8 +124,11 @@ export const BasicInformationSection = ({ control, setValue }: Props) => {
                   setActiveIndex((prev) => Math.max(prev - 1, -1))
                 } else if (e.key === 'Enter' && activeIndex >= 0 && suggestions[activeIndex]) {
                   e.preventDefault()
-                  field.onChange(suggestions[activeIndex])
-                  applyContactInfo(suggestions[activeIndex])
+                  const selected = suggestions[activeIndex]
+                  gateCompanyChange(() => {
+                    field.onChange(selected)
+                    applyContactInfo(selected)
+                  })
                   setShowSuggestions(false)
                   setActiveIndex(-1)
                 } else if (e.key === 'Escape') {
@@ -141,6 +152,10 @@ export const BasicInformationSection = ({ control, setValue }: Props) => {
                 <div style={{ position: 'relative' }}>
                   <input
                     {...field}
+                    ref={(el) => {
+                      field.ref(el)
+                      companyInputRef.current = el
+                    }}
                     className={`${styles.input} ${errors.companyName ? styles.hasError : ''}`}
                     placeholder="Company Name"
                     autoComplete="off"
@@ -151,7 +166,13 @@ export const BasicInformationSection = ({ control, setValue }: Props) => {
                       activeIndex >= 0 ? `company-option-${activeIndex}` : undefined
                     }
                     onChange={(e) => {
-                      field.onChange(e)
+                      const next = e.target.value
+                      gateCompanyChange(() => {
+                        field.onChange(next)
+                        // Typed names only carry a clientId when they exactly match a known company
+                        setValue('clientId', contactMap.get(next)?.clientId ?? '', { shouldDirty: true })
+                        companyInputRef.current?.focus()
+                      })
                       setShowSuggestions(true)
                       setActiveIndex(-1)
                     }}
@@ -180,8 +201,10 @@ export const BasicInformationSection = ({ control, setValue }: Props) => {
                           onMouseDown={(e) => {
                             // prevent blur from firing before click
                             e.preventDefault()
-                            field.onChange(name)
-                            applyContactInfo(name)
+                            gateCompanyChange(() => {
+                              field.onChange(name)
+                              applyContactInfo(name)
+                            })
                             setShowSuggestions(false)
                             setActiveIndex(-1)
                           }}

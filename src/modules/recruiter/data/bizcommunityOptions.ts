@@ -25,7 +25,15 @@ export const BIZ_CITY_PROVINCE: Record<string, string> = {
   Bloemfontein: 'Free State',
 }
 
-export const BIZ_TRAVEL_REQUIREMENTS = ['None', 'Occasional', 'Often', 'International']
+/** Label -> BizCommunityTravelRequirement integer from the API schema. */
+export const BIZ_TRAVEL_REQUIREMENT_IDS: Record<string, number> = {
+  None: 1,
+  Occasional: 2,
+  Often: 3,
+  International: 4,
+}
+
+export const BIZ_TRAVEL_REQUIREMENTS = Object.keys(BIZ_TRAVEL_REQUIREMENT_IDS)
 
 /** Label -> BizCommunityRemunerationPackage integer from the API schema (5 is unused). */
 export const BIZ_REMUNERATION_PACKAGE_IDS: Record<string, number> = {

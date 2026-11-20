@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
 import { Box, CircularProgress, Typography } from '@mui/material'
 import { RecruiterSidebar } from '@/modules/recruiter/components/RecruiterSidebar'
+import { formatPhoneNumberDisplay } from '@/app/phoneNumber'
 import { MandateForm } from '@/modules/recruiter/components/mandate/MandateForm'
 import { pushNotification } from '@/store/slices/notificationSlice'
 import { ROUTE_PATHS } from '@/routes/routePaths'
@@ -26,10 +27,12 @@ function toBulletLines(value: string | string[] | undefined): string {
 function toFormValues(post: JobPost): MandateFormValues {
   return {
     companyName:          post.client ?? '',
+    clientId:             post.clientId ?? '',
     clientRate:           (post as unknown as Record<string, string>).clientRate ?? '',
     contactPerson:        post.contactPersonName ?? '',
     contactPersonEmail:   post.contactPersonEmail ?? '',
-    contactPersonPhone:   post.contactPersonNumber ?? '',
+    // API returns "+27…"; the form validates 10-digit local numbers ("0821234567")
+    contactPersonPhone:   formatPhoneNumberDisplay(post.contactPersonNumber ?? '').replace(/ /g, ''),
     positionTitle:        post.title ?? '',
     location:             post.location ?? '',
     locationId:           '',
@@ -59,6 +62,7 @@ function toFormValues(post: JobPost): MandateFormValues {
 function toApiRequest(values: MandateFormValues): CreateMandateRequest {
   return {
     companyName:        values.companyName,
+    clientId:           values.clientId || undefined,
     clientRate:         values.clientRate,
     contactName:        values.contactPerson,
     contactEmail:       values.contactPersonEmail,
@@ -159,6 +163,7 @@ const EditMandatePage = () => {
           <MandateForm
             title="Edit Job Post"
             submitLabel="Save Changes"
+            confirmCompanyChange
             initialValues={initialValues}
             onSubmit={handleSubmit}
           />

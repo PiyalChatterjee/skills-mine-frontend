@@ -31,6 +31,8 @@ import type {
 
 export type CreateMandateRequest = {
   companyName: string;
+  /** clientId of the selected existing company, if any */
+  clientId?: string;
   clientRate?: string;
   contactName?: string;
   contactEmail?: string;
@@ -65,6 +67,7 @@ type IndustryItem = { industryId: string; industryName: string; normalizedKey?: 
 type CreateJobPostBody = {
   status: JobPostStatus;
   companyName: string;
+  client_id?: string;
   contactName?: string;
   contactEmail?: string;
   contactPhoneNumber?: string;
@@ -232,7 +235,10 @@ const toPatchBody = async (
 ): Promise<PatchJobPostBody> => {
   const patch: PatchJobPostBody = {};
 
-  if (current.companyName !== original.companyName) patch.companyName = current.companyName;
+  if (current.companyName !== original.companyName) {
+    patch.companyName = current.companyName;
+    if (current.clientId) patch.client_id = current.clientId;
+  }
   if ((current.clientRate ?? "") !== (original.clientRate ?? ""))
     patch.clientRate = current.clientRate ? Number(current.clientRate) : null;
   if ((current.contactName ?? "") !== (original.contactName ?? "")) patch.contactName = current.contactName;

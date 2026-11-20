@@ -20,6 +20,7 @@ import {
   BIZ_REMUNERATION_PACKAGES,
   BIZ_SENIORITY_LEVEL_IDS,
   BIZ_SENIORITY_LEVELS,
+  BIZ_TRAVEL_REQUIREMENT_IDS,
   BIZ_TRAVEL_REQUIREMENTS,
 } from '@/modules/recruiter/data/bizcommunityOptions'
 import {
@@ -115,6 +116,11 @@ const applyPrefill = (base: BizFormValues, { prefill }: BizCommunityPrefillRespo
     next.province = BIZ_CITY_PROVINCE[prefill.city_name] ?? next.province
   }
   if (prefill.skills_required) next.skillsRequired = prefill.skills_required
+  if (prefill.skills_advantageous) next.advantageousSkills = prefill.skills_advantageous
+  if (prefill.personal_skills) next.personalSkills = prefill.personal_skills
+  if (prefill.benefits) next.benefits = prefill.benefits
+  const travelLabel = Object.entries(BIZ_TRAVEL_REQUIREMENT_IDS).find(([, id]) => id === prefill.travel_requirement)?.[0]
+  if (travelLabel) next.travel = travelLabel
   const provinceLabel = Object.entries(BIZ_PROVINCE_IDS).find(([, id]) => id === prefill.area_id)?.[0]
   if (provinceLabel) next.province = provinceLabel
   if (prefill.remuneration_minimum != null) next.remunerationFrom = String(prefill.remuneration_minimum)
@@ -146,6 +152,10 @@ const publishRecordToPrefill = (record: BizCommunityPublishRecord): BizCommunity
   remote_work: record.remote_work,
   industry_id: record.industry_id,
   skills_required: record.skills_required,
+  skills_advantageous: record.skills_advantageous,
+  personal_skills: record.personal_skills,
+  benefits: record.benefits,
+  travel_requirement: record.travel_requirement,
   remuneration_minimum: record.remuneration_minimum,
   remuneration_maximum: record.remuneration_maximum,
   remuneration_currency: record.remuneration_currency,
@@ -173,6 +183,11 @@ const applyPublishRecord = (record: BizCommunityPublishRecord): BizFormValues =>
   if (record.is_contract) next.employmentType = 'Contract'
   else if (record.is_temporary) next.employmentType = 'Temporary'
   if (record.company_name) next.companyName = record.company_name
+  if (record.company_website) next.companyWebsite = record.company_website
+  if (record.company_description) next.clientDescription = record.company_description
+  if (record.remuneration_negotiable != null) next.negotiable = record.remuneration_negotiable
+  if (record.own_transport != null) next.ownTransport = record.own_transport
+  if (record.expiry_date) next.expiryDate = fromApiDate(record.expiry_date)
   return next
 }
 
@@ -182,6 +197,12 @@ const isFilled = (value: string) => value.trim().length > 0
 
 // The date input yields yyyy-MM-dd; the API expects yyyyMMdd.
 const toApiDate = (isoDate: string) => isoDate.replace(/-/g, '')
+
+// Reverse of toApiDate: accepts yyyyMMdd or an ISO date/datetime and returns yyyy-MM-dd.
+const fromApiDate = (apiDate: string) => {
+  if (/^\d{8}$/.test(apiDate)) return `${apiDate.slice(0, 4)}-${apiDate.slice(4, 6)}-${apiDate.slice(6, 8)}`
+  return apiDate.slice(0, 10)
+}
 
 const buildPublishRequest = (
   values: BizFormValues,
@@ -210,6 +231,10 @@ const buildPublishRequest = (
     admin_first_name: values.adminFirstName.trim(),
     admin_last_name: values.adminLastName.trim(),
     skills_required: values.skillsRequired.trim() || undefined,
+    skills_advantageous: values.advantageousSkills.trim() || undefined,
+    personal_skills: values.personalSkills.trim() || undefined,
+    benefits: values.benefits.trim() || undefined,
+    travel_requirement: BIZ_TRAVEL_REQUIREMENT_IDS[values.travel],
     remuneration_minimum: from > 0 ? from : undefined,
     remuneration_maximum: to > 0 ? to : undefined,
     remuneration_package: BIZ_REMUNERATION_PACKAGE_IDS[values.remunerationPackage],
@@ -256,6 +281,9 @@ const buildUpdateRequest = (
     skills_required: values.skillsRequired.trim() || undefined,
     skills_advantageous: values.advantageousSkills.trim() || undefined,
     personal_skills: values.personalSkills.trim() || undefined,
+    benefits: values.benefits.trim() || undefined,
+    travel_requirement: BIZ_TRAVEL_REQUIREMENT_IDS[values.travel],
+    expiry_date: values.expiryDate ? toApiDate(values.expiryDate) : undefined,
     remuneration_minimum: from > 0 ? from : undefined,
     remuneration_maximum: to > 0 ? to : undefined,
     remuneration_package: BIZ_REMUNERATION_PACKAGE_IDS[values.remunerationPackage],
