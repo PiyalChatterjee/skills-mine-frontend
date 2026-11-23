@@ -182,6 +182,43 @@ describe("MancoRecruiterSection pipeline distribution", () => {
     ).toHaveTextContent("Rejected");
   });
 
+  it("renders the rejected value inside a bar sized to its pipeline share", () => {
+    mocks.useMancoRecruiterDetail.mockReturnValue({
+      data: {
+        ...recruiterDetail,
+        pipelineDistribution: {
+          ...recruiterDetail.pipelineDistribution,
+          rejected: 3,
+          totalPipeline: 5,
+        },
+      },
+      isError: false,
+      isLoading: false,
+    });
+
+    render(
+      <MemoryRouter>
+        <MancoRecruiterSection />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Pipeline distribution for Swastika Basu",
+      }),
+    );
+
+    const rejected = screen.getByRole("meter", { name: "Rejected: 3" });
+    const placement = screen.getByRole("meter", { name: "Placement: 0" });
+    expect(rejected).toHaveStyle({ width: "60%" });
+    const meters = screen.getAllByRole("meter");
+    expect(meters.indexOf(placement)).toBeLessThan(meters.indexOf(rejected));
+    const bar = rejected.querySelector("[data-stage='rejected']");
+    expect(bar).toHaveTextContent("Rejected");
+    expect(bar).toHaveTextContent("3");
+    expect(bar).toHaveStyle({ width: "100%" });
+  });
+
   it.each(["nick fury", "NICK FURY", "nIcK fUrY"])(
     "displays recruiter names in title case regardless of input casing: %s",
     (fullName) => {
