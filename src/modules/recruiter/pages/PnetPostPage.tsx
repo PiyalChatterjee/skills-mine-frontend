@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { FormEvent, InputHTMLAttributes, ReactNode } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
 import { Box, Typography } from '@mui/material'
 import { RecruiterSidebar } from '@/modules/recruiter/components/RecruiterSidebar'
@@ -25,6 +25,9 @@ import {
   type PnetIdBasedFields,
   type PnetPrefill,
   type PnetPrefillResponse,
+  type PnetPublishesParams,
+  type PnetPublishPayload,
+  type PnetPublishRecord,
   type PublishPnetJobRequest,
 } from '@/services/api/externalJobsApi'
 import { extractErrorMessage } from '@/app/errorUtils'
@@ -38,7 +41,6 @@ import styles from './PnetPostPage.module.css'
 type PnetFormValues = {
   jobTitle: string
   jobLocation: string
-  vacancies: string
   location: string
   workField: string
   sectors: string[]
@@ -53,14 +55,12 @@ type PnetFormValues = {
   keywords: string
   contactName: string
   contactEmail: string
-  expiryDate: string
   clientDescription: string
 }
 
 const initialValues: PnetFormValues = {
   jobTitle: '',
   jobLocation: '',
-  vacancies: '1',
   location: '',
   workField: '',
   sectors: [],
@@ -75,7 +75,6 @@ const initialValues: PnetFormValues = {
   keywords: '',
   contactName: '',
   contactEmail: '',
-  expiryDate: '',
   clientDescription: '',
 }
 
@@ -197,6 +196,123 @@ const applyPrefill = (
   return next
 }
 
+const parsePayloadJson = (payloadJson: unknown): PnetPublishPayload | undefined => {
+  if (!payloadJson) return undefined
+  if (typeof payloadJson === 'object') return payloadJson as PnetPublishPayload
+  if (typeof payloadJson === 'string') {
+    try {
+      return JSON.parse(payloadJson) as PnetPublishPayload
+    } catch {
+      return undefined
+    }
+  }
+  return undefined
+}
+
+const publishRecordToPrefill = (record: PnetPublishRecord): PnetPrefill => {
+  const payload = parsePayloadJson(record.payload_json) || {}
+  return {
+    reference_id: record.reference_id || payload.reference_id || record.job_profile_id_ref,
+    job_profile_id_ref: record.job_profile_id_ref || payload.job_profile_id_ref,
+    action: 'UPDATE',
+    channel: payload.channel || 'ZA',
+    listingtype: payload.listingtype || 'Standard',
+    idFields: payload.idFields || record.idFields,
+    categorization: payload.categorization || record.categorization,
+    jobdetails: payload.jobdetails || record.jobdetails,
+    companydetails: payload.companydetails || record.companydetails,
+  }
+}
+
+const applyPublishRecord = (
+  base: PnetFormValues,
+  record: PnetPublishRecord,
+  options: PnetOptions,
+): PnetFormValues => {
+  const payload = parsePayloadJson(record.payload_json) || {}
+  const details = payload.jobdetails || record.jobdetails
+  const categorization = payload.categorization || record.categorization
+  const recruiter = payload.companydetails?.recruiter || record.companydetails?.recruiter
+
+  const next = { ...base }
+
+  const jobTitle =
+    details?.jobtitle ||
+    (typeof record.job_title === 'string'
+      ? record.job_title
+      : typeof record.jobtitle === 'string'
+        ? record.jobtitle
+        : '')
+  if (jobTitle) {
+    next.jobTitle = jobTitle
+  }
+  if (details?.introduction) {
+    next.clientDescription = details.introduction
+  }
+  const tasks =
+    details?.tasks || (typeof record.job_description === 'string' ? record.job_description : '')
+  if (tasks) {
+    next.description = tasks
+  }
+  if (details?.profile) {
+    next.candidateProfile = details.profile
+  }
+  if (details?.offer) {
+    next.offerDescription = details.offer.replace(/\\n/g, '\n')
+  }
+  if (details?.keywords) {
+    next.keywords = details.keywords
+  }
+
+  const city =
+    details?.joblocations?.[0]?.city ||
+    (typeof record.city_name === 'string'
+      ? record.city_name
+      : typeof record.city === 'string'
+        ? record.city
+        : '')
+  if (city) {
+    next.jobLocation = city
+    const location = findOption(options.geography, city)
+    if (location) next.location = location
+  }
+
+  const experienceCode = categorization?.experience?.[0]
+  const experience =
+    (experienceCode && PNET_EXPERIENCE_LABELS[experienceCode]) ||
+    findOption(options.experience, experienceCode)
+  if (experience) next.experience = experience
+
+  const contractTypes = (categorization?.contracttype ?? [])
+    .map((code) => findOption(options.contracttype, code))
+    .filter((name, index, all): name is string => !!name && all.indexOf(name) === index)
+  if (contractTypes.length) next.contractTypes = contractTypes
+
+  const workPolicy = categorization?.workpolicy?.[0]
+  const workType =
+    findOption(options.worktype, categorization?.contractime?.[0]) ||
+    findOption(options.worktype, workPolicy && PNET_WORK_POLICY_LABELS[workPolicy]) ||
+    findOption(options.worktype, workPolicy)
+  if (workType) next.workType = workType
+
+  const { minimum, maximum, currency, period } = details?.salary ?? {}
+  if (minimum != null && maximum != null) {
+    next.salary = [
+      currency,
+      `${minimum.toLocaleString()} - ${maximum.toLocaleString()}`,
+      period && `(${period})`,
+    ]
+      .filter(Boolean)
+      .join(' ')
+  }
+
+  const contactName = [recruiter?.firstname, recruiter?.lastname].filter(Boolean).join(' ')
+  if (contactName) next.contactName = contactName
+  if (recruiter?.email) next.contactEmail = recruiter.email
+
+  return next
+}
+
 const isFilled = (value: string) => value.trim().length > 0
 
 const resolveFieldId = (
@@ -231,6 +347,7 @@ const buildPublishRequest = (
   prefill: PnetPrefill,
   pnetFields: PnetFields | undefined,
   jobProfileId: string,
+  actionOverride?: PnetAction,
 ): PublishPnetJobRequest => {
   const referenceId = prefill.reference_id || jobProfileId
 
@@ -288,7 +405,7 @@ const buildPublishRequest = (
 
   const request: PublishPnetJobRequest = {
     reference_id: referenceId,
-    action: (prefill.action as PnetAction) || 'INSERT',
+    action: actionOverride || (prefill.action as PnetAction) || 'INSERT',
     channel: (prefill.channel as PnetChannel) || 'ZA',
     idFields,
     listingtype: prefill.listingtype || 'Standard',
@@ -523,10 +640,23 @@ const RichTextAreaField = ({
 )
 
 const PnetPostPage = () => {
-  usePageTitle('New Job Post — pNet')
   const navigate = useNavigate()
   const dispatch = useDispatch()
+  const location = useLocation()
+  const [searchParams] = useSearchParams()
   const { mandateId } = useParams<{ mandateId: string }>()
+
+  const locationState = location.state as {
+    isEdit?: boolean
+    publishId?: string
+    referenceId?: string
+  } | null
+  const publishId = searchParams.get('publishId') || locationState?.publishId
+  const isEdit = Boolean(
+    locationState?.isEdit || searchParams.get('isEdit') === 'true' || publishId,
+  )
+
+  usePageTitle(isEdit ? 'Edit Job Post — pNet' : 'New Job Post — pNet')
 
   const [values, setValues] = useState<PnetFormValues>(initialValues)
   const [options, setOptions] = useState<PnetOptions>(DEFAULT_OPTIONS)
@@ -538,6 +668,38 @@ const PnetPostPage = () => {
   useEffect(() => {
     if (!mandateId) return
     let cancelled = false
+
+    if (isEdit) {
+      // Edit mode: fetch saved advert from publishes API and skip prefill API
+      const params: PnetPublishesParams = publishId
+        ? { publish_id: publishId }
+        : { job_profile_id_ref: mandateId }
+
+      externalJobsApi
+        .getPnetPublishes(params)
+        .then((records) => {
+          if (cancelled) return
+          const record = Array.isArray(records)
+            ? (publishId ? records.find((r) => r.publish_id === publishId) : undefined) ||
+              records.find((r) => r.operation?.toUpperCase() === 'PUBLISH') ||
+              records[0]
+            : undefined
+
+          if (!record) return
+
+          setPrefill(publishRecordToPrefill(record))
+          setValues((prev) => applyPublishRecord(prev, record, options))
+          setNotices([])
+        })
+        .catch(() => {
+          // fields stay as-is and can be filled in manually
+        })
+
+      return () => {
+        cancelled = true
+      }
+    }
+
     externalJobsApi
       .getPnetPrefill(mandateId)
       .then((response) => {
@@ -555,16 +717,18 @@ const PnetPostPage = () => {
       .catch(() => {
         // fields stay as-is and can be filled in manually
       })
+
     return () => {
       cancelled = true
     }
-  }, [mandateId])
+  }, [mandateId, isEdit, publishId, options])
 
   const update = <K extends keyof PnetFormValues>(key: K, value: PnetFormValues[K]) =>
     setValues((prev) => ({ ...prev, [key]: value }))
 
   const handleBack = () => navigate(-1)
-  const heading = 'PNet'
+  const heading = isEdit ? 'Edit PNet Advert' : 'PNet'
+  const submitLabel = isEdit ? 'Update on PNet' : 'Publish to PNet'
 
   const isValid =
     isFilled(values.jobTitle) &&
@@ -578,29 +742,51 @@ const PnetPostPage = () => {
 
     setIsSubmitting(true)
     try {
-      const payload = buildPublishRequest(values, prefill, pnetFields, mandateId)
-      await externalJobsApi.publishToPnet(payload)
-      dispatch(
-        pushNotification({
-          level: 'success',
-          title: 'Published to PNet',
-          message: `"${values.jobTitle}" has been published to PNet.`,
-        }),
-      )
-      navigate(ROUTE_PATHS.recruiterAdvertisedJobs, {
-        state: {
-          platformName: 'PNet',
-          bannerMessage: `Job "${values.jobTitle}" successfully published to PNet.`,
-        },
-      })
+      const referenceId = locationState?.referenceId || prefill.reference_id || mandateId
+
+      if (isEdit) {
+        const payload = buildPublishRequest(values, prefill, pnetFields, mandateId, 'UPDATE')
+        await externalJobsApi.updatePnetJob(referenceId, payload)
+        dispatch(
+          pushNotification({
+            level: 'success',
+            title: 'Updated on PNet',
+            message: `"${values.jobTitle}" has been updated on PNet.`,
+          }),
+        )
+        navigate(ROUTE_PATHS.recruiterAdvertisedJobs, {
+          state: {
+            platformName: 'PNet',
+            bannerMessage: `Job "${values.jobTitle}" successfully updated on PNet.`,
+          },
+        })
+      } else {
+        const payload = buildPublishRequest(values, prefill, pnetFields, mandateId, 'INSERT')
+        await externalJobsApi.publishToPnet(payload)
+        dispatch(
+          pushNotification({
+            level: 'success',
+            title: 'Published to PNet',
+            message: `"${values.jobTitle}" has been published to PNet.`,
+          }),
+        )
+        navigate(ROUTE_PATHS.recruiterAdvertisedJobs, {
+          state: {
+            platformName: 'PNet',
+            bannerMessage: `Job "${values.jobTitle}" successfully published to PNet.`,
+          },
+        })
+      }
     } catch (error) {
       dispatch(
         pushNotification({
           level: 'error',
-          title: 'Publish failed',
+          title: isEdit ? 'Update failed' : 'Publish failed',
           message: extractErrorMessage(
             error,
-            'Could not publish the job to PNet. Please try again.',
+            isEdit
+              ? 'Could not update the job on PNet. Please try again.'
+              : 'Could not publish the job to PNet. Please try again.',
           ),
         }),
       )
@@ -636,7 +822,7 @@ const PnetPostPage = () => {
             <section className={formStyles.section}>
               <h2 className={formStyles.sectionTitle}>Position Details</h2>
 
-              <div className={styles.rowThree}>
+              <div className={formStyles.row}>
                 <Field label="Job Title" required note="Please do not include locations in job titles">
                   <TextInput
                     placeholder="Job Title"
@@ -649,15 +835,6 @@ const PnetPostPage = () => {
                     placeholder="Job Location"
                     value={values.jobLocation}
                     onChange={(e) => update('jobLocation', e.target.value)}
-                  />
-                </Field>
-                <Field label="Number of Vacancies">
-                  <TextInput
-                    type="number"
-                    min={1}
-                    placeholder="1"
-                    value={values.vacancies}
-                    onChange={(e) => update('vacancies', e.target.value)}
                   />
                 </Field>
               </div>
@@ -792,7 +969,7 @@ const PnetPostPage = () => {
                 />
               </Field>
 
-              <div className={styles.rowThree}>
+              <div className={formStyles.row}>
                 <Field label="Contact Name">
                   <TextInput
                     placeholder="Contact Name"
@@ -806,17 +983,6 @@ const PnetPostPage = () => {
                     placeholder="Contact Email"
                     value={values.contactEmail}
                     onChange={(e) => update('contactEmail', e.target.value)}
-                  />
-                </Field>
-                <Field
-                  label="Expiry Date"
-                  note="Ditto expiry date. PNET listing duration is controlled separately by PNET."
-                >
-                  <TextInput
-                    type="date"
-                    aria-label="Expiry Date"
-                    value={values.expiryDate}
-                    onChange={(e) => update('expiryDate', e.target.value)}
                   />
                 </Field>
               </div>
@@ -837,7 +1003,7 @@ const PnetPostPage = () => {
 
           <StickyFooter
             isSubmitting={isSubmitting}
-            submitLabel="Publish to PNet"
+            submitLabel={submitLabel}
             isValid={isValid}
           />
         </form>

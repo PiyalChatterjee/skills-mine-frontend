@@ -46,6 +46,13 @@ const DeleteIcon = () => (
   </svg>
 )
 
+const getStatusClassName = (status: string) => {
+  const s = String(status).trim().toLowerCase()
+  if (s === 'live') return styles.statusLive
+  if (s === 'failed' || s === 'error') return styles.statusFailed
+  return styles.statusSuspended
+}
+
 export const AdvertisedJobsTable = ({ jobs, onEdit, onDelete }: AdvertisedJobsTableProps) => {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
   const [activeJob, setActiveJob] = useState<AdvertisedJob | null>(null)
@@ -108,11 +115,7 @@ export const AdvertisedJobsTable = ({ jobs, onEdit, onDelete }: AdvertisedJobsTa
             <div className={`${styles.cell} ${styles.salaryCell}`}>{job.salary}</div>
             <div className={`${styles.cell} ${styles.postedCell}`}>{job.posted}</div>
             <div className={styles.cell}>
-              <span
-                className={`${styles.status} ${
-                  job.status === 'Live' ? styles.statusLive : styles.statusSuspended
-                }`}
-              >
+              <span className={`${styles.status} ${getStatusClassName(job.status)}`}>
                 <span className={styles.statusDot} />
                 {job.status}
               </span>
