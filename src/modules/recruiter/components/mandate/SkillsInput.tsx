@@ -17,6 +17,7 @@ const CHIP_COLORS = [
 ]
 
 const MAX_SKILLS = 30
+export const MAX_SKILL_LENGTH = 160
 
 export const SkillsInput = ({ control }: Props) => {
   const { errors } = useFormState({ control })
@@ -80,6 +81,7 @@ export const SkillsInput = ({ control }: Props) => {
                       type="text"
                       className={styles.chipInput}
                       value={inputValue}
+                      maxLength={MAX_SKILL_LENGTH}
                       onChange={e => setInputValue(e.target.value)}
                       onKeyDown={handleKeyDown}
                       onBlur={() => {
@@ -104,7 +106,11 @@ export const SkillsInput = ({ control }: Props) => {
               </div>
               {errors.skills && (
                 <p className={styles.errorText}>
-                  {typeof errors.skills.message === 'string' ? errors.skills.message : 'At least one skill is required'}
+                  {typeof errors.skills.message === 'string'
+                    ? errors.skills.message
+                    : Array.isArray(errors.skills)
+                      ? errors.skills.find(Boolean)?.message ?? 'Invalid skill'
+                      : 'At least one skill is required'}
                 </p>
               )}
             </div>

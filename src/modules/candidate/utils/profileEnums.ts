@@ -1,10 +1,10 @@
 export const AVAILABILITY_LABELS: Record<string, string> = {
   IMMEDIATELY: "None/Immediate",
   "2_WEEKS": "2 weeks",
-  "30_DAYS": "30 days",
   "1_MONTH": "1 month",
   "2_MONTHS": "2 months",
   "3_MONTHS": "3 months",
+  "30_DAYS": "30 days",
 };
 
 export const AVAILABILITY_OPTIONS = Object.values(AVAILABILITY_LABELS);
@@ -37,13 +37,22 @@ export const toPreferredLocationEnum = (value?: string | null): string => {
   return normalized === "ON_SITE" ? "ONSITE" : normalized;
 };
 
-export const toAvailabilityLabel = (value?: string | null): string => {
+export const toAvailabilityEnum = (value?: string | null): string => {
   const normalized = toEnum(value);
-  return AVAILABILITY_LABELS[normalized] ?? value?.trim() ?? "";
+  if (
+    normalized === "NONE/IMMEDIATE" ||
+    normalized === "NONE" ||
+    normalized === "IMMEDIATE"
+  ) {
+    return "IMMEDIATELY";
+  }
+  return normalized;
 };
 
-export const toAvailabilityEnum = (value?: string | null): string =>
-  toEnum(value);
+export const toAvailabilityLabel = (value?: string | null): string => {
+  const normalized = toAvailabilityEnum(value);
+  return AVAILABILITY_LABELS[normalized] ?? value?.trim() ?? "";
+};
 
 export const toEmploymentTypeLabel = (value?: string | null): string => {
   const normalized = toEnum(value);

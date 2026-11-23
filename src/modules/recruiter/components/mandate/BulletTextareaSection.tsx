@@ -5,13 +5,19 @@ import styles from './form.module.css'
 
 const BULLET = '• '
 
-/** Ensure every non-empty line starts with a bullet. */
+/** Bullet-like characters that Word / other editors paste at line starts. */
+const LEADING_BULLET_RE = /^[\u2022\u2023\u2043\u2219\u25CF\u25E6\u00B7\u2024\u2027\u204C\u204D\-\*]\s*/
+
+/** Ensure every non-empty line starts with exactly one bullet. */
 function applyBullets(raw: string): string {
   return raw
     .split('\n')
     .map(line => {
       if (line === '') return line
-      return line.startsWith(BULLET) ? line : BULLET + line
+      // Strip any leading bullet characters pasted from external sources,
+      // then re-apply the canonical bullet so lines never get double bullets.
+      const stripped = line.replace(LEADING_BULLET_RE, '')
+      return BULLET + stripped
     })
     .join('\n')
 }

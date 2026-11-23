@@ -1,7 +1,7 @@
 import { PipelineStageLabel as PipelineLabel } from "@/enums/statuses";
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Box, ButtonBase, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Typography } from '@mui/material'
+import { Box, ButtonBase, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Tooltip, Typography } from '@mui/material'
 import { UploadDocumentModal } from './UploadDocumentModal'
 import { recruiterCandidatesApi } from '@/services/api/recruiterCandidatesApi'
 import { aiApi } from '@/services/api/aiApi'
@@ -208,7 +208,7 @@ export const CandidateDetailScreen = () => {
     return () => { cancelled = true }
   }, [candidateId])
 
-  const goBack = () => navigate(ROUTE_PATHS.recruiterCandidates)
+  const goBack = () => navigate(-1)
 
   const handleLoadMoreApplications = () => {
     if (!candidateId || loadingMoreApplications) return
@@ -430,9 +430,27 @@ export const CandidateDetailScreen = () => {
               <Box className={styles.aiActionBtns}>
                 {aiActions.map((action, index) => (
                   <Box key={`${action.action_type}-${action.job_profile_id ?? index}`} className={styles.aiActionItem}>
-                    <ButtonBase className={styles.aiBtn} disableRipple>
-                      {action.cta_label}
-                    </ButtonBase>
+                    <Tooltip
+                      title={action.description || ''}
+                      arrow
+                      placement="top"
+                      slotProps={{
+                        tooltip: {
+                          sx: {
+                            bgcolor: '#ffffff',
+                            color: '#57606a',
+                            border: '1px solid #e5e7eb',
+                            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.12)',
+                            fontSize: 13,
+                          },
+                        },
+                        arrow: { sx: { color: '#ffffff', '&::before': { border: '1px solid #e5e7eb' } } },
+                      }}
+                    >
+                      <ButtonBase className={styles.aiBtn} disableRipple>
+                        {action.cta_label}
+                      </ButtonBase>
+                    </Tooltip>
                   </Box>
                 ))}
               </Box>

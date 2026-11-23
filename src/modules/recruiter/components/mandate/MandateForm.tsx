@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -7,7 +7,7 @@ import { BasicInformationSection } from './BasicInformationSection'
 import { SalarySection } from './SalarySection'
 import { JobDescriptionSection } from './JobDescriptionSection'
 import { BulletTextareaSection } from './BulletTextareaSection'
-import { SkillsInput } from './SkillsInput'
+import { SkillsInput, MAX_SKILL_LENGTH } from './SkillsInput'
 import { IndustriesInput } from './IndustriesInput'
 import { StickyFooter } from './StickyFooter'
 import type { MandateFormValues } from './types'
@@ -75,6 +75,7 @@ const salarySchema = (requiredMessage: string) =>
 export const mandateSchema = z
   .object({
     companyName:          companyNameSchema,
+    clientId:             z.string().optional(),
     clientRate:           clientRateSchema,
     contactPerson:        contactPersonSchema,
     contactPersonEmail:   emailSchema,
@@ -94,7 +95,9 @@ export const mandateSchema = z
     requirements:         bulletTextField('Requirements are required'),
     responsibilities:     bulletTextField('Responsibilities are required'),
     benefits:             bulletTextField('Benefits are required'),
-    skills:               z.array(z.string()).min(1, 'At least one skill is required'),
+    skills:               z
+      .array(z.string().max(MAX_SKILL_LENGTH, `Each skill must not exceed ${MAX_SKILL_LENGTH} characters`))
+      .min(1, 'At least one skill is required'),
     industries:           z.array(z.string()).min(1, 'At least one industry is required').max(1, 'Only one industry may be added'),
     jobBoards:            z.array(z.string()),
   })
@@ -147,6 +150,11 @@ interface MandateFormProps {
   onSubmit: (values: MandateFormValues) => Promise<void>
   /** Called when the user cancels — navigate away from the form */
   onCancel?: () => void
+  /**
+   * Edit flow: ask for confirmation the first time the user modifies the company name.
+   * "Yes" lets the change through, "No" keeps the original company data.
+   */
+  confirmCompanyChange?: boolean
 }
 
 // ── Component ──────────────────────────────────────────────────────────
@@ -157,9 +165,12 @@ export const MandateForm = ({
   initialValues,
   onSubmit,
   onCancel = () => {},
+  confirmCompanyChange = false,
 }: MandateFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showCancelDialog, setShowCancelDialog] = useState(false)
+  const [pendingCompanyChange, setPendingCompanyChange] = useState<(() => void) | null>(null)
+  const companyChangeConfirmedRef = useRef(false)
 
   const {
     control,
@@ -179,6 +190,17 @@ export const MandateForm = ({
   // validity from the live values instead.
   const values = useWatch({ control }) as MandateFormValues
   const isValid = mandateSchema.safeParse(values).success
+
+  /** Gate for company-name edits: `apply` is held until the user confirms in the dialog. */
+  const requestCompanyChange = confirmCompanyChange
+    ? (apply: () => void) => {
+        if (companyChangeConfirmedRef.current) {
+          apply()
+          return
+        }
+        setPendingCompanyChange(() => apply)
+      }
+    : undefined
 
   const handleFormSubmit = async (values: MandateFormValues) => {
     setIsSubmitting(true)
@@ -201,7 +223,11 @@ export const MandateForm = ({
       {/* ── Form ── */}
       <form onSubmit={handleSubmit(handleFormSubmit, errors => { focusFirstErrorField(errors) })} noValidate>
         <Box className={styles.card}>
-          <BasicInformationSection control={control} setValue={setValue} />
+          <BasicInformationSection
+            control={control}
+            setValue={setValue}
+            requestCompanyChange={requestCompanyChange}
+          />
           <SalarySection control={control} />
           <JobDescriptionSection control={control} />
           <BulletTextareaSection
@@ -228,6 +254,35 @@ export const MandateForm = ({
 
         <StickyFooter isSubmitting={isSubmitting} submitLabel={submitLabel} isValid={isValid} />
       </form>
+
+      {/* ── Company change confirmation dialog ── */}
+      {pendingCompanyChange && (
+        <Box className={styles.dialogBackdrop} onClick={() => setPendingCompanyChange(null)}>
+          <Box className={styles.dialog} onClick={e => e.stopPropagation()}>
+            <Typography component="h3" className={styles.dialogTitle}>Change company name?</Typography>
+            <Typography component="p" className={styles.dialogBody}>
+              You are changing the company name from "{initialValues.companyName}". Do you want to continue?
+              Choosing "No" keeps the original company details.
+            </Typography>
+            <Box className={styles.dialogBtns}>
+              <button type="button" className={styles.dialogCancelBtn} onClick={() => setPendingCompanyChange(null)}>
+                No
+              </button>
+              <button
+                type="button"
+                className={styles.dialogDiscardBtn}
+                onClick={() => {
+                  companyChangeConfirmedRef.current = true
+                  pendingCompanyChange()
+                  setPendingCompanyChange(null)
+                }}
+              >
+                Yes, change
+              </button>
+            </Box>
+          </Box>
+        </Box>
+      )}
 
       {/* ── Cancel confirmation dialog ── */}
       {showCancelDialog && (

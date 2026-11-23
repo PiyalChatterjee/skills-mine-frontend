@@ -55,12 +55,12 @@ export const RACE_OPTIONS = ['African', 'Coloured', 'Indian', 'White', 'Asian', 
 export const GENDER_OPTIONS = ['Male', 'Female', 'Non-binary', 'Prefer not to say']
 export const DISABILITY_OPTIONS = [
   'None',
-  'Physical Disability',
-  'Visual Impairment',
-  'Hearing Impairment',
-  'Intellectual Disability',
-  'Mental Health Condition',
-  'Other Disability',
+  'Physical disability',
+  'Visual impairment',
+  'Hearing impairment',
+  'Intellectual disability',
+  'Mental health condition',
+  'Prefer not to say',
 ]
 export const LOCATION_OPTIONS = ['Johannesburg', 'Cape Town', 'Durban', 'Pretoria', 'Remote']
 export const NOTICE_PERIOD_OPTIONS = Object.keys(AVAILABILITY_LABELS)

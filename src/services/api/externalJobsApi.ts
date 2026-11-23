@@ -20,6 +20,10 @@ export type BizCommunityPrefill = {
   remote_work?: number;
   industry_id?: number;
   skills_required?: string;
+  skills_advantageous?: string;
+  personal_skills?: string;
+  benefits?: string;
+  travel_requirement?: number;
   remuneration_minimum?: number;
   remuneration_maximum?: number;
   remuneration_currency?: number;
@@ -79,12 +83,17 @@ export type BizCommunityPublishRecord = {
   industry_id?: number;
   remote_work?: number;
   skills_required?: string;
+  skills_advantageous?: string;
+  personal_skills?: string;
+  travel_requirement?: number;
   remuneration_minimum?: number;
   remuneration_maximum?: number;
   remuneration_currency?: number;
   remuneration_package?: number;
   remuneration_basis?: number;
   remuneration_description?: string;
+  remuneration_negotiable?: boolean;
+  own_transport?: boolean;
   benefits?: string;
   is_permanent?: boolean;
   is_temporary?: boolean;
@@ -95,6 +104,8 @@ export type BizCommunityPublishRecord = {
   employment_equity_policy?: number;
   reference_number?: string;
   company_name?: string;
+  company_website?: string;
+  company_description?: string;
   contact_name?: string;
   contact_telephone_number?: string;
   response_handler_url?: string;
@@ -139,8 +150,7 @@ export type UpdateBizCommunityJobRequest = BizCommunityPrefill & {
   area_id?: number;
   industry_id?: number;
   category_id?: number;
-  skills_advantageous?: string;
-  personal_skills?: string;
+  expiry_date?: string;
   remuneration_negotiable?: boolean;
   is_temporary?: boolean;
   is_contract?: boolean;

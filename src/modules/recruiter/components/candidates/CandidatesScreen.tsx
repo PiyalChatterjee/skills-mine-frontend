@@ -285,7 +285,6 @@ export const CandidatesScreen = () => {
               <Typography component="span" className={styles.headerCell}>TITLE</Typography>
               <Typography component="span" className={styles.headerCell}>COMPANY</Typography>
               <Typography component="span" className={styles.headerCell}>LOCATION</Typography>
-              <Box className={styles.headerCell} />
             </Box>
 
             {candidates.map((row) => (
@@ -313,15 +312,6 @@ export const CandidatesScreen = () => {
                 <Typography component="span" className={styles.cellLocation}>
                   {row.location}
                 </Typography>
-                <ButtonBase
-                  className={styles.moreButton}
-                  disableRipple
-                  aria-label={`More actions for ${row.fullName}`}
-                >
-                  <Box component="span" className={styles.moreDot} />
-                  <Box component="span" className={styles.moreDot} />
-                  <Box component="span" className={styles.moreDot} />
-                </ButtonBase>
               </Box>
             ))}
           </Box>

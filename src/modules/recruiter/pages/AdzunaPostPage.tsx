@@ -189,8 +189,7 @@ const AdzunaPostPage = () => {
   const update = <K extends keyof AdzunaFormValues>(key: K, value: AdzunaFormValues[K]) =>
     setValues((prev) => ({ ...prev, [key]: value }))
 
-  const advertiseRoute = ROUTE_PATHS.recruiterAdvertiseJob.replace(':mandateId', mandateId ?? '')
-  const handleBack = () => navigate(advertiseRoute)
+  const handleBack = () => navigate(-1)
   const handleSaveDraft = () =>
     setDraftSavedAt(new Date().toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit', hour12: false }))
 

@@ -151,7 +151,7 @@ describe("useJobDetailsViewModel", () => {
     });
 
     expect(result.current.backRoute).toBe("/jobs/latest");
-    expect(mocks.navigate).toHaveBeenCalledWith("/jobs/latest");
+    expect(mocks.navigate).toHaveBeenCalledWith(-1);
   });
 
   it("hides salary from the latest profile while preserving benefits", () => {

@@ -462,11 +462,7 @@ const CandidatePipelinePage = () => {
     }
   }
 
-  const handleBack = () => {
-    navigate(
-      ROUTE_PATHS.recruiterMandate.replace(':cardId', cardId ?? '')
-    )
-  }
+  const handleBack = () => navigate(-1)
 
   // Always derive counts from the live pipelineStages so that drag-and-drop
   // moves are reflected immediately. apiStageCounts is only used to seed the

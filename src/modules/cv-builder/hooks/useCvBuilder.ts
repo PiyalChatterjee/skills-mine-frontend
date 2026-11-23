@@ -11,6 +11,7 @@ import {
   getTertiaryYearIndexesAtOrBeforeSecondary,
   type CvBuilderFormValues,
 } from "@/app/validation.schema";
+import { toAvailabilityEnum } from "@/modules/candidate/utils/profileEnums";
 import {
   DISABILITY_OPTIONS,
   GENDER_OPTIONS,
@@ -121,7 +122,19 @@ const normalizePersonalDetailsFieldValue = (
   const matchedOption = options.find(
     (option) => option.toLowerCase() === normalized,
   );
-  return matchedOption ?? "";
+  if (matchedOption) {
+    return matchedOption;
+  }
+
+  if (field === "noticePeriod") {
+    const enumVal = toAvailabilityEnum(value);
+    const matchedEnum = options.find((opt) => opt === enumVal);
+    if (matchedEnum) {
+      return matchedEnum;
+    }
+  }
+
+  return "";
 };
 
 const isCareerPristine = (entries: CvBuilderFormValues["careerHistory"]) =>

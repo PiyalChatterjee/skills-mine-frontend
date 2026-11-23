@@ -1,5 +1,7 @@
 export interface MandateFormValues {
   companyName: string
+  /** clientId of the selected existing company (empty when a new/typed name is used) */
+  clientId?: string
   clientRate: string
   contactPerson: string
   contactPersonEmail: string
