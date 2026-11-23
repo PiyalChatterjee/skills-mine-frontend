@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react'
+import type { FormEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { DittoFooter } from '@/modules/recruiter/components/advertised/DittoFooter'
+import { Box, Typography } from '@mui/material'
+import { RecruiterSidebar } from '@/modules/recruiter/components/RecruiterSidebar'
+import { BizRichText } from '@/modules/recruiter/components/advertised/bizcommunity/BizRichText'
 import {
   AzCard,
   AzChipSelect,
@@ -8,7 +11,8 @@ import {
   AzInput,
   AzSelect,
 } from '@/modules/recruiter/components/advertised/adzuna/AdzunaControls'
-import { AzRichText } from '@/modules/recruiter/components/advertised/adzuna/AzRichText'
+import pageStyles from './NewMandatePage.module.css'
+import footerStyles from '@/modules/recruiter/components/mandate/StickyFooter.module.css'
 import {
   ADZUNA_CATEGORIES,
   ADZUNA_CONTRACT_TYPES,
@@ -22,7 +26,6 @@ import {
 } from '@/modules/recruiter/data/adzunaOptions'
 import { mandateApi } from '@/services/api/mandateApi'
 import { usePageTitle } from '@/hooks/usePageTitle'
-import { ROUTE_PATHS } from '@/routes/routePaths'
 import type { JobPost } from '@/types/api'
 import styles from './AdzunaPostPage.module.css'
 
@@ -125,18 +128,6 @@ const toValues = (post: JobPost): AdzunaFormValues => ({
   expiryDate: post.targetCloseDate ? post.targetCloseDate.split('T')[0] : '',
 })
 
-const BackArrow = () => (
-  <svg width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-    <path d="M10 6H2M5.5 2.5L2 6l3.5 3.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-)
-
-const ListIcon = () => (
-  <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-    <path d="M4.5 3h5.5M4.5 6h5.5M4.5 9h5.5M2 3h.01M2 6h.01M2 9h.01" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" />
-  </svg>
-)
-
 const PinIcon = () => (
   <svg className={styles.pinIcon} width="11" height="11" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true">
     <path d="M6 .8a3.6 3.6 0 00-3.6 3.6C2.4 7 6 11.2 6 11.2s3.6-4.2 3.6-6.8A3.6 3.6 0 006 .8zm0 5a1.4 1.4 0 110-2.8 1.4 1.4 0 010 2.8z" />
@@ -154,12 +145,6 @@ const CheckBadge = ({ size = 12 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 14 14" aria-hidden="true">
     <circle cx="7" cy="7" r="7" fill="currentColor" />
     <path d="M4 7.2l2 2 4-4.2" stroke="#ffffff" strokeWidth="1.4" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-)
-
-const SendIcon = () => (
-  <svg width="10" height="10" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true">
-    <path d="M11 1L1 5.2l3.4 1.4L5.8 10 11 1z" />
   </svg>
 )
 
@@ -194,44 +179,21 @@ const AdzunaPostPage = () => {
     setDraftSavedAt(new Date().toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit', hour12: false }))
 
   return (
-    <div className={styles.page}>
-      <div className={styles.main}>
-        <div className={styles.topBar}>
-          <nav className={styles.breadcrumb} aria-label="Breadcrumb">
-            <button type="button" className={styles.backLink} onClick={handleBack}>
-              <BackArrow />
-              Back
-            </button>
-            <span className={styles.crumbSep}>/</span>
-            <span>New Job Post</span>
-            <span className={styles.crumbSep}>/</span>
-            <span>Adzuna South Africa</span>
-          </nav>
-          <span className={styles.statusPill}>
-            <span className={styles.statusDot} />
-            Posting to Adzuna
-            <span className={styles.indexBadge}>ZA INDEX</span>
-          </span>
-        </div>
-
-        <section className={styles.platformCard}>
-          <span className={styles.platformLogo} aria-hidden="true">Az</span>
-          <div className={styles.platformInfo}>
-            <h1 className={styles.platformTitle}>
-              {values.jobTitle || 'New Job Post'} <span className={styles.titleDash}>—</span>{' '}
-              <span className={styles.platformTag}>Adzuna South Africa</span>
-            </h1>
-            <p className={styles.platformSub}>
-              Smart job search engine &amp; salary index for Africa • Ditto Job Publishing System
-            </p>
-          </div>
-          <button type="button" className={styles.backToJobs} onClick={() => navigate(ROUTE_PATHS.recruiterJobPosts)}>
-            <ListIcon />
-            Back to Jobs
+    <Box className={pageStyles.shell}>
+      <RecruiterSidebar />
+      <Box className={pageStyles.pageRoot}>
+        <Box className={pageStyles.pageHeader}>
+          <button type="button" className={pageStyles.backBtn} onClick={handleBack}>
+            ← Back
           </button>
-        </section>
+          <Typography component="h1" className={pageStyles.pageTitle}>
+            Adzuna South Africa
+          </Typography>
+        </Box>
 
-        <div className={styles.columns}>
+        <form onSubmit={(event: FormEvent) => event.preventDefault()} noValidate>
+          <Box className={pageStyles.card}>
+            <div className={styles.columns}>
           <div className={styles.leftCol}>
             <AzCard title="Position & Classification" aside={<span className={styles.step}>Step 1 of 4</span>}>
               <div className={styles.stack}>
@@ -338,9 +300,9 @@ const AdzunaPostPage = () => {
 
             <AzCard title="Role Description & Specifications" aside={<span className={styles.step}>Markdown &amp; Rich Text</span>}>
               <div className={styles.stack}>
-                <AzRichText label="Job Description & Duties" required variant="full" height={113} value={values.description} onChange={(v) => update('description', v)} />
-                <AzRichText label="Requirements & Experience" required variant="compact" height={95} value={values.requirements} onChange={(v) => update('requirements', v)} />
-                <AzRichText label="Perks & Remuneration Package" variant="minimal" height={75} value={values.perks} onChange={(v) => update('perks', v)} />
+                <BizRichText title="Job Description & Duties *" height={113} value={values.description} onChange={(v) => update('description', v)} />
+                <BizRichText title="Requirements & Experience *" height={95} value={values.requirements} onChange={(v) => update('requirements', v)} />
+                <BizRichText title="Perks & Remuneration Package" height={75} value={values.perks} onChange={(v) => update('perks', v)} />
               </div>
             </AzCard>
           </div>
@@ -414,29 +376,24 @@ const AdzunaPostPage = () => {
               </div>
             </section>
           </aside>
-        </div>
-
-        <div className={styles.actionBar}>
-          <div className={styles.actionLeft}>
-            <button type="button" className={styles.barBtn} onClick={handleBack}>
-              Back
-            </button>
-            {draftSavedAt && <span className={styles.draftNote}>Draft saved at {draftSavedAt}</span>}
-          </div>
-          <div className={styles.actionRight}>
-            <button type="button" className={styles.barBtn} onClick={handleSaveDraft}>
-              Save Draft
-            </button>
-            <button type="button" className={styles.publishBtn}>
-              <SendIcon />
-              Publish to Adzuna
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <DittoFooter onBack={handleBack} />
-    </div>
+            </div>
+          </Box>
+          <footer className={footerStyles.footer}>
+            <div className={styles.footerContent}>
+              <div className={styles.actionLeft}>
+                {draftSavedAt && <span className={styles.draftNote}>Draft saved at {draftSavedAt}</span>}
+                <button type="button" className={footerStyles.cancelBtn} onClick={handleSaveDraft}>
+                  Save Draft
+                </button>
+              </div>
+              <button type="button" className={footerStyles.submitBtn}>
+                Publish to Adzuna
+              </button>
+            </div>
+          </footer>
+        </form>
+      </Box>
+    </Box>
   )
 }
 
