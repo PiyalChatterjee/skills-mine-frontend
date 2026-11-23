@@ -453,7 +453,7 @@ const BizCommunityPostPage = () => {
   const update = <K extends keyof BizFormValues>(key: K, value: BizFormValues[K]) =>
     setValues((prev) => ({ ...prev, [key]: value }))
 
-  const handleBack = () => navigate(ROUTE_PATHS.recruiterAdvertiseJob.replace(':mandateId', mandateId ?? ''))
+  const handleBack = () => navigate(-1)
   const heading = 'Bizcommunity'
 
   const isValid =

@@ -156,9 +156,7 @@ const CandidateProfilePage = () => {
     state.recruiterPipeline.mandates.find(m => m.id === cardId)
   )
 
-  const backToMandate = () => {
-    navigate(ROUTE_PATHS.recruiterMandate.replace(':cardId', cardId ?? ''))
-  }
+  const backToMandate = () => navigate(-1)
 
   const handleUploadDone = (file: File, docName: string) => {
     dispatch(addDocument({

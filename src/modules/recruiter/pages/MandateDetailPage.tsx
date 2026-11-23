@@ -129,15 +129,7 @@ const MandateDetailPage = () => {
       .finally(() => setLoadingMore(false))
   }
 
-  const goBack = () => {
-    if (visitorId) {
-      navigate(ROUTE_PATHS.recruiterVisitorDetail.replace(':visitorId', visitorId))
-    } else if (candidateId) {
-      navigate(ROUTE_PATHS.recruiterCandidateDetail.replace(':candidateId', candidateId))
-    } else {
-      navigate(ROUTE_PATHS.recruiterDashboard)
-    }
-  }
+  const goBack = () => navigate(-1)
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(window.location.href).then(() => {

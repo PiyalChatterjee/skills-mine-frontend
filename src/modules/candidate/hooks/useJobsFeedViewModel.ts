@@ -209,7 +209,7 @@ export const useJobsFeedViewModel = (mode: JobsFeedMode) => {
   };
 
   const handleBack = () => {
-    navigate(ROUTE_PATHS.candidateDashboard);
+    navigate(-1);
   };
 
   const handleViewJob = (job: JobsFeedJob) => {

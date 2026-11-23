@@ -563,7 +563,7 @@ const PnetPostPage = () => {
   const update = <K extends keyof PnetFormValues>(key: K, value: PnetFormValues[K]) =>
     setValues((prev) => ({ ...prev, [key]: value }))
 
-  const handleBack = () => navigate(ROUTE_PATHS.recruiterAdvertiseJob.replace(':mandateId', mandateId ?? ''))
+  const handleBack = () => navigate(-1)
   const heading = 'PNet'
 
   const isValid =

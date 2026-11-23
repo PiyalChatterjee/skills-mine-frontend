@@ -231,7 +231,7 @@ export const useJobDetailsViewModel = () => {
     experienceLevel,
     fillByDate: displayJob?.fillByDate ?? "",
     handleApply,
-    handleBack: () => navigate(backRoute),
+    handleBack: () => navigate(-1),
     handleBackToLatest: () => navigate(ROUTE_PATHS.latestJobs),
     handleApplySuccessClose: () => setIsApplySuccessModalOpen(false),
     handleApplySuccessDashboard: () => navigate(ROUTE_PATHS.candidateDashboard),

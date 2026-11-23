@@ -208,7 +208,7 @@ export const CandidateDetailScreen = () => {
     return () => { cancelled = true }
   }, [candidateId])
 
-  const goBack = () => navigate(ROUTE_PATHS.recruiterCandidates)
+  const goBack = () => navigate(-1)
 
   const handleLoadMoreApplications = () => {
     if (!candidateId || loadingMoreApplications) return

@@ -169,7 +169,7 @@ export const VisitorDetailScreen = () => {
     return () => { cancelled = true }
   }, [visitorId])
 
-  const goBack = () => navigate(ROUTE_PATHS.recruiterCandidates)
+  const goBack = () => navigate(-1)
 
   const handleLoadMoreApplications = () => {
     if (!visitorId || loadingMoreApplications) return
