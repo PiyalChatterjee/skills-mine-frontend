@@ -171,7 +171,7 @@ const toJobPost = (job: JobProfileSummary | JobProfile): JobPost => {
     industry: job.industry?.industryName ?? "",
     industries: job.industry ? [job.industry.industryName] : [],
     status: job.status,
-    priority: detail.priority === "NORMAL" ? "MEDIUM" : detail.priority ?? "NORMAL",
+    priority: detail.priority ?? "NORMAL",
     openDate: job.publishedAt ?? job.createdAt,
     targetCloseDate: job.fillByDate,
     salaryBand: detail.salaryMin != null && detail.salaryMax != null

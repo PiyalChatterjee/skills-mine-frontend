@@ -7,7 +7,7 @@ import { BasicInformationSection } from './BasicInformationSection'
 import { SalarySection } from './SalarySection'
 import { JobDescriptionSection } from './JobDescriptionSection'
 import { BulletTextareaSection } from './BulletTextareaSection'
-import { SkillsInput } from './SkillsInput'
+import { SkillsInput, MAX_SKILL_LENGTH } from './SkillsInput'
 import { IndustriesInput } from './IndustriesInput'
 import { StickyFooter } from './StickyFooter'
 import type { MandateFormValues } from './types'
@@ -95,7 +95,9 @@ export const mandateSchema = z
     requirements:         bulletTextField('Requirements are required'),
     responsibilities:     bulletTextField('Responsibilities are required'),
     benefits:             bulletTextField('Benefits are required'),
-    skills:               z.array(z.string()).min(1, 'At least one skill is required'),
+    skills:               z
+      .array(z.string().max(MAX_SKILL_LENGTH, `Each skill must not exceed ${MAX_SKILL_LENGTH} characters`))
+      .min(1, 'At least one skill is required'),
     industries:           z.array(z.string()).min(1, 'At least one industry is required').max(1, 'Only one industry may be added'),
     jobBoards:            z.array(z.string()),
   })
