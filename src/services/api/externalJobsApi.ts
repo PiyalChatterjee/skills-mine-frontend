@@ -306,6 +306,69 @@ export type PublishPnetJobRequest = {
   organisation_id?: string;
 };
 
+export type PnetPublishPayload = {
+  action?: string;
+  channel?: string;
+  listingtype?: string;
+  idFields?: PnetIdBasedFields;
+  jobdetails?: PnetJobDetails & {
+    jobtitle?: string;
+    salary?: PnetSalary;
+    joblocations?: PnetJobLocation[];
+    apply?: PnetApply;
+  };
+  categorization?: PnetCategorization;
+  companydetails?: PnetCompanyDetails;
+  reference_id?: string;
+  job_profile_id_ref?: string;
+  [key: string]: unknown;
+};
+
+export type PnetPublishRecord = {
+  publish_id: string;
+  job_profile_id_ref?: string;
+  reference_id?: string;
+  reference_number?: string;
+  listingid?: number | string | null;
+  listing_id?: number | string | null;
+  action?: string;
+  operation?: string;
+  status: string;
+  payload_json?: PnetPublishPayload | string | null;
+  channel?: string;
+  listingtype?: string;
+  job_title?: string;
+  jobtitle?: string;
+  city_name?: string;
+  city?: string;
+  countrycode?: string;
+  salary_minimum?: number;
+  salary_maximum?: number;
+  salary_currency?: string;
+  salary_period?: string;
+  contract_type?: string;
+  work_type?: string;
+  experience?: string;
+  job_url?: string;
+  url?: string;
+  error_detail?: string | null;
+  provider_message?: string | null;
+  published_by_user_id?: string;
+  created_at: string;
+  completed_at?: string | null;
+  jobdetails?: PnetJobDetails;
+  categorization?: PnetCategorization;
+  companydetails?: PnetCompanyDetails;
+  idFields?: PnetIdBasedFields;
+  [key: string]: unknown;
+};
+
+export type PnetPublishesParams = {
+  publish_id?: string;
+  job_profile_id_ref?: string;
+  listingid?: number;
+};
+
 // The BizCommunity webservice call is forwarded as XML and can be slower than
 // the default client timeout.
 const PUBLISH_TIMEOUT_MS = 30000;
@@ -349,6 +412,34 @@ export const externalJobsApi = {
         apiEndpoints.externalJobs.pnetPublish,
         body,
         { timeout: PUBLISH_TIMEOUT_MS },
+      ),
+    );
+  },
+  updatePnetJob(referenceId: string, body: PublishPnetJobRequest) {
+    return unwrapResponseData(
+      externalJobsApiClient.put<unknown>(
+        resolveEndpoint(apiEndpoints.externalJobs.pnetJobUpdate, {
+          referenceId,
+        }),
+        body,
+        { timeout: PUBLISH_TIMEOUT_MS },
+      ),
+    );
+  },
+  deletePnetJob(referenceId: string) {
+    return unwrapResponseData(
+      externalJobsApiClient.delete<unknown>(
+        resolveEndpoint(apiEndpoints.externalJobs.pnetJobDelete, {
+          referenceId,
+        }),
+      ),
+    );
+  },
+  getPnetPublishes(params?: PnetPublishesParams) {
+    return unwrapResponseData(
+      externalJobsApiClient.get<PnetPublishRecord[]>(
+        apiEndpoints.externalJobs.pnetPublishes,
+        { params },
       ),
     );
   },

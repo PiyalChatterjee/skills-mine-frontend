@@ -15,6 +15,8 @@ import {
   externalJobsApi,
   type BizCommunityListedJob,
   type BizCommunityPublishRecord,
+  type PnetPublishPayload,
+  type PnetPublishRecord,
 } from '@/services/api/externalJobsApi'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { ROUTE_PATHS } from '@/routes/routePaths'
@@ -104,6 +106,120 @@ const mapBizRecordToAdvertisedJob = (
   }
 }
 
+const parsePayloadJson = (payloadJson: unknown): PnetPublishPayload | undefined => {
+  if (!payloadJson) return undefined
+  if (typeof payloadJson === 'object') return payloadJson as PnetPublishPayload
+  if (typeof payloadJson === 'string') {
+    try {
+      return JSON.parse(payloadJson) as PnetPublishPayload
+    } catch {
+      return undefined
+    }
+  }
+  return undefined
+}
+
+const mapPnetRecordToAdvertisedJob = (
+  record: PnetPublishRecord,
+  pnetDetailsLookup?: Map<string, PnetPublishPayload>,
+): AdvertisedJob => {
+  const directPayload = parsePayloadJson(record.payload_json)
+  const fallbackPayload =
+    (record.job_profile_id_ref ? pnetDetailsLookup?.get(record.job_profile_id_ref) : undefined) ||
+    (record.reference_id ? pnetDetailsLookup?.get(record.reference_id) : undefined) ||
+    (record.listingid ? pnetDetailsLookup?.get(String(record.listingid)) : undefined)
+
+  const payload = directPayload?.jobdetails?.jobtitle ? directPayload : (fallbackPayload || directPayload)
+  const jobdetails = payload?.jobdetails || record.jobdetails
+  const categorization = payload?.categorization || record.categorization
+
+  const contractType =
+    record.contract_type ||
+    categorization?.contracttype?.[0] ||
+    record.work_type ||
+    'Permanent'
+
+  const salaryObj = jobdetails?.salary
+  let salary = 'Market Related'
+  const minVal = salaryObj?.minimum ?? record.salary_minimum
+  const maxVal = salaryObj?.maximum ?? record.salary_maximum
+  const currency = salaryObj?.currency ?? record.salary_currency ?? 'ZAR'
+  const period = salaryObj?.period ?? record.salary_period ?? 'pm'
+  const currSymbol = currency === 'ZAR' || currency === 'R' ? 'R' : `${currency} `
+  const periodLabel =
+    period.toLowerCase() === 'yearly' || period.toLowerCase() === 'annual'
+      ? 'pa'
+      : period.toLowerCase() === 'monthly'
+        ? 'pm'
+        : period
+
+  if (minVal || maxVal) {
+    const min = minVal ? `${currSymbol}${minVal.toLocaleString()}` : `${currSymbol}0`
+    const max = maxVal ? `${currSymbol}${maxVal.toLocaleString()}` : ''
+    salary = max ? `${min} - ${max} ${periodLabel}` : `${min} ${periodLabel}`
+  }
+
+  let posted = '—'
+  if (record.created_at) {
+    try {
+      const d = new Date(record.created_at)
+      if (!isNaN(d.getTime())) {
+        posted = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+      }
+    } catch {
+      posted = record.created_at
+    }
+  }
+
+  const isDelete =
+    record.operation?.toUpperCase() === 'DELETE' ||
+    directPayload?.action?.toUpperCase() === 'OFFLINE'
+
+  let status = 'Live'
+  if (isDelete) {
+    status = record.status === 'SUCCESS' ? 'Deleted' : (record.status || 'Deleted')
+  } else if (record.status === 'SUCCESS') {
+    status = 'Live'
+  } else if (record.status) {
+    status = record.status.charAt(0).toUpperCase() + record.status.slice(1).toLowerCase()
+  }
+
+  const listingId = record.listingid ?? record.listing_id
+  const reference = listingId
+    ? `PN-${listingId}`
+    : record.reference_number || record.reference_id || '—'
+
+  const title =
+    jobdetails?.jobtitle ||
+    record.job_title ||
+    record.jobtitle ||
+    (listingId ? `PNet Job (${reference})` : 'Untitled Job')
+
+  const location =
+    jobdetails?.joblocations?.[0]?.city ||
+    record.city_name ||
+    record.city ||
+    '—'
+
+  const jobUrl = jobdetails?.apply?.url || record.job_url || record.url
+
+  return {
+    id: record.publish_id,
+    title,
+    reference,
+    employmentType: contractType,
+    platform: 'pNet',
+    location,
+    salary,
+    posted,
+    status,
+    jobUrl,
+    jobProfileIdRef: record.job_profile_id_ref,
+    errorDetail: record.error_detail ?? undefined,
+    providerMessage: record.provider_message ?? undefined,
+  }
+}
+
 const AdvertisedJobsPage = () => {
   usePageTitle('Advertised Jobs')
   const navigate = useNavigate()
@@ -119,19 +235,24 @@ const AdvertisedJobsPage = () => {
   const [filter, setFilter] = useState<PlatformFilter>('All')
   const [bizPublishes, setBizPublishes] = useState<BizCommunityPublishRecord[]>([])
   const [bizListedJobs, setBizListedJobs] = useState<BizCommunityListedJob[]>([])
+  const [pnetPublishes, setPnetPublishes] = useState<PnetPublishRecord[]>([])
 
   const fetchJobsData = useCallback(async () => {
     try {
-      const [publishesRes, listedJobsRes] = await Promise.allSettled([
+      const [bizPublishesRes, listedJobsRes, pnetPublishesRes] = await Promise.allSettled([
         externalJobsApi.getBizCommunityPublishes(),
         externalJobsApi.getBizCommunityJobs(),
+        externalJobsApi.getPnetPublishes(),
       ])
 
-      if (publishesRes.status === 'fulfilled' && Array.isArray(publishesRes.value)) {
-        setBizPublishes(publishesRes.value)
+      if (bizPublishesRes.status === 'fulfilled' && Array.isArray(bizPublishesRes.value)) {
+        setBizPublishes(bizPublishesRes.value)
       }
       if (listedJobsRes.status === 'fulfilled' && Array.isArray(listedJobsRes.value)) {
         setBizListedJobs(listedJobsRes.value)
+      }
+      if (pnetPublishesRes.status === 'fulfilled' && Array.isArray(pnetPublishesRes.value)) {
+        setPnetPublishes(pnetPublishesRes.value)
       }
     } catch {
       // keep fallback
@@ -172,8 +293,31 @@ const AdvertisedJobsPage = () => {
     }
 
     const listedLookup: ListedJobsLookup = { byId, byRef }
-    return bizPublishes.map((record) => mapBizRecordToAdvertisedJob(record, listedLookup))
-  }, [bizPublishes, bizListedJobs])
+
+    // Build lookup for PNet records containing jobdetails to enrich DELETE/OFFLINE records
+    const pnetDetailsLookup = new Map<string, PnetPublishPayload>()
+    for (const record of pnetPublishes) {
+      const payload = parsePayloadJson(record.payload_json)
+      if (payload?.jobdetails?.jobtitle) {
+        if (record.job_profile_id_ref) pnetDetailsLookup.set(record.job_profile_id_ref, payload)
+        if (record.reference_id) pnetDetailsLookup.set(record.reference_id, payload)
+        if (record.listingid) pnetDetailsLookup.set(String(record.listingid), payload)
+      }
+    }
+
+    const bizJobs = bizPublishes.map((record) => ({
+      job: mapBizRecordToAdvertisedJob(record, listedLookup),
+      createdAt: record.created_at ? new Date(record.created_at).getTime() : 0,
+    }))
+    const pnetJobs = pnetPublishes.map((record) => ({
+      job: mapPnetRecordToAdvertisedJob(record, pnetDetailsLookup),
+      createdAt: record.created_at ? new Date(record.created_at).getTime() : 0,
+    }))
+
+    const combined = [...bizJobs, ...pnetJobs]
+    combined.sort((a, b) => b.createdAt - a.createdAt)
+    return combined.map((item) => item.job)
+  }, [bizPublishes, bizListedJobs, pnetPublishes])
 
   const hasNonFinalStatus = useMemo(
     () => allJobs.some((job) => !FINAL_STATUSES.includes(String(job.status).trim().toLowerCase())),
@@ -214,40 +358,93 @@ const AdvertisedJobsPage = () => {
           isEdit: true,
         },
       })
+    } else if (job.jobProfileIdRef && job.platform === 'pNet') {
+      const url = `${ROUTE_PATHS.recruiterAdvertisePnet.replace(':mandateId', job.jobProfileIdRef)}?isEdit=true`
+      navigate(url, {
+        state: {
+          isEdit: true,
+          referenceId: job.jobProfileIdRef,
+        },
+      })
     }
   }
 
   const handleDelete = async (job: AdvertisedJob) => {
-    if (!job.bizJobId) {
-      dispatch(
-        pushNotification({
-          level: 'error',
-          title: 'Delete failed',
-          message: 'BizCommunity Job ID is missing for this advert.',
-        }),
-      )
-      return
-    }
+    if (job.platform === 'bizCommunity') {
+      if (!job.bizJobId) {
+        dispatch(
+          pushNotification({
+            level: 'error',
+            title: 'Delete failed',
+            message: 'BizCommunity Job ID is missing for this advert.',
+          }),
+        )
+        return
+      }
 
-    try {
-      await externalJobsApi.deleteBizCommunityJob(job.bizJobId)
+      try {
+        await externalJobsApi.deleteBizCommunityJob(job.bizJobId)
+        dispatch(
+          pushNotification({
+            level: 'success',
+            title: 'Advert Deleted',
+            message: `Job advert "${job.title}" has been deleted from Bizcommunity.`,
+          }),
+        )
+        await fetchJobsData()
+      } catch (error) {
+        dispatch(
+          pushNotification({
+            level: 'error',
+            title: 'Delete Failed',
+            message: extractErrorMessage(
+              error,
+              'Failed to delete the job advert from Bizcommunity. Please try again.',
+            ),
+          }),
+        )
+      }
+    } else if (job.platform === 'pNet') {
+      const referenceId = job.jobProfileIdRef
+      if (!referenceId) {
+        dispatch(
+          pushNotification({
+            level: 'error',
+            title: 'Delete failed',
+            message: 'Reference ID is missing for this PNet advert.',
+          }),
+        )
+        return
+      }
+
+      try {
+        await externalJobsApi.deletePnetJob(referenceId)
+        dispatch(
+          pushNotification({
+            level: 'success',
+            title: 'Advert Deleted',
+            message: `Job advert "${job.title}" has been deleted from PNet.`,
+          }),
+        )
+        await fetchJobsData()
+      } catch (error) {
+        dispatch(
+          pushNotification({
+            level: 'error',
+            title: 'Delete Failed',
+            message: extractErrorMessage(
+              error,
+              'Failed to delete the job advert from PNet. Please try again.',
+            ),
+          }),
+        )
+      }
+    } else {
       dispatch(
         pushNotification({
-          level: 'success',
-          title: 'Advert Deleted',
-          message: `Job advert "${job.title}" has been deleted from Bizcommunity.`,
-        }),
-      )
-      await fetchJobsData()
-    } catch (error) {
-      dispatch(
-        pushNotification({
-          level: 'error',
-          title: 'Delete Failed',
-          message: extractErrorMessage(
-            error,
-            'Failed to delete the job advert from Bizcommunity. Please try again.',
-          ),
+          level: 'info',
+          title: 'Delete not supported',
+          message: `Deleting job adverts directly from ${job.platform} is not currently supported.`,
         }),
       )
     }
