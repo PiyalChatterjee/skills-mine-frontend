@@ -153,6 +153,12 @@ export const apiEndpoints = {
     bizCommunityJobs: "/external-jobs/bizcommunity/jobs",
     bizCommunityJobUpdate: "/external-jobs/bizcommunity/jobs/:bizJobId",
     bizCommunityJobDelete: "/external-jobs/bizcommunity/jobs/:bizJobId",
+    adzunaPrefill: "/external-jobs/publish/adzuna/prefill",
+    adzunaPublish: "/external-jobs/publish/adzuna",
+    adzunaPublishes: "/external-jobs/adzuna/publishes",
+    adzunaJobPublishes: "/external-jobs/adzuna/job-publish",
+    adzunaJobUpdate: "/external-jobs/adzuna/jobs/:jobId",
+    adzunaJobDelete: "/external-jobs/adzuna/jobs/:jobId",
   },
   crm: {
     clients: "/crm/clients",
