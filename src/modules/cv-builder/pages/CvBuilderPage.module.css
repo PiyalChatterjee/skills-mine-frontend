@@ -2165,8 +2165,7 @@
   }
 }
 
-/* ── Mobile (600px) ───────────────────────────────────────────────────── */
-@media (max-width: 600px) {
+@media (max-width: 1439px) {
   .heroJobSection.heroJobSection {
     height: auto;
     min-height: 200px;
@@ -2192,7 +2191,10 @@
     position: static;
     flex-shrink: 0;
   }
+}
 
+/* ── Mobile (600px) ───────────────────────────────────────────────────── */
+@media (max-width: 600px) {
   .heroSection {
     height: 180px;
   }

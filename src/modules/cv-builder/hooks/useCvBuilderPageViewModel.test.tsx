@@ -4,6 +4,7 @@ import { useCvBuilderPageViewModel } from "./useCvBuilderPageViewModel";
 
 const mocks = vi.hoisted(() => ({
   getGuestApplicationDrafts: vi.fn(),
+  goBack: vi.fn(),
   parseResume: vi.fn(),
   handleDone: vi.fn(),
   handleUploadFileSelect: vi.fn(),
@@ -164,7 +165,7 @@ describe("useCvBuilderPageViewModel", () => {
       openUploadPicker: mocks.openUploadPicker,
       openBuildFlow: mocks.openBuildFlow,
       openReviewFlowBlank: mocks.openReviewFlowBlank,
-      goBack: vi.fn(),
+      goBack: mocks.goBack,
     });
     mocks.useCvBuilderDone.mockReturnValue({
       handleDone: mocks.handleDone,
@@ -390,7 +391,56 @@ describe("useCvBuilderPageViewModel", () => {
       result.current.heroBackHandler?.();
     });
 
-    expect(mocks.navigate).toHaveBeenCalledWith("/jobs/job-1");
+    expect(mocks.navigate).toHaveBeenCalledWith(-1);
+    expect(mocks.goBack).not.toHaveBeenCalled();
+  });
+
+  it.each(["build", "upload"])(
+    "returns guest %s review to the CV Builder landing screen before leaving the page",
+    (reviewSource) => {
+      mocks.useAuth.mockReturnValue({ user: undefined });
+      mocks.useLocation.mockReturnValue({ search: "?job=job-1", state: null });
+      mocks.getGuestApplicationDrafts.mockReturnValue([
+        {
+          jobId: "job-1",
+          jobTitle: "Frontend Engineer",
+          applicationStatus: "pending-authentication",
+          job: { jobId: "job-1", title: "Frontend Engineer" },
+        },
+      ]);
+      mocks.useCvBuilder.mockReturnValue({
+        ...mocks.useCvBuilder(),
+        activeView: "review",
+        reviewSource,
+      });
+
+      const { result } = renderHook(() => useCvBuilderPageViewModel());
+
+      act(() => {
+        result.current.heroBackHandler?.();
+      });
+
+      expect(mocks.goBack).toHaveBeenCalledOnce();
+      expect(mocks.navigate).not.toHaveBeenCalled();
+    },
+  );
+
+  it("preserves authenticated review back navigation and hides Back on its landing screen", () => {
+    const { result, rerender } = renderHook(() => useCvBuilderPageViewModel());
+    expect(result.current.heroBackHandler).toBeUndefined();
+
+    mocks.useCvBuilder.mockReturnValue({
+      ...mocks.useCvBuilder(),
+      activeView: "review",
+    });
+    rerender();
+
+    act(() => {
+      result.current.heroBackHandler?.();
+    });
+
+    expect(mocks.goBack).toHaveBeenCalledOnce();
+    expect(mocks.navigate).not.toHaveBeenCalled();
   });
 
   it("uploads a resume and opens review with only the parsed CV data", async () => {

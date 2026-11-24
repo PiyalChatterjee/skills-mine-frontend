@@ -13,7 +13,6 @@ import {
   useCandidateResourceId,
 } from "@/modules/candidate/hooks/useCandidateQueries";
 import { getGuestApplicationDrafts } from "@/modules/candidate/utils/guestApplicationDraft";
-import { ROUTE_PATHS } from "@/routes/routePaths";
 import { documentApi } from "@/services/api/documentApi";
 import { useUploadDocumentMutation } from "@/store/api/apiSlice";
 import {
@@ -337,16 +336,10 @@ export const useCvBuilderPageViewModel = () => {
     [openBuildFlow, isBuildMyCvLoading],
   );
 
-  const heroBackHandler = isGuestApplication
-    ? () =>
-        navigate(
-          ROUTE_PATHS.jobDetails.replace(
-            ":jobId",
-            guestApplicationDraft!.jobId,
-          ),
-        )
-    : activeView === "review"
-      ? goBack
+  const heroBackHandler = activeView === "review"
+    ? goBack
+    : isGuestApplication
+      ? () => navigate(-1)
       : undefined;
 
   const heroHeading = isGuestApplication
