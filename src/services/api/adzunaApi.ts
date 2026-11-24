@@ -1,27 +1,30 @@
 import { externalJobsApiClient, unwrapResponseData } from "@/services/api/axios";
 import { apiEndpoints, resolveEndpoint } from "@/services/api/endpoints";
 
+export type AdzunaJobLocation = {
+  city?: string;
+  state?: string;
+  country: string;
+};
+
 export type AdzunaPrefill = {
-  job_title?: string;
-  job_description?: string;
-  location?: string;
+  id?: string;
+  title?: string;
+  description?: string;
+  url?: string;
+  location?: AdzunaJobLocation;
+  country?: string;
+  remote?: number;
+  company?: string;
+  category?: number;
   salary_min?: number;
   salary_max?: number;
   salary_currency?: string;
-  contract_type?: string;
-  contract_time?: string;
-  skills?: string[];
-  company_name?: string;
-  company_description?: string;
-  benefits?: string;
-  job_type?: string;
-  experience_level?: string;
-  education_level?: string;
-  remote_work?: boolean;
-  contact_name?: string;
-  contact_email?: string;
-  contact_phone?: string;
-  reference_number?: string;
+  salary_frequency?: "hour" | "day" | "month" | "year";
+  contract_type?: "permanent" | "contract";
+  contract_time?: "full_time" | "part_time";
+  date?: string;
+  job_profile_id_ref?: string;
 };
 
 export type AdzunaPrefillResponse = {
@@ -31,17 +34,26 @@ export type AdzunaPrefillResponse = {
   prefill: AdzunaPrefill;
 };
 
-export type PublishAdzunaJobRequest = AdzunaPrefill & {
-  job_title: string;
-  job_description: string;
-  location: string;
-  company_name: string;
-  contact_email: string;
-  job_profile_id_ref: string;
-  response_handler_url?: string;
-  expiry_date?: string;
-  job_id?: string;
+export type PublishAdzunaJobRequest = Omit<
+  AdzunaPrefill,
+  "id" | "title" | "description" | "url" | "location" | "country"
+> & {
+  id: string;
+  title: string;
+  description: string;
+  url: string;
+  location: AdzunaJobLocation;
+  country: string;
 };
+
+export type AdzunaPublishResult = {
+  job_id: string;
+  message: string;
+  status: string;
+};
+
+export type AdzunaUpdateResult = AdzunaPublishResult;
+export type AdzunaDeleteResult = AdzunaPublishResult;
 
 export type AdzunaPublishRecord = {
   publish_id: string;
@@ -77,21 +89,13 @@ export type AdzunaPublishRecord = {
   completed_at?: string | null;
 };
 
-export type AdzunaJobPublishRecord = {
+export type AdzunaJobJsonRecord = {
+  publish_id: string;
   job_id: string;
-  job_title: string;
-  location: string;
-  company_name: string;
-  salary_min?: number;
-  salary_max?: number;
-  contract_type?: string;
-  contract_time?: string;
-  status: string;
-  job_url?: string;
-  created_date?: string;
-  expiry_date?: string;
-  reference_number?: string;
-  job_description?: string;
+  is_active: boolean;
+  job_data: AdzunaPrefill;
+  created_at: string;
+  updated_at: string;
 };
 
 export type AdzunaPublishesParams = {
@@ -100,7 +104,7 @@ export type AdzunaPublishesParams = {
   adzuna_job_id?: string;
 };
 
-export type UpdateAdzunaJobRequest = Partial<PublishAdzunaJobRequest>;
+export type UpdateAdzunaJobRequest = PublishAdzunaJobRequest;
 
 // Adzuna API calls can be slower due to external service integration
 const ADZUNA_TIMEOUT_MS = 30000;
@@ -123,7 +127,7 @@ export const adzunaApi = {
    */
   publishToAdzuna(body: PublishAdzunaJobRequest) {
     return unwrapResponseData(
-      externalJobsApiClient.post<unknown>(
+      externalJobsApiClient.post<AdzunaPublishResult>(
         apiEndpoints.externalJobs.adzunaPublish,
         body,
         { timeout: ADZUNA_TIMEOUT_MS },
@@ -136,7 +140,7 @@ export const adzunaApi = {
    */
   getAdzunaJobsAsJson() {
     return unwrapResponseData(
-      externalJobsApiClient.get<AdzunaJobPublishRecord[]>(
+      externalJobsApiClient.get<AdzunaJobJsonRecord[]>(
         apiEndpoints.externalJobs.adzunaPublishes,
       ),
     );
@@ -147,7 +151,7 @@ export const adzunaApi = {
    */
   updateAdzunaJob(jobId: string, body: UpdateAdzunaJobRequest) {
     return unwrapResponseData(
-      externalJobsApiClient.put<unknown>(
+      externalJobsApiClient.put<AdzunaUpdateResult>(
         resolveEndpoint(apiEndpoints.externalJobs.adzunaJobUpdate, { jobId }),
         body,
         { timeout: ADZUNA_TIMEOUT_MS },
@@ -160,7 +164,7 @@ export const adzunaApi = {
    */
   deleteAdzunaJob(jobId: string) {
     return unwrapResponseData(
-      externalJobsApiClient.delete<unknown>(
+      externalJobsApiClient.delete<AdzunaDeleteResult>(
         resolveEndpoint(apiEndpoints.externalJobs.adzunaJobDelete, { jobId }),
       ),
     );

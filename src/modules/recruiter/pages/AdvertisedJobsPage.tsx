@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { Box, ButtonBase } from '@mui/material'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { extractErrorMessage } from '@/app/errorUtils'
 import { pushNotification } from '@/store/slices/notificationSlice'
 import { RecruiterSidebar } from '@/modules/recruiter/components/RecruiterSidebar'
@@ -18,6 +18,8 @@ import {
   type PnetPublishPayload,
   type PnetPublishRecord,
 } from '@/services/api/externalJobsApi'
+import { adzunaApi, type AdzunaJobJsonRecord } from '@/services/api/adzunaApi'
+import { mapAdzunaRecordToAdvertisedJob } from './adzunaJobsMapper'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { ROUTE_PATHS } from '@/routes/routePaths'
 import styles from './AdvertisedJobsPage.module.css'
@@ -30,13 +32,6 @@ const STATUS_POLL_INTERVAL_MS = 60_000
 const BackArrowIcon = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
     <path d="M19 12H5M5 12l7-7M5 12l7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-)
-
-const CheckCircleIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <circle cx="8" cy="8" r="6.6" />
-    <path d="M5.2 8.2l2 2 3.6-4" />
   </svg>
 )
 
@@ -224,40 +219,40 @@ const AdvertisedJobsPage = () => {
   usePageTitle('Advertised Jobs')
   const navigate = useNavigate()
   const dispatch = useDispatch()
-  const location = useLocation()
-  const locationState = location.state as { platformName?: string; bannerMessage?: string } | null
-  const bannerText =
-    locationState?.bannerMessage ||
-    (locationState?.platformName
-      ? `Job successfully posted to ${locationState.platformName}.`
-      : null)
 
   const [filter, setFilter] = useState<PlatformFilter>('All')
   const [bizPublishes, setBizPublishes] = useState<BizCommunityPublishRecord[]>([])
   const [bizListedJobs, setBizListedJobs] = useState<BizCommunityListedJob[]>([])
   const [pnetPublishes, setPnetPublishes] = useState<PnetPublishRecord[]>([])
+  const [adzunaPublishes, setAdzunaPublishes] = useState<AdzunaJobJsonRecord[]>([])
 
   const fetchJobsData = useCallback(async () => {
-    try {
-      const [bizPublishesRes, listedJobsRes, pnetPublishesRes] = await Promise.allSettled([
-        externalJobsApi.getBizCommunityPublishes(),
-        externalJobsApi.getBizCommunityJobs(),
-        externalJobsApi.getPnetPublishes(),
-      ])
+    const [bizPublishesRes, listedJobsRes, pnetPublishesRes, adzunaPublishesRes] = await Promise.allSettled([
+      externalJobsApi.getBizCommunityPublishes(),
+      externalJobsApi.getBizCommunityJobs(),
+      externalJobsApi.getPnetPublishes(),
+      adzunaApi.getAdzunaJobsAsJson(),
+    ])
 
-      if (bizPublishesRes.status === 'fulfilled' && Array.isArray(bizPublishesRes.value)) {
-        setBizPublishes(bizPublishesRes.value)
-      }
-      if (listedJobsRes.status === 'fulfilled' && Array.isArray(listedJobsRes.value)) {
-        setBizListedJobs(listedJobsRes.value)
-      }
-      if (pnetPublishesRes.status === 'fulfilled' && Array.isArray(pnetPublishesRes.value)) {
-        setPnetPublishes(pnetPublishesRes.value)
-      }
-    } catch {
-      // keep fallback
+    if (bizPublishesRes.status === 'fulfilled' && Array.isArray(bizPublishesRes.value)) {
+      setBizPublishes(bizPublishesRes.value)
     }
-  }, [])
+    if (listedJobsRes.status === 'fulfilled' && Array.isArray(listedJobsRes.value)) {
+      setBizListedJobs(listedJobsRes.value)
+    }
+    if (pnetPublishesRes.status === 'fulfilled' && Array.isArray(pnetPublishesRes.value)) {
+      setPnetPublishes(pnetPublishesRes.value)
+    }
+    if (adzunaPublishesRes.status === 'fulfilled' && Array.isArray(adzunaPublishesRes.value)) {
+      setAdzunaPublishes(adzunaPublishesRes.value)
+    } else if (adzunaPublishesRes.status === 'rejected') {
+      dispatch(pushNotification({
+        level: 'error',
+        title: 'Unable to load Adzuna adverts',
+        message: extractErrorMessage(adzunaPublishesRes.reason, 'Could not load Adzuna published jobs.'),
+      }))
+    }
+  }, [dispatch])
 
   const fetchListedJobs = useCallback(async () => {
     try {
@@ -313,11 +308,15 @@ const AdvertisedJobsPage = () => {
       job: mapPnetRecordToAdvertisedJob(record, pnetDetailsLookup),
       createdAt: record.created_at ? new Date(record.created_at).getTime() : 0,
     }))
+    const adzunaJobs = adzunaPublishes.map((record) => ({
+      job: mapAdzunaRecordToAdvertisedJob(record),
+      createdAt: record.created_at ? new Date(record.created_at).getTime() : 0,
+    }))
 
-    const combined = [...bizJobs, ...pnetJobs]
+    const combined = [...bizJobs, ...pnetJobs, ...adzunaJobs]
     combined.sort((a, b) => b.createdAt - a.createdAt)
     return combined.map((item) => item.job)
-  }, [bizPublishes, bizListedJobs, pnetPublishes])
+  }, [adzunaPublishes, bizPublishes, bizListedJobs, pnetPublishes])
 
   const hasNonFinalStatus = useMemo(
     () => allJobs.some((job) => !FINAL_STATUSES.includes(String(job.status).trim().toLowerCase())),
@@ -365,6 +364,20 @@ const AdvertisedJobsPage = () => {
           isEdit: true,
           referenceId: job.jobProfileIdRef,
         },
+      })
+    } else if (job.platform === 'Adzuna') {
+      if (!job.jobProfileIdRef || !job.adzunaJobId) {
+        dispatch(pushNotification({
+          level: 'error',
+          title: 'Edit unavailable',
+          message: 'The Adzuna job profile reference is missing for this advert.',
+        }))
+        return
+      }
+
+      const url = `${ROUTE_PATHS.recruiterAdvertiseAdzuna.replace(':mandateId', job.jobProfileIdRef)}?adzunaJobId=${encodeURIComponent(job.adzunaJobId)}`
+      navigate(url, {
+        state: { adzunaJobId: job.adzunaJobId },
       })
     }
   }
@@ -439,6 +452,31 @@ const AdvertisedJobsPage = () => {
           }),
         )
       }
+    } else if (job.platform === 'Adzuna') {
+      if (!job.adzunaJobId) {
+        dispatch(pushNotification({
+          level: 'error',
+          title: 'Delete failed',
+          message: 'The Adzuna job ID is missing for this advert.',
+        }))
+        return
+      }
+
+      try {
+        await adzunaApi.deleteAdzunaJob(job.adzunaJobId)
+        dispatch(pushNotification({
+          level: 'success',
+          title: 'Advert Deactivated',
+          message: `Job advert "${job.title}" has been deactivated on Adzuna.`,
+        }))
+        await fetchJobsData()
+      } catch (error) {
+        dispatch(pushNotification({
+          level: 'error',
+          title: 'Delete failed',
+          message: extractErrorMessage(error, 'Could not deactivate the job on Adzuna. Please try again.'),
+        }))
+      }
     } else {
       dispatch(
         pushNotification({
@@ -467,13 +505,6 @@ const AdvertisedJobsPage = () => {
             <p className={styles.subtitle}>Every job advert posted to external platforms</p>
           </div>
         </div>
-
-        {bannerText && (
-          <div className={styles.banner} role="status">
-            <CheckCircleIcon />
-            {bannerText}
-          </div>
-        )}
 
         <div className={styles.filtersRow}>
           <div className={styles.pills}>

@@ -173,7 +173,10 @@ export const AdvertisedJobsTable = ({ jobs, onEdit, onDelete }: AdvertisedJobsTa
         <DialogContent>
           <DialogContentText id="confirm-delete-advert-desc" className={styles.confirmDialogBody}>
             Are you sure you want to delete the job advertisement for{' '}
-            <strong>"{pendingDeleteJob?.title}"</strong> on {pendingDeleteJob?.platform}? This action is permanent and will remove the advertisement from the live site immediately.
+            <strong>"{pendingDeleteJob?.title}"</strong> on {pendingDeleteJob?.platform}?{' '}
+            {pendingDeleteJob?.platform === 'Adzuna'
+              ? 'This will deactivate the advertisement on Adzuna.'
+              : 'This action is permanent and will remove the advertisement from the live site immediately.'}
           </DialogContentText>
         </DialogContent>
         <DialogActions className={styles.confirmDialogActions}>

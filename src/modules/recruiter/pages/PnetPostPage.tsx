@@ -754,12 +754,7 @@ const PnetPostPage = () => {
             message: `"${values.jobTitle}" has been updated on PNet.`,
           }),
         )
-        navigate(ROUTE_PATHS.recruiterAdvertisedJobs, {
-          state: {
-            platformName: 'PNet',
-            bannerMessage: `Job "${values.jobTitle}" successfully updated on PNet.`,
-          },
-        })
+        navigate(ROUTE_PATHS.recruiterAdvertisedJobs)
       } else {
         const payload = buildPublishRequest(values, prefill, pnetFields, mandateId, 'INSERT')
         await externalJobsApi.publishToPnet(payload)
@@ -770,12 +765,7 @@ const PnetPostPage = () => {
             message: `"${values.jobTitle}" has been published to PNet.`,
           }),
         )
-        navigate(ROUTE_PATHS.recruiterAdvertisedJobs, {
-          state: {
-            platformName: 'PNet',
-            bannerMessage: `Job "${values.jobTitle}" successfully published to PNet.`,
-          },
-        })
+        navigate(ROUTE_PATHS.recruiterAdvertisedJobs)
       }
     } catch (error) {
       dispatch(

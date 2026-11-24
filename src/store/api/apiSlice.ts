@@ -19,8 +19,11 @@ import type {
 } from "@/services/api/mancoApi";
 import type {
   AdzunaPrefillResponse,
+  AdzunaPublishResult,
+  AdzunaUpdateResult,
+  AdzunaDeleteResult,
   AdzunaPublishRecord,
-  AdzunaJobPublishRecord,
+  AdzunaJobJsonRecord,
   PublishAdzunaJobRequest,
   UpdateAdzunaJobRequest,
   AdzunaPublishesParams,
@@ -442,19 +445,19 @@ export const apiSlice = createApi({
         { type: "AdzunaPublishes", id: jobProfileId },
       ],
     }),
-    publishToAdzuna: build.mutation<unknown, PublishAdzunaJobRequest>({
+    publishToAdzuna: build.mutation<AdzunaPublishResult, PublishAdzunaJobRequest>({
       queryFn: (payload) =>
         withMappedApiError(() => adzunaApi.publishToAdzuna(payload)),
       invalidatesTags: (_result, error) =>
         error ? [] : ["AdzunaPublishes", "AdzunaJobs"],
     }),
-    getAdzunaJobsAsJson: build.query<AdzunaJobPublishRecord[], void>({
+    getAdzunaJobsAsJson: build.query<AdzunaJobJsonRecord[], void>({
       queryFn: () =>
         withMappedApiError(() => adzunaApi.getAdzunaJobsAsJson()),
       providesTags: ["AdzunaJobs"],
     }),
     updateAdzunaJob: build.mutation<
-      unknown,
+      AdzunaUpdateResult,
       { jobId: string; payload: UpdateAdzunaJobRequest }
     >({
       queryFn: ({ jobId, payload }) =>
@@ -462,7 +465,7 @@ export const apiSlice = createApi({
       invalidatesTags: (_result, error) =>
         error ? [] : ["AdzunaJobs", "AdzunaPublishes"],
     }),
-    deleteAdzunaJob: build.mutation<unknown, string>({
+    deleteAdzunaJob: build.mutation<AdzunaDeleteResult, string>({
       queryFn: (jobId) =>
         withMappedApiError(() => adzunaApi.deleteAdzunaJob(jobId)),
       invalidatesTags: (_result, error) =>
