@@ -33,6 +33,7 @@ import { usePageTitle } from '@/hooks/usePageTitle'
 import {
   applyAdzunaPrefill,
   buildAdzunaPublishRequest,
+  getAdzunaCategoryWarning,
   initialAdzunaFormValues,
   toAdzunaFormValues,
   type AdzunaFormValues,
@@ -125,11 +126,15 @@ const AdzunaPostPage = () => {
           setPrefill(prefillResult.value.prefill)
           const prefilledValues = applyAdzunaPrefill(baseValues, prefillResult.value)
           setValues(prefilledValues)
+          const categoryWarning = getAdzunaCategoryWarning(prefillResult.value.prefill.category, prefilledValues.category)
           const notices = [
             ...prefillResult.value.warnings.filter((warning) =>
               !prefilledValues.companyName.trim() || !/^company is not set\b/i.test(warning),
             ),
-            ...prefillResult.value.missing_fields.map((field) => `Missing required field: ${field}`),
+            ...prefillResult.value.missing_fields
+              .filter((field) => field !== 'category' || !prefilledValues.category)
+              .map((field) => `Missing required field: ${field}`),
+            ...(categoryWarning ? [categoryWarning] : []),
           ]
           if (notices.length > 0) {
             dispatch(pushNotification({
@@ -179,7 +184,7 @@ const AdzunaPostPage = () => {
     const missingFields = [
       !values.jobTitle.trim() && 'Job Title',
       !values.jobLocation.trim() && 'Job Location',
-      !values.category.trim() && 'Adzuna Category',
+      !ADZUNA_CATEGORIES.some(({ label }) => label === values.category) && 'Adzuna Category',
       !values.description.trim() && 'Job Description',
       !values.requirements.trim() && 'Requirements & Experience',
       !values.recruiterEmail.trim() && 'Recruiter Email',
@@ -269,8 +274,14 @@ const AdzunaPostPage = () => {
                       <AzInput className={styles.withIcon} value={values.jobLocation} onChange={(e) => update('jobLocation', e.target.value)} />
                     </span>
                   </AzField>
-                  <AzField label="Adzuna Category" required>
-                    <AzSelect ariaLabel="Adzuna Category" value={values.category} options={ADZUNA_CATEGORIES} onChange={(v) => update('category', v)} />
+                  <AzField
+                    label="Adzuna Category"
+                    required
+                    hint={prefill.category === 0 && values.category
+                      ? 'Adzuna returned an unsupported category. Please review the selected category.'
+                      : undefined}
+                  >
+                    <AzSelect ariaLabel="Adzuna Category" value={values.category} options={ADZUNA_CATEGORIES.map(({ label }) => label)} onChange={(v) => update('category', v)} />
                   </AzField>
                 </div>
 

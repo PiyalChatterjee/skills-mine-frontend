@@ -34,7 +34,7 @@ export type AdzunaFormValues = {
 export const initialAdzunaFormValues: AdzunaFormValues = {
   jobTitle: '',
   jobLocation: '',
-  category: ADZUNA_CATEGORIES[0],
+  category: '',
   workField: '',
   contractTypes: [],
   employmentType: '',
@@ -108,10 +108,36 @@ const contractTimeValues: Record<string, NonNullable<AdzunaPrefill['contract_tim
 const formatLocation = (location: AdzunaPrefill['location']) =>
   [location?.city, location?.state].filter(Boolean).join(', ')
 
+const industryCategoryIds: Record<string, number> = {
+  technology: 2,
+  banking: 1,
+  healthcare: 7,
+  education: 11,
+  retail: 17,
+  manufacturing: 19,
+  'logistics & supply chain': 10,
+  consulting: 18,
+  legal: 14,
+}
+
+const categoryFromIndustry = (industry: string) => {
+  const categoryId = industryCategoryIds[industry.trim().toLowerCase()] ?? 29
+  const category = ADZUNA_CATEGORIES.find(({ id }) => id === categoryId)
+  if (!category) throw new Error(`Unsupported Adzuna category ID: ${categoryId}.`)
+  return category.label
+}
+
+export const getAdzunaCategoryWarning = (categoryId: number | undefined, selectedCategory: string) => {
+  if (categoryId == null || ADZUNA_CATEGORIES.some(({ id }) => id === categoryId)) return undefined
+  if (categoryId === 0 && selectedCategory) return undefined
+  return `Unsupported Adzuna category ID: ${categoryId}. ${selectedCategory ? `Using ${selectedCategory}; please review.` : 'Select a valid category.'}`
+}
+
 export const toAdzunaFormValues = (post: JobPost): AdzunaFormValues => ({
   ...initialAdzunaFormValues,
   jobTitle: post.title ?? '',
   jobLocation: post.location ?? '',
+  category: categoryFromIndustry(post.industry ?? ''),
   contractTypes: post.employmentType ? [post.employmentType] : [],
   employmentType: post.employmentType ?? '',
   workingModel: post.workType ?? '',
@@ -136,7 +162,9 @@ export const applyAdzunaPrefill = (
   if (prefill.title) next.jobTitle = prefill.title
   if (prefill.description) next.description = prefill.description
   if (prefill.location) next.jobLocation = formatLocation(prefill.location)
-  if (prefill.category === 2) next.category = 'IT & Software'
+  if (prefill.category != null) {
+    next.category = ADZUNA_CATEGORIES.find(({ id }) => id === prefill.category)?.label ?? base.category
+  }
   if (prefill.contract_type) next.contractTypes = [contractTypeLabels[prefill.contract_type]]
   if (prefill.contract_time) next.employmentType = contractTimeLabels[prefill.contract_time]
   if (prefill.salary_min != null) next.minSalary = formatRand(prefill.salary_min)
@@ -187,6 +215,8 @@ export const buildAdzunaPublishRequest = (
   jobProfileUrl: string,
   adzunaJobId?: string,
 ): PublishAdzunaJobRequest => {
+  const category = ADZUNA_CATEGORIES.find(({ label }) => label === values.category)
+  if (!category) throw new Error('Select a valid Adzuna category.')
   const includeSalary = values.salaryDisplay !== 'hide'
   const frequency = ADZUNA_SALARY_FREQUENCIES.includes(values.frequency)
     ? salaryFrequencyValues[values.frequency]
@@ -202,7 +232,7 @@ export const buildAdzunaPublishRequest = (
     country: prefill.country ?? 'ZA',
     job_profile_id_ref: prefill.job_profile_id_ref ?? jobProfileId,
     company: values.companyName.trim() || prefill.company || undefined,
-    category: values.category === 'IT & Software' ? 2 : undefined,
+    category: category.id,
     contract_type: values.contractTypes
       .map((type) => contractTypeValues[type])
       .find((type) => type !== undefined),

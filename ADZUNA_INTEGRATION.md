@@ -71,6 +71,11 @@ useListAdzunaPublishesQuery
 ```
 
 **PublishAdzunaJobRequest:**
+
+The Adzuna form sends `category` as a numeric ID (1–29), not its display label.
+It uses a supported Adzuna prefill category first; otherwise, it maps recognized job
+industries or defaults to Other/General Jobs (29). Recruiters can change the selection.
+
 ```typescript
 {
   job_title: string
