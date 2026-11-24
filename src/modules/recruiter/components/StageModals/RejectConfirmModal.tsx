@@ -49,7 +49,7 @@ const RejectConfirmModal = ({
   company,
   applicationId,
   jobId,
-  dueDate = 'Jan 20, 2026',
+  dueDate,
   onClose,
   onRejected,
 }: RejectConfirmModalProps) => {
@@ -101,12 +101,14 @@ const RejectConfirmModal = ({
           <Typography component="p" className={styles.jobInfo}>
             {candidateTitle}, {company}
           </Typography>
-          <Box className={styles.dueDateRow}>
-            <CalendarIcon />
-            <Typography component="span" className={styles.dueDate}>
-              Due {dueDate}
-            </Typography>
-          </Box>
+          {dueDate && (
+            <Box className={styles.dueDateRow}>
+              <CalendarIcon />
+              <Typography component="span" className={styles.dueDate}>
+                Due {dueDate}
+              </Typography>
+            </Box>
+          )}
 
           {/* ── Rejected status pill ── */}
           <Box className={styles.rejectedPill}>

@@ -14,6 +14,7 @@ export type AdvertisedJob = {
   status: AdvertisedJobStatus
   jobUrl?: string
   bizJobId?: string
+  harambeeOpportunityId?: string
   jobProfileIdRef?: string
   errorDetail?: string
   providerMessage?: string

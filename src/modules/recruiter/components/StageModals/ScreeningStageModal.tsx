@@ -47,7 +47,7 @@ const ScreeningStageModal = ({
   applicationId,
   jobId,
   matchScoreLatest,
-  dueDate = 'Jan 20, 2026',
+  dueDate,
   isRejected = false,
   isMoveLocked = false,
   onClose,
@@ -132,12 +132,14 @@ const ScreeningStageModal = ({
           </Typography>
 
           {/* ── Due date ── */}
-          <Box className={styles.dueDateRow}>
-            <CalendarIcon />
-            <Typography component="span" className={styles.dueDate}>
-              Due {dueDate}
-            </Typography>
-          </Box>
+          {dueDate && (
+            <Box className={styles.dueDateRow}>
+              <CalendarIcon />
+              <Typography component="span" className={styles.dueDate}>
+                Due {dueDate}
+              </Typography>
+            </Box>
+          )}
 
           {/* ── Suitability note ── */}
           <Typography component="p" className={styles.suitabilityNote}>

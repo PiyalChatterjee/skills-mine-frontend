@@ -47,7 +47,7 @@ const ClosedStageModal = ({
   candidateName,
   candidateTitle,
   company,
-  dueDate = 'Jan 20, 2026',
+  dueDate,
   isUnsuccessful = false,
   onClose,
 }: ClosedStageModalProps) => {
@@ -87,12 +87,14 @@ const ClosedStageModal = ({
           </Typography>
 
           {/* ── Due date ── */}
-          <Box className={styles.dueDateRow}>
-            <CalendarIcon />
-            <Typography component="span" className={styles.dueDate}>
-              Due {dueDate}
-            </Typography>
-          </Box>
+          {dueDate && (
+            <Box className={styles.dueDateRow}>
+              <CalendarIcon />
+              <Typography component="span" className={styles.dueDate}>
+                Due {dueDate}
+              </Typography>
+            </Box>
+          )}
 
           {/* ── Placement info card ── */}
           <Box className={`${styles.infoCard} ${isUnsuccessful ? styles.infoCardUnsuccessful : ''}`}>

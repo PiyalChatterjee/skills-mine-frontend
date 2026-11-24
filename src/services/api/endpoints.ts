@@ -153,6 +153,11 @@ export const apiEndpoints = {
     bizCommunityJobs: "/external-jobs/bizcommunity/jobs",
     bizCommunityJobUpdate: "/external-jobs/bizcommunity/jobs/:bizJobId",
     bizCommunityJobDelete: "/external-jobs/bizcommunity/jobs/:bizJobId",
+    harambeePrefill: "/external-jobs/publish/harambee/prefill",
+    harambeePublish: "/external-jobs/publish/harambee",
+    harambeePublishes: "/external-jobs/harambee/publishes",
+    harambeeJobUpdate: "/external-jobs/harambee/opportunities/:harambeeOpportunityId",
+    harambeeJobDelete: "/external-jobs/harambee/opportunities/:harambeeOpportunityId",
   },
   crm: {
     clients: "/crm/clients",

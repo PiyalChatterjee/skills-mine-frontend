@@ -17,7 +17,7 @@ import styles from './AdvertisedJobsTable.module.css'
 type AdvertisedJobsTableProps = {
   jobs: AdvertisedJob[]
   onEdit?: (job: AdvertisedJob) => void
-  onDelete?: (job: AdvertisedJob) => void
+  onDelete?: (job: AdvertisedJob, reason?: string) => void
 }
 
 const COLUMNS = ['Job title', 'Platform', 'Location', 'Salary', 'Posted', 'Status']
@@ -57,6 +57,9 @@ export const AdvertisedJobsTable = ({ jobs, onEdit, onDelete }: AdvertisedJobsTa
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
   const [activeJob, setActiveJob] = useState<AdvertisedJob | null>(null)
   const [pendingDeleteJob, setPendingDeleteJob] = useState<AdvertisedJob | null>(null)
+  const [deleteReason, setDeleteReason] = useState('')
+  // Harambee requires a reason for deleting an opportunity (forwarded to SA Youth).
+  const needsReason = pendingDeleteJob?.platform === 'Harambee'
 
   const closeMenu = () => {
     setAnchorEl(null)
@@ -70,6 +73,7 @@ export const AdvertisedJobsTable = ({ jobs, onEdit, onDelete }: AdvertisedJobsTa
 
   const handleDeleteClick = () => {
     if (activeJob) {
+      setDeleteReason('')
       setPendingDeleteJob(activeJob)
     }
     closeMenu()
@@ -77,7 +81,7 @@ export const AdvertisedJobsTable = ({ jobs, onEdit, onDelete }: AdvertisedJobsTa
 
   const handleConfirmDelete = () => {
     if (pendingDeleteJob) {
-      onDelete?.(pendingDeleteJob)
+      onDelete?.(pendingDeleteJob, needsReason ? deleteReason.trim() : undefined)
     }
     setPendingDeleteJob(null)
   }
@@ -175,6 +179,17 @@ export const AdvertisedJobsTable = ({ jobs, onEdit, onDelete }: AdvertisedJobsTa
             Are you sure you want to delete the job advertisement for{' '}
             <strong>"{pendingDeleteJob?.title}"</strong> on {pendingDeleteJob?.platform}? This action is permanent and will remove the advertisement from the live site immediately.
           </DialogContentText>
+          {needsReason && (
+            <input
+              type="text"
+              className={styles.reasonInput}
+              aria-label="Reason for deleting"
+              placeholder="Reason for deleting, e.g. Position filled"
+              maxLength={200}
+              value={deleteReason}
+              onChange={(event) => setDeleteReason(event.target.value)}
+            />
+          )}
         </DialogContent>
         <DialogActions className={styles.confirmDialogActions}>
           <ButtonBase
@@ -187,6 +202,7 @@ export const AdvertisedJobsTable = ({ jobs, onEdit, onDelete }: AdvertisedJobsTa
           <ButtonBase
             className={styles.dialogDeleteBtn}
             onClick={handleConfirmDelete}
+            disabled={needsReason && !deleteReason.trim()}
             disableRipple
           >
             Delete

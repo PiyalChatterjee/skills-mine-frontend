@@ -15,6 +15,7 @@ import {
   externalJobsApi,
   type BizCommunityListedJob,
   type BizCommunityPublishRecord,
+  type HarambeePublishRecord,
   type PnetPublishPayload,
   type PnetPublishRecord,
 } from '@/services/api/externalJobsApi'
@@ -220,6 +221,39 @@ const mapPnetRecordToAdvertisedJob = (
   }
 }
 
+const mapHarambeeRecordToAdvertisedJob = (record: HarambeePublishRecord): AdvertisedJob => {
+  let posted = '—'
+  if (record.created_at) {
+    const d = new Date(record.created_at)
+    if (!isNaN(d.getTime())) {
+      posted = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+    } else {
+      posted = record.created_at
+    }
+  }
+
+  // Rows only exist for successful operations; the last operation decides the state
+  // (PUBLISH / EDIT = live on SA Youth, DELETE = removed).
+  const status = record.operation?.toUpperCase() === 'DELETE' ? 'Deleted' : 'Live'
+
+  return {
+    id: record.publish_id,
+    title: record.job_title || 'Untitled Job',
+    reference: record.reference_number || record.harambee_opportunity_id || record.job_profile_id_ref || '—',
+    employmentType: record.contract_type || '—',
+    platform: 'Harambee',
+    location: record.address?.city_name || '—',
+    salary: record.salary || 'Market Related',
+    posted,
+    status,
+    jobUrl: record.job_url,
+    harambeeOpportunityId: record.harambee_opportunity_id ? String(record.harambee_opportunity_id) : undefined,
+    jobProfileIdRef: record.job_profile_id_ref,
+    errorDetail: record.error_detail ?? undefined,
+    providerMessage: record.provider_message ?? undefined,
+  }
+}
+
 const AdvertisedJobsPage = () => {
   usePageTitle('Advertised Jobs')
   const navigate = useNavigate()
@@ -236,13 +270,15 @@ const AdvertisedJobsPage = () => {
   const [bizPublishes, setBizPublishes] = useState<BizCommunityPublishRecord[]>([])
   const [bizListedJobs, setBizListedJobs] = useState<BizCommunityListedJob[]>([])
   const [pnetPublishes, setPnetPublishes] = useState<PnetPublishRecord[]>([])
+  const [harambeePublishes, setHarambeePublishes] = useState<HarambeePublishRecord[]>([])
 
   const fetchJobsData = useCallback(async () => {
     try {
-      const [bizPublishesRes, listedJobsRes, pnetPublishesRes] = await Promise.allSettled([
+      const [bizPublishesRes, listedJobsRes, pnetPublishesRes, harambeePublishesRes] = await Promise.allSettled([
         externalJobsApi.getBizCommunityPublishes(),
         externalJobsApi.getBizCommunityJobs(),
         externalJobsApi.getPnetPublishes(),
+        externalJobsApi.getHarambeePublishes(),
       ])
 
       if (bizPublishesRes.status === 'fulfilled' && Array.isArray(bizPublishesRes.value)) {
@@ -253,6 +289,9 @@ const AdvertisedJobsPage = () => {
       }
       if (pnetPublishesRes.status === 'fulfilled' && Array.isArray(pnetPublishesRes.value)) {
         setPnetPublishes(pnetPublishesRes.value)
+      }
+      if (harambeePublishesRes.status === 'fulfilled' && Array.isArray(harambeePublishesRes.value)) {
+        setHarambeePublishes(harambeePublishesRes.value)
       }
     } catch {
       // keep fallback
@@ -314,10 +353,15 @@ const AdvertisedJobsPage = () => {
       createdAt: record.created_at ? new Date(record.created_at).getTime() : 0,
     }))
 
-    const combined = [...bizJobs, ...pnetJobs]
+    const harambeeJobs = harambeePublishes.map((record) => ({
+      job: mapHarambeeRecordToAdvertisedJob(record),
+      createdAt: record.created_at ? new Date(record.created_at).getTime() : 0,
+    }))
+
+    const combined = [...bizJobs, ...pnetJobs, ...harambeeJobs]
     combined.sort((a, b) => b.createdAt - a.createdAt)
     return combined.map((item) => item.job)
-  }, [bizPublishes, bizListedJobs, pnetPublishes])
+  }, [bizPublishes, bizListedJobs, pnetPublishes, harambeePublishes])
 
   const hasNonFinalStatus = useMemo(
     () => allJobs.some((job) => !FINAL_STATUSES.includes(String(job.status).trim().toLowerCase())),
@@ -366,10 +410,19 @@ const AdvertisedJobsPage = () => {
           referenceId: job.jobProfileIdRef,
         },
       })
+    } else if (job.jobProfileIdRef && job.platform === 'Harambee') {
+      const url = `${ROUTE_PATHS.recruiterAdvertiseHarambee.replace(':mandateId', job.jobProfileIdRef)}?isEdit=true&publishId=${encodeURIComponent(job.id)}`
+      navigate(url, {
+        state: {
+          isEdit: true,
+          publishId: job.id,
+          referenceId: job.jobProfileIdRef,
+        },
+      })
     }
   }
 
-  const handleDelete = async (job: AdvertisedJob) => {
+  const handleDelete = async (job: AdvertisedJob, reason?: string) => {
     if (job.platform === 'bizCommunity') {
       if (!job.bizJobId) {
         dispatch(
@@ -435,6 +488,40 @@ const AdvertisedJobsPage = () => {
             message: extractErrorMessage(
               error,
               'Failed to delete the job advert from PNet. Please try again.',
+            ),
+          }),
+        )
+      }
+    } else if (job.platform === 'Harambee') {
+      if (!job.harambeeOpportunityId) {
+        dispatch(
+          pushNotification({
+            level: 'error',
+            title: 'Delete failed',
+            message: 'Harambee opportunity ID is missing for this advert.',
+          }),
+        )
+        return
+      }
+
+      try {
+        await externalJobsApi.deleteHarambeeJob(job.harambeeOpportunityId, reason ?? '')
+        dispatch(
+          pushNotification({
+            level: 'success',
+            title: 'Advert Deleted',
+            message: `Job advert "${job.title}" has been deleted from Harambee.`,
+          }),
+        )
+        await fetchJobsData()
+      } catch (error) {
+        dispatch(
+          pushNotification({
+            level: 'error',
+            title: 'Delete Failed',
+            message: extractErrorMessage(
+              error,
+              'Failed to delete the job advert from Harambee. Please try again.',
             ),
           }),
         )
