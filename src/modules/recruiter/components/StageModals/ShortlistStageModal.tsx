@@ -45,7 +45,7 @@ const ShortlistStageModal = ({
   company,
   applicationId,
   jobId,
-  dueDate = 'Jan 20, 2026',
+  dueDate,
   isRejected = false,
   isMoveLocked = false,
   onClose,
@@ -84,7 +84,7 @@ const ShortlistStageModal = ({
       await mandateApi.advanceToInterview(applicationId, {
         toStageCode: PipelineStageCode.INTERVIEW,
         shortListDetails: {
-          offeredSalary: Number(ctcTotal.replace(/\D/g, '')) || 0,
+          offeredSalary: Number(ctcTotal) || 0,
           currencyCode: 'ZAR',
           offerDate,
           validUntil,
@@ -134,12 +134,14 @@ const ShortlistStageModal = ({
           </Typography>
 
           {/* ── Due date ── */}
-          <Box className={styles.dueDateRow}>
-            <CalendarIcon />
-            <Typography component="span" className={styles.dueDate}>
-              Due {dueDate}
-            </Typography>
-          </Box>
+          {dueDate && (
+            <Box className={styles.dueDateRow}>
+              <CalendarIcon />
+              <Typography component="span" className={styles.dueDate}>
+                Due {dueDate}
+              </Typography>
+            </Box>
+          )}
 
           {/* ── Form section ── */}
           <Box className={styles.formSection}>
@@ -186,9 +188,13 @@ const ShortlistStageModal = ({
                 <input
                   id="ctc-total"
                   type="text"
+                  inputMode="decimal"
                   className={styles.input}
                   value={ctcTotal}
-                  onChange={e => setCtcTotal(e.target.value)}
+                  onChange={e => {
+                    const v = e.target.value
+                    if (/^\d*\.?\d*$/.test(v)) setCtcTotal(v)
+                  }}
                 />
               </Box>
             </Box>

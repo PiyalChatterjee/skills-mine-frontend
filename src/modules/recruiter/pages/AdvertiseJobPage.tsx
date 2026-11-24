@@ -61,6 +61,8 @@ const AdvertiseJobPage = () => {
       navigate(ROUTE_PATHS.recruiterAdvertiseAdzuna.replace(':mandateId', mandateId))
     } else if (selected === 'BIZCOMMUNITY') {
       navigate(ROUTE_PATHS.recruiterAdvertiseBizCommunity.replace(':mandateId', mandateId))
+    } else if (selected === 'HARAMBEE') {
+      navigate(ROUTE_PATHS.recruiterAdvertiseHarambee.replace(':mandateId', mandateId))
     }
   }
 

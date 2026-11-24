@@ -369,6 +369,105 @@ export type PnetPublishesParams = {
   listingid?: number;
 };
 
+export const HARAMBEE_CONTRACT_TYPES = [
+  "Fixedterm",
+  "Fulltimepermanent",
+  "Permanentparttime",
+  "Paidemploymentprogramme",
+] as const;
+
+export const HARAMBEE_ROLES = [
+  "Administration",
+  "Callcentrework",
+  "Codingdesigningandwebrelatedwork",
+  "Community",
+  "Dataandanalytics",
+  "Driver",
+  "Entrepreneur",
+  "FoodPreparation",
+  "Hardphysicalwork",
+  "HealthcareProfessionals",
+  "IRM",
+  "ITSupport",
+  "LightPhysical",
+  "ManufacturingOperatorsAssemblers",
+  "Professional",
+  "Retail",
+  "SalesBasic",
+  "SalesComplex",
+  "SecurityGuard",
+  "Services",
+  "Teaching",
+  "Teamlead",
+  "Other",
+] as const;
+
+export type HarambeeContractType = (typeof HARAMBEE_CONTRACT_TYPES)[number];
+export type HarambeeRole = (typeof HARAMBEE_ROLES)[number];
+
+export type HarambeeAddress = {
+  address_name: string;
+  address_line_1: string;
+  suburb_name: string;
+  city_name: string;
+  postal_code: string;
+  province: string;
+};
+
+// HarambeeAggregatedOpportunityRequest
+export type PublishHarambeeJobRequest = {
+  job_title: string;
+  job_description: string;
+  address: HarambeeAddress;
+  employment_start_date: string;
+  closing_date: string;
+  duration: string;
+  contract_type: HarambeeContractType;
+  salary: string;
+  application_url: string;
+  reference_number?: string | null;
+  archetypal_role: HarambeeRole;
+  // Internal SkillsMine job_profile UUID; not sent on to Harambee.
+  job_profile_id_ref: string;
+};
+
+// Fields that could not be resolved come back as empty strings (see missing_fields).
+export type HarambeePrefill = Partial<Omit<PublishHarambeeJobRequest, "address">> & {
+  address?: Partial<HarambeeAddress>;
+};
+
+export type HarambeePrefillResponse = {
+  job_profile_id: string;
+  missing_fields: string[];
+  warnings: string[];
+  prefill: HarambeePrefill;
+};
+
+export type HarambeeOperation = "PUBLISH" | "EDIT" | "DELETE";
+
+// One row per opportunity (ext_harambee_publish): the current state, created on the
+// first successful publish and overwritten by each later successful edit.
+export type HarambeePublishRecord = Partial<PublishHarambeeJobRequest> & {
+  publish_id: string;
+  harambee_opportunity_id?: string;
+  // Last operation applied: PUBLISH = never edited, EDIT = edited, DELETE = removed from SA Youth.
+  operation?: HarambeeOperation | string;
+  status?: string;
+  job_url?: string;
+  error_detail?: string | null;
+  provider_message?: string | null;
+  published_by_user_id?: string;
+  created_at: string;
+  completed_at?: string | null;
+};
+
+export type HarambeePublishesParams = {
+  publish_id?: string;
+  job_profile_id_ref?: string;
+  harambee_opportunity_id?: string;
+  operation?: HarambeeOperation;
+};
+
 // The BizCommunity webservice call is forwarded as XML and can be slower than
 // the default client timeout.
 const PUBLISH_TIMEOUT_MS = 30000;
@@ -387,6 +486,55 @@ export const externalJobsApi = {
         apiEndpoints.externalJobs.bizCommunityPublish,
         body,
         { timeout: PUBLISH_TIMEOUT_MS },
+      ),
+    );
+  },
+  publishToHarambee(body: PublishHarambeeJobRequest) {
+    return unwrapResponseData(
+      externalJobsApiClient.post<unknown>(
+        apiEndpoints.externalJobs.harambeePublish,
+        body,
+        { timeout: PUBLISH_TIMEOUT_MS },
+      ),
+    );
+  },
+  getHarambeePrefill(jobProfileId: string) {
+    return unwrapResponseData(
+      externalJobsApiClient.get<HarambeePrefillResponse>(
+        apiEndpoints.externalJobs.harambeePrefill,
+        { params: { job_profile_id: jobProfileId } },
+      ),
+    );
+  },
+  updateHarambeeJob(
+    harambeeOpportunityId: string | number,
+    body: PublishHarambeeJobRequest,
+  ) {
+    return unwrapResponseData(
+      externalJobsApiClient.put<unknown>(
+        resolveEndpoint(apiEndpoints.externalJobs.harambeeJobUpdate, {
+          harambeeOpportunityId,
+        }),
+        body,
+        { timeout: PUBLISH_TIMEOUT_MS },
+      ),
+    );
+  },
+  deleteHarambeeJob(harambeeOpportunityId: string | number, reason: string) {
+    return unwrapResponseData(
+      externalJobsApiClient.delete<unknown>(
+        resolveEndpoint(apiEndpoints.externalJobs.harambeeJobDelete, {
+          harambeeOpportunityId,
+        }),
+        { params: { reason } },
+      ),
+    );
+  },
+  getHarambeePublishes(params?: HarambeePublishesParams) {
+    return unwrapResponseData(
+      externalJobsApiClient.get<HarambeePublishRecord[]>(
+        apiEndpoints.externalJobs.harambeePublishes,
+        { params },
       ),
     );
   },

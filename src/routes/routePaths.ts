@@ -29,6 +29,7 @@ export const ROUTE_PATHS = {
   recruiterAdvertisePnet: '/recruiter/advertise-job/:mandateId/pnet',
   recruiterAdvertiseAdzuna: '/recruiter/advertise-job/:mandateId/adzuna',
   recruiterAdvertiseBizCommunity: '/recruiter/advertise-job/:mandateId/bizcommunity',
+  recruiterAdvertiseHarambee: '/recruiter/advertise-job/:mandateId/harambee',
   recruiterCandidates: '/recruiter/candidates',
   recruiterCandidateDetail: '/recruiter/candidates/:candidateId',
   recruiterVisitorDetail: '/recruiter/visitors/:visitorId',

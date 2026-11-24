@@ -42,7 +42,7 @@ const InboundStageModal = ({
   company,
   applicationId,
   jobId,
-  dueDate = 'Jan 20, 2026',
+  dueDate,
   isRejected = false,
   onClose,
   onAdvance,
@@ -101,12 +101,14 @@ const InboundStageModal = ({
           </Typography>
 
           {/* ── Due date ── */}
-          <Box className={styles.dueDateRow}>
-            <CalendarIcon />
-            <Typography component="span" className={styles.dueDate}>
-              Due {dueDate}
-            </Typography>
-          </Box>
+          {dueDate && (
+            <Box className={styles.dueDateRow}>
+              <CalendarIcon />
+              <Typography component="span" className={styles.dueDate}>
+                Due {dueDate}
+              </Typography>
+            </Box>
+          )}
 
           {/* ── Checklist ── */}
           <Box className={styles.checklist}>

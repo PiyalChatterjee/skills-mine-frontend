@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { Box, ButtonBase } from '@mui/material'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { extractErrorMessage } from '@/app/errorUtils'
 import { pushNotification } from '@/store/slices/notificationSlice'
 import { RecruiterSidebar } from '@/modules/recruiter/components/RecruiterSidebar'
@@ -15,6 +15,7 @@ import {
   externalJobsApi,
   type BizCommunityListedJob,
   type BizCommunityPublishRecord,
+  type HarambeePublishRecord,
   type PnetPublishPayload,
   type PnetPublishRecord,
 } from '@/services/api/externalJobsApi'
@@ -32,6 +33,13 @@ const STATUS_POLL_INTERVAL_MS = 60_000
 const BackArrowIcon = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
     <path d="M19 12H5M5 12l7-7M5 12l7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+)
+
+const CheckCircleIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <circle cx="8" cy="8" r="6.6" />
+    <path d="M5.2 8.2l2 2 3.6-4" />
   </svg>
 )
 
@@ -215,24 +223,67 @@ const mapPnetRecordToAdvertisedJob = (
   }
 }
 
+const mapHarambeeRecordToAdvertisedJob = (record: HarambeePublishRecord): AdvertisedJob => {
+  let posted = '—'
+  if (record.created_at) {
+    const d = new Date(record.created_at)
+    if (!isNaN(d.getTime())) {
+      posted = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+    } else {
+      posted = record.created_at
+    }
+  }
+
+  // Rows only exist for successful operations; the last operation decides the state
+  // (PUBLISH / EDIT = live on SA Youth, DELETE = removed).
+  const status = record.operation?.toUpperCase() === 'DELETE' ? 'Deleted' : 'Live'
+
+  return {
+    id: record.publish_id,
+    title: record.job_title || 'Untitled Job',
+    reference: record.reference_number || record.harambee_opportunity_id || record.job_profile_id_ref || '—',
+    employmentType: record.contract_type || '—',
+    platform: 'Harambee',
+    location: record.address?.city_name || '—',
+    salary: record.salary || 'Market Related',
+    posted,
+    status,
+    jobUrl: record.job_url,
+    harambeeOpportunityId: record.harambee_opportunity_id ? String(record.harambee_opportunity_id) : undefined,
+    jobProfileIdRef: record.job_profile_id_ref,
+    errorDetail: record.error_detail ?? undefined,
+    providerMessage: record.provider_message ?? undefined,
+  }
+}
+
 const AdvertisedJobsPage = () => {
   usePageTitle('Advertised Jobs')
   const navigate = useNavigate()
   const dispatch = useDispatch()
+  const location = useLocation()
+  const locationState = location.state as { platformName?: string; bannerMessage?: string } | null
+  const bannerText =
+    locationState?.bannerMessage ||
+    (locationState?.platformName
+      ? `Job successfully posted to ${locationState.platformName}.`
+      : null)
 
   const [filter, setFilter] = useState<PlatformFilter>('All')
   const [bizPublishes, setBizPublishes] = useState<BizCommunityPublishRecord[]>([])
   const [bizListedJobs, setBizListedJobs] = useState<BizCommunityListedJob[]>([])
   const [pnetPublishes, setPnetPublishes] = useState<PnetPublishRecord[]>([])
+  const [harambeePublishes, setHarambeePublishes] = useState<HarambeePublishRecord[]>([])
   const [adzunaPublishes, setAdzunaPublishes] = useState<AdzunaJobJsonRecord[]>([])
 
   const fetchJobsData = useCallback(async () => {
-    const [bizPublishesRes, listedJobsRes, pnetPublishesRes, adzunaPublishesRes] = await Promise.allSettled([
-      externalJobsApi.getBizCommunityPublishes(),
-      externalJobsApi.getBizCommunityJobs(),
-      externalJobsApi.getPnetPublishes(),
-      adzunaApi.getAdzunaJobsAsJson(),
-    ])
+    const [bizPublishesRes, listedJobsRes, pnetPublishesRes, harambeePublishesRes, adzunaPublishesRes] =
+      await Promise.allSettled([
+        externalJobsApi.getBizCommunityPublishes(),
+        externalJobsApi.getBizCommunityJobs(),
+        externalJobsApi.getPnetPublishes(),
+        externalJobsApi.getHarambeePublishes(),
+        adzunaApi.getAdzunaJobsAsJson(),
+      ])
 
     if (bizPublishesRes.status === 'fulfilled' && Array.isArray(bizPublishesRes.value)) {
       setBizPublishes(bizPublishesRes.value)
@@ -242,6 +293,9 @@ const AdvertisedJobsPage = () => {
     }
     if (pnetPublishesRes.status === 'fulfilled' && Array.isArray(pnetPublishesRes.value)) {
       setPnetPublishes(pnetPublishesRes.value)
+    }
+    if (harambeePublishesRes.status === 'fulfilled' && Array.isArray(harambeePublishesRes.value)) {
+      setHarambeePublishes(harambeePublishesRes.value)
     }
     if (adzunaPublishesRes.status === 'fulfilled' && Array.isArray(adzunaPublishesRes.value)) {
       setAdzunaPublishes(adzunaPublishesRes.value)
@@ -313,10 +367,15 @@ const AdvertisedJobsPage = () => {
       createdAt: record.created_at ? new Date(record.created_at).getTime() : 0,
     }))
 
-    const combined = [...bizJobs, ...pnetJobs, ...adzunaJobs]
+    const harambeeJobs = harambeePublishes.map((record) => ({
+      job: mapHarambeeRecordToAdvertisedJob(record),
+      createdAt: record.created_at ? new Date(record.created_at).getTime() : 0,
+    }))
+
+    const combined = [...bizJobs, ...pnetJobs, ...harambeeJobs, ...adzunaJobs]
     combined.sort((a, b) => b.createdAt - a.createdAt)
     return combined.map((item) => item.job)
-  }, [adzunaPublishes, bizPublishes, bizListedJobs, pnetPublishes])
+  }, [adzunaPublishes, bizPublishes, bizListedJobs, pnetPublishes, harambeePublishes])
 
   const hasNonFinalStatus = useMemo(
     () => allJobs.some((job) => !FINAL_STATUSES.includes(String(job.status).trim().toLowerCase())),
@@ -365,6 +424,15 @@ const AdvertisedJobsPage = () => {
           referenceId: job.jobProfileIdRef,
         },
       })
+    } else if (job.jobProfileIdRef && job.platform === 'Harambee') {
+      const url = `${ROUTE_PATHS.recruiterAdvertiseHarambee.replace(':mandateId', job.jobProfileIdRef)}?isEdit=true&publishId=${encodeURIComponent(job.id)}`
+      navigate(url, {
+        state: {
+          isEdit: true,
+          publishId: job.id,
+          referenceId: job.jobProfileIdRef,
+        },
+      })
     } else if (job.platform === 'Adzuna') {
       if (!job.jobProfileIdRef || !job.adzunaJobId) {
         dispatch(pushNotification({
@@ -382,7 +450,7 @@ const AdvertisedJobsPage = () => {
     }
   }
 
-  const handleDelete = async (job: AdvertisedJob) => {
+  const handleDelete = async (job: AdvertisedJob, reason?: string) => {
     if (job.platform === 'bizCommunity') {
       if (!job.bizJobId) {
         dispatch(
@@ -452,6 +520,40 @@ const AdvertisedJobsPage = () => {
           }),
         )
       }
+    } else if (job.platform === 'Harambee') {
+      if (!job.harambeeOpportunityId) {
+        dispatch(
+          pushNotification({
+            level: 'error',
+            title: 'Delete failed',
+            message: 'Harambee opportunity ID is missing for this advert.',
+          }),
+        )
+        return
+      }
+
+      try {
+        await externalJobsApi.deleteHarambeeJob(job.harambeeOpportunityId, reason ?? '')
+        dispatch(
+          pushNotification({
+            level: 'success',
+            title: 'Advert Deleted',
+            message: `Job advert "${job.title}" has been deleted from Harambee.`,
+          }),
+        )
+        await fetchJobsData()
+      } catch (error) {
+        dispatch(
+          pushNotification({
+            level: 'error',
+            title: 'Delete Failed',
+            message: extractErrorMessage(
+              error,
+              'Failed to delete the job advert from Harambee. Please try again.',
+            ),
+          }),
+        )
+      }
     } else if (job.platform === 'Adzuna') {
       if (!job.adzunaJobId) {
         dispatch(pushNotification({
@@ -505,6 +607,13 @@ const AdvertisedJobsPage = () => {
             <p className={styles.subtitle}>Every job advert posted to external platforms</p>
           </div>
         </div>
+
+        {bannerText && (
+          <div className={styles.banner} role="status">
+            <CheckCircleIcon />
+            {bannerText}
+          </div>
+        )}
 
         <div className={styles.filtersRow}>
           <div className={styles.pills}>

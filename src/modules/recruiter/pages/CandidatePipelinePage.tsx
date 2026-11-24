@@ -13,6 +13,7 @@ import {
   type DragStartEvent,
 } from '@dnd-kit/core'
 import { Box, ButtonBase, CircularProgress, Typography } from '@mui/material'
+import dayjs from 'dayjs'
 import { RecruiterSidebar } from '@/modules/recruiter/components/RecruiterSidebar'
 import InboundStageModal from '@/modules/recruiter/components/StageModals/InboundStageModal'
 import ScreeningStageModal from '@/modules/recruiter/components/StageModals/ScreeningStageModal'
@@ -198,6 +199,7 @@ interface ModalCandidateState {
   company: string
   applicationId: string
   jobId: string
+  dueDate?: string
   matchScoreLatest?: number
   isRejected?: boolean
   isUnsuccessful?: boolean
@@ -281,7 +283,7 @@ const CandidatePipelinePage = () => {
   }
 
   // Rejected at Offer → move card to Closed with red rejected styling, show unsuccessful modal
-  const handleOfferRejected = (rejectedId: string, info: { candidateName: string; candidateTitle: string; company: string; jobId: string }) => {
+  const handleOfferRejected = (rejectedId: string, info: { candidateName: string; candidateTitle: string; company: string; jobId: string; dueDate?: string }) => {
     setRejectedIds(prev => new Set(prev).add(rejectedId))
     setPipelineStages(prev => {
       let movedCard: (typeof prev)[0]['cards'][0] | undefined
@@ -302,6 +304,7 @@ const CandidatePipelinePage = () => {
       company:        info.company,
       applicationId:  rejectedId,
       jobId:          info.jobId,
+      dueDate:        info.dueDate,
       isUnsuccessful: true,
     })
   }
@@ -428,6 +431,7 @@ const CandidatePipelinePage = () => {
       company: card.jobProfile.clientName,
       applicationId: card.applicationId,
       jobId: card.jobProfile.jobProfileId,
+      dueDate: card.jobProfile.fillByDate ? dayjs(card.jobProfile.fillByDate.split('T')[0]).format('MMM D, YYYY') : undefined,
       matchScoreLatest: card.matchScoreLatest,
       isRejected: rejectedIds.has(card.applicationId),
     }
@@ -619,6 +623,7 @@ const CandidatePipelinePage = () => {
           company={inboundModal.company}
           applicationId={inboundModal.applicationId}
           jobId={inboundModal.jobId}
+          dueDate={inboundModal.dueDate}
           isRejected={inboundModal.isRejected}
           onClose={() => setInboundModal(null)}
           onAdvance={(advancedId) => {
@@ -649,6 +654,7 @@ const CandidatePipelinePage = () => {
           company={screeningModal.company}
           applicationId={screeningModal.applicationId}
           jobId={screeningModal.jobId}
+          dueDate={screeningModal.dueDate}
           matchScoreLatest={screeningModal.matchScoreLatest}
           isRejected={screeningModal.isRejected}
           isMoveLocked={isJobClosed}
@@ -691,6 +697,7 @@ const CandidatePipelinePage = () => {
           company={assessmentModal.company}
           applicationId={assessmentModal.applicationId}
           jobId={assessmentModal.jobId}
+          dueDate={assessmentModal.dueDate}
           isRejected={assessmentModal.isRejected}
           isMoveLocked={isJobClosed}
           onClose={() => setAssessmentModal(null)}
@@ -732,6 +739,7 @@ const CandidatePipelinePage = () => {
           company={shortlistModal.company}
           applicationId={shortlistModal.applicationId}
           jobId={shortlistModal.jobId}
+          dueDate={shortlistModal.dueDate}
           isRejected={shortlistModal.isRejected}
           isMoveLocked={isJobClosed}
           onClose={() => setShortlistModal(null)}
@@ -773,6 +781,7 @@ const CandidatePipelinePage = () => {
           company={interviewModal.company}
           applicationId={interviewModal.applicationId}
           jobId={interviewModal.jobId}
+          dueDate={interviewModal.dueDate}
           isRejected={interviewModal.isRejected}
           isMoveLocked={isJobClosed}
           onClose={() => setInterviewModal(null)}
@@ -814,6 +823,7 @@ const CandidatePipelinePage = () => {
           company={offerModal.company}
           applicationId={offerModal.applicationId}
           jobId={offerModal.jobId}
+          dueDate={offerModal.dueDate}
           isRejected={offerModal.isRejected}
           isMoveLocked={isJobClosed}
           onClose={() => setOfferModal(null)}
@@ -837,6 +847,7 @@ const CandidatePipelinePage = () => {
               company:        advancing.company,
               applicationId:  advancedId,
               jobId:          advancing.jobId,
+              dueDate:        advancing.dueDate,
             })
           }}
           onMoveBack={(movedId) => {
@@ -858,6 +869,7 @@ const CandidatePipelinePage = () => {
               candidateTitle: offerModal.candidateTitle,
               company:        offerModal.company,
               jobId:          offerModal.jobId,
+              dueDate:        offerModal.dueDate,
             })
             setOfferModal(null)
           }}
@@ -870,6 +882,7 @@ const CandidatePipelinePage = () => {
           candidateName={closedModal.candidateName}
           candidateTitle={closedModal.candidateTitle}
           company={closedModal.company}
+          dueDate={closedModal.dueDate}
           isUnsuccessful={closedModal.isUnsuccessful}
           onClose={() => setClosedModal(null)}
         />

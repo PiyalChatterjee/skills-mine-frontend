@@ -83,6 +83,9 @@ const AdzunaPostPage = lazy(
 const BizCommunityPostPage = lazy(
   () => import("@/modules/recruiter/pages/BizCommunityPostPage"),
 );
+const HarambeePostPage = lazy(
+  () => import("@/modules/recruiter/pages/HarambeePostPage"),
+);
 const CandidatesPage = lazy(
   () => import("@/modules/recruiter/pages/CandidatesPage"),
 );
@@ -201,6 +204,10 @@ export const AppRoutes = () => {
             <Route
               path={ROUTE_PATHS.recruiterAdvertiseBizCommunity}
               element={<BizCommunityPostPage />}
+            />
+            <Route
+              path={ROUTE_PATHS.recruiterAdvertiseHarambee}
+              element={<HarambeePostPage />}
             />
             <Route
               path={ROUTE_PATHS.recruiterMandate}
