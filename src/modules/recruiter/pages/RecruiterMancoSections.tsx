@@ -49,15 +49,12 @@ const PIPELINE_STAGES: {
   { key: "screening", label: PipelineLabel.SCREENING },
   { key: "interview", label: PipelineLabel.INTERVIEW },
   { key: "offer", label: PipelineLabel.OFFER },
-  { key: "rejected", label: ClosedReason.REJECTED },
   { key: "filled", label: "Placement" },
+  { key: "rejected", label: ClosedReason.REJECTED },
   { key: "totalPipeline", label: "Total pipeline" },
 ];
 const PIPELINE_DISTRIBUTION_STAGES = PIPELINE_STAGES.filter(
   (stage) => stage.key !== "totalPipeline",
-);
-const PIPELINE_CHART_STAGES = PIPELINE_DISTRIBUTION_STAGES.filter(
-  (stage) => stage.key !== "rejected",
 );
 
 export const MancoPageHeader = () => (
@@ -458,7 +455,7 @@ const PipelineDistributionChart = ({
 
   return (
     <Box className={styles.detailPipelineGrid}>
-      {PIPELINE_CHART_STAGES.map((stage) => {
+      {PIPELINE_DISTRIBUTION_STAGES.map((stage) => {
         const count = distribution[stage.key];
 
         return (
@@ -498,22 +495,6 @@ const PipelineDistributionChart = ({
           </Box>
         );
       })}
-      <Box
-        className={styles.detailRejectedRow}
-        role="meter"
-        aria-label={`Rejected: ${distribution.rejected}`}
-        aria-valuemin={0}
-        aria-valuemax={pipelineTotal}
-        aria-valuenow={distribution.rejected}
-      >
-        {distribution.rejected > 0 && (
-          <Box className={styles.detailRejectedMarker} aria-hidden="true" />
-        )}
-        <Typography className={styles.detailRejectedLabel}>Rejected</Typography>
-        <Typography className={styles.detailRejectedValue}>
-          {distribution.rejected}
-        </Typography>
-      </Box>
     </Box>
   );
 };

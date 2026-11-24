@@ -19,6 +19,8 @@ import {
   type PnetPublishPayload,
   type PnetPublishRecord,
 } from '@/services/api/externalJobsApi'
+import { adzunaApi, type AdzunaJobJsonRecord } from '@/services/api/adzunaApi'
+import { mapAdzunaRecordToAdvertisedJob } from './adzunaJobsMapper'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { ROUTE_PATHS } from '@/routes/routePaths'
 import styles from './AdvertisedJobsPage.module.css'
@@ -271,32 +273,40 @@ const AdvertisedJobsPage = () => {
   const [bizListedJobs, setBizListedJobs] = useState<BizCommunityListedJob[]>([])
   const [pnetPublishes, setPnetPublishes] = useState<PnetPublishRecord[]>([])
   const [harambeePublishes, setHarambeePublishes] = useState<HarambeePublishRecord[]>([])
+  const [adzunaPublishes, setAdzunaPublishes] = useState<AdzunaJobJsonRecord[]>([])
 
   const fetchJobsData = useCallback(async () => {
-    try {
-      const [bizPublishesRes, listedJobsRes, pnetPublishesRes, harambeePublishesRes] = await Promise.allSettled([
+    const [bizPublishesRes, listedJobsRes, pnetPublishesRes, harambeePublishesRes, adzunaPublishesRes] =
+      await Promise.allSettled([
         externalJobsApi.getBizCommunityPublishes(),
         externalJobsApi.getBizCommunityJobs(),
         externalJobsApi.getPnetPublishes(),
         externalJobsApi.getHarambeePublishes(),
+        adzunaApi.getAdzunaJobsAsJson(),
       ])
 
-      if (bizPublishesRes.status === 'fulfilled' && Array.isArray(bizPublishesRes.value)) {
-        setBizPublishes(bizPublishesRes.value)
-      }
-      if (listedJobsRes.status === 'fulfilled' && Array.isArray(listedJobsRes.value)) {
-        setBizListedJobs(listedJobsRes.value)
-      }
-      if (pnetPublishesRes.status === 'fulfilled' && Array.isArray(pnetPublishesRes.value)) {
-        setPnetPublishes(pnetPublishesRes.value)
-      }
-      if (harambeePublishesRes.status === 'fulfilled' && Array.isArray(harambeePublishesRes.value)) {
-        setHarambeePublishes(harambeePublishesRes.value)
-      }
-    } catch {
-      // keep fallback
+    if (bizPublishesRes.status === 'fulfilled' && Array.isArray(bizPublishesRes.value)) {
+      setBizPublishes(bizPublishesRes.value)
     }
-  }, [])
+    if (listedJobsRes.status === 'fulfilled' && Array.isArray(listedJobsRes.value)) {
+      setBizListedJobs(listedJobsRes.value)
+    }
+    if (pnetPublishesRes.status === 'fulfilled' && Array.isArray(pnetPublishesRes.value)) {
+      setPnetPublishes(pnetPublishesRes.value)
+    }
+    if (harambeePublishesRes.status === 'fulfilled' && Array.isArray(harambeePublishesRes.value)) {
+      setHarambeePublishes(harambeePublishesRes.value)
+    }
+    if (adzunaPublishesRes.status === 'fulfilled' && Array.isArray(adzunaPublishesRes.value)) {
+      setAdzunaPublishes(adzunaPublishesRes.value)
+    } else if (adzunaPublishesRes.status === 'rejected') {
+      dispatch(pushNotification({
+        level: 'error',
+        title: 'Unable to load Adzuna adverts',
+        message: extractErrorMessage(adzunaPublishesRes.reason, 'Could not load Adzuna published jobs.'),
+      }))
+    }
+  }, [dispatch])
 
   const fetchListedJobs = useCallback(async () => {
     try {
@@ -352,16 +362,20 @@ const AdvertisedJobsPage = () => {
       job: mapPnetRecordToAdvertisedJob(record, pnetDetailsLookup),
       createdAt: record.created_at ? new Date(record.created_at).getTime() : 0,
     }))
+    const adzunaJobs = adzunaPublishes.map((record) => ({
+      job: mapAdzunaRecordToAdvertisedJob(record),
+      createdAt: record.created_at ? new Date(record.created_at).getTime() : 0,
+    }))
 
     const harambeeJobs = harambeePublishes.map((record) => ({
       job: mapHarambeeRecordToAdvertisedJob(record),
       createdAt: record.created_at ? new Date(record.created_at).getTime() : 0,
     }))
 
-    const combined = [...bizJobs, ...pnetJobs, ...harambeeJobs]
+    const combined = [...bizJobs, ...pnetJobs, ...harambeeJobs, ...adzunaJobs]
     combined.sort((a, b) => b.createdAt - a.createdAt)
     return combined.map((item) => item.job)
-  }, [bizPublishes, bizListedJobs, pnetPublishes, harambeePublishes])
+  }, [adzunaPublishes, bizPublishes, bizListedJobs, pnetPublishes, harambeePublishes])
 
   const hasNonFinalStatus = useMemo(
     () => allJobs.some((job) => !FINAL_STATUSES.includes(String(job.status).trim().toLowerCase())),
@@ -418,6 +432,20 @@ const AdvertisedJobsPage = () => {
           publishId: job.id,
           referenceId: job.jobProfileIdRef,
         },
+      })
+    } else if (job.platform === 'Adzuna') {
+      if (!job.jobProfileIdRef || !job.adzunaJobId) {
+        dispatch(pushNotification({
+          level: 'error',
+          title: 'Edit unavailable',
+          message: 'The Adzuna job profile reference is missing for this advert.',
+        }))
+        return
+      }
+
+      const url = `${ROUTE_PATHS.recruiterAdvertiseAdzuna.replace(':mandateId', job.jobProfileIdRef)}?adzunaJobId=${encodeURIComponent(job.adzunaJobId)}`
+      navigate(url, {
+        state: { adzunaJobId: job.adzunaJobId },
       })
     }
   }
@@ -525,6 +553,31 @@ const AdvertisedJobsPage = () => {
             ),
           }),
         )
+      }
+    } else if (job.platform === 'Adzuna') {
+      if (!job.adzunaJobId) {
+        dispatch(pushNotification({
+          level: 'error',
+          title: 'Delete failed',
+          message: 'The Adzuna job ID is missing for this advert.',
+        }))
+        return
+      }
+
+      try {
+        await adzunaApi.deleteAdzunaJob(job.adzunaJobId)
+        dispatch(pushNotification({
+          level: 'success',
+          title: 'Advert Deactivated',
+          message: `Job advert "${job.title}" has been deactivated on Adzuna.`,
+        }))
+        await fetchJobsData()
+      } catch (error) {
+        dispatch(pushNotification({
+          level: 'error',
+          title: 'Delete failed',
+          message: extractErrorMessage(error, 'Could not deactivate the job on Adzuna. Please try again.'),
+        }))
       }
     } else {
       dispatch(

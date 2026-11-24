@@ -41,7 +41,7 @@ const serviceBaseUrls = {
 // Tune here — no .env variable needed.
 const REQUEST_TIMEOUT_MS = 5000;
 const AI_REQUEST_TIMEOUT_MS = 60000;
-const DOCUMENT_UPLOAD_TIMEOUT_MS = 30000;
+const DOCUMENT_UPLOAD_TIMEOUT_MS = 60000;
 
 const createApiClient = (
   baseURL: string,

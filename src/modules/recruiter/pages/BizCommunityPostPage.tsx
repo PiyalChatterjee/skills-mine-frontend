@@ -490,12 +490,7 @@ const BizCommunityPostPage = () => {
           title: 'Updated on Bizcommunity',
           message: `"${values.jobTitle}" has been updated on Bizcommunity.`,
         }))
-        navigate(ROUTE_PATHS.recruiterAdvertisedJobs, {
-          state: {
-            platformName: 'Bizcommunity',
-            bannerMessage: `Job "${values.jobTitle}" successfully updated on Bizcommunity.`,
-          },
-        })
+        navigate(ROUTE_PATHS.recruiterAdvertisedJobs)
       } else {
         await externalJobsApi.publishToBizCommunity(
           buildPublishRequest(values, prefill, mandateId, prefill.country_id, industryId),
@@ -505,9 +500,7 @@ const BizCommunityPostPage = () => {
           title: 'Published to Bizcommunity',
           message: `"${values.jobTitle}" has been published to Bizcommunity.`,
         }))
-        navigate(ROUTE_PATHS.recruiterAdvertisedJobs, {
-          state: { platformName: 'Bizcommunity' },
-        })
+        navigate(ROUTE_PATHS.recruiterAdvertisedJobs)
       }
     } catch (error) {
       dispatch(pushNotification({

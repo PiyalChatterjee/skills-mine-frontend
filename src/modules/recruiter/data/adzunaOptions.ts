@@ -23,7 +23,7 @@ export const ADZUNA_SENIORITY_LEVELS = ['Entry level', 'Mid level', 'Mid-Senior 
 
 export const ADZUNA_WORKING_MODELS = ['On-site', 'Hybrid', 'Remote']
 
-export const ADZUNA_SALARY_FREQUENCIES = ['Per Hour', 'Per Day', 'Per Week', 'Per Month', 'Per Year']
+export const ADZUNA_SALARY_FREQUENCIES = ['Per Hour', 'Per Day', 'Per Month', 'Per Year']
 
 export type AdzunaSalaryDisplay = 'exact' | 'market' | 'hide'
 

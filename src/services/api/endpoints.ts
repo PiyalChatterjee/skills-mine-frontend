@@ -158,6 +158,12 @@ export const apiEndpoints = {
     harambeePublishes: "/external-jobs/harambee/publishes",
     harambeeJobUpdate: "/external-jobs/harambee/opportunities/:harambeeOpportunityId",
     harambeeJobDelete: "/external-jobs/harambee/opportunities/:harambeeOpportunityId",
+    adzunaPrefill: "/external-jobs/publish/adzuna/prefill",
+    adzunaPublish: "/external-jobs/publish/adzuna",
+    adzunaPublishes: "/external-jobs/adzuna/publishes",
+    adzunaJobPublishes: "/external-jobs/adzuna/job-publish",
+    adzunaJobUpdate: "/external-jobs/adzuna/jobs/:jobId",
+    adzunaJobDelete: "/external-jobs/adzuna/jobs/:jobId",
   },
   crm: {
     clients: "/crm/clients",

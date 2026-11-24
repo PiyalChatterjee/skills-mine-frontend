@@ -942,6 +942,10 @@
   background: #4baf73;
 }
 
+.detailPipelineBar[data-stage='rejected'] {
+  background: #d64545;
+}
+
 .detailPipelineZeroRow {
   display: flex;
   min-height: 40px;
@@ -968,11 +972,7 @@
 .detailPipelineLabel,
 :global(.MuiTypography-root).detailPipelineLabel,
 .detailPipelineValue,
-:global(.MuiTypography-root).detailPipelineValue,
-.detailRejectedLabel,
-:global(.MuiTypography-root).detailRejectedLabel,
-.detailRejectedValue,
-:global(.MuiTypography-root).detailRejectedValue {
+:global(.MuiTypography-root).detailPipelineValue {
   margin: 0;
   font-size: 16px;
   line-height: 1.5;
@@ -980,37 +980,13 @@
 }
 
 .detailPipelineLabel,
-:global(.MuiTypography-root).detailPipelineLabel,
-.detailRejectedLabel,
-:global(.MuiTypography-root).detailRejectedLabel {
+:global(.MuiTypography-root).detailPipelineLabel {
   font-weight: 500;
 }
 
 .detailPipelineValue,
-:global(.MuiTypography-root).detailPipelineValue,
-.detailRejectedValue,
-:global(.MuiTypography-root).detailRejectedValue {
+:global(.MuiTypography-root).detailPipelineValue {
   font-weight: 700;
-}
-
-.detailRejectedRow {
-  display: flex;
-  min-height: 40px;
-  align-items: center;
-  gap: 16px;
-}
-
-.detailRejectedMarker {
-  flex: 0 0 25px;
-  height: 40px;
-  background: #d64545;
-}
-
-.detailRejectedLabel,
-:global(.MuiTypography-root).detailRejectedLabel,
-.detailRejectedValue,
-:global(.MuiTypography-root).detailRejectedValue {
-  color: #2a3132;
 }
 
 @container detailPipelineRow (max-width: 160px) {
