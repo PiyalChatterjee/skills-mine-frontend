@@ -60,6 +60,20 @@ npm run test:coverage
 npm run preview
 ```
 
+### CI dependency installation
+
+Install the committed dependency tree before testing:
+
+```bash
+npm ci --include=dev
+npm test
+npm run build
+```
+
+Cache npm's download cache rather than restoring `node_modules` as a replacement
+for installation. Tests import Axios's Node adapter, which requires `form-data`;
+the package is explicitly declared so the test dependency is visible in the manifest.
+
 ## What Changed Recently
 
 ### EXCO Dashboard

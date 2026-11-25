@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { PermissionGuard } from './PermissionGuard'
 import { RoleGuard } from './RoleGuard'
+import { ROUTE_PATHS } from '@/routes/routePaths'
 
 const mocks = vi.hoisted(() => ({
   auth: {
@@ -31,6 +32,7 @@ const renderGuard = (guard: React.ReactElement) =>
           <Route path="/protected" element={<div>Protected content</div>} />
         </Route>
         <Route path="/dashboard" element={<div>Dashboard fallback</div>} />
+        <Route path={ROUTE_PATHS.candidateDashboard} element={<div>Candidate dashboard</div>} />
       </Routes>
     </MemoryRouter>,
   )
@@ -61,10 +63,20 @@ describe('role and permission guards', () => {
     expect(screen.getByText('Protected content')).toBeInTheDocument()
   })
 
-  it('redirects a disallowed role to the fallback route', () => {
+  it('redirects a disallowed role to its default dashboard', () => {
     mocks.auth.user = { role: 'JOB_SEEKER' }
 
     renderGuard(<RoleGuard allowedRoles={['RECRUITER']} />)
+
+    expect(screen.getByText('Candidate dashboard')).toBeInTheDocument()
+  })
+
+  it('uses an explicit fallback instead of the role dashboard', () => {
+    mocks.auth.user = { role: 'JOB_SEEKER' }
+
+    renderGuard(
+      <RoleGuard allowedRoles={['RECRUITER']} fallbackPath={ROUTE_PATHS.dashboard} />,
+    )
 
     expect(screen.getByText('Dashboard fallback')).toBeInTheDocument()
   })

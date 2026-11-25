@@ -115,4 +115,14 @@ describe("buildResumePrefillData", () => {
     ]);
     expect(result.otherLanguage).toBe("");
   });
+
+  it("deduplicates aliases after normalizing to display names", () => {
+    const result = buildResumePrefillData(
+      { languages: ["Zulu", "isiZulu", "Sepedi", "Sepedi (Northern Sotho)"] } as never,
+      "",
+    );
+
+    expect(result.languages).toEqual(["isiZulu", "Sepedi (Northern Sotho)"]);
+    expect(result.otherLanguage).toBe("");
+  });
 });

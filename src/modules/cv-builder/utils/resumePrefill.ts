@@ -144,7 +144,7 @@ export const buildResumePrefillData = (
   const languages = parsedLanguages.length ? parsedLanguages : extractTextLanguages(extractedText);
   
   // Normalize language codes to display names
-  const normalizedLanguages = languages.map(normalizeLanguage);
+  const normalizedLanguages = [...new Set(languages.map(normalizeLanguage))];
   
   // Separate known and unknown languages
   const knownLanguages = normalizedLanguages.filter((language) => LANGUAGES_LIST.includes(language as never));

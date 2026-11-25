@@ -17,10 +17,10 @@ describe("shared recruiter and EXCO sidebar", () => {
   });
 
   it("shows only executive destinations and the shared logout action for EXCO", () => {
-    render(<MemoryRouter initialEntries={["/exco"]}><RecruiterSidebar variant="exco" /></MemoryRouter>);
+    render(<MemoryRouter initialEntries={["/exco/dashboard"]}><RecruiterSidebar variant="exco" /></MemoryRouter>);
     expect(screen.getByRole("navigation", { name: "EXCO navigation" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Dashboard" })).toHaveAttribute("aria-current", "page");
-    expect(screen.getByRole("link", { name: "Go to EXCO Dashboard" })).toHaveAttribute("href", "/exco");
+    expect(screen.getByRole("link", { name: "Go to EXCO Dashboard" })).toHaveAttribute("href", "/exco/dashboard");
     expect(screen.getByRole("link", { name: "CRM" })).toHaveAttribute("href", "/exco/crm");
     expect(screen.getByRole("button", { name: "Log Out" })).toBeInTheDocument();
     expect(screen.getAllByRole("link")).toHaveLength(3);
