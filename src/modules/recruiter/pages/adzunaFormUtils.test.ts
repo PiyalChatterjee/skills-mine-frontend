@@ -67,6 +67,77 @@ const response: AdzunaPrefillResponse = {
 }
 
 describe('Adzuna form API mapping', () => {
+  it('loads published values without appending duplicate requirements or benefits on update', () => {
+    const saved = {
+      ...response,
+      prefill: {
+        ...response.prefill,
+        title: 'API Integration Specialist',
+        description: 'Connect enterprise systems.\n\nRequirements:\n• REST APIs\n• GraphQL\n\nBenefits:\n• Collaborative environment.',
+        location: { city: 'Durban', country: 'South Africa' },
+        country: 'South Africa',
+        company: 'Accenture',
+        category: 29,
+        salary_min: 270000,
+        salary_max: 350000,
+        remote: 0,
+        date: '2026-10-16',
+      },
+    }
+    const values = applyAdzunaPrefill(toAdzunaFormValues({
+      ...jobPost,
+      requirements: ['Outdated requirement'],
+      benefits: ['Outdated benefit'],
+    }), saved, true)
+
+    expect(values).toMatchObject({
+      jobTitle: 'API Integration Specialist',
+      jobLocation: 'Durban',
+      country: 'South Africa',
+      publicationDate: '2026-10-16',
+      workingModel: 'On-site',
+      companyName: 'Accenture',
+      category: 'Other/General Jobs',
+      minSalary: 'R 270 000',
+      maxSalary: 'R 350 000',
+      description: 'Connect enterprise systems.',
+      requirements: '• REST APIs\n• GraphQL',
+      perks: '• Collaborative environment.',
+    })
+    const request = buildAdzunaPublishRequest(values, saved.prefill, 'profile-1', 'https://example.test', 'job-1')
+    expect(request).toMatchObject({
+      description: saved.prefill.description,
+      remote: 0,
+      date: '2026-10-16',
+      country: 'ZA',
+      location: saved.prefill.location,
+      url: saved.prefill.url,
+    })
+  })
+
+  it('does not reintroduce job-profile sections absent from a saved description', () => {
+    const values = applyAdzunaPrefill({
+      ...initialAdzunaFormValues,
+      requirements: 'Old requirements',
+      perks: 'Old benefits',
+    }, response, true)
+    expect(values.description).toBe('Build APIs.')
+    expect(values.requirements).toBe('')
+    expect(values.perks).toBe('')
+  })
+
+  it('maps remote work and publication date both ways', () => {
+    const saved = { ...response, prefill: { ...response.prefill, remote: 1, date: '2026-10-16' } }
+    const values = applyAdzunaPrefill(initialAdzunaFormValues, saved, true)
+    expect(values.workingModel).toBe('Remote')
+    expect(values.publicationDate).toBe('2026-10-16')
+    values.publicationDate = '2026-10-17'
+    expect(buildAdzunaPublishRequest(values, saved.prefill, 'profile-1', 'https://example.test'))
+      .toMatchObject({ remote: 1, date: '2026-10-17' })
+    values.workingModel = 'On-site'
+    expect(buildAdzunaPublishRequest(values, saved.prefill, 'profile-1', 'https://example.test').remote).toBe(0)
+  })
+
   it.each([
     ['Technology', 'IT Jobs', 2],
     [' banking ', 'Accounting & Finance Jobs', 1],

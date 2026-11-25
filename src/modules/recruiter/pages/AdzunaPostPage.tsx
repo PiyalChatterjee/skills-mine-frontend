@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
-import { Box, Typography } from '@mui/material'
+import { Box, CircularProgress, Typography } from '@mui/material'
 import { RecruiterSidebar } from '@/modules/recruiter/components/RecruiterSidebar'
 import { BizRichText } from '@/modules/recruiter/components/advertised/bizcommunity/BizRichText'
 import {
@@ -22,7 +22,6 @@ import {
   ADZUNA_SALARY_FREQUENCIES,
   ADZUNA_SENIORITY_LEVELS,
   ADZUNA_WORKING_MODELS,
-  ADZUNA_WORK_FIELDS,
 } from '@/modules/recruiter/data/adzunaOptions'
 import { adzunaApi, type AdzunaPrefill } from '@/services/api/adzunaApi'
 import { mandateApi } from '@/services/api/mandateApi'
@@ -40,13 +39,6 @@ import {
 } from './adzunaFormUtils'
 import styles from './AdzunaPostPage.module.css'
 
-const READINESS_SCORE = 96
-const READINESS_CHECKS = [
-  'Salary benchmark included',
-  'Accurate regional geo-tag (JHB)',
-  'Target keywords structured',
-]
-
 /** 55000 → "R 55 000" */
 const formatRand = (amount: number | undefined) =>
   typeof amount === 'number' && amount > 0
@@ -57,31 +49,6 @@ const formatRandInput = (raw: string) => {
   const digits = raw.replace(/\D/g, '')
   return digits ? formatRand(Number(digits)) : ''
 }
-
-const toDisplayDate = (iso: string) => {
-  const [year, month, day] = iso.split('-')
-  return year && month && day ? `${day}/${month}/${year}` : ''
-}
-
-const PinIcon = () => (
-  <svg className={styles.pinIcon} width="11" height="11" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true">
-    <path d="M6 .8a3.6 3.6 0 00-3.6 3.6C2.4 7 6 11.2 6 11.2s3.6-4.2 3.6-6.8A3.6 3.6 0 006 .8zm0 5a1.4 1.4 0 110-2.8 1.4 1.4 0 010 2.8z" />
-  </svg>
-)
-
-const CalendarIcon = () => (
-  <svg className={styles.calendarIcon} width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-    <rect x="1.5" y="2.5" width="9" height="8" rx="1" stroke="currentColor" strokeWidth="1.1" />
-    <path d="M1.5 5h9M4 1.5v2M8 1.5v2" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" />
-  </svg>
-)
-
-const CheckBadge = ({ size = 12 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 14 14" aria-hidden="true">
-    <circle cx="7" cy="7" r="7" fill="currentColor" />
-    <path d="M4 7.2l2 2 4-4.2" stroke="#ffffff" strokeWidth="1.4" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-)
 
 const AdzunaPostPage = () => {
   const navigate = useNavigate()
@@ -95,8 +62,10 @@ const AdzunaPostPage = () => {
   const [values, setValues] = useState<AdzunaFormValues>(initialAdzunaFormValues)
   const [prefill, setPrefill] = useState<AdzunaPrefill>({})
   const [loadedPrefillKey, setLoadedPrefillKey] = useState<string>()
+  const [loadedAdvertKey, setLoadedAdvertKey] = useState<string>()
   const prefillKey = `${mandateId ?? ''}:${adzunaJobId ?? ''}`
   const isLoading = Boolean(mandateId) && loadedPrefillKey !== prefillKey
+  const isEditDataUnavailable = Boolean(adzunaJobId) && loadedAdvertKey !== prefillKey
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [draftSavedAt, setDraftSavedAt] = useState<string | null>(null)
 
@@ -105,13 +74,15 @@ const AdzunaPostPage = () => {
     let cancelled = false
 
     void Promise.allSettled([
-      mandateApi.getJobPostDetail(mandateId),
-      adzunaApi.getAdzunaPrefill(mandateId),
+      adzunaJobId ? Promise.resolve(undefined) : mandateApi.getJobPostDetail(mandateId),
+      adzunaJobId
+        ? adzunaApi.getAdzunaEditData(adzunaJobId)
+        : adzunaApi.getAdzunaPrefill(mandateId),
     ])
       .then(([jobResult, prefillResult]) => {
         if (cancelled) return
 
-        const baseValues = jobResult.status === 'fulfilled'
+        const baseValues = jobResult.status === 'fulfilled' && jobResult.value
           ? toAdzunaFormValues(jobResult.value.data)
           : initialAdzunaFormValues
         if (jobResult.status === 'rejected') {
@@ -124,8 +95,9 @@ const AdzunaPostPage = () => {
 
         if (prefillResult.status === 'fulfilled') {
           setPrefill(prefillResult.value.prefill)
-          const prefilledValues = applyAdzunaPrefill(baseValues, prefillResult.value)
+          const prefilledValues = applyAdzunaPrefill(baseValues, prefillResult.value, Boolean(adzunaJobId))
           setValues(prefilledValues)
+          if (adzunaJobId) setLoadedAdvertKey(prefillKey)
           const categoryWarning = getAdzunaCategoryWarning(prefillResult.value.prefill.category, prefilledValues.category)
           const notices = [
             ...prefillResult.value.warnings.filter((warning) =>
@@ -148,7 +120,7 @@ const AdzunaPostPage = () => {
           setPrefill({})
           dispatch(pushNotification({
             level: 'error',
-            title: 'Unable to load Adzuna prefill',
+            title: adzunaJobId ? 'Unable to load Adzuna advert' : 'Unable to load Adzuna prefill',
             message: extractErrorMessage(prefillResult.reason, 'Could not load Adzuna job details.'),
           }))
         }
@@ -171,7 +143,7 @@ const AdzunaPostPage = () => {
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
-    if (isSubmitting || isLoading) return
+    if (isSubmitting || isLoading || isEditDataUnavailable) return
     if (!mandateId) {
       dispatch(pushNotification({
         level: 'error',
@@ -184,10 +156,10 @@ const AdzunaPostPage = () => {
     const missingFields = [
       !values.jobTitle.trim() && 'Job Title',
       !values.jobLocation.trim() && 'Job Location',
+      !values.country.trim() && 'Country',
       !ADZUNA_CATEGORIES.some(({ label }) => label === values.category) && 'Adzuna Category',
       !values.description.trim() && 'Job Description',
       !values.requirements.trim() && 'Requirements & Experience',
-      !values.recruiterEmail.trim() && 'Recruiter Email',
     ].filter(Boolean)
     if (missingFields.length > 0) {
       dispatch(pushNotification({
@@ -253,6 +225,12 @@ const AdzunaPostPage = () => {
           </Typography>
         </Box>
 
+        {isLoading ? (
+          <div className={styles.loading} role="status">
+            <CircularProgress size={36} aria-label="Loading Adzuna job details" />
+            <span>Loading Adzuna job details...</span>
+          </div>
+        ) : (
         <form onSubmit={handleSubmit} noValidate>
           <Box className={pageStyles.card}>
             <div className={styles.columns}>
@@ -269,10 +247,7 @@ const AdzunaPostPage = () => {
 
                 <div className={styles.rowTwo}>
                   <AzField label="Job Location" required>
-                    <span className={styles.iconWrap}>
-                      <PinIcon />
-                      <AzInput className={styles.withIcon} value={values.jobLocation} onChange={(e) => update('jobLocation', e.target.value)} />
-                    </span>
+                    <AzInput value={values.jobLocation} onChange={(e) => update('jobLocation', e.target.value)} />
                   </AzField>
                   <AzField
                     label="Adzuna Category"
@@ -285,14 +260,13 @@ const AdzunaPostPage = () => {
                   </AzField>
                 </div>
 
-                <div className={styles.rowTwo}>
-                  <AzField label="Work Field">
-                    <AzSelect ariaLabel="Work Field" value={values.workField} options={ADZUNA_WORK_FIELDS} onChange={(v) => update('workField', v)} />
-                  </AzField>
-                  <AzField label="Contract Type" group>
-                    <AzChipSelect ariaLabel="Add contract type" addLabel="+ Add Type" values={values.contractTypes} options={ADZUNA_CONTRACT_TYPES} onChange={(v) => update('contractTypes', v)} />
-                  </AzField>
-                </div>
+                <AzField label="Country" required>
+                  <AzInput value={values.country} onChange={(e) => update('country', e.target.value)} />
+                </AzField>
+
+                <AzField label="Contract Type" group>
+                  <AzChipSelect ariaLabel="Add contract type" addLabel="+ Add Type" values={values.contractTypes} options={ADZUNA_CONTRACT_TYPES} onChange={(v) => update('contractTypes', v)} />
+                </AzField>
 
                 <div className={styles.rowThree}>
                   <AzField label="Employment Type">
@@ -308,7 +282,7 @@ const AdzunaPostPage = () => {
               </div>
             </AzCard>
 
-            <AzCard title="Adzuna Salary Index & Benchmarking" aside={<span className={styles.certified}>ValueMyCV Certified</span>}>
+            <AzCard title="Adzuna Salary Index & Benchmarking">
               <div className={styles.stack}>
                 <div className={styles.field}>
                   <span className={styles.fieldLabel} id="az-salary-display">Salary Display Preference</span>
@@ -347,26 +321,6 @@ const AdzunaPostPage = () => {
                   </AzField>
                 </div>
 
-                <div className={styles.benchmark} role="status">
-                  <span className={styles.benchmarkIcon}><CheckBadge size={18} /></span>
-                  <div>
-                    <p className={styles.benchmarkTitle}>
-                      Your salary range aligns with the top 15% Johannesburg Finance benchmark (R58 000 avg).
-                    </p>
-                    <p className={styles.benchmarkSub}>
-                      Postings with indexed salary indicators receive up to 2.4x more qualified applicants on Adzuna.
-                    </p>
-                  </div>
-                </div>
-
-                <AzField label="Direct Application URL (Optional ATS Redirect)">
-                  <AzInput
-                    className={styles.urlInput}
-                    placeholder="https://careers.theskillsmine.com/apply/funding-spec-jhb"
-                    value={values.applicationUrl}
-                    onChange={(e) => update('applicationUrl', e.target.value)}
-                  />
-                </AzField>
               </div>
             </AzCard>
 
@@ -378,8 +332,11 @@ const AdzunaPostPage = () => {
               </div>
             </AzCard>
 
-            <AzCard title="Search & Expiry Control">
+            <AzCard title="Search & Publication">
               <div className={styles.stack}>
+                  <AzField label="Publication Date">
+                    <AzInput type="date" value={values.publicationDate} onChange={(e) => update('publicationDate', e.target.value)} />
+                  </AzField>
                   <AzField label="Adzuna Search Keywords / Tags" hint="Separate with commas for semantic aggregation.">
                     <textarea
                       className={styles.keywords}
@@ -387,67 +344,10 @@ const AdzunaPostPage = () => {
                       onChange={(e) => update('keywords', e.target.value)}
                     />
                   </AzField>
-                  <AzField label="Primary Recruiter Contact">
-                    <AzInput className={styles.sideInput} value={values.recruiterName} onChange={(e) => update('recruiterName', e.target.value)} />
-                  </AzField>
-                  <AzField label="Recruiter Email" required>
-                    <AzInput className={styles.sideInput} type="email" value={values.recruiterEmail} onChange={(e) => update('recruiterEmail', e.target.value)} />
-                  </AzField>
-                  <AzField label="Listing Expiry Date" hint="Adzuna listing renewal happens every 30 days automatically.">
-                    <span className={styles.iconWrap}>
-                      <CalendarIcon />
-                      <AzInput className={`${styles.sideInput} ${styles.withIcon}`} readOnly value={toDisplayDate(values.expiryDate)} aria-label="Listing Expiry Date" />
-                      <input
-                        type="date"
-                        className={styles.dateNative}
-                        aria-label="Pick listing expiry date"
-                        value={values.expiryDate}
-                        onChange={(e) => update('expiryDate', e.target.value)}
-                      />
-                    </span>
-                  </AzField>
               </div>
             </AzCard>
           </div>
 
-          <aside className={styles.rightCol}>
-            <section className={styles.sideCard}>
-              <h2 className={styles.sideTitle}>Publishing Readiness</h2>
-              <div className={styles.indexRow}>
-                <span>Adzuna Quality Index</span>
-                <span className={styles.indexScore}>{READINESS_SCORE}% (High)</span>
-              </div>
-              <div
-                className={styles.progress}
-                role="progressbar"
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-valuenow={READINESS_SCORE}
-                aria-label="Adzuna Quality Index"
-              >
-                <span className={styles.progressFill} style={{ width: `${READINESS_SCORE}%` }} />
-              </div>
-              <ul className={styles.checklist}>
-                {READINESS_CHECKS.map((item) => (
-                  <li key={item} className={styles.checkItem}>
-                    <CheckBadge />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </section>
-
-            <section className={styles.synergy}>
-              <span className={styles.synergyLogo} aria-hidden="true">Az</span>
-              <div>
-                <h2 className={styles.synergyTitle}>Adzuna ValueMyCV Synergy</h2>
-                <p className={styles.synergyText}>
-                  When published, this opening is distributed to over 450,000 active South African financial sector
-                  candidates searching on Adzuna.co.za.
-                </p>
-              </div>
-            </section>
-          </aside>
             </div>
           </Box>
           <footer className={footerStyles.footer}>
@@ -458,7 +358,7 @@ const AdzunaPostPage = () => {
                   Save Draft
                 </button>
               </div>
-              <button type="submit" className={footerStyles.submitBtn} disabled={isLoading || isSubmitting}>
+              <button type="submit" className={footerStyles.submitBtn} disabled={isLoading || isSubmitting || isEditDataUnavailable}>
                 {isSubmitting
                   ? (adzunaJobId ? 'Updating…' : 'Publishing…')
                   : (adzunaJobId ? 'Update on Adzuna' : 'Publish to Adzuna')}
@@ -466,6 +366,7 @@ const AdzunaPostPage = () => {
             </div>
           </footer>
         </form>
+        )}
       </Box>
     </Box>
   )

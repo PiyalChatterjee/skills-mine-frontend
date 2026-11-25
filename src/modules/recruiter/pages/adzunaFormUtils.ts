@@ -9,8 +9,9 @@ import {
 export type AdzunaFormValues = {
   jobTitle: string
   jobLocation: string
+  country: string
+  publicationDate: string
   category: string
-  workField: string
   contractTypes: string[]
   employmentType: string
   seniority: string
@@ -25,17 +26,15 @@ export type AdzunaFormValues = {
   requirements: string
   perks: string
   keywords: string
-  recruiterName: string
-  recruiterEmail: string
-  expiryDate: string
   companyName: string
 }
 
 export const initialAdzunaFormValues: AdzunaFormValues = {
   jobTitle: '',
   jobLocation: '',
+  country: 'South Africa',
+  publicationDate: '',
   category: '',
-  workField: '',
   contractTypes: [],
   employmentType: '',
   seniority: '',
@@ -50,9 +49,6 @@ export const initialAdzunaFormValues: AdzunaFormValues = {
   requirements: '',
   perks: '',
   keywords: '',
-  recruiterName: '',
-  recruiterEmail: '',
-  expiryDate: '',
   companyName: '',
 }
 
@@ -148,20 +144,33 @@ export const toAdzunaFormValues = (post: JobPost): AdzunaFormValues => ({
   requirements: toBullets(post.requirements),
   perks: toBullets(post.benefits),
   keywords: (post.skills ?? []).join(', '),
-  recruiterName: post.contactPersonName ?? '',
-  recruiterEmail: post.contactPersonEmail ?? '',
-  expiryDate: post.targetCloseDate ? post.targetCloseDate.split('T')[0] : '',
   companyName: post.client ?? '',
 })
 
 export const applyAdzunaPrefill = (
   base: AdzunaFormValues,
   { prefill }: AdzunaPrefillResponse,
+  isPublished = false,
 ): AdzunaFormValues => {
   const next = { ...base }
   if (prefill.title) next.jobTitle = prefill.title
   if (prefill.description) next.description = prefill.description
+  if (isPublished && prefill.description) {
+    const sections = prefill.description.split(/\n\n(Requirements|Benefits):\n/)
+    next.description = sections[0]
+    next.requirements = ''
+    next.perks = ''
+    for (let index = 1; index < sections.length; index += 2) {
+      if (sections[index] === 'Requirements') next.requirements = sections[index + 1] ?? ''
+      if (sections[index] === 'Benefits') next.perks = sections[index + 1] ?? ''
+    }
+  }
   if (prefill.location) next.jobLocation = formatLocation(prefill.location)
+  if (prefill.location?.country) next.country = prefill.location.country
+  else if (prefill.country) next.country = prefill.country === 'ZA' ? 'South Africa' : prefill.country
+  if (prefill.date) next.publicationDate = prefill.date
+  if (prefill.remote === 0) next.workingModel = 'On-site'
+  if (prefill.remote === 1) next.workingModel = 'Remote'
   if (prefill.category != null) {
     next.category = ADZUNA_CATEGORIES.find(({ id }) => id === prefill.category)?.label ?? base.category
   }
@@ -228,8 +237,10 @@ export const buildAdzunaPublishRequest = (
     title: values.jobTitle.trim(),
     description: buildRequestDescription(values),
     url: values.applicationUrl.trim() || prefill.url || jobProfileUrl,
-    location: toLocation(values.jobLocation, prefill.location),
-    country: prefill.country ?? 'ZA',
+    location: { ...toLocation(values.jobLocation, prefill.location), country: values.country.trim() },
+    country: values.country.trim().toLowerCase() === 'south africa' ? 'ZA' : values.country.trim(),
+    date: values.publicationDate || prefill.date,
+    remote: values.workingModel ? (values.workingModel === 'Remote' ? 1 : 0) : prefill.remote,
     job_profile_id_ref: prefill.job_profile_id_ref ?? jobProfileId,
     company: values.companyName.trim() || prefill.company || undefined,
     category: category.id,

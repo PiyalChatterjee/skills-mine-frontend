@@ -25,10 +25,10 @@ type JobProfileSummary = {
 };
 
 type JobProfilePage = {
-  data: JobProfileSummary[];
-  total: number;
-  page: number;
-  size: number;
+  data?: JobProfileSummary[] | null;
+  total?: number;
+  page?: number;
+  size?: number;
 };
 
 type JobProfileSkill = {
@@ -74,12 +74,29 @@ const toJob = (job: JobProfileSummary): Job => ({
   postedDate: job.publishedAt ?? "",
 });
 
-const toJobsResponse = (payload: JobProfilePage): JobsResponse => {
+const toJobsResponse = (
+  payload: JobProfilePage | null | undefined | "",
+  page: number,
+  limit: number,
+): JobsResponse => {
+  if (payload != null && payload !== "" && (
+    typeof payload !== "object" ||
+    Array.isArray(payload) ||
+    (payload.data != null && !Array.isArray(payload.data)) ||
+    (payload.data == null && (
+      (payload.total ?? 0) > 0 ||
+      Object.keys(payload).some((key) => !["data", "total", "page", "size"].includes(key))
+    ))
+  )) {
+    throw new Error("Invalid jobs response. Please try again.");
+  }
+  const result = payload || {};
+  const jobs = (result.data ?? []).map(toJob);
   return {
-    jobs: payload.data.map(toJob),
-    total: payload.total,
-    page: payload.page,
-    pageSize: payload.size,
+    jobs,
+    total: result.total ?? jobs.length,
+    page: result.page ?? Math.max(0, page - 1),
+    pageSize: result.size ?? limit,
   };
 };
 
@@ -93,7 +110,7 @@ export const jobsApi = {
     filters: JobsSearchFilters = {},
   ): Promise<JobsResponse> {
     const industryIds = await resolveIndustryIds(filters.industries ?? []);
-    const response = await mandateApiClient.get<JobProfilePage>(apiEndpoints.jobs.list, {
+    const response = await mandateApiClient.get<JobProfilePage | null | undefined | "">(apiEndpoints.jobs.list, {
       params: {
         status,
         ...(q ? { [apiEndpoints.jobs.listQueryParam]: q } : {}),
@@ -107,7 +124,7 @@ export const jobsApi = {
       paramsSerializer: { indexes: null },
     });
 
-    return toJobsResponse(response.data);
+    return toJobsResponse(response.data, page, limit);
   },
 
   getById(jobId: string): Promise<SuccessEnvelope<Job>> {

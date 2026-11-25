@@ -93,7 +93,7 @@ export type AdzunaJobJsonRecord = {
   publish_id: string;
   job_id: string;
   is_active: boolean;
-  job_data: AdzunaPrefill;
+  job_data: Omit<AdzunaPrefill, "remote"> & { remote?: number | string };
   created_at: string;
   updated_at: string;
 };
@@ -138,12 +138,34 @@ export const adzunaApi = {
   /**
    * Get Adzuna jobs as JSON (converts XML to JSON)
    */
-  getAdzunaJobsAsJson() {
+  getAdzunaJobsAsJson(jobId?: string) {
     return unwrapResponseData(
       externalJobsApiClient.get<AdzunaJobJsonRecord[]>(
         apiEndpoints.externalJobs.adzunaPublishes,
+        jobId ? { params: { job_id: jobId } } : undefined,
       ),
     );
+  },
+
+  async getAdzunaEditData(jobId: string): Promise<AdzunaPrefillResponse> {
+    const records = await adzunaApi.getAdzunaJobsAsJson(jobId);
+    const record = records.find((item) => item.job_id === jobId);
+    if (!record?.job_data) {
+      throw new Error("The published Adzuna advert could not be found.");
+    }
+    const { remote, ...jobData } = record.job_data;
+    if (remote != null && remote !== 0 && remote !== 1 && remote !== "0" && remote !== "1") {
+      throw new Error("The published Adzuna advert has an unsupported remote work value.");
+    }
+    return {
+      job_profile_id: record.job_data.job_profile_id_ref ?? jobId,
+      prefill: {
+        ...jobData,
+        ...(remote != null ? { remote: Number(remote) } : {}),
+      },
+      missing_fields: [],
+      warnings: [],
+    };
   },
 
   /**

@@ -79,6 +79,40 @@ describe("Mandate Service v2 frontend adapters", () => {
     expect(result.data).toEqual({ mandateId: summary.jobProfileId, status: "CLOSED" });
   });
 
+  it.each([undefined, null, "", {}, { data: null }, { total: 0 }, { data: [] }])(
+    "maps an empty successful jobs response %j to an empty page",
+    async (payload) => {
+      mockGet.mockResolvedValue({ data: payload });
+
+      await expect(jobsApi.list(undefined, 2, 6)).resolves.toEqual({
+        jobs: [], total: 0, page: 1, pageSize: 6,
+      });
+    },
+  );
+
+  it("preserves pagination metadata for an empty jobs page", async () => {
+    mockGet.mockResolvedValue({ data: { data: null, total: 0, page: 0, size: 10 } });
+
+    await expect(jobsApi.list()).resolves.toEqual({
+      jobs: [], total: 0, page: 0, pageSize: 10,
+    });
+  });
+
+  it.each([{ data: {} }, { total: 2 }, { message: "Service unavailable" }, "Invalid response"])(
+    "rejects a malformed non-empty jobs response %j",
+    async (payload) => {
+      mockGet.mockResolvedValue({ data: payload });
+
+      await expect(jobsApi.list()).rejects.toThrow("Invalid jobs response. Please try again.");
+    },
+  );
+
+  it("does not turn a failed jobs request into an empty result", async () => {
+    mockGet.mockRejectedValue(new Error("Service unavailable"));
+
+    await expect(jobsApi.list()).rejects.toThrow("Service unavailable");
+  });
+
   it("preserves unknown job statuses from backend responses", async () => {
     mockGet.mockResolvedValue({ data: { data: [{ ...summary, status: "FUTURE_STATUS" }], total: 1, page: 0, size: 10 } });
 

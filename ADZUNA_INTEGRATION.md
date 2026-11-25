@@ -76,26 +76,26 @@ The Adzuna form sends `category` as a numeric ID (1–29), not its display label
 It uses a supported Adzuna prefill category first; otherwise, it maps recognized job
 industries or defaults to Other/General Jobs (29). Recruiters can change the selection.
 
-```typescript
-{
-  job_title: string
-  job_description: string
-  location: string
-  company_name: string
-  contact_email: string
-  job_profile_id_ref: string
-  // Optional fields
-  salary_min?: number
-  salary_max?: number
-  salary_currency?: string
-  contract_type?: string
-  skills?: string[]
-  benefits?: string
-  remote_work?: boolean
-  expiry_date?: string
-  response_handler_url?: string
-}
-```
+The application URL is not editable in the form. Publish and update requests retain
+the prefilled URL, falling back to the public job-details URL when unavailable.
+Certification, salary benchmark messaging, publishing readiness, and synergy panels
+are not displayed. The UI-only Work Field dropdown is also removed.
+
+Create loads `/external-jobs/publish/adzuna/prefill`. Edit loads the saved advert
+from `/external-jobs/adzuna/publishes?job_id=<id>` and populates the same form from
+`job_data`; it does not call the create prefill endpoint.
+Edit does not request mandate-service job details. Create retains that request for
+job-profile defaults.
+Saved descriptions are split into the existing description, requirements, and perks
+fields to prevent duplication on update. Country and Publication Date have dedicated
+fields; publication date is not listing expiry. Saved remote strings are normalized
+to numeric values and mapped to Working Model (0 = On-site, 1 = Remote). The API has
+no distinct Hybrid value; Hybrid is sent as 0. Updates are blocked if the saved
+advert cannot be loaded.
+
+The publish/update request does not include recruiter contact, recruiter email,
+or listing expiry, so the form does not collect or validate these fields. Refer to
+`PublishAdzunaJobRequest` in `src/services/api/adzunaApi.ts` for the request type.
 
 **AdzunaPublishRecord:**
 ```typescript

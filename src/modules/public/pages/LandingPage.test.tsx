@@ -51,6 +51,14 @@ describe('LandingPage visitor retention confirmation', () => {
     expect(screen.queryByText('Thanks For Applying')).not.toBeInTheDocument()
   })
 
+  it('shows the empty opportunities state when there are no jobs', () => {
+    render(<LandingPage />)
+
+    expect(screen.getByText('No jobs available right now.')).toBeInTheDocument()
+    expect(screen.queryByText(/Cannot read properties/)).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Load more' })).not.toBeInTheDocument()
+  })
+
   it('opens the same signup flow from the post-application signup button', () => {
     render(<LandingPage />)
     fireEvent.click(screen.getByRole('button', { name: 'Sign up and Browse Jobs' }))
