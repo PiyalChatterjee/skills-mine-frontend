@@ -5,6 +5,7 @@ import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { describe, expect, it, vi } from "vitest";
 import { cvBuilderSchema, type CvBuilderFormValues } from "@/app/validation.schema";
+import { AVAILABILITY_LABELS } from "@/modules/candidate/utils/profileEnums";
 import CvBuilderCareerHistoryForm from "./CvBuilderCareerHistoryForm";
 import CvBuilderEducationForm from "./CvBuilderEducationForm";
 import CvBuilderLanguagesForm from "./CvBuilderLanguagesForm";
@@ -96,6 +97,18 @@ describe("CvBuilderPersonalDetailsForm", () => {
     expect(label("Current Position")).toBeInTheDocument();
     expect(label("Notice Period")).toBeInTheDocument();
     expect(screen.queryByRole("textbox", { name: "Email address" })).not.toBeInTheDocument();
+  });
+
+  it("uses availability labels for notice period options", async () => {
+    const user = userEvent.setup();
+    renderInForm(<CvBuilderPersonalDetailsForm />);
+
+    await user.click(screen.getByRole("combobox", { name: "Notice period" }));
+
+    Object.values(AVAILABILITY_LABELS).forEach((availabilityLabel) => {
+      expect(screen.getByRole("option", { name: availabilityLabel })).toBeInTheDocument();
+    });
+    expect(screen.queryByRole("option", { name: "Notice Required" })).not.toBeInTheDocument();
   });
 
   it("marks current position and notice period required once a current company is entered", async () => {
@@ -229,6 +242,18 @@ describe("CvBuilderCareerHistoryForm", () => {
     expect(screen.getAllByText("*Required fields")).toHaveLength(1);
   });
 
+  it("removes an added position", async () => {
+    const user = userEvent.setup();
+    renderInForm(<CvBuilderCareerHistoryForm />);
+
+    await user.click(screen.getByRole("button", { name: "+ Add position" }));
+    await user.click(screen.getByRole("button", { name: "Remove position 2" }));
+
+    expect(screen.getByRole("heading", { name: "Position 1" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Position 2" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Remove position 1" })).not.toBeInTheDocument();
+  });
+
   it("adds and removes tasks, keeping at least one empty task row", async () => {
     const user = userEvent.setup();
     renderInForm(<CvBuilderCareerHistoryForm />);
@@ -275,6 +300,154 @@ describe("CvBuilderEducationForm", () => {
 
     expect(tertiaryYear).toHaveValue("2024");
   });
+
+  it("shows an error when tertiary education is not later than secondary education", async () => {
+    const user = userEvent.setup();
+    const values = buildValues();
+    values.tertiaryEducation[0] = {
+      institutionName: "University",
+      degreeOrCertification: "BTech",
+      yearCompleted: "2017",
+    };
+    values.secondaryEducation[0] = {
+      institutionName: "High School",
+      highestGradePassed: "Grade 12",
+      yearCompleted: "2018",
+    };
+    renderInForm(<CvBuilderEducationForm />, values);
+
+    await user.click(screen.getByRole("button", { name: "Validate form" }));
+
+    expect(
+      await screen.findByText(
+        "Tertiary year completed must be later than secondary year completed.",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("rejects an earlier tertiary year across multiple education entries", async () => {
+    const user = userEvent.setup();
+    const values = buildValues();
+    values.tertiaryEducation = [
+    {
+      institutionName: "University",
+      degreeOrCertification: "BTech",
+      yearCompleted: "2007",
+    },
+    {
+      institutionName: "College",
+      degreeOrCertification: "Diploma",
+      yearCompleted: "2011",
+    },
+    ];
+    values.secondaryEducation = [
+    {
+      institutionName: "High School",
+      highestGradePassed: "Grade 12",
+      yearCompleted: "2008",
+    },
+    {
+      institutionName: "Secondary School",
+      highestGradePassed: "Grade 10",
+      yearCompleted: "2010",
+    },
+    ];
+    renderInForm(<CvBuilderEducationForm />, values);
+
+    await user.click(screen.getByRole("button", { name: "Validate form" }));
+
+    expect(
+      await screen.findByText(
+        "Tertiary year completed must be later than secondary year completed.",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("rejects equal tertiary and latest secondary years across multiple entries", async () => {
+    const user = userEvent.setup();
+    const values = buildValues();
+    values.tertiaryEducation = [
+    {
+      institutionName: "University",
+      degreeOrCertification: "BTech",
+      yearCompleted: "2010",
+    },
+    {
+      institutionName: "College",
+      degreeOrCertification: "Diploma",
+      yearCompleted: "2012",
+    },
+    ];
+    values.secondaryEducation = [
+    {
+      institutionName: "High School",
+      highestGradePassed: "Grade 12",
+      yearCompleted: "2008",
+    },
+    {
+      institutionName: "Secondary School",
+      highestGradePassed: "Grade 10",
+      yearCompleted: "2010",
+    },
+    ];
+    renderInForm(<CvBuilderEducationForm />, values);
+
+    await user.click(screen.getByRole("button", { name: "Validate form" }));
+
+    expect(
+      await screen.findByText(
+        "Tertiary year completed must be later than secondary year completed.",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it.each(["tertiaryEducation", "secondaryEducation"] as const)(
+    "rejects duplicate years within %s entries",
+    async (sectionName) => {
+      const user = userEvent.setup();
+      const values = buildValues();
+      const errorMessage =
+        sectionName === "tertiaryEducation"
+          ? "Year completed must be unique within tertiary education."
+          : "Year completed must be unique within secondary education.";
+
+      if (sectionName === "tertiaryEducation") {
+        values.tertiaryEducation = [
+          {
+            institutionName: "University",
+            degreeOrCertification: "BTech",
+            yearCompleted: "2010",
+          },
+          {
+            institutionName: "College",
+            degreeOrCertification: "Diploma",
+            yearCompleted: "2010",
+          },
+        ];
+        values.secondaryEducation[0].yearCompleted = "2008";
+      } else {
+        values.tertiaryEducation[0].yearCompleted = "2010";
+        values.secondaryEducation = [
+          {
+            institutionName: "High School",
+            highestGradePassed: "Grade 12",
+            yearCompleted: "2008",
+          },
+          {
+            institutionName: "Secondary School",
+            highestGradePassed: "Grade 10",
+            yearCompleted: "2008",
+          },
+        ];
+      }
+
+      renderInForm(<CvBuilderEducationForm />, values);
+
+      await user.click(screen.getByRole("button", { name: "Validate form" }));
+
+      expect(await screen.findAllByText(errorMessage)).toHaveLength(2);
+    },
+  );
 
   it("adds and removes a tertiary entry", async () => {
     const user = userEvent.setup();

@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
 import { Box, CircularProgress, Typography } from '@mui/material'
 import { RecruiterSidebar } from '@/modules/recruiter/components/RecruiterSidebar'
+import { formatPhoneNumberDisplay } from '@/app/phoneNumber'
 import { MandateForm } from '@/modules/recruiter/components/mandate/MandateForm'
 import { pushNotification } from '@/store/slices/notificationSlice'
 import { ROUTE_PATHS } from '@/routes/routePaths'
@@ -26,12 +27,15 @@ function toBulletLines(value: string | string[] | undefined): string {
 function toFormValues(post: JobPost): MandateFormValues {
   return {
     companyName:          post.client ?? '',
+    clientId:             post.clientId ?? '',
     clientRate:           (post as unknown as Record<string, string>).clientRate ?? '',
     contactPerson:        post.contactPersonName ?? '',
     contactPersonEmail:   post.contactPersonEmail ?? '',
-    contactPersonPhone:   post.contactPersonNumber ?? '',
+    // API returns "+27…"; the form validates 10-digit local numbers ("0821234567")
+    contactPersonPhone:   formatPhoneNumberDisplay(post.contactPersonNumber ?? '').replace(/ /g, ''),
     positionTitle:        post.title ?? '',
     location:             post.location ?? '',
+    locationId:           '',
     fillByDate:           post.targetCloseDate ? post.targetCloseDate.split('T')[0] : '',
     workType:             post.workType ?? '',
     employmentType:       post.employmentType ?? '',
@@ -41,6 +45,7 @@ function toFormValues(post: JobPost): MandateFormValues {
       : '',
     salaryMin:            typeof post.salaryMin === 'number' ? post.salaryMin : '',
     salaryMax:            typeof post.salaryMax === 'number' ? post.salaryMax : '',
+    isSalaryHidden:       post.isSalaryHidden ?? false,
     jobDescription:       post.jobDescription ?? '',
     requirements:         toBulletLines(post.requirements),
     responsibilities:     toBulletLines(post.responsibilities),
@@ -57,12 +62,14 @@ function toFormValues(post: JobPost): MandateFormValues {
 function toApiRequest(values: MandateFormValues): CreateMandateRequest {
   return {
     companyName:        values.companyName,
+    clientId:           values.clientId || undefined,
     clientRate:         values.clientRate,
     contactName:        values.contactPerson,
     contactEmail:       values.contactPersonEmail,
     contactPhoneNumber: values.contactPersonPhone,
     positionTitle:      values.positionTitle,
     location:           values.location,
+    locationId:         values.locationId || undefined,
     fillByDate:         values.fillByDate,
     workType:           values.workType,
     employmentType:     values.employmentType,
@@ -72,6 +79,7 @@ function toApiRequest(values: MandateFormValues): CreateMandateRequest {
       minimum: Number(values.salaryMin),
       maximum: Number(values.salaryMax),
     },
+    isSalaryHidden:   values.isSalaryHidden,
     jobDescription:   values.jobDescription,
     requirements:     values.requirements,
     responsibilities: values.responsibilities,
@@ -155,6 +163,7 @@ const EditMandatePage = () => {
           <MandateForm
             title="Edit Job Post"
             submitLabel="Save Changes"
+            confirmCompanyChange
             initialValues={initialValues}
             onSubmit={handleSubmit}
           />

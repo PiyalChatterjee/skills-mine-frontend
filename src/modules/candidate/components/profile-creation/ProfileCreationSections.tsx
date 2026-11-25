@@ -10,6 +10,8 @@ import {
   ProfileTextField,
 } from '@/modules/candidate/components/ProfileFormFields'
 import { useIndustryOptions } from '@/modules/candidate/hooks/useIndustryOptions'
+import { useWorkTypeOptions } from '@/modules/candidate/hooks/useWorkTypeOptions'
+import { toPreferredLocationLabel } from '@/modules/candidate/utils/profileEnums'
 import { PROFILE_SELECT_OPTIONS } from '@/modules/candidate/pages/profileForm.config'
 import creationStyles from '@/modules/candidate/pages/ProfileCreationPage.module.css'
 import profileFieldStyles from '@/modules/candidate/pages/ProfilePage.module.css'
@@ -78,6 +80,7 @@ export const ProfileCreationJobDetailsSection = ({
 }: SectionProps) => {
   const { control } = useFormContext<ProfileCreationFormValues>()
   const industryOptions = useIndustryOptions(PROFILE_SELECT_OPTIONS.targetedIndustries)
+  const workTypeOptions = useWorkTypeOptions()
 
   return (
     <ProfileCreationStepSection iconSrc={iconDesiredSrc} title="Job details">
@@ -97,7 +100,8 @@ export const ProfileCreationJobDetailsSection = ({
           control={control}
           name="preferredLocations"
           label="Preferred Work Type(s)"
-          options={[...PROFILE_SELECT_OPTIONS.preferredWorkType]}
+          options={workTypeOptions}
+          resolveValue={toPreferredLocationLabel}
         />
         <ProfileSelectField
           control={control}

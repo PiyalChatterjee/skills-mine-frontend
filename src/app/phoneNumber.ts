@@ -15,11 +15,18 @@ export const formatPhoneNumberDisplay = (value: string) => {
   return [digits.slice(0, 3), digits.slice(3, 6), digits.slice(6)].filter(Boolean).join(" ");
 };
 
-export const normalizePhoneNumberInput = (value: string) => {
+const hasCountryCodePrefix = (value: string, isPaste: boolean) => {
+  const digits = digitsOnly(value);
+  // Only strip "27" for pasted values or explicit "+27"; when typing, a local
+  // number may legitimately start with 27 and extra digits must be dropped.
+  return digits.startsWith("27") && digits.length > 10 && (isPaste || value.trim().startsWith("+"));
+};
+
+export const normalizePhoneNumberInput = (value: string, isPaste = false) => {
   let digits = digitsOnly(value);
 
   // If a +27 number is pasted, convert to local-number entry format.
-  if (digits.startsWith("27") && digits.length > 10) {
+  if (hasCountryCodePrefix(value, isPaste)) {
     digits = digits.slice(2);
   }
 
@@ -32,10 +39,10 @@ export const getPhoneNumberInputProps = (value: string, onChange: (value: string
   onChange: (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const input = event.target;
     const cursor = input.selectionStart ?? input.value.length;
-    const enteredDigits = digitsOnly(input.value);
-    const countryCodeLength = enteredDigits.startsWith("27") && enteredDigits.length > 10 ? 2 : 0;
+    const isPaste = (event.nativeEvent as InputEvent | undefined)?.inputType === "insertFromPaste";
+    const countryCodeLength = hasCountryCodePrefix(input.value, isPaste) ? 2 : 0;
     const digitsBeforeCursor = Math.max(0, digitsOnly(input.value.slice(0, cursor)).length - countryCodeLength);
-    const normalized = normalizePhoneNumberInput(input.value);
+    const normalized = normalizePhoneNumberInput(input.value, isPaste);
     const formatted = formatPhoneNumberDisplay(normalized);
     const nextCursor = Math.min(formatted.length, digitsBeforeCursor + (digitsBeforeCursor > 3 ? 1 : 0) + (digitsBeforeCursor > 6 ? 1 : 0));
     input.value = formatted;

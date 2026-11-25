@@ -81,6 +81,7 @@ export const apiEndpoints = {
   },
   locations: {
     list: "/locations",
+    master: "/locations/master",
   },
   skills: {
     search: "/skills/search",
@@ -129,6 +130,9 @@ export const apiEndpoints = {
     resolveLowPerformingAlert:
       "/manco/dashboard/low-performing-recruiters/:alertId/resolve",
   },
+  exco: {
+    dashboard: "/exco/dashboard",
+  },
   jobPosts: {
     list: "/job-posts",
     create: "/jobs",
@@ -136,9 +140,36 @@ export const apiEndpoints = {
     update: "/job-posts/:mandateId",
     delete: "/job-posts/:mandateId",
   },
+  externalJobs: {
+    providers: "/external-jobs/providers",
+    bizCommunityPrefill: "/external-jobs/publish/bizcommunity/prefill",
+    bizCommunityPublish: "/external-jobs/publish/bizcommunity",
+    pnetPrefill: "/external-jobs/publish/pnet/prefill",
+    pnetPublish: "/external-jobs/publish/pnet",
+    pnetPublishes: "/external-jobs/pnet/publishes",
+    pnetJobUpdate: "/external-jobs/pnet/jobs/:referenceId",
+    pnetJobDelete: "/external-jobs/pnet/jobs/:referenceId",
+    bizCommunityPublishes: "/external-jobs/bizcommunity/publishes",
+    bizCommunityJobs: "/external-jobs/bizcommunity/jobs",
+    bizCommunityJobUpdate: "/external-jobs/bizcommunity/jobs/:bizJobId",
+    bizCommunityJobDelete: "/external-jobs/bizcommunity/jobs/:bizJobId",
+    harambeePrefill: "/external-jobs/publish/harambee/prefill",
+    harambeePublish: "/external-jobs/publish/harambee",
+    harambeePublishes: "/external-jobs/harambee/publishes",
+    harambeeJobUpdate: "/external-jobs/harambee/opportunities/:harambeeOpportunityId",
+    harambeeJobDelete: "/external-jobs/harambee/opportunities/:harambeeOpportunityId",
+    adzunaPrefill: "/external-jobs/publish/adzuna/prefill",
+    adzunaPublish: "/external-jobs/publish/adzuna",
+    adzunaPublishes: "/external-jobs/adzuna/publishes",
+    adzunaJobPublishes: "/external-jobs/adzuna/job-publish",
+    adzunaJobUpdate: "/external-jobs/adzuna/jobs/:jobId",
+    adzunaJobDelete: "/external-jobs/adzuna/jobs/:jobId",
+  },
   crm: {
     clients: "/crm/clients",
     clientNotes: "/crm/clients/:clientId/notes",
+    employer: "/crm/employer",
+    employerByName: "/crm/employers/:name",
     statusParam: "status",
   },
 } as const;

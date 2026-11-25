@@ -134,6 +134,12 @@ describe('LoginPage', () => {
   })
 
   it('shows error message when login fails', async () => {
+    const scrollIntoView = vi.fn()
+    const originalScrollIntoView = HTMLElement.prototype.scrollIntoView
+    Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
+      configurable: true,
+      value: scrollIntoView,
+    })
     mockAuthApi.login.mockRejectedValue(new Error('Unauthorized'))
     renderPage()
     await userEvent.type(screen.getByPlaceholderText('Email'), 'user@test.com')
@@ -141,7 +147,20 @@ describe('LoginPage', () => {
     fireEvent.submit(screen.getByRole('button', { name: /sign in/i }).closest('form')!)
     await waitFor(() => {
       expect(screen.getByText('Unauthorized')).toBeInTheDocument()
+      expect(scrollIntoView).toHaveBeenCalledWith({
+        behavior: 'smooth',
+        block: 'center',
+      })
     })
+
+    if (originalScrollIntoView) {
+      Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
+        configurable: true,
+        value: originalScrollIntoView,
+      })
+    } else {
+      delete (HTMLElement.prototype as Partial<HTMLElement>).scrollIntoView
+    }
   })
 
   it('renders AuthHero with correct headline', () => {

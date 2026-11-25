@@ -1,3 +1,4 @@
+import { PipelineStageCode, PipelineStageLabel as PipelineLabel } from "@/enums/statuses";
 import { useState } from 'react'
 import { Box, ButtonBase, CircularProgress, Typography } from '@mui/material'
 import { mandateApi } from '@/services/api/mandateApi'
@@ -29,6 +30,7 @@ export interface ShortlistStageModalProps {
   jobId: string
   dueDate?: string
   isRejected?: boolean
+  isMoveLocked?: boolean
   onClose: () => void
   onAdvance?: (applicationId: string) => void
   onMoveBack?: (applicationId: string) => void
@@ -43,8 +45,9 @@ const ShortlistStageModal = ({
   company,
   applicationId,
   jobId,
-  dueDate = 'Jan 20, 2026',
+  dueDate,
   isRejected = false,
+  isMoveLocked = false,
   onClose,
   onAdvance,
   onMoveBack,
@@ -65,7 +68,7 @@ const ShortlistStageModal = ({
     try {
       await mandateApi.advanceJobStage(jobId, {
         applicationId: [applicationId],
-        toStageCode: 'ASSESSMENT',
+        toStageCode: PipelineStageCode.ASSESSMENT,
       })
       onMoveBack?.(applicationId)
       onClose()
@@ -79,9 +82,9 @@ const ShortlistStageModal = ({
     setAdvancing(true)
     try {
       await mandateApi.advanceToInterview(applicationId, {
-        toStageCode: 'INTERVIEW',
+        toStageCode: PipelineStageCode.INTERVIEW,
         shortListDetails: {
-          offeredSalary: Number(ctcTotal.replace(/\D/g, '')) || 0,
+          offeredSalary: Number(ctcTotal) || 0,
           currencyCode: 'ZAR',
           offerDate,
           validUntil,
@@ -131,12 +134,14 @@ const ShortlistStageModal = ({
           </Typography>
 
           {/* ── Due date ── */}
-          <Box className={styles.dueDateRow}>
-            <CalendarIcon />
-            <Typography component="span" className={styles.dueDate}>
-              Due {dueDate}
-            </Typography>
-          </Box>
+          {dueDate && (
+            <Box className={styles.dueDateRow}>
+              <CalendarIcon />
+              <Typography component="span" className={styles.dueDate}>
+                Due {dueDate}
+              </Typography>
+            </Box>
+          )}
 
           {/* ── Form section ── */}
           <Box className={styles.formSection}>
@@ -183,9 +188,13 @@ const ShortlistStageModal = ({
                 <input
                   id="ctc-total"
                   type="text"
+                  inputMode="decimal"
                   className={styles.input}
                   value={ctcTotal}
-                  onChange={e => setCtcTotal(e.target.value)}
+                  onChange={e => {
+                    const v = e.target.value
+                    if (/^\d*\.?\d*$/.test(v)) setCtcTotal(v)
+                  }}
                 />
               </Box>
             </Box>
@@ -196,16 +205,16 @@ const ShortlistStageModal = ({
 
           {/* ── Action buttons ── */}
           <Box className={styles.actionRow}>
-            <ButtonBase className={styles.moveBackBtn} disableRipple onClick={handleMoveBack} disabled={movingBack || isRejected}>
+            <ButtonBase className={styles.moveBackBtn} disableRipple onClick={handleMoveBack} disabled={movingBack || isRejected || isMoveLocked}>
               {movingBack ? <CircularProgress size={14} sx={{ color: '#1E5FA8' }} /> : 'Move back'}
             </ButtonBase>
             <ButtonBase className={styles.rejectBtn} disableRipple onClick={() => setRejectOpen(true)} disabled={isRejected}>
               Reject
             </ButtonBase>
             <ButtonBase
-              className={`${styles.advanceBtn} ${!canAdvance || isRejected ? styles.advanceBtnDisabled : ''}`}
+              className={`${styles.advanceBtn} ${!canAdvance || isRejected || isMoveLocked ? styles.advanceBtnDisabled : ''}`}
               disableRipple
-              disabled={!canAdvance || advancing || isRejected}
+              disabled={!canAdvance || advancing || isRejected || isMoveLocked}
               onClick={handleAdvance}
             >
               {advancing ? <CircularProgress size={14} sx={{ color: '#fff' }} /> : 'Advance'}
@@ -216,7 +225,7 @@ const ShortlistStageModal = ({
     </Box>}
       {rejectOpen && (
         <RejectConfirmModal
-          stageName="Shortlist"
+          stageName={PipelineLabel.SHORTLIST}
           candidateName={candidateName}
           candidateTitle={candidateTitle}
           company={company}

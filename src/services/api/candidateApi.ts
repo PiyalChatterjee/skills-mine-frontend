@@ -1,3 +1,4 @@
+import { ApplicationStatus, DocumentExtractionStatus, DocumentLifecycleStatus, PipelineStageCode, ProfileStatus } from "@/enums/statuses";
 import {
   apiClient,
   candidateApiClient,
@@ -56,6 +57,7 @@ import type { CandidateProfileUpdatePayload } from "@/modules/candidate/types";
 import { toSouthAfricaApiPhoneNumber } from "@/app/phoneNumber";
 import { formatEnumLabel } from "@/app/formatEnumLabel";
 import { resolveIndustryId, resolveIndustryName } from "@/services/api/industryApi";
+import { omitEmptyValues } from "@/services/api/payloadUtils";
 
 const isUserSkill = (value: unknown): value is UserSkill => {
   if (!value || typeof value !== "object") {
@@ -151,15 +153,6 @@ const responseData = <T>(payload: T | { data?: T }): T => {
   return payload as T;
 };
 
-// Drops keys with no meaningful value (undefined, null, or empty string) so
-// optional/untouched fields aren't sent to the API at all.
-const omitUndefined = <T extends object>(input: T): Partial<T> =>
-  Object.fromEntries(
-    Object.entries(input).filter(
-      ([, value]) => value !== undefined && value !== null && value !== "",
-    ),
-  ) as Partial<T>;
-
 type RawDashboardPipelineStage =
   | string
   | {
@@ -186,6 +179,7 @@ type RawDashboardApplication = {
   stage?: string;
   current_stage?: string;
   current_stage_code?: string;
+  job_status?: string;
   statusMessage?: string;
   message?: string;
   stage_progress?: RawDashboardPipelineStage[];
@@ -228,7 +222,8 @@ const mapDashboardResponse = (
           .find(
             (stage) =>
               typeof stage !== "string" &&
-              stage.to_stage_code?.toUpperCase() === "REJECT",
+              (stage.to_stage_code?.toUpperCase() === PipelineStageCode.REJECT ||
+                stage.to_stage_code?.toUpperCase() === PipelineStageCode.OFFER_REJECT),
           )
       : undefined;
     const rejectedAtStage =
@@ -248,6 +243,7 @@ const mapDashboardResponse = (
         company: item.job?.company ?? item.company_name ?? "",
       },
       stage: item.stage ?? item.current_stage ?? item.current_stage_code ?? "",
+      jobStatus: item.job_status,
       statusMessage: item.statusMessage ?? item.message ?? "",
       ...(rejectedAtStage ? { rejectedAtStage } : {}),
       pipeline: Array.isArray(progress)
@@ -276,11 +272,13 @@ const mapDashboardResponse = (
         summary.totalApplications ?? normalizedApplications.length,
       submitted:
         summary.submitted ??
-        statuses.filter((status) => status === "SUBMITTED").length,
+        statuses.filter((status) => status === ApplicationStatus.SUBMITTED).length,
       inProgress:
         summary.inProgress ??
         statuses.filter((status) =>
-          ["ACTIVE", "SUBMITTED", "ON_HOLD"].includes(status),
+          [ApplicationStatus.ACTIVE, ApplicationStatus.SUBMITTED, ApplicationStatus.ON_HOLD].some(
+            (inProgressStatus) => inProgressStatus === status,
+          ),
         ).length,
       successful: summary.successful ?? 0,
     },
@@ -460,6 +458,7 @@ export const toCvPayload = (payload: SaveBuildMyCvRequest) => {
 
   const careerHistory = payload.careerHistory?.map((item) => {
     const isCurrent = !item.endDate || item.endDate === "Present";
+    const projects = item.projects?.map((project) => project.trim()).filter(Boolean);
     return {
       company_name: item.company,
       position_held: item.jobTitle,
@@ -470,6 +469,7 @@ export const toCvPayload = (payload: SaveBuildMyCvRequest) => {
         .split(";")
         .map((task) => task.trim())
         .filter(Boolean),
+      ...(projects?.length ? { projects } : {}),
     };
   });
 
@@ -484,21 +484,21 @@ export const toCvPayload = (payload: SaveBuildMyCvRequest) => {
           race: personalDetails.race,
           gender: personalDetails.gender,
           disability_status: personalDetails.disabilityStatus,
-          ...(personalDetails.currentCompany?.trim()
+          ...(personalDetails.currentCompany !== undefined
             ? { current_company: personalDetails.currentCompany.trim() }
             : {}),
-          ...(personalDetails.currentPosition?.trim()
+          ...(personalDetails.currentPosition !== undefined
             ? { current_position: personalDetails.currentPosition.trim() }
             : {}),
-          ...(personalDetails.noticePeriod?.trim()
-            ? { notice_period: personalDetails.noticePeriod.trim() }
-            : {}),
+          ...omitEmptyValues({
+            notice_period: personalDetails.noticePeriod?.trim(),
+          }),
         }
       : undefined,
     // career_history entries require an array of responsibilities and an explicit
     // is_current flag — "Present" (set by the form when isCurrentRole is checked)
     // maps to is_current: true with no end date.
-    ...(careerHistory?.length ? { career_history: careerHistory } : {}),
+    ...(careerHistory ? { career_history: careerHistory } : {}),
     // Skills are { skill_name } objects, not plain strings.
     skills: payload.skills?.map((skillName) => ({ skill_name: skillName })),
     // Education is a single flat array; level_code distinguishes tertiary from secondary.
@@ -729,6 +729,13 @@ const mapBuildResponse = (
       responsibilities:
         normalizeResponsibilities(item.responsibilities) ??
         normalizeResponsibilities(item.responsibilities_text),
+      ...(Array.isArray(item.projects)
+        ? {
+            projects: item.projects.filter(
+              (project): project is string => typeof project === "string",
+            ),
+          }
+        : {}),
     })),
     skills: (data.skills ?? [])
       .map((skill) => {
@@ -746,7 +753,7 @@ const mapBuildResponse = (
     validation: data.validation ?? [],
     summary: data.summary ?? "",
     extractionStatus:
-      data.extractionStatus ?? data.extraction_status ?? "NOT_STARTED",
+      data.extractionStatus ?? data.extraction_status ?? DocumentExtractionStatus.NOT_STARTED,
     createdAt: data.createdAt ?? data.created_at ?? null,
     lastModified:
       data.lastModified ??
@@ -1033,7 +1040,7 @@ export const candidateApi = {
     await candidateApiClient.put(
       resolveEndpoint(apiEndpoints.candidate.profile, { candidateId }),
       {
-        personal_details: omitUndefined({
+        personal_details: omitEmptyValues({
           first_name: personalDetails.firstName,
           last_name: personalDetails.lastName,
           email: personalDetails.email,
@@ -1042,7 +1049,7 @@ export const candidateApi = {
           alternate_email: personalDetails.alternateEmail,
           alternate_phone_number: personalDetails.alternateMobileNumber,
         }),
-        job_details: omitUndefined({
+        job_details: omitEmptyValues({
           role_title: payload.desiredJob?.jobTitle,
           targeted_industry_id: targetedIndustriesId,
           preferred_location: toPreferredLocationEnum(payload.desiredJob?.workType),
@@ -1140,7 +1147,7 @@ export const candidateApi = {
           profileStatus:
             profileSummary.profileStatus ??
             profileSummary.profile_status ??
-            "INCOMPLETE",
+            ProfileStatus.INCOMPLETE,
         },
         createdAt: data.createdAt ?? data.created_at ?? null,
       };
@@ -1162,7 +1169,7 @@ export const candidateApi = {
     const raw = await unwrapResponseData(
       candidateApiClient.post<Record<string, any>>(
         apiEndpoints.candidate.applications,
-        omitUndefined({
+        omitEmptyValues({
           job_profile_id: jobProfileId,
           match_score_latest: payload.matchScoreLatest,
         }),
@@ -1448,7 +1455,7 @@ export const candidateApi = {
     >;
     return {
       candidateId: data.candidate_id ?? data.candidateId ?? candidateId,
-      profileStatus: data.profile_status ?? data.profileStatus ?? "ACTIVE",
+      profileStatus: data.profile_status ?? data.profileStatus ?? ProfileStatus.ACTIVE,
       message: data.message ?? "",
       createdAt: data.created_at ?? data.createdAt ?? null,
       updatedAt: data.updated_at ?? data.updatedAt ?? null,
@@ -1492,7 +1499,7 @@ export const candidateApi = {
       fileName: raw.file_name ?? fileName,
       mediaType: raw.media_type ?? file.type,
       sizeBytes: raw.size_bytes ?? file.size,
-      lifecycleStatus: raw.lifecycle_status ?? "ACTIVE",
+      lifecycleStatus: raw.lifecycle_status ?? DocumentLifecycleStatus.ACTIVE,
       uploadedAt: raw.updated_at ?? new Date().toISOString(),
     };
   },

@@ -123,6 +123,73 @@ a.navItemActive {
   white-space: nowrap;
 }
 
+.navItem:focus-visible,
+.logoLink:focus-visible,
+:global(.MuiButtonBase-root).navItem:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: -4px;
+}
+
+.excoSidebar {
+  background: linear-gradient(199.669deg, #2b96d9 0.56057%, #03478c 99.839%);
+  overflow-y: auto;
+}
+
+.excoSidebar .logoWrap {
+  padding: 20px;
+}
+
+.excoSidebar .logoBanner {
+  width: 189.695px;
+  height: 31.0318px;
+}
+
+.excoSidebar .dashboardItem {
+  padding: 0;
+}
+
+.excoSidebar .navSection {
+  padding: 20px 0 0;
+}
+
+.excoSidebar .navSection + .navSection {
+  padding-top: 0;
+}
+
+.excoSidebar :global(.MuiTypography-root).navSectionLabel.navSectionLabel {
+  margin: 0;
+  padding: 0 32px;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: 1px;
+  color: #aad5f0;
+}
+
+.excoSidebar .navItem {
+  gap: 16px;
+  padding: 16px 32px;
+  color: #aad5f0;
+}
+
+.excoSidebar .navItemActive {
+  border-right-width: 6px !important;
+}
+
+.excoSidebar .navItemIcon {
+  width: 24px;
+  height: 24px;
+}
+
+.excoSidebar .navItemLabel {
+  line-height: 24px;
+  letter-spacing: 0.1px;
+}
+
+.excoSidebar .navList {
+  gap: 0;
+}
+
 
 /* ── Responsive: Tablet & Mobile ──────────────────────────────────────── */
 
@@ -136,6 +203,34 @@ a.navItemActive {
 
   .sidebarOpen {
     transform: translateX(0);
+  }
+
+  .sidebar.excoSidebar {
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+    min-width: 0;
+    height: 72px;
+    transform: none;
+    box-shadow: none;
+    overflow: auto;
+  }
+
+  .excoSidebar > * {
+    flex-shrink: 0;
+  }
+
+  .excoSidebar .logoWrap,
+  .excoSidebar .navSectionLabel {
+    display: none;
+  }
+
+  .excoSidebar .navSection {
+    padding: 0;
+  }
+
+  .excoSidebar .navItem {
+    padding: 16px;
   }
 }
 

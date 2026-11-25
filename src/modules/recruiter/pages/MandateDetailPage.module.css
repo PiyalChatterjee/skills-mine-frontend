@@ -149,7 +149,8 @@
 }
 
 .statCard {
-  flex: 1;
+  flex: 1 1 0;
+  min-width: 0;
   padding: 20px 18px;
   display: flex;
   align-items: flex-start;
@@ -171,6 +172,15 @@
   font-size: 72px;
   font-weight: 600;
   line-height: 1;
+}
+
+.statValueOverdue,
+:global(.MuiTypography-root).statValueOverdue,
+:global(.MuiTypography-root).statValue.statValueOverdue {
+  font-size: 36px;
+  line-height: 1;
+  min-height: 72px;
+  white-space: nowrap;
 }
 
 .statLabel,
@@ -707,6 +717,13 @@
 }
 
 /* ── View Candidate Pipeline button ─────────────────────────────────── */
+.actionBtnsRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
 .pipelineBtn:global(.MuiButtonBase-root) {
   display: inline-flex;
   align-items: center;
@@ -728,6 +745,33 @@
   background: #02356b;
 }
 
+.closeJobBtn:global(.MuiButtonBase-root) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: flex-start;
+  background: #C0392B;
+  color: #ffffff;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 15px;
+  font-weight: 400;
+  padding: 14px 28px;
+  border-radius: 100px;
+  border: none;
+  transition: background 0.15s ease;
+  white-space: nowrap;
+}
+
+.closeJobBtn:global(.MuiButtonBase-root):hover {
+  background: #a93226;
+}
+
+.closeJobBtn:global(.MuiButtonBase-root):global(.Mui-disabled) {
+  background: #f8d7da;
+  color: #e08a8a;
+  cursor: not-allowed;
+}
+
 /* ── Responsive ──────────────────────────────────────────────────────── */
 /* ── Tablet (900px) ───────────────────────────────────────────────────── */
 @media (max-width: 900px) {
@@ -736,6 +780,13 @@
   .layout { flex-direction: column; padding: 0 16px; }
   .rightCol { flex: none; width: 100%; }
   .statValue { font-size: 36px; }
+  .statValueOverdue,
+  :global(.MuiTypography-root).statValueOverdue,
+  :global(.MuiTypography-root).statValue.statValueOverdue {
+    font-size: 28px;
+    line-height: 1;
+    min-height: 36px;
+  }
   .breadcrumbBar { padding: 12px 16px; }
   .statsBanner { flex-direction: column; gap: 8px; padding: 16px; }
   .statCard { width: 100%; }
@@ -750,6 +801,13 @@
   .breadcrumbCurrent,
   :global(.MuiTypography-root).breadcrumbCurrent { font-size: 16px; }
   .statValue { font-size: 28px; }
+  .statValueOverdue,
+  :global(.MuiTypography-root).statValueOverdue,
+  :global(.MuiTypography-root).statValue.statValueOverdue {
+    font-size: 22px;
+    line-height: 1;
+    min-height: 28px;
+  }
   .postDataTitle,
   :global(.MuiTypography-root).postDataTitle,
   :global(.MuiTypography-root).postDataTitle.postDataTitle { font-size: 18px; }
@@ -868,4 +926,202 @@
   font-size: 72px;
   font-weight: 600;
   line-height: 1;
+}
+
+/* ── Candidates search bar ────────────────────────────────────────────── */
+.searchBarRow {
+  padding: 0 20px 12px;
+  border-bottom: 1px solid #f0f4f8;
+}
+
+.searchInputWrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f7f8fa;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 0 10px;
+  height: 36px;
+  transition: border-color 0.15s ease;
+}
+
+.searchInputWrapper:focus-within {
+  border-color: #2B96D9;
+  background: #ffffff;
+}
+
+.searchIcon {
+  color: #9ca3af;
+  flex-shrink: 0;
+}
+
+.searchInput {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  color: #1f2328;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.5;
+  min-width: 0;
+}
+
+.searchInput::placeholder {
+  color: #9ca3af;
+}
+
+.searchClearBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 2px;
+  cursor: pointer;
+  color: #9ca3af;
+  flex-shrink: 0;
+  line-height: 0;
+  border-radius: 4px;
+  transition: color 0.15s ease;
+}
+
+.searchClearBtn:hover {
+  color: #57606a;
+}
+
+/* ── Close Job confirmation modal ────────────────────────────────────── */
+.confirmBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 71, 140, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1300;
+}
+
+.confirmModal {
+  background: #ffffff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: 0 8px 32px rgba(3, 71, 140, 0.18);
+  overflow: hidden;
+}
+
+.confirmModalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.confirmModalTitle,
+:global(.MuiTypography-root).confirmModalTitle {
+  margin: 0;
+  color: #03478C;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.confirmModalCloseBtn:global(.MuiButtonBase-root) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 6px;
+  color: #57606a;
+  background: none;
+  border: none;
+  transition: background 0.15s ease;
+}
+
+.confirmModalCloseBtn:global(.MuiButtonBase-root):hover {
+  background: #f0f4f8;
+}
+
+.confirmModalBody {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 24px 20px 20px;
+}
+
+.confirmModalMessage,
+:global(.MuiTypography-root).confirmModalMessage {
+  margin: 0 0 6px;
+  color: #1f2328;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.confirmModalSubMessage,
+:global(.MuiTypography-root).confirmModalSubMessage {
+  margin: 0;
+  color: #57606a;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+.confirmModalFooter {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 20px 20px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.confirmCancelBtn:global(.MuiButtonBase-root) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 20px;
+  border-radius: 100px;
+  border: 1.5px solid #c8d0da;
+  color: #57606a;
+  background: #ffffff;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  transition: background 0.15s ease;
+}
+
+.confirmCancelBtn:global(.MuiButtonBase-root):hover {
+  background: #f7f8fa;
+}
+
+.confirmCloseBtn:global(.MuiButtonBase-root) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 20px;
+  border-radius: 100px;
+  border: none;
+  background: #C0392B;
+  color: #ffffff;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  transition: background 0.15s ease;
+  min-width: 120px;
+}
+
+.confirmCloseBtn:global(.MuiButtonBase-root):hover {
+  background: #a93226;
+}
+
+.confirmCloseBtn:global(.MuiButtonBase-root):disabled {
+  opacity: 0.65;
+  cursor: default;
 }

@@ -51,6 +51,7 @@ describe("guest application drafts", () => {
 
     expect(getGuestApplicationDrafts()[0]).toMatchObject({
       applicationStatus: "cv-completed",
+      job: { workType: "Hybrid" },
       cvData: { skills: ["React"] },
     });
   });

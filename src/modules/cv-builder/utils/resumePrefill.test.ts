@@ -8,6 +8,8 @@ describe("buildResumePrefillData", () => {
         personal_details: {
           first_name: "Ben",
           last_name: "Hur",
+          email: "ben@example.com",
+          phone_number: "+27123456789",
           race: "African",
           gender: "Male",
           disability_status: "None",
@@ -33,6 +35,8 @@ describe("buildResumePrefillData", () => {
     );
 
     expect(result.personalDetails?.fullName).toBe("Ben Hur");
+    expect(result.personalDetails?.email).toBe("ben@example.com");
+    expect(result.personalDetails?.phoneNumber).toBe("+27123456789");
     expect(result.tertiaryEducation?.[0]).toEqual({
       institutionName: "University of Whitsand",
       degreeOrCertification: "BTech",
@@ -41,5 +45,74 @@ describe("buildResumePrefillData", () => {
     expect(result.secondaryEducation?.[0].highestGradePassed).toBe("Grade 12");
     expect(result.skills).toEqual([{ name: "React Js" }, { name: "Nest Js" }]);
     expect(result.languages).toEqual(["English"]);
+  });
+
+  it("maps parsed languages outside the preset list to Other", () => {
+    const result = buildResumePrefillData(
+      { languages: ["English", "Spanish"] } as never,
+      "",
+    );
+
+    expect(result.languages).toEqual(["English", "Other"]);
+    expect(result.otherLanguage).toBe("Spanish");
+  });
+
+  it("normalizes language codes to display names from LANGUAGES_LIST", () => {
+    const result = buildResumePrefillData(
+      { languages: ["Sepedi", "English", "isiZulu"] } as never,
+      "",
+    );
+
+    expect(result.languages).toEqual([
+      "Sepedi (Northern Sotho)",
+      "English",
+      "isiZulu",
+    ]);
+    expect(result.otherLanguage).toBe("");
+  });
+
+  it("handles mixed short codes and full names", () => {
+    const result = buildResumePrefillData(
+      { languages: ["Sepedi", "English", "isiZulu", "Spanish"] } as never,
+      "",
+    );
+
+    expect(result.languages).toEqual([
+      "Sepedi (Northern Sotho)",
+      "English",
+      "isiZulu",
+      "Other",
+    ]);
+    expect(result.otherLanguage).toBe("Spanish");
+  });
+
+  it("handles case-insensitive language matching", () => {
+    const result = buildResumePrefillData(
+      { languages: ["sepedi", "ENGLISH", "isizulu", "english"] } as never,
+      "",
+    );
+
+    expect(result.languages).toEqual([
+      "Sepedi (Northern Sotho)",
+      "English",
+      "isiZulu",
+    ]);
+    expect(result.otherLanguage).toBe("");
+  });
+
+  it("handles mixed case variants of short codes", () => {
+    const result = buildResumePrefillData(
+      { languages: ["SEPEDI", "english", "IsiZulu", "xhosa", "TSWANA"] } as never,
+      "",
+    );
+
+    expect(result.languages).toEqual([
+      "Sepedi (Northern Sotho)",
+      "English",
+      "isiZulu",
+      "isiXhosa",
+      "Setswana (Tswana)",
+    ]);
+    expect(result.otherLanguage).toBe("");
   });
 });

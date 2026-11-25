@@ -1,3 +1,4 @@
+import { OfferResponseStatus, PipelineStageCode, PipelineStageLabel as PipelineLabel } from "@/enums/statuses";
 import { useState } from 'react'
 import { Box, ButtonBase, CircularProgress, Typography } from '@mui/material'
 import { mandateApi } from '@/services/api/mandateApi'
@@ -29,6 +30,7 @@ export interface OfferStageModalProps {
   jobId: string
   dueDate?: string
   isRejected?: boolean
+  isMoveLocked?: boolean
   onClose: () => void
   onAdvance?: (applicationId: string) => void
   onMoveBack?: (applicationId: string) => void
@@ -43,8 +45,9 @@ const OfferStageModal = ({
   company,
   applicationId,
   jobId,
-  dueDate = 'Jan 20, 2026',
+  dueDate,
   isRejected = false,
+  isMoveLocked = false,
   onClose,
   onAdvance,
   onRejected,
@@ -62,8 +65,8 @@ const OfferStageModal = ({
     setAdvancing(true)
     try {
       await mandateApi.advanceOfferToClose(applicationId, {
-        toStageCode: 'CLOSED',
-        offerResponseStatus: 'ACCEPTED',
+        toStageCode: PipelineStageCode.CLOSED,
+        offerResponseStatus: OfferResponseStatus.ACCEPTED,
         offerDetails: {
           actualSalaryAccepted: Number(ctcTotal),
           currencyCode: 'ZAR',
@@ -115,12 +118,14 @@ const OfferStageModal = ({
           </Typography>
 
           {/* ── Due date ── */}
-          <Box className={styles.dueDateRow}>
-            <CalendarIcon />
-            <Typography component="span" className={styles.dueDate}>
-              Due {dueDate}
-            </Typography>
-          </Box>
+          {dueDate && (
+            <Box className={styles.dueDateRow}>
+              <CalendarIcon />
+              <Typography component="span" className={styles.dueDate}>
+                Due {dueDate}
+              </Typography>
+            </Box>
+          )}
 
           {/* ── Form section ── */}
           <Box className={styles.formSection}>
@@ -134,18 +139,13 @@ const OfferStageModal = ({
                 <Typography component="label" className={styles.fieldLabel} htmlFor="offer-ext-date-offer">
                   Offer Extension Date *
                 </Typography>
-                <Box className={styles.inputWrapper}>
-                  <input
-                    id="offer-ext-date-offer"
-                    type="text"
-                    className={styles.input}
-                    value={offerDate}
-                    onChange={e => setOfferDate(e.target.value)}
-                  />
-                  <Box className={styles.inputIcon}>
-                    <CalendarIcon />
-                  </Box>
-                </Box>
+                <input
+                  id="offer-ext-date-offer"
+                  type="date"
+                  className={styles.input}
+                  value={offerDate}
+                  onChange={e => setOfferDate(e.target.value)}
+                />
               </Box>
 
               {/* Cost-to-Company Total */}
@@ -169,15 +169,13 @@ const OfferStageModal = ({
                 <Typography component="label" className={styles.fieldLabel} htmlFor="valid-until-offer">
                   Offer Valid Until
                 </Typography>
-                <Box className={styles.inputWrapper}>
-                  <input
-                    id="valid-until-offer"
-                    type="date"
-                    className={styles.input}
-                    value={validUntil}
-                    onChange={e => setValidUntil(e.target.value)}
-                  />
-                </Box>
+                <input
+                  id="valid-until-offer"
+                  type="date"
+                  className={styles.input}
+                  value={validUntil}
+                  onChange={e => setValidUntil(e.target.value)}
+                />
               </Box>
             </Box>
           </Box>
@@ -194,9 +192,9 @@ const OfferStageModal = ({
               Reject
             </ButtonBase>
             <ButtonBase
-              className={`${styles.advanceBtn} ${!canAdvance || isRejected ? styles.advanceBtnDisabled : ''}`}
+              className={`${styles.advanceBtn} ${!canAdvance || isRejected || isMoveLocked ? styles.advanceBtnDisabled : ''}`}
               disableRipple
-              disabled={!canAdvance || advancing || isRejected}
+              disabled={!canAdvance || advancing || isRejected || isMoveLocked}
               onClick={handleAdvance}
             >
               {advancing ? <CircularProgress size={14} sx={{ color: '#fff' }} /> : 'Advance'}
@@ -207,7 +205,7 @@ const OfferStageModal = ({
     </Box>}
       {rejectOpen && (
         <RejectConfirmModal
-          stageName="Offer"
+          stageName={PipelineLabel.OFFER}
           candidateName={candidateName}
           candidateTitle={candidateTitle}
           company={company}

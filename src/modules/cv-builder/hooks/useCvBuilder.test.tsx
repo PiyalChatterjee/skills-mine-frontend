@@ -63,6 +63,61 @@ describe("useCvBuilder", () => {
     expect(result.current.form.getValues("personalDetails.race")).toBe("African");
   });
 
+  it.each(["tertiaryEducation", "secondaryEducation"] as const)(
+    "does not allow CV preview when %s contains duplicate years",
+    async (sectionName) => {
+      const prefill: CvBuilderPrefillData =
+        sectionName === "tertiaryEducation"
+          ? {
+              ...completePrefill,
+              tertiaryEducation: [
+                {
+                  institutionName: "UCT",
+                  degreeOrCertification: "BSc",
+                  yearCompleted: "2020",
+                },
+                {
+                  institutionName: "University of Cape Town",
+                  degreeOrCertification: "MSc",
+                  yearCompleted: "2020",
+                },
+              ],
+              secondaryEducation: [
+                {
+                  institutionName: "High School",
+                  highestGradePassed: "Grade 12",
+                  yearCompleted: "2015",
+                },
+              ],
+            }
+          : {
+              ...completePrefill,
+              tertiaryEducation: [
+                {
+                  institutionName: "UCT",
+                  degreeOrCertification: "BSc",
+                  yearCompleted: "2020",
+                },
+              ],
+              secondaryEducation: [
+                {
+                  institutionName: "High School",
+                  highestGradePassed: "Grade 12",
+                  yearCompleted: "2015",
+                },
+                {
+                  institutionName: "Secondary School",
+                  highestGradePassed: "Grade 10",
+                  yearCompleted: "2015",
+                },
+              ],
+            };
+      const { result } = renderHook(() => useCvBuilder(prefill, true));
+
+      await waitFor(() => expect(result.current.canViewCv).toBe(false));
+    },
+  );
+
   it("merges prefill without overwriting values the user already entered", async () => {
     const { result, rerender } = renderHook(
       ({ prefill }: { prefill?: CvBuilderPrefillData }) => useCvBuilder(prefill, false),
@@ -181,6 +236,31 @@ describe("useCvBuilder", () => {
     expect(result.current.activeView).toBe("review");
     expect(result.current.reviewSource).toBe("upload");
     expect(result.current.form.getValues("personalDetails.fullName")).toBe("Jane Doe");
+  });
+
+  it("replaces saved details and ignores later saved prefill updates after an upload", async () => {
+    const { result, rerender } = renderHook(
+      ({ prefill }: { prefill: CvBuilderPrefillData }) => useCvBuilder(prefill, true),
+      { initialProps: { prefill: completePrefill } },
+    );
+
+    await waitFor(() => expect(result.current.form.getValues("secondaryEducation")).toEqual(completePrefill.secondaryEducation));
+    act(() => result.current.openReviewFlowBlank({
+      personalDetails: { fullName: "Ben Hur" },
+      skills: [{ name: "TypeScript" }],
+    }));
+    rerender({ prefill: { ...completePrefill } });
+
+    expect(result.current.form.getValues("personalDetails.fullName")).toBe("Ben Hur");
+    expect(result.current.form.getValues("personalDetails.nationality")).toBe("");
+    expect(result.current.form.getValues("secondaryEducation")).toEqual([
+      { institutionName: "", highestGradePassed: "", yearCompleted: "" },
+    ]);
+    expect(result.current.form.getValues("tertiaryEducation")).toEqual([
+      { institutionName: "", degreeOrCertification: "", yearCompleted: "" },
+    ]);
+    expect(result.current.form.getValues("skills")).toEqual([{ name: "TypeScript" }]);
+    expect(result.current.form.getValues("languages")).toEqual([]);
   });
 
   it("tracks the selected upload file and resets the native input", () => {

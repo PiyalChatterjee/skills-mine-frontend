@@ -14,6 +14,30 @@ describe('visitorApi.applyToJob', () => {
     mocks.post.mockReset()
   })
 
+  describe('visitorApi.createProfile', () => {
+    beforeEach(() => {
+      mocks.post.mockReset()
+      mocks.post.mockResolvedValue({ data: { visitor_id: 'visitor-1' } })
+    })
+
+    it.each([
+      { noticePeriod: '', expected: undefined },
+      { noticePeriod: '  ', expected: undefined },
+      { noticePeriod: undefined, expected: undefined },
+      { noticePeriod: ' 30_DAYS ', expected: '30_DAYS' },
+    ])('omits blank notice periods and sends selected values: $noticePeriod', async ({ noticePeriod, expected }) => {
+      await visitorApi.createProfile({
+        personalDetails: { firstName: 'Jane', lastName: 'Doe', currentCompany: '', noticePeriod },
+      })
+      const personalDetails = mocks.post.mock.calls.at(-1)?.[1].personal_details
+      if (expected === undefined) {
+        expect(personalDetails).not.toHaveProperty('notice_period')
+      } else {
+        expect(personalDetails.notice_period).toBe(expected)
+      }
+    })
+  })
+
   it('waits up to 60 seconds for application processing and preserves the response', async () => {
     const application = { application_id: 'app-1', match_score_latest: 80 }
     mocks.post.mockResolvedValue({ data: application })

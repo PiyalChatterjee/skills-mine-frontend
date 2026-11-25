@@ -1,3 +1,4 @@
+import { DocumentLifecycleStatus } from "@/enums/statuses";
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/app/auth/AuthContext";
@@ -68,7 +69,7 @@ export const useCandidateProfileViewModel = () => {
       const identityDocument = documents.find(
         (document) =>
           document.documentType?.toUpperCase() === "IDENTITY_DOCUMENT" &&
-          document.lifecycleStatus?.toUpperCase() !== "DELETED",
+          document.lifecycleStatus?.toUpperCase() !== DocumentLifecycleStatus.DELETED,
       );
       if (!identityDocument?.documentId) return;
 

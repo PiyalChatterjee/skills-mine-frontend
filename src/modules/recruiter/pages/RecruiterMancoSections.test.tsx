@@ -1,10 +1,11 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, useLocation } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { MancoRecruiterDetail } from "@/services/api/mancoApi";
-import { MancoRecruiterSection } from "./RecruiterMancoSections";
+import { MancoAttentionSection, MancoCrmCard, MancoRecruiterSection } from "./RecruiterMancoSections";
 
 const mocks = vi.hoisted(() => ({
+  useMancoAttention: vi.fn(),
   useMancoRecruiterDetail: vi.fn(),
   useMancoRecruiters: vi.fn(),
 }));
@@ -13,6 +14,7 @@ vi.mock("@/modules/recruiter/hooks/useMancoDashboard", () => ({
   MANCO_SORT_OPTIONS: [
     { key: "mtdPlacements", label: "MTD Placements", sortBy: "MTD_PLACEMENTS" },
   ],
+  useMancoAttention: mocks.useMancoAttention,
   useMancoRecruiterDetail: mocks.useMancoRecruiterDetail,
   useMancoRecruiters: mocks.useMancoRecruiters,
 }));
@@ -54,6 +56,81 @@ const recruiterDetail: MancoRecruiterDetail = {
   performanceSummary: { averageCandidatesPerRole: null },
 };
 
+const LocationProbe = () => {
+  const location = useLocation();
+  return <div data-testid="location">{location.pathname}</div>;
+};
+
+describe("MancoCrmCard", () => {
+  it("navigates to the recruiter CRM page using a button", () => {
+    render(
+      <MemoryRouter>
+        <MancoCrmCard />
+        <LocationProbe />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "CRM Integration" }));
+    expect(screen.getByTestId("location")).toHaveTextContent("/recruiter/crm");
+  });
+});
+
+describe("MancoAttentionSection API alert text", () => {
+  const alert = {
+    alertId: null,
+    recruiterId: "recruiter-1",
+    fullName: "Swastika Basu",
+    primaryEmail: "swastika.basu@ibm.com",
+    calculationMonth: "2026-09",
+    conversionRate: null,
+    issue: "Low conversion rate (N/A)",
+    metric: "Conversion Rate",
+    recommendedActions: ["Review pipeline quality and candidate sourcing."],
+  };
+
+  beforeEach(() => {
+    mocks.useMancoAttention.mockReturnValue({
+      alertCount: 1,
+      alerts: [alert],
+      hasLoadedAlerts: true,
+      hasResolveError: false,
+      isError: false,
+      isExpanded: true,
+      isLoading: false,
+      isResolving: false,
+      selectedAlert: null,
+      closeAlert: vi.fn(),
+      resolveSelectedAlert: vi.fn(),
+      selectAlert: vi.fn(),
+      toggleExpanded: vi.fn(),
+    });
+  });
+
+  it("renders the API issue in the attention list without an actualValue", () => {
+    render(<MancoAttentionSection />);
+
+    expect(screen.getByText(alert.issue)).toBeInTheDocument();
+    expect(screen.queryByText(/undefined/)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "View details" }));
+    expect(mocks.useMancoAttention().selectAlert).toHaveBeenCalledWith(alert);
+  });
+
+  it("renders the API issue and metric verbatim in the details dialog", () => {
+    mocks.useMancoAttention.mockReturnValue({
+      ...mocks.useMancoAttention(),
+      isExpanded: false,
+      selectedAlert: alert,
+    });
+
+    render(<MancoAttentionSection />);
+
+    expect(screen.getByRole("dialog")).toHaveTextContent(alert.issue);
+    expect(screen.getByText(alert.metric)).toBeInTheDocument();
+    expect(screen.getByText(alert.recommendedActions[0])).toBeInTheDocument();
+    expect(screen.queryByText(/undefined/)).not.toBeInTheDocument();
+  });
+});
+
 describe("MancoRecruiterSection pipeline distribution", () => {
   beforeEach(() => {
     mocks.useMancoRecruiters.mockReturnValue({
@@ -83,6 +160,8 @@ describe("MancoRecruiterSection pipeline distribution", () => {
       </MemoryRouter>,
     );
 
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+
     fireEvent.click(
       screen.getByRole("button", {
         name: "Pipeline distribution for Swastika Basu",
@@ -101,5 +180,83 @@ describe("MancoRecruiterSection pipeline distribution", () => {
     expect(
       screen.getByRole("meter", { name: "Rejected: 1" }),
     ).toHaveTextContent("Rejected");
+  });
+
+  it("renders the rejected value inside a bar sized to its pipeline share", () => {
+    mocks.useMancoRecruiterDetail.mockReturnValue({
+      data: {
+        ...recruiterDetail,
+        pipelineDistribution: {
+          ...recruiterDetail.pipelineDistribution,
+          rejected: 3,
+          totalPipeline: 5,
+        },
+      },
+      isError: false,
+      isLoading: false,
+    });
+
+    render(
+      <MemoryRouter>
+        <MancoRecruiterSection />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Pipeline distribution for Swastika Basu",
+      }),
+    );
+
+    const rejected = screen.getByRole("meter", { name: "Rejected: 3" });
+    const placement = screen.getByRole("meter", { name: "Placement: 0" });
+    expect(rejected).toHaveStyle({ width: "60%" });
+    const meters = screen.getAllByRole("meter");
+    expect(meters.indexOf(placement)).toBeLessThan(meters.indexOf(rejected));
+    const bar = rejected.querySelector("[data-stage='rejected']");
+    expect(bar).toHaveTextContent("Rejected");
+    expect(bar).toHaveTextContent("3");
+    expect(bar).toHaveStyle({ width: "100%" });
+  });
+
+  it.each(["nick fury", "NICK FURY", "nIcK fUrY"])(
+    "displays recruiter names in title case regardless of input casing: %s",
+    (fullName) => {
+      mocks.useMancoRecruiters.mockReturnValue({
+        ...mocks.useMancoRecruiters(),
+        recruiters: [{ ...recruiter, fullName }],
+      });
+
+      render(
+        <MemoryRouter>
+          <MancoRecruiterSection />
+        </MemoryRouter>,
+      );
+
+      expect(
+        screen.getByRole("heading", { level: 3, name: "Nick Fury" }),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", {
+          name: "Pipeline distribution for Nick Fury",
+        }),
+      ).toBeInTheDocument();
+    },
+  );
+
+  it("routes View Pipeline to the universal recruiter dashboard", () => {
+    render(
+      <MemoryRouter>
+        <MancoRecruiterSection />
+        <LocationProbe />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "View Details" }));
+    fireEvent.click(screen.getByRole("button", { name: "View Pipeline" }));
+
+    expect(screen.getByTestId("location")).toHaveTextContent(
+      "/recruiter/dashboard",
+    );
   });
 });

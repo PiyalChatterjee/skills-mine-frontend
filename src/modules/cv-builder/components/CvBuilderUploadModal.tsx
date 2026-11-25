@@ -12,7 +12,6 @@ type CvBuilderUploadModalProps = {
   onClose: () => void;
   onDone: () => void | Promise<void>;
   isUploading?: boolean;
-  isReading?: boolean;
   isParsing?: boolean;
   submitError?: string | null;
 };
@@ -27,7 +26,6 @@ const CvBuilderUploadModal = ({
   onClose,
   onDone,
   isUploading = false,
-  isReading = false,
   isParsing = false,
   submitError,
 }: CvBuilderUploadModalProps) => {
@@ -134,11 +132,11 @@ const CvBuilderUploadModal = ({
             <ButtonBase
               className={`${styles.uploadDoneButton} ${selectedFile ? styles.uploadDoneButtonActive : ""}`}
               onClick={onDone}
-              disabled={!selectedFile || isReading || isParsing || isUploading}
+              disabled={!selectedFile || isParsing || isUploading}
               disableRipple
             >
-              {isReading || isParsing ? <CircularProgress size={20} color="inherit" /> : null}
-              {isReading ? "Reading CV..." : isParsing ? "Parsing..." : isUploading ? "Uploading..." : "Done"}
+              {isParsing ? <CircularProgress size={20} color="inherit" /> : null}
+              {isParsing ? "Parsing..." : isUploading ? "Uploading..." : "Done"}
             </ButtonBase>
           </Box>
         </Box>

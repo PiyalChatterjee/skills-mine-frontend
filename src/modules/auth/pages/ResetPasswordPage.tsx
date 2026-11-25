@@ -14,15 +14,25 @@ import styles from "./ResetPasswordPage.module.css";
 import { pushNotification } from "@/store/slices/notificationSlice";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "@/store";
-import { useSearchParams } from "react-router-dom";
+import { useLocation, useSearchParams } from "react-router-dom";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import { tokenStorage } from "@/app/auth/tokenStorage";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { authApi } from "@/services/api/authApi";
+import { extractErrorMessage } from "@/app/errorUtils";
+
+type ReturnLocation = {
+  pathname: string;
+  search?: string;
+  hash?: string;
+  scrollY: number;
+  state?: unknown;
+};
 
 const ResetPasswordPage = () => {
   usePageTitle("Reset Password");
   const navigate = useNavigate();
+  const location = useLocation();
   const {
     register,
     handleSubmit,
@@ -40,6 +50,8 @@ const ResetPasswordPage = () => {
   const dispatch = useDispatch<AppDispatch>();
   const [searchParams] = useSearchParams();
   const isChangeMode = searchParams.get("mode") === "change";
+  const returnTo = (location.state as { returnTo?: ReturnLocation } | null)
+    ?.returnTo;
   const email = (searchParams.get("email") ?? "").trim();
   const [otpCode, setOtpCode] = useState("");
   const [isResendingCode, setIsResendingCode] = useState(false);
@@ -138,12 +150,23 @@ const ResetPasswordPage = () => {
       tokenStorage.clearTokens();
       tokenStorage.clearUser();
       tokenStorage.clearAuth();
-    } catch {
+    } catch (error) {
+      const responseMessage =
+        typeof error === "object" && error !== null && "response" in error
+          ? (error as { response?: { data?: { message?: unknown } } }).response
+              ?.data?.message
+          : undefined;
       dispatch(
         pushNotification({
           level: "error",
           title: "Reset failed",
-          message: "Unable to reset password. Please try again.",
+          message:
+            typeof responseMessage === "string" && responseMessage.trim()
+              ? responseMessage
+              : extractErrorMessage(
+                  error,
+                  "Unable to reset password. Please try again.",
+                ),
         }),
       );
     }
@@ -165,7 +188,29 @@ const ResetPasswordPage = () => {
         }),
       );
 
-      navigate(ROUTE_PATHS.profile, { replace: true });
+      const hasSafeReturnPath =
+        isChangeMode &&
+        returnTo?.pathname.startsWith("/") &&
+        !returnTo.pathname.startsWith("//");
+
+      if (hasSafeReturnPath && returnTo) {
+        const returnState =
+          typeof returnTo.state === "object" &&
+          returnTo.state !== null &&
+          !Array.isArray(returnTo.state)
+            ? (returnTo.state as Record<string, unknown>)
+            : {};
+
+        navigate(
+          `${returnTo.pathname}${returnTo.search ?? ""}${returnTo.hash ?? ""}`,
+          {
+            replace: true,
+            state: { ...returnState, restoreScrollY: returnTo.scrollY },
+          },
+        );
+      } else {
+        navigate(ROUTE_PATHS.profile, { replace: true });
+      }
     } catch {
       dispatch(
         pushNotification({
@@ -308,10 +353,10 @@ const ResetPasswordPage = () => {
             {isChangeMode
               ? isCurrentPasswordSubmitting
                 ? "Changing..."
-                : "Change password"
+                : "Change Password"
               : isSubmitting
                 ? "Resetting..."
-                : "Reset password"}
+                : "Reset Password"}
           </Button>
         </Box>
       </Box>

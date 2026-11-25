@@ -1,3 +1,4 @@
+import { JobPostStatus, MandateStatus } from "@/enums/statuses";
 import { apiClient, mandateApiClient, pipelineApiClient } from "@/services/api/axios";
 import { apiEndpoints, resolveEndpoint } from "@/services/api/endpoints";
 import { formatEnumLabel } from "@/app/formatEnumLabel";
@@ -30,12 +31,16 @@ import type {
 
 export type CreateMandateRequest = {
   companyName: string;
+  /** clientId of the selected existing company, if any */
+  clientId?: string;
   clientRate?: string;
   contactName?: string;
   contactEmail?: string;
   contactPhoneNumber?: string;
   positionTitle: string;
   location: string;
+  /** Master-list locationId from GET /locations/master */
+  locationId?: string;
   fillByDate: string;
   workType: string;
   employmentType: string;
@@ -45,6 +50,7 @@ export type CreateMandateRequest = {
     minimum: number;
     maximum: number;
   };
+  isSalaryHidden?: boolean;
   jobDescription: string;
   requirements: string;
   responsibilities: string;
@@ -59,13 +65,15 @@ export type CreateMandateRequest = {
 type IndustryItem = { industryId: string; industryName: string; normalizedKey?: string };
 /** Shape of the JSON body sent to POST /jobs */
 type CreateJobPostBody = {
-  status: string;
+  status: JobPostStatus;
   companyName: string;
+  client_id?: string;
   contactName?: string;
   contactEmail?: string;
   contactPhoneNumber?: string;
   positionTitle: string;
   locationText: string;
+  locationId?: string;
   fillByDate: string;
   workType: string | null;
   employmentType: string | null;
@@ -73,6 +81,7 @@ type CreateJobPostBody = {
   priority: string;
   salaryMin: number;
   salaryMax: number;
+  isSalaryHidden?: boolean;
   currencyCode: string;
   clientRate: number | null;
   jobDescription: string | null;
@@ -85,7 +94,7 @@ type CreateJobPostBody = {
 };
 
 /** Shape of the JSON body sent to PATCH /jobs/{jobProfileId} — all fields optional */
-type PatchJobPostBody = Partial<Omit<CreateJobPostBody, "status" | "currencyCode">>;
+type PatchJobPostBody = Partial<Omit<CreateJobPostBody, "currencyCode">>;
 
 type CompanyItem = {
   clientId: string;
@@ -116,6 +125,7 @@ type JobProfile = JobProfileSummary & {
   priority: string;
   salaryMin: number | null;
   salaryMax: number | null;
+  isSalaryHidden?: boolean;
   currencyCode: string;
   clientRate: number | null;
   jobDescription: string | null;
@@ -161,7 +171,7 @@ const toJobPost = (job: JobProfileSummary | JobProfile): JobPost => {
     industry: job.industry?.industryName ?? "",
     industries: job.industry ? [job.industry.industryName] : [],
     status: job.status,
-    priority: detail.priority === "NORMAL" ? "MEDIUM" : detail.priority ?? "NORMAL",
+    priority: detail.priority ?? "NORMAL",
     openDate: job.publishedAt ?? job.createdAt,
     targetCloseDate: job.fillByDate,
     salaryBand: detail.salaryMin != null && detail.salaryMax != null
@@ -169,6 +179,7 @@ const toJobPost = (job: JobProfileSummary | JobProfile): JobPost => {
       : "",
     salaryMin: detail.salaryMin ?? 0,
     salaryMax: detail.salaryMax ?? 0,
+    isSalaryHidden: detail.isSalaryHidden ?? false,
     location: job.locationText,
     workType: formatEnumLabel(detail.workType),
     employmentType: formatEnumLabel(job.employmentType),
@@ -196,7 +207,7 @@ const toMandate = (job: JobProfileSummary): RecruiterMandatesData["mandates"][nu
   clientId: job.client?.clientId ?? "",
   recruiterId: "",
   recruiterName: "",
-  status: job.status === "PAUSED" ? "ON_HOLD" : job.status === "POSTED" ? "ACTIVE" : "CLOSED",
+  status: job.status === JobPostStatus.PAUSED ? MandateStatus.ON_HOLD : job.status === JobPostStatus.POSTED ? MandateStatus.ACTIVE : MandateStatus.CLOSED,
   priority: "MEDIUM",
   openDate: job.publishedAt ?? job.createdAt,
   targetCloseDate: job.fillByDate,
@@ -224,7 +235,10 @@ const toPatchBody = async (
 ): Promise<PatchJobPostBody> => {
   const patch: PatchJobPostBody = {};
 
-  if (current.companyName !== original.companyName) patch.companyName = current.companyName;
+  if (current.companyName !== original.companyName) {
+    patch.companyName = current.companyName;
+    if (current.clientId) patch.client_id = current.clientId;
+  }
   if ((current.clientRate ?? "") !== (original.clientRate ?? ""))
     patch.clientRate = current.clientRate ? Number(current.clientRate) : null;
   if ((current.contactName ?? "") !== (original.contactName ?? "")) patch.contactName = current.contactName;
@@ -232,7 +246,10 @@ const toPatchBody = async (
   if ((current.contactPhoneNumber ?? "") !== (original.contactPhoneNumber ?? ""))
     patch.contactPhoneNumber = current.contactPhoneNumber;
   if (current.positionTitle !== original.positionTitle) patch.positionTitle = current.positionTitle;
-  if (current.location !== original.location) patch.locationText = current.location;
+  if (current.location !== original.location || (current.locationId ?? "") !== (original.locationId ?? "")) {
+    patch.locationText = current.location;
+    if (current.locationId) patch.locationId = current.locationId;
+  }
   if (current.fillByDate !== original.fillByDate) patch.fillByDate = current.fillByDate;
   if (current.workType !== original.workType)
     patch.workType = current.workType ? normalizeEnum(current.workType).replace("ON_SITE", "ONSITE") : null;
@@ -244,6 +261,8 @@ const toPatchBody = async (
     patch.priority = normalizePriority(current.priority || "NORMAL");
   if (current.salary.minimum !== original.salary.minimum) patch.salaryMin = current.salary.minimum;
   if (current.salary.maximum !== original.salary.maximum) patch.salaryMax = current.salary.maximum;
+  if (Boolean(current.isSalaryHidden) !== Boolean(original.isSalaryHidden))
+    patch.isSalaryHidden = Boolean(current.isSalaryHidden);
   if ((current.jobDescription ?? "") !== (original.jobDescription ?? ""))
     patch.jobDescription = current.jobDescription || null;
 
@@ -294,13 +313,14 @@ const toJobWriteRequest = async (payload: CreateMandateRequest): Promise<CreateJ
     payload.industries.some((name) => name.toLowerCase() === industry.industryName.toLowerCase()),
   );
   return {
-    status: "POSTED",
+    status: JobPostStatus.POSTED,
     companyName: payload.companyName,
     contactName: payload.contactName,
     contactEmail: payload.contactEmail,
     contactPhoneNumber: payload.contactPhoneNumber,
     positionTitle: payload.positionTitle,
     locationText: payload.location,
+    ...(payload.locationId ? { locationId: payload.locationId } : {}),
     fillByDate: payload.fillByDate,
     workType: payload.workType ? normalizeEnum(payload.workType).replace("ON_SITE", "ONSITE") : null,
     employmentType: payload.employmentType ? normalizeEnum(payload.employmentType) : null,
@@ -308,6 +328,7 @@ const toJobWriteRequest = async (payload: CreateMandateRequest): Promise<CreateJ
     priority: normalizePriority(payload.priority || "NORMAL"),
     salaryMin: payload.salary.minimum,
     salaryMax: payload.salary.maximum,
+    isSalaryHidden: Boolean(payload.isSalaryHidden),
     currencyCode: "ZAR",
     clientRate: payload.clientRate ? Number(payload.clientRate) : null,
     jobDescription: payload.jobDescription || null,
@@ -596,11 +617,12 @@ export const mandateApi = {
   },
 
   // e.g. POSTED <-> PAUSED, or FILLED/CLOSED/CANCELLED to end the mandate.
-  updateJobStatus(mandateId: string, status: string) {
+  updateJobStatus(mandateId: string, status: JobPostStatus) {
+    const body: PatchJobPostBody = { status };
     return mandateApiClient
       .patch<JobProfile>(
         resolveEndpoint(apiEndpoints.jobs.details, { jobProfileId: mandateId }),
-        { status },
+        body,
       )
       .then((): SuccessEnvelope<{ mandateId: string; status: string }> => ({
         success: true,

@@ -1,3 +1,4 @@
+import { PipelineStageCode, PipelineStageLabel as PipelineLabel } from "@/enums/statuses";
 import { useState } from 'react'
 import { Box, ButtonBase, CircularProgress, Typography } from '@mui/material'
 import { mandateApi } from '@/services/api/mandateApi'
@@ -30,6 +31,7 @@ export interface ScreeningStageModalProps {
   matchScoreLatest?: number
   dueDate?: string
   isRejected?: boolean
+  isMoveLocked?: boolean
   onClose: () => void
   onAdvance?: (applicationId: string) => void
   onMoveBack?: (applicationId: string) => void
@@ -45,8 +47,9 @@ const ScreeningStageModal = ({
   applicationId,
   jobId,
   matchScoreLatest,
-  dueDate = 'Jan 20, 2026',
+  dueDate,
   isRejected = false,
+  isMoveLocked = false,
   onClose,
   onAdvance,
   onMoveBack,
@@ -68,7 +71,7 @@ const ScreeningStageModal = ({
     try {
       await mandateApi.advanceJobStage(jobId, {
         applicationId: [applicationId],
-        toStageCode: 'INBOUND',
+        toStageCode: PipelineStageCode.INBOUND,
       })
       onMoveBack?.(applicationId)
       onClose()
@@ -83,7 +86,7 @@ const ScreeningStageModal = ({
     try {
       await mandateApi.advanceJobStage(jobId, {
         applicationId: [applicationId],
-        toStageCode: 'ASSESSMENT',
+        toStageCode: PipelineStageCode.ASSESSMENT,
       })
       onAdvance?.(applicationId)
       onClose()
@@ -129,12 +132,14 @@ const ScreeningStageModal = ({
           </Typography>
 
           {/* ── Due date ── */}
-          <Box className={styles.dueDateRow}>
-            <CalendarIcon />
-            <Typography component="span" className={styles.dueDate}>
-              Due {dueDate}
-            </Typography>
-          </Box>
+          {dueDate && (
+            <Box className={styles.dueDateRow}>
+              <CalendarIcon />
+              <Typography component="span" className={styles.dueDate}>
+                Due {dueDate}
+              </Typography>
+            </Box>
+          )}
 
           {/* ── Suitability note ── */}
           <Typography component="p" className={styles.suitabilityNote}>
@@ -194,16 +199,16 @@ const ScreeningStageModal = ({
 
           {/* ── Action buttons ── */}
           <Box className={styles.actionRow}>
-            <ButtonBase className={styles.moveBackBtn} disableRipple onClick={handleMoveBack} disabled={movingBack || isRejected}>
+            <ButtonBase className={styles.moveBackBtn} disableRipple onClick={handleMoveBack} disabled={movingBack || isRejected || isMoveLocked}>
               {movingBack ? <CircularProgress size={14} sx={{ color: '#1E5FA8' }} /> : 'Move back'}
             </ButtonBase>
             <ButtonBase className={styles.rejectBtn} disableRipple onClick={() => setRejectOpen(true)} disabled={isRejected}>
               Reject
             </ButtonBase>
             <ButtonBase
-              className={`${styles.actionBtn} ${allChecked && !isRejected ? styles.actionBtnActive : ''}`}
+              className={`${styles.actionBtn} ${allChecked && !isRejected && !isMoveLocked ? styles.actionBtnActive : ''}`}
               disableRipple
-              disabled={!allChecked || advancing || isRejected}
+              disabled={!allChecked || advancing || isRejected || isMoveLocked}
               onClick={handleAdvance}
             >
               {advancing ? <CircularProgress size={14} sx={{ color: '#fff' }} /> : 'Advance'}
@@ -214,7 +219,7 @@ const ScreeningStageModal = ({
     </Box>}
       {rejectOpen && (
         <RejectConfirmModal
-          stageName="Screening"
+          stageName={PipelineLabel.SCREENING}
           candidateName={candidateName}
           candidateTitle={candidateTitle}
           company={company}

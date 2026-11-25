@@ -1,3 +1,4 @@
+import { JobPostStatus } from "@/enums/statuses";
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Box, ButtonBase, CircularProgress, Typography } from '@mui/material'
@@ -60,6 +61,7 @@ const MandateDetailPage = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [jobDetailsOpen, setJobDetailsOpen] = useState(false)
+  const [nameFilter, setNameFilter] = useState('')
   const [copied, setCopied] = useState(false)
   const [topCandidates, setTopCandidates] = useState<TopCandidate[]>([])
   const [candidatesLoading, setCandidatesLoading] = useState(false)
@@ -67,6 +69,8 @@ const MandateDetailPage = () => {
   const [candidatesPage, setCandidatesPage] = useState(0)
   const [loadingMore, setLoadingMore] = useState(false)
   const [pipelineLoading, setPipelineLoading] = useState(false)
+  const [closeJobLoading, setCloseJobLoading] = useState(false)
+  const [closeJobConfirmOpen, setCloseJobConfirmOpen] = useState(false)
 
   // Resolve the id — comes as :jobProfileId from candidate flow, :cardId from mandate flow
   const resolvedId = jobProfileId ?? cardId
@@ -125,15 +129,7 @@ const MandateDetailPage = () => {
       .finally(() => setLoadingMore(false))
   }
 
-  const goBack = () => {
-    if (visitorId) {
-      navigate(ROUTE_PATHS.recruiterVisitorDetail.replace(':visitorId', visitorId))
-    } else if (candidateId) {
-      navigate(ROUTE_PATHS.recruiterCandidateDetail.replace(':candidateId', candidateId))
-    } else {
-      navigate(ROUTE_PATHS.recruiterDashboard)
-    }
-  }
+  const goBack = () => navigate(-1)
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(window.location.href).then(() => {
@@ -238,14 +234,21 @@ const MandateDetailPage = () => {
                 <Box className={`${styles.statCard} ${styles.statCardApplicants}`}>
                   <Box>
                     <Typography component="p" className={styles.statValue}>{jobProfile.applicantCount}</Typography>
-                    <Typography component="p" className={styles.statLabel}>Applicants</Typography>
+                    <Typography component="p" className={styles.statLabel}>Candidates</Typography>
                   </Box>
                   <Box className={styles.statIcon}><img src={userLineIcon} width={22} height={22} alt="" aria-hidden="true" /></Box>
                 </Box>
                 <Box className={`${styles.statCard} ${styles.statCardTransformation}`}>
                   <Box>
-                    <Typography component="p" className={styles.statValue}>
-                      {jobProfile.daysLeftToFill ?? '—'}
+                    <Typography
+                      component="p"
+                      className={`${styles.statValue} ${jobProfile.daysLeftToFill != null && jobProfile.daysLeftToFill < 0 ? styles.statValueOverdue : ''}`}
+                    >
+                      {jobProfile.daysLeftToFill == null
+                        ? '—'
+                        : jobProfile.daysLeftToFill < 0
+                        ? 'Overdue'
+                        : jobProfile.daysLeftToFill}
                     </Typography>
                     <Typography component="p" className={styles.statLabel}>Days left to fill the role</Typography>
                   </Box>
@@ -380,8 +383,36 @@ const MandateDetailPage = () => {
             {/* ── Top Candidates For This Post ── */}
             <Box className={styles.candidatesCard}>
               <Typography component="p" className={styles.topCandidatesHeading}>
-                Top Applicants For This Post
+                Top Candidates For This Post
               </Typography>
+              <Box className={styles.searchBarRow}>
+                <Box className={styles.searchInputWrapper}>
+                  <svg className={styles.searchIcon} width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.8"/>
+                    <path d="M16.5 16.5l4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+                  </svg>
+                  <input
+                    className={styles.searchInput}
+                    type="text"
+                    placeholder="Search by name…"
+                    value={nameFilter}
+                    onChange={e => setNameFilter(e.target.value)}
+                    aria-label="Search candidates by name"
+                  />
+                  {nameFilter && (
+                    <button
+                      className={styles.searchClearBtn}
+                      onClick={() => setNameFilter('')}
+                      aria-label="Clear search"
+                      type="button"
+                    >
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                      </svg>
+                    </button>
+                  )}
+                </Box>
+              </Box>
               {candidatesLoading ? (
                 <Box style={{ display: 'flex', justifyContent: 'center', padding: '32px 0' }}>
                   <CircularProgress size={24} />
@@ -400,18 +431,25 @@ const MandateDetailPage = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {topCandidates.length === 0 ? (
-                          <tr>
-                            <td colSpan={5}>
-                              <Box className={styles.emptyState}>
-                                <Typography component="p" className={styles.emptyStateText}>
-                                  No candidates found for this post.
-                                </Typography>
-                              </Box>
-                            </td>
-                          </tr>
-                        ) : (
-                          topCandidates.map((c) => (
+                        {(() => {
+                          const filtered = nameFilter.trim()
+                            ? topCandidates.filter(c =>
+                                c.fullName.toLowerCase().includes(nameFilter.trim().toLowerCase())
+                              )
+                            : topCandidates
+                          return filtered.length === 0 ? (
+                            <tr>
+                              <td colSpan={5}>
+                                <Box className={styles.emptyState}>
+                                  <Typography component="p" className={styles.emptyStateText}>
+                                    {nameFilter.trim()
+                                      ? `No candidates match "${nameFilter.trim()}".`
+                                      : 'No candidates found for this post.'}
+                                  </Typography>
+                                </Box>
+                              </td>
+                            </tr>
+                          ) : filtered.map((c) => (
                             <tr key={c.candidateId} className={styles.tableRow}>
                               <td>
                                 <Typography component="span" className={styles.candidateName}>
@@ -433,10 +471,10 @@ const MandateDetailPage = () => {
                               </td>
                               <td>
                                 <Box component="span" className={styles.statusBadge}>
-                                  {c.status
-                                    ? c.status.charAt(0).toUpperCase() + c.status.slice(1).toLowerCase()
-                                    : '—'}
-                                </Box>
+                                    {c.status
+                                      ? c.status.charAt(0).toUpperCase() + c.status.slice(1).toLowerCase()
+                                      : 'Not applied'}
+                                  </Box>
                               </td>
                               <td>
                                 <ButtonBase
@@ -457,7 +495,7 @@ const MandateDetailPage = () => {
                               </td>
                             </tr>
                           ))
-                        )}
+                        })()}
                       </tbody>
                     </table>
                   </Box>
@@ -478,24 +516,118 @@ const MandateDetailPage = () => {
               )}
             </Box>
 
-            {/* ── View Applicant Pipeline button ── */}
-            <ButtonBase
-              className={styles.pipelineBtn}
-              disableRipple
-              disabled={pipelineLoading}
-              onClick={() => {
-                if (!resolvedId) return
-                setPipelineLoading(true)
-                mandateApi
-                  .listPipelines({ jobProfileId: resolvedId })
-                  .finally(() => setPipelineLoading(false))
-                navigate(
-                  ROUTE_PATHS.recruiterCandidatePipeline.replace(':cardId', resolvedId)
-                )
-              }}
-            >
-              {pipelineLoading ? 'Loading…' : 'View Applicant Pipeline'}
-            </ButtonBase>
+            {/* ── Action buttons ── */}
+            <Box className={styles.actionBtnsRow}>
+              <ButtonBase
+                className={styles.pipelineBtn}
+                disableRipple
+                disabled={pipelineLoading}
+                onClick={() => {
+                  if (!resolvedId) return
+                  setPipelineLoading(true)
+                  mandateApi
+                    .listPipelines({ jobProfileId: resolvedId })
+                    .finally(() => setPipelineLoading(false))
+                  navigate(
+                    ROUTE_PATHS.recruiterCandidatePipeline.replace(':cardId', resolvedId)
+                  )
+                }}
+              >
+                {pipelineLoading ? 'Loading…' : 'View Applicant Pipeline'}
+              </ButtonBase>
+
+              <ButtonBase
+                className={styles.closeJobBtn}
+                disableRipple
+                disabled={closeJobLoading || jobProfile.status === JobPostStatus.CLOSED}
+                onClick={() => {
+                  if (!resolvedId || closeJobLoading || jobProfile.status === JobPostStatus.CLOSED) return
+                  setCloseJobConfirmOpen(true)
+                }}
+              >
+                {closeJobLoading ? 'Closing…' : jobProfile.status === JobPostStatus.CLOSED ? 'Job Closed' : 'Close Job Post'}
+              </ButtonBase>
+            </Box>
+
+            {/* ── Close Job confirmation modal ── */}
+            {closeJobConfirmOpen && (
+              <Box
+                className={styles.confirmBackdrop}
+                onClick={() => setCloseJobConfirmOpen(false)}
+              >
+                <Box
+                  className={styles.confirmModal}
+                  onClick={e => e.stopPropagation()}
+                  role="dialog"
+                  aria-modal="true"
+                  aria-labelledby="close-job-modal-title"
+                >
+                  {/* header */}
+                  <Box className={styles.confirmModalHeader}>
+                    <Typography component="h2" id="close-job-modal-title" className={styles.confirmModalTitle}>
+                      Close Job Post
+                    </Typography>
+                    <ButtonBase
+                      className={styles.confirmModalCloseBtn}
+                      disableRipple
+                      aria-label="Cancel"
+                      onClick={() => setCloseJobConfirmOpen(false)}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M18 6L6 18M6 6l12 12" stroke="#57606a" strokeWidth="2" strokeLinecap="round"/>
+                      </svg>
+                    </ButtonBase>
+                  </Box>
+
+                  {/* body */}
+                  <Box className={styles.confirmModalBody}>
+                    <svg width="44" height="44" viewBox="0 0 24 24" fill="none" aria-hidden="true" style={{ flexShrink: 0 }}>
+                      <circle cx="12" cy="12" r="10" fill="#FEE2E2"/>
+                      <path d="M12 8v4m0 4h.01" stroke="#C0392B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    <Box>
+                      <Typography component="p" className={styles.confirmModalMessage}>
+                        Are you sure you want to close this job post?
+                      </Typography>
+                      <Typography component="p" className={styles.confirmModalSubMessage}>
+                        This action cannot be undone. The job will be marked as closed and will no longer accept new candidates.
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  {/* footer */}
+                  <Box className={styles.confirmModalFooter}>
+                    <ButtonBase
+                      className={styles.confirmCancelBtn}
+                      disableRipple
+                      onClick={() => setCloseJobConfirmOpen(false)}
+                    >
+                      Cancel
+                    </ButtonBase>
+                    <ButtonBase
+                      className={styles.confirmCloseBtn}
+                      disableRipple
+                      disabled={closeJobLoading}
+                      onClick={() => {
+                        if (!resolvedId || closeJobLoading) return
+                        setCloseJobLoading(true)
+                        mandateApi
+                          .updateJobStatus(resolvedId, JobPostStatus.CLOSED)
+                          .then(() => {
+                            setJobProfile(prev => prev ? { ...prev, status: JobPostStatus.CLOSED } : prev)
+                            setCloseJobConfirmOpen(false)
+                          })
+                          .finally(() => setCloseJobLoading(false))
+                      }}
+                    >
+                      {closeJobLoading
+                        ? <CircularProgress size={14} sx={{ color: '#fff' }} />
+                        : 'Yes, Close Job'}
+                    </ButtonBase>
+                  </Box>
+                </Box>
+              </Box>
+            )}
 
           </Box>
 

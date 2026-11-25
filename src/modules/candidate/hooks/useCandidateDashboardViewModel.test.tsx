@@ -74,16 +74,16 @@ describe("useCandidateDashboardViewModel", () => {
       jobId: "job-1",
       title: "Product Designer",
       status: "interview",
-      fillPercent: 58,
+      fillPercent: 75,
       message: "Good news! You have been invited to an interview for this position.",
       offerAccepted: false,
     });
     expect(result.current.applications[0].pipelineStages).toEqual([
-      { key: "APPLIED", label: "Applied", isActive: false },
+      { key: "INBOUND", label: "Applied", isActive: false },
       { key: "SCREENING", label: "Screening", isActive: false },
       { key: "ASSESSMENT", label: "Assessment", isActive: false },
+      { key: "SHORTLIST", label: "Shortlisted", isActive: false },
       { key: "INTERVIEW", label: "Interview", isActive: true },
-      { key: "SHORTLISTED", label: "Shortlisted", isActive: false },
       { key: "OFFER", label: "Offer", isActive: false },
     ]);
   });
@@ -111,11 +111,11 @@ describe("useCandidateDashboardViewModel", () => {
       fillPercent: 8,
     });
     expect(result.current.applications[0].pipelineStages).toEqual([
-      { key: "APPLIED", label: "Applied", isActive: true },
+      { key: "INBOUND", label: "Applied", isActive: true },
       { key: "SCREENING", label: "Screening", isActive: false },
       { key: "ASSESSMENT", label: "Assessment", isActive: false },
+      { key: "SHORTLIST", label: "Shortlisted", isActive: false },
       { key: "INTERVIEW", label: "Interview", isActive: false },
-      { key: "SHORTLISTED", label: "Shortlisted", isActive: false },
       { key: "OFFER", label: "Offer", isActive: false },
     ]);
   });
@@ -167,6 +167,7 @@ describe("useCandidateDashboardViewModel", () => {
             id: "app-4",
             job: { id: "job-4", title: "Application Developer" },
             stage: "CLOSED",
+            jobStatus: "closed",
             pipeline: [],
           },
         ],
@@ -178,16 +179,52 @@ describe("useCandidateDashboardViewModel", () => {
 
     expect(result.current.applications[0].status).toBe("offer_accepted");
     expect(result.current.applications[0].fillPercent).toBe(100);
+    expect(DASHBOARD_APPLICATION_STATUS_CONFIG.offer_accepted).toMatchObject({
+      label: "Closed",
+      color: "#4BAF73",
+    });
   });
 
-  it("maps backend REJECT stage to a closed rejected status", () => {
+  it.each(["INBOUND", "SCREENING", "ASSESSMENT", "SHORTLIST", "INTERVIEW", "OFFER"])(
+    "shows red Closed for a closed job rejected at %s",
+    (rejectedAtStage) => {
+      mocks.useCandidateDashboardQuery.mockReturnValue({
+        data: {
+          applications: [{
+            id: "app-closed-rejection",
+            job: { id: "job-closed", title: "Application Developer" },
+            jobStatus: "CLOSED",
+            stage: "REJECT",
+            rejectedAtStage,
+          }],
+        },
+        isLoading: false,
+      });
+
+      const { result } = renderHook(() => useCandidateDashboardViewModel());
+      const [app] = result.current.applications;
+
+      expect(app.status).toBe("rejected");
+      expect(app.fillPercent).toBe(100);
+      expect(DASHBOARD_APPLICATION_STATUS_CONFIG[app.status]).toMatchObject({
+        label: "Closed",
+        color: "#D64545",
+      });
+      expect(app.message).toBe(
+        "Unfortunately, this position has been filled and the offer wasn't extended. Thank you for your interest!",
+      );
+      expect(app.pipelineStages.find((stage) => stage.isActive)?.key).toBe(rejectedAtStage);
+    },
+  );
+
+  it.each(["REJECT", "OFFER_REJECT"])("maps backend %s stage to a closed rejected status", (stage) => {
     mocks.useCandidateDashboardQuery.mockReturnValue({
       data: {
         applications: [
           {
             id: "app-3",
             job: { id: "job-3", title: "Application Developer" },
-            stage: "REJECT",
+            stage,
             pipeline: [],
           },
         ],
@@ -203,11 +240,11 @@ describe("useCandidateDashboardViewModel", () => {
   });
 
   it.each([
-    ["INBOUND", "applied", "APPLIED", "Applied", 8],
+    ["INBOUND", "applied", "INBOUND", "Applied", 8],
     ["SCREENING", "screening", "SCREENING", "Screening", 25],
     ["ASSESSMENT", "assessment", "ASSESSMENT", "Assessment", 42],
-    ["INTERVIEW", "interview", "INTERVIEW", "Interview", 58],
-    ["SHORTLIST", "shortlisted", "SHORTLISTED", "Shortlisted", 75],
+    ["SHORTLIST", "shortlisted", "SHORTLIST", "Shortlisted", 58],
+    ["INTERVIEW", "interview", "INTERVIEW", "Interview", 75],
   ] as const)("shows %s instead of Closed for a recruiter rejection", (rejectedAtStage, status, activeStage, label, fillPercent) => {
     mocks.useCandidateDashboardQuery.mockReturnValue({
       data: {

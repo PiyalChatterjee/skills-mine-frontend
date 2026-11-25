@@ -68,6 +68,24 @@ const NewMandatePage = lazy(
 const EditMandatePage = lazy(
   () => import("@/modules/recruiter/pages/EditMandatePage"),
 );
+const AdvertisedJobsPage = lazy(
+  () => import("@/modules/recruiter/pages/AdvertisedJobsPage"),
+);
+const AdvertiseJobPage = lazy(
+  () => import("@/modules/recruiter/pages/AdvertiseJobPage"),
+);
+const PnetPostPage = lazy(
+  () => import("@/modules/recruiter/pages/PnetPostPage"),
+);
+const AdzunaPostPage = lazy(
+  () => import("@/modules/recruiter/pages/AdzunaPostPage"),
+);
+const BizCommunityPostPage = lazy(
+  () => import("@/modules/recruiter/pages/BizCommunityPostPage"),
+);
+const HarambeePostPage = lazy(
+  () => import("@/modules/recruiter/pages/HarambeePostPage"),
+);
 const CandidatesPage = lazy(
   () => import("@/modules/recruiter/pages/CandidatesPage"),
 );
@@ -147,9 +165,14 @@ export const AppRoutes = () => {
 
           <Route element={<RecruiterLayout />}>
             <Route
-              path={ROUTE_PATHS.recruiterDashboard}
-              element={<RecruiterPage />}
-            />
+              element={
+                <RoleGuard allowedRoles={["RECRUITER"]} />
+              }
+            >
+              <Route
+                path={ROUTE_PATHS.recruiterDashboard}
+                element={<RecruiterPage />}
+              />
             <Route
               path={ROUTE_PATHS.recruiterJobPosts}
               element={<RecruiterMandatesPage />}
@@ -161,6 +184,30 @@ export const AppRoutes = () => {
             <Route
               path={ROUTE_PATHS.recruiterEditJobPost}
               element={<EditMandatePage />}
+            />
+            <Route
+              path={ROUTE_PATHS.recruiterAdvertisedJobs}
+              element={<AdvertisedJobsPage />}
+            />
+            <Route
+              path={ROUTE_PATHS.recruiterAdvertiseJob}
+              element={<AdvertiseJobPage />}
+            />
+            <Route
+              path={ROUTE_PATHS.recruiterAdvertisePnet}
+              element={<PnetPostPage />}
+            />
+            <Route
+              path={ROUTE_PATHS.recruiterAdvertiseAdzuna}
+              element={<AdzunaPostPage />}
+            />
+            <Route
+              path={ROUTE_PATHS.recruiterAdvertiseBizCommunity}
+              element={<BizCommunityPostPage />}
+            />
+            <Route
+              path={ROUTE_PATHS.recruiterAdvertiseHarambee}
+              element={<HarambeePostPage />}
             />
             <Route
               path={ROUTE_PATHS.recruiterMandate}
@@ -210,10 +257,11 @@ export const AppRoutes = () => {
               path={ROUTE_PATHS.recruiterManco}
               element={<RecruiterMancoPage />}
             />
-            <Route
-              path={ROUTE_PATHS.recruiterMancoPipeline}
-              element={<RecruiterPage />}
-            />
+              <Route
+                path={ROUTE_PATHS.recruiterMancoPipeline}
+                element={<RecruiterPage />}
+              />
+            </Route>
             <Route
               element={<PermissionGuard requiredPermissions={["CRM_EDIT"]} />}
             >
@@ -230,6 +278,10 @@ export const AppRoutes = () => {
           <Route element={<ExcoLayout />}>
             <Route element={<RoleGuard allowedRoles={["EXCO", "ADMIN"]} />}>
               <Route path={ROUTE_PATHS.exco} element={<ExcoPage />} />
+              <Route
+                path={ROUTE_PATHS.excoCrm}
+                element={<RecruiterCrmPage navigation="exco" />}
+              />
             </Route>
           </Route>
 

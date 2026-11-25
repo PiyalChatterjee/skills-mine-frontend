@@ -1,4 +1,5 @@
 import { Fragment } from "react";
+import { ApplicationStatusKey } from "@/enums/statuses";
 import {
   Box,
   ButtonBase,
@@ -315,7 +316,7 @@ const CandidateDashboardPage = () => {
         <Box className={styles.applicationsList}>
           <Box className={styles.applicationsHeader}>
             <Typography component="h2" className={styles.sectionTitle}>
-              My applications
+              My Applications
             </Typography>
           </Box>
           {applications.length === 0 ? (
@@ -382,7 +383,7 @@ const CandidateDashboardPage = () => {
                       </Box>
                       <Box className={styles.pipelineTrack}>
                         <Box
-                          className={`${styles.pipelineFill} ${(app.status === "offer_declined" || app.status === "offer_accepted" || app.status === "rejected") && styles.pipelineFillClosed}`}
+                          className={`${styles.pipelineFill} ${(app.status === ApplicationStatusKey.OFFER_DECLINED || app.status === ApplicationStatusKey.OFFER_ACCEPTED || app.status === ApplicationStatusKey.REJECTED) && styles.pipelineFillClosed}`}
                           style={{ width: `${app.fillPercent}%` }}
                         />
                       </Box>

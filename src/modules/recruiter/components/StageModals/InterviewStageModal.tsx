@@ -1,3 +1,4 @@
+import { PipelineStageCode, PipelineStageLabel as PipelineLabel } from "@/enums/statuses";
 import { useState } from 'react'
 import { Box, ButtonBase, CircularProgress, Typography } from '@mui/material'
 import { mandateApi } from '@/services/api/mandateApi'
@@ -29,6 +30,7 @@ export interface InterviewStageModalProps {
   jobId: string
   dueDate?: string
   isRejected?: boolean
+  isMoveLocked?: boolean
   onClose: () => void
   onAdvance?: (applicationId: string) => void
   onMoveBack?: (applicationId: string) => void
@@ -43,8 +45,9 @@ const InterviewStageModal = ({
   company,
   applicationId,
   jobId,
-  dueDate = 'Jan 20, 2026',
+  dueDate,
   isRejected = false,
+  isMoveLocked = false,
   onClose,
   onAdvance,
   onMoveBack,
@@ -65,7 +68,7 @@ const InterviewStageModal = ({
     try {
       await mandateApi.advanceJobStage(jobId, {
         applicationId: [applicationId],
-        toStageCode: 'SHORTLIST',
+        toStageCode: PipelineStageCode.SHORTLIST,
       })
       onMoveBack?.(applicationId)
       onClose()
@@ -80,7 +83,7 @@ const InterviewStageModal = ({
     try {
       await mandateApi.advanceJobStage(jobId, {
         applicationId: [applicationId],
-        toStageCode: 'OFFER',
+        toStageCode: PipelineStageCode.OFFER,
         notes,
       })
       onAdvance?.(applicationId)
@@ -127,12 +130,14 @@ const InterviewStageModal = ({
           </Typography>
 
           {/* ── Due date ── */}
-          <Box className={styles.dueDateRow}>
-            <CalendarIcon />
-            <Typography component="span" className={styles.dueDate}>
-              Due {dueDate}
-            </Typography>
-          </Box>
+          {dueDate && (
+            <Box className={styles.dueDateRow}>
+              <CalendarIcon />
+              <Typography component="span" className={styles.dueDate}>
+                Due {dueDate}
+              </Typography>
+            </Box>
+          )}
 
           {/* ── Recruiter notes ── */}
           <Box className={styles.notesSection}>
@@ -153,16 +158,16 @@ const InterviewStageModal = ({
 
           {/* ── Action buttons ── */}
           <Box className={styles.actionRow}>
-            <ButtonBase className={styles.moveBackBtn} disableRipple onClick={handleMoveBack} disabled={movingBack || isRejected}>
+            <ButtonBase className={styles.moveBackBtn} disableRipple onClick={handleMoveBack} disabled={movingBack || isRejected || isMoveLocked}>
               {movingBack ? <CircularProgress size={14} sx={{ color: '#1E5FA8' }} /> : 'Move back'}
             </ButtonBase>
             <ButtonBase className={styles.rejectBtn} disableRipple onClick={() => setRejectOpen(true)} disabled={isRejected}>
               Reject
             </ButtonBase>
             <ButtonBase
-              className={`${styles.advanceBtn} ${!canAdvance || isRejected ? styles.advanceBtnDisabled : ''}`}
+              className={`${styles.advanceBtn} ${!canAdvance || isRejected || isMoveLocked ? styles.advanceBtnDisabled : ''}`}
               disableRipple
-              disabled={!canAdvance || advancing || isRejected}
+              disabled={!canAdvance || advancing || isRejected || isMoveLocked}
               onClick={handleAdvance}
             >
               {advancing ? <CircularProgress size={14} sx={{ color: '#fff' }} /> : 'Advance'}
@@ -173,7 +178,7 @@ const InterviewStageModal = ({
     </Box>}
       {rejectOpen && (
         <RejectConfirmModal
-          stageName="Interview"
+          stageName={PipelineLabel.INTERVIEW}
           candidateName={candidateName}
           candidateTitle={candidateTitle}
           company={company}

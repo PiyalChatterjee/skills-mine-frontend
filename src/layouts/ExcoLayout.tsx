@@ -1,15 +1,3 @@
-import { Box, Typography } from '@mui/material'
-import { Outlet } from 'react-router-dom'
+import { RecruiterLayout } from './RecruiterLayout'
 
-export const ExcoLayout = () => {
-  return (
-    <div style={{ minHeight: '100vh' }}>
-      <Box component="header" sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
-        <Typography variant="h6">EXCO Portal</Typography>
-      </Box>
-      <Box component="main">
-        <Outlet />
-      </Box>
-    </div>
-  )
-}
+export const ExcoLayout = RecruiterLayout

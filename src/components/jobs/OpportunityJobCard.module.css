@@ -296,12 +296,20 @@
 .matchBadge {
   width: 48px;
   height: 48px;
+  padding: 0;
+  border: 0;
   position: relative;
   display: grid;
   place-items: center;
   flex-shrink: 0;
   background: conic-gradient(var(--ring-fill) var(--ring-angle), var(--ring-bg) 0deg);
   border-radius: 50%;
+  cursor: pointer;
+}
+
+.matchBadge:focus-visible {
+  outline: 2px solid #03478c;
+  outline-offset: 3px;
 }
 
 .matchBadge::before {
@@ -315,7 +323,8 @@
   background: #ffffff;
 }
 
-.matchBadgeLabel {
+.matchBadgeLabel,
+.matchBadgeLabel:global(.MuiTypography-root) {
   margin: 0;
   position: relative;
   z-index: 1;
@@ -325,6 +334,22 @@
   line-height: 1;
   letter-spacing: 0.1px;
   color: var(--ring-fill);
+}
+
+.matchTooltip {
+  z-index: 1300;
+  width: 182px;
+  max-width: calc(100vw - 32px);
+  padding: 16px 25px;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 2px 4px 10px rgba(3, 71, 140, 0.32);
+  color: #2a3132;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
 }
 
 @media (max-width: 1100px) {

@@ -1,5 +1,15 @@
+import { JobPostStatus } from "@/enums/statuses";
 import { createApi, fakeBaseQuery } from "@reduxjs/toolkit/query/react";
-import { candidateApi, industryApi, jobsApi, locationApi, mancoApi } from "@/services/api";
+import { candidateApi, crmApi, excoApi, industryApi, jobsApi, locationApi, mancoApi, adzunaApi } from "@/services/api";
+import type { ExcoDashboard } from "@/services/api/excoApi";
+import type {
+  AddCrmNoteData,
+  AddCrmNoteRequest,
+  CreateCrmEmployerRequest,
+  CrmClientsData,
+  CrmClientsParams,
+  CrmEmployerDetail,
+} from "@/types/api";
 import type {
   LowPerformanceAlertPage,
   MancoRecruiterDetail,
@@ -7,6 +17,17 @@ import type {
   MancoRecruiterPage,
   ResolveLowPerformanceAlertResponse,
 } from "@/services/api/mancoApi";
+import type {
+  AdzunaPrefillResponse,
+  AdzunaPublishResult,
+  AdzunaUpdateResult,
+  AdzunaDeleteResult,
+  AdzunaPublishRecord,
+  AdzunaJobJsonRecord,
+  PublishAdzunaJobRequest,
+  UpdateAdzunaJobRequest,
+  AdzunaPublishesParams,
+} from "@/services/api/adzunaApi";
 import { visitorApi } from "@/services/api/visitorApi";
 import type { JobsSearchFilters } from "@/services/api/jobsApi";
 import type {
@@ -104,8 +125,37 @@ export const apiSlice = createApi({
     "MancoRecruiters",
     "MancoAlerts",
     "MancoRecruiterDetail",
+    "ExcoDashboard",
+    "CrmClients",
+    "CrmEmployer",
+    "AdzunaPublishes",
+    "AdzunaJobs",
   ],
   endpoints: (build) => ({
+    getExcoDashboard: build.query<ExcoDashboard, void>({
+      queryFn: () => withMappedApiError(() => excoApi.getDashboard()),
+      providesTags: ["ExcoDashboard"],
+    }),
+    getCrmClients: build.query<CrmClientsData, CrmClientsParams>({
+      queryFn: (params) => withMappedApiError(() => crmApi.listClients(params)),
+      providesTags: ["CrmClients"],
+    }),
+    getCrmEmployer: build.query<CrmEmployerDetail, string>({
+      queryFn: (name) => withMappedApiError(() => crmApi.getEmployerByName(name)),
+      providesTags: (_result, _error, name) => [{ type: "CrmEmployer", id: name }],
+    }),
+    createCrmEmployer: build.mutation<AddCrmNoteData, CreateCrmEmployerRequest>({
+      queryFn: (payload) => withMappedApiError(() => crmApi.createEmployer(payload)),
+      invalidatesTags: (_result, error) => error ? [] : ["CrmClients", "CrmEmployer"],
+    }),
+    addCrmClientNote: build.mutation<
+      AddCrmNoteData,
+      { clientId: string; payload: AddCrmNoteRequest }
+    >({
+      queryFn: ({ clientId, payload }) =>
+        withMappedApiError(() => crmApi.addClientNote(clientId, payload)),
+      invalidatesTags: (_result, error) => error ? [] : ["CrmClients", "CrmEmployer"],
+    }),
     getIndustries: build.query<string[], void>({
       queryFn: () =>
         withMappedApiError(async () => {
@@ -123,6 +173,16 @@ export const apiSlice = createApi({
           return locations.filter(Boolean);
         }),
       providesTags: [{ type: "Locations", id: "LIST" }],
+    }),
+    getWorkOptions: build.query<string[], void>({
+      queryFn: () =>
+        withMappedApiError(async () => {
+          const locations = await locationApi.getMasterLocations();
+          return locations
+            .filter((location) => location.type === "WORK_OPTION")
+            .map((location) => location.name);
+        }),
+      providesTags: [{ type: "Locations", id: "WORK_OPTIONS" }],
     }),
     getMancoRecruiters: build.query<
       MancoRecruiterPage,
@@ -206,7 +266,7 @@ export const apiSlice = createApi({
     }),
     listJobsPage: build.query<JobsResponse, JobsListArgs>({
       queryFn: ({ searchQuery, page, pageSize, filters }) =>
-        withMappedApiError(() => jobsApi.list(searchQuery, page, pageSize, "POSTED", filters)),
+        withMappedApiError(() => jobsApi.list(searchQuery, page, pageSize, JobPostStatus.POSTED, filters)),
       providesTags: (_result, _error, args) => [
         {
           type: "Jobs",
@@ -378,12 +438,59 @@ export const apiSlice = createApi({
           ),
         ),
     }),
+    getAdzunaPrefill: build.query<AdzunaPrefillResponse, string>({
+      queryFn: (jobProfileId) =>
+        withMappedApiError(() => adzunaApi.getAdzunaPrefill(jobProfileId)),
+      providesTags: (_result, _error, jobProfileId) => [
+        { type: "AdzunaPublishes", id: jobProfileId },
+      ],
+    }),
+    publishToAdzuna: build.mutation<AdzunaPublishResult, PublishAdzunaJobRequest>({
+      queryFn: (payload) =>
+        withMappedApiError(() => adzunaApi.publishToAdzuna(payload)),
+      invalidatesTags: (_result, error) =>
+        error ? [] : ["AdzunaPublishes", "AdzunaJobs"],
+    }),
+    getAdzunaJobsAsJson: build.query<AdzunaJobJsonRecord[], void>({
+      queryFn: () =>
+        withMappedApiError(() => adzunaApi.getAdzunaJobsAsJson()),
+      providesTags: ["AdzunaJobs"],
+    }),
+    updateAdzunaJob: build.mutation<
+      AdzunaUpdateResult,
+      { jobId: string; payload: UpdateAdzunaJobRequest }
+    >({
+      queryFn: ({ jobId, payload }) =>
+        withMappedApiError(() => adzunaApi.updateAdzunaJob(jobId, payload)),
+      invalidatesTags: (_result, error) =>
+        error ? [] : ["AdzunaJobs", "AdzunaPublishes"],
+    }),
+    deleteAdzunaJob: build.mutation<AdzunaDeleteResult, string>({
+      queryFn: (jobId) =>
+        withMappedApiError(() => adzunaApi.deleteAdzunaJob(jobId)),
+      invalidatesTags: (_result, error) =>
+        error ? [] : ["AdzunaJobs", "AdzunaPublishes"],
+    }),
+    listAdzunaPublishes: build.query<
+      AdzunaPublishRecord[],
+      AdzunaPublishesParams | undefined
+    >({
+      queryFn: (params) =>
+        withMappedApiError(() => adzunaApi.listAdzunaPublishes(params)),
+      providesTags: ["AdzunaPublishes"],
+    }),
   }),
 });
 
 export const {
+  useGetExcoDashboardQuery,
+  useGetCrmClientsQuery,
+  useGetCrmEmployerQuery,
+  useCreateCrmEmployerMutation,
+  useAddCrmClientNoteMutation,
   useGetIndustriesQuery,
   useGetLocationsQuery,
+  useGetWorkOptionsQuery,
   useGetMancoRecruitersQuery,
   useGetMancoLowPerformingRecruitersQuery,
   useResolveMancoLowPerformingAlertMutation,
@@ -413,4 +520,10 @@ export const {
   useUploadCvResumeDocumentMutation,
   useUploadVisitorDocumentMutation,
   useUploadDocumentMutation,
+  useGetAdzunaPrefillQuery,
+  usePublishToAdzunaMutation,
+  useGetAdzunaJobsAsJsonQuery,
+  useUpdateAdzunaJobMutation,
+  useDeleteAdzunaJobMutation,
+  useListAdzunaPublishesQuery,
 } = apiSlice;

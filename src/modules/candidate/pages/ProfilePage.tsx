@@ -15,6 +15,8 @@ import {
 } from "@/modules/candidate/components/ProfileFormFields";
 import { PROFILE_SELECT_OPTIONS } from "@/modules/candidate/pages/profileForm.config";
 import { useCandidateProfileViewModel } from "@/modules/candidate/hooks/useCandidateProfileViewModel";
+import { useWorkTypeOptions } from "@/modules/candidate/hooks/useWorkTypeOptions";
+import { toPreferredLocationLabel } from "@/modules/candidate/utils/profileEnums";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import cameraPlaceholderIconSrc from "@/assets/icons/camera-placeholder.svg";
 import pencilLineIconSrc from "@/assets/icons/pencil-line.svg";
@@ -77,6 +79,7 @@ const SectionCard = ({
 
 const ProfilePage = () => {
   usePageTitle("Profile");
+  const workTypeOptions = useWorkTypeOptions();
   const {
     activeProfilePhotoUrl,
     control,
@@ -127,7 +130,7 @@ const ProfilePage = () => {
   return (
     <Box className={styles.pageRoot}>
       <Typography component="h1" className={styles.pageTitle}>
-        Profile settings
+        Profile Settings
       </Typography>
 
       <Box className={styles.layout}>
@@ -207,7 +210,8 @@ const ProfilePage = () => {
                 control={control}
                 name="preferredWorkType"
                 label="Preferred Work Type(s)"
-                options={[...PROFILE_SELECT_OPTIONS.preferredWorkType]}
+                options={workTypeOptions}
+                resolveValue={toPreferredLocationLabel}
                 disabled={!isDesiredEditing}
               />
               <ProfileSelectField

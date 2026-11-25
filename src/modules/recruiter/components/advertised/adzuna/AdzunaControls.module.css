@@ -1,0 +1,151 @@
+.card {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.cardTitle {
+  display: flex;
+  align-items: center;
+  margin: 0;
+  color: #2B96D9;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 150%;
+  letter-spacing: 0.1px;
+}
+
+.marker {
+  display: none;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+}
+
+.label {
+  margin: 0;
+  color: #2A3132;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 150%;
+}
+
+.required {
+  color: #dc2626;
+}
+
+.hint {
+  margin-top: 0;
+  color: #57606a;
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.input {
+  box-sizing: border-box;
+  width: 100%;
+  height: 46px;
+  padding: 10px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #2A3132;
+  font-family: inherit;
+  font-size: 16px;
+  outline: none;
+}
+
+.input::placeholder {
+  color: #9ca3af;
+}
+
+.input:focus,
+.input:focus-within {
+  border-color: #2B96D9;
+}
+
+.selectWrap {
+  position: relative;
+  display: block;
+}
+
+.select {
+  padding-right: 32px;
+  appearance: none;
+  cursor: pointer;
+}
+
+.chevron {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  transform: translateY(-50%);
+  color: #57606a;
+  pointer-events: none;
+}
+
+.chipBox {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  height: auto;
+  min-height: 46px;
+  padding: 6px 10px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 18px;
+  background: #ffffff;
+  color: #2A3132;
+  font-size: 13px;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.chipRemove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #57606a;
+  cursor: pointer;
+}
+
+.addSelect {
+  min-height: 28px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #57606a;
+  font-family: inherit;
+  font-size: 13px;
+  appearance: none;
+  outline: none;
+  cursor: pointer;
+}

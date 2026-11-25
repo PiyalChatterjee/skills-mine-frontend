@@ -3,31 +3,38 @@ import { apiEndpoints, resolveEndpoint } from "@/services/api/endpoints";
 import type {
   AddCrmNoteData,
   AddCrmNoteRequest,
+  CreateCrmEmployerRequest,
+  CrmClientsParams,
   CrmClientsData,
-  SuccessEnvelope,
+  CrmEmployerDetail,
 } from "@/types/api";
 
 export const crmApi = {
-  listClients(params?: { status?: string; page?: number; limit?: number }) {
-    const status = params?.status;
-    const requestParams = {
-      ...(status ? { [apiEndpoints.crm.statusParam]: status } : {}),
-      ...(typeof params?.page === "number" ? { page: params.page } : {}),
-      ...(typeof params?.limit === "number" ? { limit: params.limit } : {}),
-    };
-
+  listClients(params: CrmClientsParams = {}) {
     return crmApiClient
-      .get<
-        SuccessEnvelope<CrmClientsData>
-      >(apiEndpoints.crm.clients, { params: requestParams })
+      .get<CrmClientsData>(apiEndpoints.crm.clients, { params })
       .then((response) => response.data);
   },
 
   addClientNote(clientId: string, payload: AddCrmNoteRequest) {
     return crmApiClient
-      .post<
-        SuccessEnvelope<AddCrmNoteData>
-      >(resolveEndpoint(apiEndpoints.crm.clientNotes, { clientId }), payload)
+      .post<AddCrmNoteData>(
+        resolveEndpoint(apiEndpoints.crm.clientNotes, { clientId }), payload,
+      )
+      .then((response) => response.data);
+  },
+
+  createEmployer(payload: CreateCrmEmployerRequest) {
+    return crmApiClient
+      .post<AddCrmNoteData>(apiEndpoints.crm.employer, payload)
+      .then((response) => response.data);
+  },
+
+  getEmployerByName(name: string) {
+    return crmApiClient
+      .get<CrmEmployerDetail>(
+        resolveEndpoint(apiEndpoints.crm.employerByName, { name }),
+      )
       .then((response) => response.data);
   },
 };

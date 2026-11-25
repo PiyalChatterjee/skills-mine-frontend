@@ -33,4 +33,12 @@ describe("phone number display", () => {
   it("normalizes pasted country codes before displaying local input", () => {
     expect(formatPhoneNumberDisplay(normalizePhoneNumberInput("+27 074 822 7664"))).toBe("074 822 7664");
   });
+
+  it("limits typed numbers starting with 27 to 10 digits", () => {
+    expect(normalizePhoneNumberInput("274 822 76641")).toBe("2748227664");
+  });
+
+  it("strips the country code from pasted 27 numbers", () => {
+    expect(normalizePhoneNumberInput("27748227664", true)).toBe("748227664");
+  });
 });

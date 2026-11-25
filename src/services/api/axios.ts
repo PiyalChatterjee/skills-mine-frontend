@@ -35,11 +35,13 @@ const serviceBaseUrls = {
   visitor: `${gateway}/api/visitor-service`,
   pipeline: `${gateway}/api/pipeline-service`,
   manco: `${gateway}/api/manco-exco-service/v1`,
+  externalJobs: `${gateway}/api/external-job-integration-service`,
 } as const;
 
 // Tune here — no .env variable needed.
 const REQUEST_TIMEOUT_MS = 5000;
 const AI_REQUEST_TIMEOUT_MS = 60000;
+const DOCUMENT_UPLOAD_TIMEOUT_MS = 60000;
 
 const createApiClient = (
   baseURL: string,
@@ -52,6 +54,10 @@ const createApiClient = (
     const tokens = tokenStorage.getTokens();
     if (includeAuth && tokens?.accessToken) {
       config.headers.Authorization = `Bearer ${tokens.accessToken}`;
+    }
+    // Don't set Content-Type for FormData - let the browser handle it with boundary
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type'];
     }
     return config;
   });
@@ -85,7 +91,10 @@ export const apiClient = createApiClient(serviceBaseUrls.default);
 export const authApiClient = createApiClient(serviceBaseUrls.auth);
 export const candidateApiClient = createApiClient(serviceBaseUrls.candidate);
 export const mandateApiClient = createApiClient(serviceBaseUrls.mandate);
-export const documentApiClient = createApiClient(serviceBaseUrls.document);
+export const documentApiClient = createApiClient(
+  serviceBaseUrls.document,
+  DOCUMENT_UPLOAD_TIMEOUT_MS,
+);
 export const publicDocumentApiClient = createApiClient(
   serviceBaseUrls.document,
   REQUEST_TIMEOUT_MS,
@@ -99,6 +108,7 @@ export const aiApiClient = createApiClient(
 export const visitorApiClient = createApiClient(serviceBaseUrls.visitor);
 export const pipelineApiClient = createApiClient(serviceBaseUrls.pipeline);
 export const mancoApiClient = createApiClient(serviceBaseUrls.manco);
+export const externalJobsApiClient = createApiClient(serviceBaseUrls.externalJobs);
 
 export const unwrapResponseData = async <T>(
   responsePromise: Promise<AxiosResponse<T>>,

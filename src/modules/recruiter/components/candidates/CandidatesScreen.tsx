@@ -8,14 +8,6 @@ import styles from './CandidatesScreen.module.css'
 
 const PAGE_SIZE = 10
 
-const STATUS_OPTIONS = ['SUBMITTED', 'ACTIVE', 'ON_HOLD', 'CLOSED', 'CANCELLED', 'REJECTED', 'APPLIED'] as const
-type StatusOption = (typeof STATUS_OPTIONS)[number]
-
-function toTitleCase(s: string): string {
-  if (!s) return ''
-  return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase().replace(/_/g, ' ')
-}
-
 export const CandidatesScreen = () => {
   const navigate = useNavigate()
   const [candidates, setCandidates] = useState<CandidateListItem[]>([])
@@ -23,11 +15,13 @@ export const CandidatesScreen = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Company filter dropdown
+  // Company filter dropdown (single selection)
   const companyBtnRef = useRef<HTMLButtonElement | null>(null)
   const [companyAnchorEl, setCompanyAnchorEl] = useState<HTMLButtonElement | null>(null)
-  const [companyInput, setCompanyInput] = useState('')
-  const [committedCompany, setCommittedCompany] = useState('')
+  const [selectedCompany, setSelectedCompany] = useState<string | null>(null)
+
+  // Stable company list seeded from the first unfiltered load
+  const [companyOptions, setCompanyOptions] = useState<string[]>([])
 
   // Location filter dropdown
   const locationBtnRef = useRef<HTMLButtonElement | null>(null)
@@ -36,11 +30,6 @@ export const CandidatesScreen = () => {
 
   // Stable location list seeded from the first unfiltered load
   const [locationOptions, setLocationOptions] = useState<string[]>([])
-
-  // Status filter dropdown
-  const statusBtnRef = useRef<HTMLButtonElement | null>(null)
-  const [statusAnchorEl, setStatusAnchorEl] = useState<HTMLButtonElement | null>(null)
-  const [selectedStatus, setSelectedStatus] = useState<StatusOption | null>(null)
 
   // Search query (debounced)
   const [searchInput, setSearchInput] = useState('')
@@ -60,6 +49,35 @@ export const CandidatesScreen = () => {
     }, 400)
   }
 
+  // ── Seed company and location options from ALL candidates (once) ─────────
+  useEffect(() => {
+    let cancelled = false
+    const OPTIONS_PAGE_SIZE = 100
+
+    const loadAll = async () => {
+      const companies = new Set<string>()
+      const locations = new Set<string>()
+      let page = 1
+      let totalPages: number
+      do {
+        const envelope = await recruiterCandidatesApi.listCandidates({ page, limit: OPTIONS_PAGE_SIZE })
+        envelope.data.candidates.forEach((c) => {
+          if (c.currentCompany) companies.add(c.currentCompany)
+          if (c.location) locations.add(c.location)
+        })
+        totalPages = envelope.data.pagination.totalPages
+        page += 1
+      } while (page <= totalPages && !cancelled)
+
+      if (cancelled) return
+      setCompanyOptions([...companies].sort((a, b) => a.localeCompare(b)))
+      setLocationOptions([...locations].sort((a, b) => a.localeCompare(b)))
+    }
+
+    loadAll().catch(() => { /* options stay empty; list fetch surfaces its own error */ })
+    return () => { cancelled = true }
+  }, [])
+
   // ── Fetch candidates whenever filters or page change ─────────────────────
   useEffect(() => {
     let cancelled = false
@@ -72,26 +90,13 @@ export const CandidatesScreen = () => {
         limit: PAGE_SIZE,
         search: searchQuery.trim() || undefined,
         location: selectedLocations.length > 0 ? selectedLocations[0] : undefined,
-        companyName: committedCompany.trim() || undefined,
-        status: selectedStatus ?? undefined,
+        companyName: selectedCompany ?? undefined,
       })
       .then((envelope) => {
         if (cancelled) return
         setCandidates(envelope.data.candidates)
         setPagination(envelope.data.pagination)
 
-        // Seed location options from the first unfiltered load only
-        if (
-          locationOptions.length === 0 &&
-          !searchQuery.trim() &&
-          selectedLocations.length === 0 &&
-          !committedCompany.trim() &&
-          !selectedStatus
-        ) {
-          const seen = new Set<string>()
-          envelope.data.candidates.forEach((c) => { if (c.location) seen.add(c.location) })
-          setLocationOptions([...seen].sort((a, b) => a.localeCompare(b)))
-        }
       })
       .catch(() => {
         if (!cancelled) setError('Failed to load candidates. Please try again.')
@@ -101,11 +106,10 @@ export const CandidatesScreen = () => {
       })
 
     return () => { cancelled = true }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, searchQuery, selectedLocations, committedCompany, selectedStatus])
+  }, [currentPage, searchQuery, selectedLocations, selectedCompany])
 
   // ── Reset to page 1 when filters change ──────────────────────────────────
-  useEffect(() => { setCurrentPage(1) }, [searchQuery, selectedLocations, committedCompany, selectedStatus])
+  useEffect(() => { setCurrentPage(1) }, [searchQuery, selectedLocations, selectedCompany])
 
   const totalPages = Math.max(1, pagination.totalPages)
 
@@ -114,9 +118,9 @@ export const CandidatesScreen = () => {
   // ── Company chip handlers ──────────────────────────────────────────────────
   const companyOpen = Boolean(companyAnchorEl)
   const handleCompanyChipClick = () => setCompanyAnchorEl(companyBtnRef.current)
-  const handleCompanyClose = () => {
-    setCompanyAnchorEl(null)
-    setCommittedCompany(companyInput)
+  const handleCompanyClose = () => setCompanyAnchorEl(null)
+  const toggleCompany = (option: string) => {
+    setSelectedCompany((prev) => (prev === option ? null : option))
   }
 
   // ── Location chip handlers ────────────────────────────────────────────────
@@ -127,14 +131,6 @@ export const CandidatesScreen = () => {
     setSelectedLocations((prev) =>
       prev.includes(option) ? prev.filter((l) => l !== option) : [...prev, option],
     )
-  }
-
-  // ── Status chip handlers ──────────────────────────────────────────────────
-  const statusOpen = Boolean(statusAnchorEl)
-  const handleStatusChipClick = () => setStatusAnchorEl(statusBtnRef.current)
-  const handleStatusClose = () => setStatusAnchorEl(null)
-  const toggleStatus = (option: StatusOption) => {
-    setSelectedStatus((prev) => (prev === option ? null : option))
   }
 
   return (
@@ -150,7 +146,7 @@ export const CandidatesScreen = () => {
         <ButtonBase
           ref={companyBtnRef}
           component="button"
-          className={`${styles.filterChip} ${committedCompany || companyOpen ? styles.filterChipActive : ''}`}
+          className={`${styles.filterChip} ${selectedCompany !== null || companyOpen ? styles.filterChipActive : ''}`}
           disableRipple
           onClick={handleCompanyChipClick}
           aria-haspopup="true"
@@ -162,7 +158,7 @@ export const CandidatesScreen = () => {
             <path d="M4.5 8.5h1M7.5 8.5h1M4.5 11h1M7.5 11h1" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
             <path d="M5.5 14v-2.5h3V14" stroke="currentColor" strokeWidth="1.3" />
           </svg>
-          {committedCompany || 'Company'}
+          {selectedCompany ?? 'Company'}
         </ButtonBase>
 
         {/* Location dropdown chip */}
@@ -183,23 +179,6 @@ export const CandidatesScreen = () => {
             <circle cx="8" cy="5.75" r="1.5" stroke="currentColor" strokeWidth="1.2" />
           </svg>
           Location
-        </ButtonBase>
-
-        {/* Status dropdown chip */}
-        <ButtonBase
-          ref={statusBtnRef}
-          component="button"
-          className={`${styles.filterChip} ${selectedStatus !== null || statusOpen ? styles.filterChipActive : ''}`}
-          disableRipple
-          onClick={handleStatusChipClick}
-          aria-haspopup="true"
-          aria-expanded={statusOpen ? 'true' : undefined}
-        >
-          <svg className={styles.filterChipSvgIcon} viewBox="0 0 16 16" fill="none" aria-hidden="true">
-            <circle cx="8" cy="8" r="5.5" stroke="currentColor" strokeWidth="1.3" />
-            <path d="M5.5 8l1.75 1.75L10.5 6" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          {selectedStatus ? toTitleCase(selectedStatus) : 'Status'}
         </ButtonBase>
 
         {/* Search input */}
@@ -228,31 +207,24 @@ export const CandidatesScreen = () => {
         transformOrigin={{ vertical: 'top', horizontal: 'left' }}
         slotProps={{ paper: { className: styles.filterDropdownPaper } }}
       >
-        <Box className={styles.companySearchWrap}>
-          <input
-            className={styles.companySearchInput}
-            type="text"
-            placeholder="Type company name…"
-            value={companyInput}
-            autoFocus
-            onChange={(e) => setCompanyInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') { handleCompanyClose() }
-              if (e.key === 'Escape') { setCompanyInput(committedCompany); setCompanyAnchorEl(null) }
-            }}
-            aria-label="Filter by company name"
-          />
-        </Box>
-        {committedCompany && (
+        {companyOptions.map((option) => (
           <div
-            role="button"
+            key={option}
+            role="menuitemradio"
+            aria-checked={selectedCompany === option}
             tabIndex={0}
             className={styles.filterDropdownItem}
-            onClick={() => { setCompanyInput(''); setCommittedCompany(''); setCompanyAnchorEl(null) }}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setCompanyInput(''); setCommittedCompany(''); setCompanyAnchorEl(null) } }}
+            onClick={() => toggleCompany(option)}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleCompany(option) } }}
           >
-            <span className={styles.filterDropdownLabel} style={{ color: '#c0392b', fontSize: 13 }}>✕ Clear filter</span>
+            <span className={`${styles.filterCheckboxIcon} ${selectedCompany === option ? styles.filterCheckboxIconChecked : ''}`} aria-hidden="true" />
+            <span className={styles.filterDropdownLabel}>{option}</span>
           </div>
+        ))}
+        {companyOptions.length === 0 && (
+          <Typography sx={{ px: 2, py: 1.5, fontSize: 13, color: 'text.secondary' }}>
+            No options available
+          </Typography>
         )}
       </Popover>
 
@@ -286,31 +258,6 @@ export const CandidatesScreen = () => {
         )}
       </Popover>
 
-      {/* Status dropdown popover */}
-      <Popover
-        open={statusOpen}
-        anchorEl={statusAnchorEl}
-        onClose={handleStatusClose}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-        transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-        slotProps={{ paper: { className: styles.filterDropdownPaper } }}
-      >
-        {STATUS_OPTIONS.map((option) => (
-          <div
-            key={option}
-            role="menuitemradio"
-            aria-checked={selectedStatus === option}
-            tabIndex={0}
-            className={styles.filterDropdownItem}
-            onClick={() => toggleStatus(option)}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleStatus(option) } }}
-          >
-            <span className={`${styles.filterCheckboxIcon} ${selectedStatus === option ? styles.filterCheckboxIconChecked : ''}`} aria-hidden="true" />
-            <span className={styles.filterDropdownLabel}>{toTitleCase(option)}</span>
-          </div>
-        ))}
-      </Popover>
-
       {/* Table */}
       <Box className={styles.tableWrap}>
         {loading && (
@@ -338,7 +285,6 @@ export const CandidatesScreen = () => {
               <Typography component="span" className={styles.headerCell}>TITLE</Typography>
               <Typography component="span" className={styles.headerCell}>COMPANY</Typography>
               <Typography component="span" className={styles.headerCell}>LOCATION</Typography>
-              <Box className={styles.headerCell} />
             </Box>
 
             {candidates.map((row) => (
@@ -366,15 +312,6 @@ export const CandidatesScreen = () => {
                 <Typography component="span" className={styles.cellLocation}>
                   {row.location}
                 </Typography>
-                <ButtonBase
-                  className={styles.moreButton}
-                  disableRipple
-                  aria-label={`More actions for ${row.fullName}`}
-                >
-                  <Box component="span" className={styles.moreDot} />
-                  <Box component="span" className={styles.moreDot} />
-                  <Box component="span" className={styles.moreDot} />
-                </ButtonBase>
               </Box>
             ))}
           </Box>

@@ -285,6 +285,7 @@ describe('candidateApi', () => {
             job_profile_id_ref: 'JOB-1',
             job_title: 'Engineer',
             current_stage_code: 'SCREENING',
+            job_status: 'closed',
             stage_progress: [{ stage_code: 'APPLIED' }, { stage_code: 'SCREENING' }],
           }],
           pagination: { current_page: 1, page_size: 10, total_items: 1, total_pages: 1 },
@@ -298,23 +299,24 @@ describe('candidateApi', () => {
       expect(result.applications[0]).toMatchObject({
         id: 'APP-1',
         stage: 'SCREENING',
+        jobStatus: 'closed',
         job: { id: 'JOB-1', title: 'Engineer' },
         pipeline: ['APPLIED', 'SCREENING'],
       })
     })
 
-    it('captures the stage an application was rejected at', async () => {
+    it.each(['REJECT', 'OFFER_REJECT'])('captures the stage an application was rejected at for %s', async (rejectionCode) => {
       mockGet.mockResolvedValue({
         data: {
           applications: [{
             application_id: 'APP-2',
             job_title: 'Application Developer',
-            current_stage_code: 'REJECT',
+            current_stage_code: rejectionCode,
             stage_progress: [
               { from_stage_code: 'INBOUND', to_stage_code: 'SCREENING' },
               { from_stage_code: 'SCREENING', to_stage_code: 'ASSESSMENT' },
               { from_stage_code: 'ASSESSMENT', to_stage_code: 'SCREENING' },
-              { from_stage_code: 'SCREENING', to_stage_code: 'REJECT' },
+              { from_stage_code: 'SCREENING', to_stage_code: rejectionCode },
             ],
           }],
         },
@@ -439,7 +441,11 @@ describe('candidateApi', () => {
         data: {
           candidate_id: 'CAND100001',
           personal_details: { first_name: 'Jane', last_name: 'Doe' },
-          career_history: [],
+          career_history: [{
+            company_name: 'Acme',
+            position_held: 'Engineer',
+            projects: ['Analytics dashboard'],
+          }],
           skills: [],
           education: [
             { institution_name: 'High School', level_code: 'SECONDARY' },
@@ -454,6 +460,7 @@ describe('candidateApi', () => {
       expect(result.candidateId).toBe('CAND100001')
       expect(result.education.secondaryEducation).toHaveLength(1)
       expect(result.education.tertiaryEducation).toHaveLength(1)
+      expect(result.careerHistory[0].projects).toEqual(['Analytics dashboard'])
     })
 
     it('normalizes object-shaped skills to names', async () => {
@@ -515,6 +522,27 @@ describe('candidateApi', () => {
       })
     })
 
+    it('includes career history projects in the cv-build request', async () => {
+      mockPost.mockResolvedValue({ data: { success: true, data: {} } })
+
+      await candidateApi.saveBuildMyCv('candidate-1', {
+        careerHistory: [{
+          company: 'Acme',
+          jobTitle: 'Engineer',
+          startDate: 'January 2022',
+          endDate: 'Present',
+          responsibilities: 'Built features',
+          projects: ['  Analytics dashboard  ', ''],
+        }],
+      })
+
+      expect(mockPost).toHaveBeenCalledWith('/candidates/cv-build/', expect.objectContaining({
+        career_history: [expect.objectContaining({
+          projects: ['Analytics dashboard'],
+        })],
+      }))
+    })
+
     it('calls POST /candidates/cv-build/', async () => {
       mockPost.mockResolvedValue({ data: { success: true, data: { lastModified: '2024-01-01' } } })
       const result = await candidateApi.saveBuildMyCv('candidate-1', {
@@ -539,7 +567,7 @@ describe('candidateApi', () => {
       expect(result.lastModified).toBe('2024-01-01')
     })
 
-    it('omits empty current employment fields from the payload', async () => {
+    it('clears current employment and career history without sending a blank notice period', async () => {
       mockPost.mockResolvedValue({ data: { success: true, data: {} } })
 
       await candidateApi.saveBuildMyCv('candidate-1', {
@@ -550,19 +578,50 @@ describe('candidateApi', () => {
           currentPosition: '',
           noticePeriod: '  ',
         },
+        careerHistory: [],
       })
 
       const requestBody = mockPost.mock.calls.at(-1)?.[1] as {
         personal_details: Record<string, unknown>
+        career_history: unknown[]
       }
 
-      expect(requestBody.personal_details).not.toHaveProperty('current_company')
-      expect(requestBody.personal_details).not.toHaveProperty('current_position')
+      expect(requestBody.personal_details).toMatchObject({
+        current_company: '',
+        current_position: '',
+      })
       expect(requestBody.personal_details).not.toHaveProperty('notice_period')
+      expect(requestBody.career_history).toEqual([])
+    })
+
+    it.each([
+      { noticePeriod: '', expected: undefined },
+      { noticePeriod: '  ', expected: undefined },
+      { noticePeriod: undefined, expected: undefined },
+      { noticePeriod: ' 30_DAYS ', expected: '30_DAYS' },
+    ])('omits blank notice periods and sends selected values: $noticePeriod', async ({ noticePeriod, expected }) => {
+      mockPost.mockResolvedValue({ data: { success: true, data: {} } })
+      await candidateApi.saveBuildMyCv('candidate-1', {
+        personalDetails: { firstName: 'Jane', lastName: 'Doe', currentCompany: '', noticePeriod },
+      })
+      const personalDetails = mockPost.mock.calls.at(-1)?.[1].personal_details
+      if (expected === undefined) {
+        expect(personalDetails).not.toHaveProperty('notice_period')
+      } else {
+        expect(personalDetails.notice_period).toBe(expected)
+      }
     })
   })
 
   describe('updateBuildMyCv', () => {
+    it('omits a blank notice period when updating a CV', async () => {
+      mockPost.mockResolvedValue({ data: { success: true, data: {} } })
+      await candidateApi.updateBuildMyCv('candidate-1', {
+        personalDetails: { firstName: 'Jane', lastName: 'Doe', currentCompany: '', noticePeriod: '' },
+      })
+      expect(mockPost.mock.calls.at(-1)?.[1].personal_details).not.toHaveProperty('notice_period')
+    })
+
     it('calls POST /candidates/cv-build/', async () => {
       mockPost.mockResolvedValue({ data: { success: true, data: { lastModified: '2024-06-01' } } })
       const result = await candidateApi.updateBuildMyCv('candidate-1', {

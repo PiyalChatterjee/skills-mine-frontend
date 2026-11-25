@@ -7,8 +7,11 @@ import {
   careerHistoryEntrySchema,
   tertiaryEntrySchema,
   secondaryEntrySchema,
+  getDuplicateEducationYearIndexes,
+  getTertiaryYearIndexesAtOrBeforeSecondary,
   type CvBuilderFormValues,
 } from "@/app/validation.schema";
+import { toAvailabilityEnum } from "@/modules/candidate/utils/profileEnums";
 import {
   DISABILITY_OPTIONS,
   GENDER_OPTIONS,
@@ -119,7 +122,19 @@ const normalizePersonalDetailsFieldValue = (
   const matchedOption = options.find(
     (option) => option.toLowerCase() === normalized,
   );
-  return matchedOption ?? "";
+  if (matchedOption) {
+    return matchedOption;
+  }
+
+  if (field === "noticePeriod") {
+    const enumVal = toAvailabilityEnum(value);
+    const matchedEnum = options.find((opt) => opt === enumVal);
+    if (matchedEnum) {
+      return matchedEnum;
+    }
+  }
+
+  return "";
 };
 
 const isCareerPristine = (entries: CvBuilderFormValues["careerHistory"]) =>
@@ -194,7 +209,7 @@ const useCvBuilder = (
   });
 
   useEffect(() => {
-    if (!prefillData) return;
+    if (!prefillData || reviewSource === "upload") return;
 
     const {
       personalDetails: pd,
@@ -295,7 +310,7 @@ const useCvBuilder = (
     ) {
       form.setValue("otherLanguage", otherLanguage);
     }
-  }, [prefillData, forceApply]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [prefillData, forceApply, reviewSource]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const personalDetailsValues = useWatch({
     control: form.control,
@@ -354,7 +369,13 @@ const useCvBuilder = (
       ) &&
       (secondaryValues ?? []).every(
         (e) => secondaryEntrySchema.safeParse(e).success,
-      )
+      ) &&
+      getDuplicateEducationYearIndexes(tertiaryValues ?? []).length === 0 &&
+      getDuplicateEducationYearIndexes(secondaryValues ?? []).length === 0 &&
+      getTertiaryYearIndexesAtOrBeforeSecondary(
+        tertiaryValues ?? [],
+        secondaryValues ?? [],
+      ).length === 0
     );
   }, [tertiaryValues, secondaryValues]);
   const isLanguagesValid = useMemo(() => {
@@ -383,16 +404,22 @@ const useCvBuilder = (
     setActiveView("review");
   };
   const goBack = () => setActiveView("launcher");
-  // Resume extraction isn't wired up to the mock API yet, so the uploaded-CV
-  // flow shows a blank form instead of stale/unrelated profile data.
   const openReviewFlowBlank = (prefillData?: CvBuilderPrefillData) => {
+    const {
+      languages,
+      otherLanguage,
+      ...rest
+    } = prefillData ?? {};
+
     form.reset({
       ...DEFAULT_FORM_VALUES,
-      ...prefillData,
+      ...rest,
       personalDetails: {
         ...DEFAULT_FORM_VALUES.personalDetails,
         ...prefillData?.personalDetails,
       },
+      languages: languages ?? DEFAULT_FORM_VALUES.languages,
+      otherLanguage: otherLanguage ?? DEFAULT_FORM_VALUES.otherLanguage,
     });
     setReviewSource("upload");
     setActiveView("review");

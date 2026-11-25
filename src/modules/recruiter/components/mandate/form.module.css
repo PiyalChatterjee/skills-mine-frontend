@@ -160,16 +160,20 @@
   align-items: center;
   gap: 6px;
   padding: 4px 12px;
-  border-radius: 100px;
+  border-radius: 18px;
   font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
   font-size: 13px;
   font-weight: 400;
   color: #ffffff;
-  white-space: nowrap;
+  max-width: 100%;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .chipRemove {
   display: inline-flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
   background: none;

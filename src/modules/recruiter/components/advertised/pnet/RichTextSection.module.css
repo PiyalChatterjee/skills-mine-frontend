@@ -1,0 +1,108 @@
+.section {
+  overflow: hidden;
+  border: 1px solid #e8ebf1;
+  border-radius: 10px;
+  background: #ffffff;
+  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 40px;
+  padding: 0 14px 0 15px;
+  border-bottom: 1px solid #eceff4;
+  background: #f8f9fc;
+}
+
+.title {
+  margin: 0;
+  color: #2b3442;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  line-height: 14px;
+  text-transform: uppercase;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 4px;
+  border: 1px solid #e2e6ee;
+  border-radius: 6px;
+  background: #ffffff;
+}
+
+.toolbarGroup {
+  display: flex;
+  align-items: center;
+  margin-right: 4px;
+  padding-right: 4px;
+  border-right: 1px solid #e2e6ee;
+}
+
+.toolBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 17px;
+  height: 17px;
+  padding: 0;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: #3a4352;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.toolBtn:hover {
+  background: #eef1f7;
+}
+
+.fontBtn {
+  gap: 3px;
+  width: auto;
+  padding: 0 3px;
+  font-size: 8.5px;
+  font-weight: 600;
+}
+
+.glyphBold {
+  font-size: 9.5px;
+  font-weight: 800;
+}
+
+.glyphItalic {
+  font-size: 9.5px;
+  font-style: italic;
+  font-weight: 600;
+}
+
+.glyphStrike {
+  font-size: 9.5px;
+  font-weight: 600;
+  text-decoration: line-through;
+}
+
+.textarea {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 12px 12px;
+  border: 0;
+  background: #ffffff;
+  color: #2b323d;
+  font-family: inherit;
+  font-size: 9.5px;
+  line-height: 15px;
+  resize: vertical;
+  outline: none;
+}
+
+.textarea::placeholder {
+  color: #9aa3b2;
+}

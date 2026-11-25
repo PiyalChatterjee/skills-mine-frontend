@@ -163,7 +163,7 @@ const LandingJobResults = ({ query, shouldFilter, onSignUp }: LandingJobResultsP
 
 const LandingPage = () => {
   usePageTitle("Strategic Recruitment Solutions Home");
-  const { openSignUpDrawer } = useOutletContext<PublicLayoutOutletContext>();
+  const { openSignUpDrawer, dismissVisitorSignUp } = useOutletContext<PublicLayoutOutletContext>();
   const dispatch = useDispatch();
   const location = useLocation();
   const navigate = useNavigate();
@@ -172,7 +172,7 @@ const LandingPage = () => {
   const [appliedJobState] = useState(
     () => location.state as { visitorId?: string; matchScore?: number; email?: string } | null,
   );
-  const { visitorId, matchScore, email: visitorEmail } = appliedJobState ?? {};
+  const { visitorId, matchScore } = appliedJobState ?? {};
   const [isApplicationSubmittedDismissed, setIsApplicationSubmittedDismissed] =
     useState(false);
   const [isDeclineConfirmationVisible, setIsDeclineConfirmationVisible] = useState(false);
@@ -224,10 +224,11 @@ const LandingPage = () => {
   };
 
   const handleKeepCvOnFile = () => {
-    openSignUpDrawer(visitorEmail);
+    openSignUpDrawer();
   };
 
   const handleDeclineKeepCvOnFile = () => {
+    dismissVisitorSignUp();
     setIsDeclineConfirmationVisible(true);
   };
 
@@ -293,7 +294,7 @@ const LandingPage = () => {
                 </Box>
                 <Box className={styles.applicationSubmittedText}>
                   <Typography component="h1" className={styles.applicationHeading} sx={{ m: 0 }}>
-                    Application submitted.
+                    Application Submitted.
                   </Typography>
                   {matchScore != null && (
                     <Typography component="p" className={styles.applicationSubtitle} sx={{ m: 0 }}>
@@ -313,7 +314,7 @@ const LandingPage = () => {
                   className={styles.heroCta}
                   onClick={handleKeepCvOnFile}
                 >
-                  Yes please
+                  Yes Please
                 </Button>
                 <Button
                   variant="outlined"
@@ -329,10 +330,10 @@ const LandingPage = () => {
               <Box className={styles.heroTextBlock}>
                 <Typography component="h2" className={styles.heroTitle} sx={{ m: 0 }}>
                   <Box component="span" className={styles.heroTitleStrong}>
-                    Sign up to find your perfect role,
+                    Sign Up To Find Your Perfect Role,
                   </Box>{" "}
                   <Box component="span" className={styles.heroTitleLight}>
-                    matched to you.
+                    Matched To You.
                   </Box>
                 </Typography>
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Alert,
   Box,
@@ -32,11 +32,16 @@ const LoginPage = () => {
   const { login, isAuthenticated, user } = useAuth();
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [googleAuthError, setGoogleAuthError] = useState<string | null>(null);
+  const errorAlertRef = useRef<HTMLDivElement>(null);
   const [isGoogleRedirecting, setIsGoogleRedirecting] = useState(false);
   // Check for error redirected back from AuthCallbackPage (?error=google_callback)
   const isGoogleCallbackError = searchParams.get('error') === 'google_callback';
   const googleCallbackErrorMessage =
     searchParams.get("message") ?? "Google sign-in failed. Please try again.";
+  const errorMessage =
+    submitError ??
+    googleAuthError ??
+    (isGoogleCallbackError ? googleCallbackErrorMessage : null);
   const {
     register,
     handleSubmit,
@@ -53,6 +58,15 @@ const LoginPage = () => {
   const emailValue = watch("email");
   const isForgotPasswordModalOpen = searchParams.get("forgot-password") === "1";
   const isPostSignupCandidate = searchParams.get("postSignup") === "candidate";
+
+  useEffect(() => {
+    if (!errorMessage) return;
+
+    errorAlertRef.current?.scrollIntoView?.({
+      behavior: "smooth",
+      block: "center",
+    });
+  }, [errorMessage]);
 
   const handleForgotPasswordClose = () => {
     const nextSearchParams = new URLSearchParams(searchParams);
@@ -165,10 +179,10 @@ const LoginPage = () => {
         <Typography className={styles.formHeading}>Log in</Typography>
 
         <Box component="form" className={styles.formFields} onSubmit={handleSubmit(onSubmit)}>
-          {submitError ? <Alert severity="error">{submitError}</Alert> : null}
-          {googleAuthError ? <Alert severity="error">{googleAuthError}</Alert> : null}
-          {isGoogleCallbackError ? (
-            <Alert severity="error">{googleCallbackErrorMessage}</Alert>
+          {errorMessage ? (
+            <Alert ref={errorAlertRef} severity="error">
+              {errorMessage}
+            </Alert>
           ) : null}
 
           <Box className={styles.dividerRow}>
@@ -236,7 +250,7 @@ const LoginPage = () => {
             disabled={isSubmitting}
             className={styles.submitButton}
           >
-            {isSubmitting ? "Signing in..." : "Log In"}
+            {isSubmitting ? "Signing In..." : "Log In"}
           </Button>
 
           <Box className={styles.forgotPasswordRow}>

@@ -1,56 +1,53 @@
-// Keys match the real backend pipeline stage codes (INBOUND, SCREENING, ASSESSMENT,
-// INTERVIEW, SHORTLIST, OFFER, REJECT, CLOSED), lower-cased, plus a few historical
-// aliases so labels stay consistent with the dashboard's own stage mapping.
+import { ApplicationStatusKey, ApplicationStatusLabel, LegacyPipelineStageCode, PipelineStageCode, PipelineStageLabel } from "@/enums/statuses";
+
+export type { ApplicationStatusKey } from "@/enums/statuses";
+
 const APPLICATION_STATUS_LABELS: Record<string, string> = {
-  inbound: 'Applied',
-  applied: 'Applied',
-  screening: 'Screening',
-  assessment: 'Assessment',
-  interview: 'Interview',
-  shortlist: 'Shortlisted',
-  shortlisted: 'Shortlisted',
-  offer: 'Offer',
-  offer_extended: 'Offer',
-  offer_accepted: 'Closed',
-  offer_declined: 'Closed',
-  reject: 'Closed',
-  rejected: 'Closed',
-  placed: 'Placed',
-  closed: 'Closed',
-}
+  [PipelineStageCode.INBOUND.toLowerCase()]: ApplicationStatusLabel.APPLIED,
+  [ApplicationStatusKey.APPLIED]: ApplicationStatusLabel.APPLIED,
+  [ApplicationStatusKey.SCREENING]: PipelineStageLabel.SCREENING,
+  [ApplicationStatusKey.ASSESSMENT]: PipelineStageLabel.ASSESSMENT,
+  [ApplicationStatusKey.INTERVIEW]: PipelineStageLabel.INTERVIEW,
+  [PipelineStageCode.SHORTLIST.toLowerCase()]: ApplicationStatusLabel.SHORTLISTED,
+  [ApplicationStatusKey.SHORTLISTED]: ApplicationStatusLabel.SHORTLISTED,
+  [PipelineStageCode.OFFER.toLowerCase()]: PipelineStageLabel.OFFER,
+  [ApplicationStatusKey.OFFER_EXTENDED]: PipelineStageLabel.OFFER,
+  [ApplicationStatusKey.OFFER_ACCEPTED]: PipelineStageLabel.CLOSED,
+  [ApplicationStatusKey.OFFER_DECLINED]: PipelineStageLabel.CLOSED,
+  [PipelineStageCode.REJECT.toLowerCase()]: PipelineStageLabel.CLOSED,
+  [PipelineStageCode.OFFER_REJECT.toLowerCase()]: PipelineStageLabel.CLOSED,
+  [ApplicationStatusKey.REJECTED]: PipelineStageLabel.CLOSED,
+  [LegacyPipelineStageCode.PLACED.toLowerCase()]: PipelineStageLabel.PLACED,
+  [PipelineStageCode.CLOSED.toLowerCase()]: PipelineStageLabel.CLOSED,
+};
 
-const APPLICATION_STATUS_KEYS = {
-  inbound: 'applied',
-  applied: 'applied',
-  screening: 'screening',
-  assessment: 'assessment',
-  interview: 'interview',
-  shortlist: 'shortlisted',
-  shortlisted: 'shortlisted',
-  offer: 'offer_extended',
-  offer_extended: 'offer_extended',
-  offer_accepted: 'offer_accepted',
+const APPLICATION_STATUS_KEYS: Record<string, ApplicationStatusKey> = {
+  [PipelineStageCode.INBOUND.toLowerCase()]: ApplicationStatusKey.APPLIED,
+  [ApplicationStatusKey.APPLIED]: ApplicationStatusKey.APPLIED,
+  [ApplicationStatusKey.SCREENING]: ApplicationStatusKey.SCREENING,
+  [ApplicationStatusKey.ASSESSMENT]: ApplicationStatusKey.ASSESSMENT,
+  [ApplicationStatusKey.INTERVIEW]: ApplicationStatusKey.INTERVIEW,
+  [PipelineStageCode.SHORTLIST.toLowerCase()]: ApplicationStatusKey.SHORTLISTED,
+  [ApplicationStatusKey.SHORTLISTED]: ApplicationStatusKey.SHORTLISTED,
+  [PipelineStageCode.OFFER.toLowerCase()]: ApplicationStatusKey.OFFER_EXTENDED,
+  [ApplicationStatusKey.OFFER_EXTENDED]: ApplicationStatusKey.OFFER_EXTENDED,
+  [ApplicationStatusKey.OFFER_ACCEPTED]: ApplicationStatusKey.OFFER_ACCEPTED,
   // Backend moves an accepted offer to CLOSED.
-  closed: 'offer_accepted',
-  offer_declined: 'offer_declined',
-  reject: 'rejected',
-  rejected: 'rejected',
-} as const
-
-export type ApplicationStatusKey =
-  | (typeof APPLICATION_STATUS_KEYS)[keyof typeof APPLICATION_STATUS_KEYS]
-  | 'unknown'
+  [PipelineStageCode.CLOSED.toLowerCase()]: ApplicationStatusKey.OFFER_ACCEPTED,
+  [ApplicationStatusKey.OFFER_DECLINED]: ApplicationStatusKey.OFFER_DECLINED,
+  [PipelineStageCode.REJECT.toLowerCase()]: ApplicationStatusKey.REJECTED,
+  [PipelineStageCode.OFFER_REJECT.toLowerCase()]: ApplicationStatusKey.REJECTED,
+  [ApplicationStatusKey.REJECTED]: ApplicationStatusKey.REJECTED,
+};
 
 export const getApplicationStatusLabel = (stage: string | undefined) => {
-  if (!stage) return undefined
-
-  const normalizedStage = stage.trim().toLowerCase()
-  return APPLICATION_STATUS_LABELS[normalizedStage] ?? stage
-}
+  if (!stage) return undefined;
+  return APPLICATION_STATUS_LABELS[stage.trim().toLowerCase()] ?? stage;
+};
 
 export const getApplicationStatusKey = (
   stage: string | undefined | null,
 ): ApplicationStatusKey => {
-  if (!stage) return 'unknown'
-  return APPLICATION_STATUS_KEYS[stage.trim().toLowerCase() as keyof typeof APPLICATION_STATUS_KEYS] ?? 'unknown'
-}
+  if (!stage) return ApplicationStatusKey.UNKNOWN;
+  return APPLICATION_STATUS_KEYS[stage.trim().toLowerCase()] ?? ApplicationStatusKey.UNKNOWN;
+};

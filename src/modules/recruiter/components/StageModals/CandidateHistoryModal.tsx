@@ -1,3 +1,4 @@
+import { ApplicationStatusLabel, ClosedReason, PipelineStageCode, PipelineStageLabel as PipelineLabel } from "@/enums/statuses";
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Box, ButtonBase, CircularProgress, Typography } from '@mui/material'
@@ -23,27 +24,27 @@ const PersonIcon = () => (
 // ── Stage dot colour map ────────────────────────────────────────────────
 
 const STAGE_DOT_COLOR: Record<string, string> = {
-  INBOUND:    '#F0CB89',
-  SCREENING:  '#AF9EDD',
-  ASSESSMENT: '#F5DE6F',
-  SHORTLIST:  '#DD93BA',
-  INTERVIEW:  '#7CB0B9',
-  OFFER:      '#6FBF8F',
-  CLOSED:     '#DBEFE3',
-  REJECT:     '#D64545',
-  REJECTED:   '#D64545',
+  [PipelineStageCode.INBOUND]:    '#F0CB89',
+  [PipelineStageCode.SCREENING]:  '#AF9EDD',
+  [PipelineStageCode.ASSESSMENT]: '#F5DE6F',
+  [PipelineStageCode.SHORTLIST]:  '#DD93BA',
+  [PipelineStageCode.INTERVIEW]:  '#7CB0B9',
+  [PipelineStageCode.OFFER]:      '#6FBF8F',
+  [PipelineStageCode.CLOSED]:     '#DBEFE3',
+  [PipelineStageCode.REJECT]:       '#D64545',
+  [PipelineStageCode.OFFER_REJECT]: '#D64545',
 }
 
 const STAGE_LABEL: Record<string, string> = {
-  INBOUND:    'Applied',
-  SCREENING:  'Screened',
-  ASSESSMENT: 'Assessed',
-  SHORTLIST:  'Shortlist',
-  INTERVIEW:  'Interview Scheduled',
-  OFFER:      'Offer Extended',
-  CLOSED:     'Closed',
-  REJECT:     'Rejected',
-  REJECTED:   'Rejected',
+  [PipelineStageCode.INBOUND]:    ApplicationStatusLabel.APPLIED,
+  [PipelineStageCode.SCREENING]:  ApplicationStatusLabel.SCREENED,
+  [PipelineStageCode.ASSESSMENT]: ApplicationStatusLabel.ASSESSED,
+  [PipelineStageCode.SHORTLIST]:  PipelineLabel.SHORTLIST,
+  [PipelineStageCode.INTERVIEW]:  ApplicationStatusLabel.INTERVIEW_SCHEDULED,
+  [PipelineStageCode.OFFER]:      ApplicationStatusLabel.OFFER_EXTENDED,
+  [PipelineStageCode.CLOSED]:     PipelineLabel.CLOSED,
+  [PipelineStageCode.REJECT]:       ClosedReason.REJECTED,
+  [PipelineStageCode.OFFER_REJECT]: ClosedReason.REJECTED,
 }
 
 function formatDate(iso: string): string {
@@ -96,12 +97,16 @@ const CandidateHistoryModal = ({
       .finally(() => setLoading(false))
   }, [applicationId])
 
-  // Resolve the ID to navigate with: prefer candidateId, fall back to visitorId from history
-  const resolvedProfileId =
-    candidateId ||
-    history.find(h => h.applicant?.candidateId)?.applicant?.candidateId ||
-    history.find(h => h.applicant?.visitorId)?.applicant?.visitorId ||
-    null
+  // Resolve the profile route: prefer candidateId, fall back to visitorId from history
+  const resolvedCandidateId =
+    candidateId || history.find(h => h.applicant?.candidateId)?.applicant?.candidateId || null
+  const resolvedVisitorId =
+    resolvedCandidateId ? null : history.find(h => h.applicant?.visitorId)?.applicant?.visitorId || null
+  const resolvedProfilePath = resolvedCandidateId
+    ? ROUTE_PATHS.recruiterCandidateDetail.replace(':candidateId', resolvedCandidateId)
+    : resolvedVisitorId
+      ? ROUTE_PATHS.recruiterVisitorDetail.replace(':visitorId', resolvedVisitorId)
+      : null
 
   return (
     <Box className={styles.backdrop} onClick={onClose}>
@@ -190,13 +195,13 @@ const CandidateHistoryModal = ({
               onClick={() => {
                 if (onViewProfile) {
                   onViewProfile()
-                } else if (resolvedProfileId) {
-                  navigate(ROUTE_PATHS.recruiterCandidateDetail.replace(':candidateId', resolvedProfileId))
+                } else if (resolvedProfilePath) {
+                  navigate(resolvedProfilePath)
                   onClose()
                 }
               }}
               disableRipple
-              disabled={!onViewProfile && !resolvedProfileId}
+              disabled={!onViewProfile && !resolvedProfilePath}
             >
               View Profile
             </ButtonBase>

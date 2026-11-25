@@ -1,3 +1,4 @@
+import { ApplicationStatusKey as ApplicationStatusValue, ApplicationStatusLabel, PipelineStageCode, PipelineStageLabel } from "@/enums/statuses";
 import { useMemo } from "react";
 import { useAuth } from "@/app/auth/AuthContext";
 import {
@@ -15,66 +16,73 @@ export const DASHBOARD_APPLICATION_STATUS_CONFIG: Record<
   ApplicationStatusKey,
   { label: string; color: string; caption: string }
 > = {
-  applied: {
-    label: "Applied",
+  [ApplicationStatusValue.APPLIED]: {
+    label: ApplicationStatusLabel.APPLIED,
     color: "#72c4e0",
     caption: "Your job application has been successfully submitted and is now with the recruiter.",
   },
-  screening: {
-    label: "Screening",
+  [ApplicationStatusValue.SCREENING]: {
+    label: PipelineStageLabel.SCREENING,
     color: "#4db8c8",
     caption: "The recruiter is currently reviewing your application.",
   },
-  assessment: {
-    label: "Assessment",
+  [ApplicationStatusValue.ASSESSMENT]: {
+    label: PipelineStageLabel.ASSESSMENT,
     color: "#f0a500",
     caption: "You have been invited to complete an assessment for this position.",
   },
-  interview: {
-    label: "Interview",
+  [ApplicationStatusValue.INTERVIEW]: {
+    label: PipelineStageLabel.INTERVIEW,
     color: "#7c5cd8",
     caption: "Good news! You have been invited to an interview for this position.",
   },
-  shortlisted: {
-    label: "Shortlisted",
+  [ApplicationStatusValue.SHORTLISTED]: {
+    label: ApplicationStatusLabel.SHORTLISTED,
     color: "#e085c2",
     caption: "Good news! You have been shortlisted for this position.",
   },
-  offer_extended: {
-    label: "Offer",
+  [ApplicationStatusValue.OFFER_EXTENDED]: {
+    label: PipelineStageLabel.OFFER,
     color: "#5bbf8a",
     caption: "Good news! An offer for this position has been extended to you!",
   },
-  offer_accepted: {
-    label: "Closed",
+  [ApplicationStatusValue.OFFER_ACCEPTED]: {
+    label: PipelineStageLabel.CLOSED,
     color: "#4BAF73",
     caption: "Good news! You have accepted the offer for this position.",
   },
-  offer_declined: {
-    label: "Closed",
+  [ApplicationStatusValue.OFFER_DECLINED]: {
+    label: PipelineStageLabel.CLOSED,
     color: "#D64545",
     caption: "You have declined the offer for this position. Thank you for your interest!",
   },
-  rejected: {
-    label: "Closed",
+  [ApplicationStatusValue.REJECTED]: {
+    label: PipelineStageLabel.CLOSED,
     color: "#D64545",
     caption: "Unfortunately, your application for this position was not successful. Thank you for your interest!",
   },
-  unknown: {
+  [ApplicationStatusValue.UNKNOWN]: {
     label: "Unknown stage",
     color: "#7a8694",
     caption: "Your application status is currently unavailable.",
   },
 };
 
-const CLOSED_STAGES = new Set(["closed", "offer_accepted", "offer_declined", "reject", "rejected"]);
+const CLOSED_STAGES = new Set([
+  PipelineStageCode.CLOSED.toLowerCase(),
+  ApplicationStatusValue.OFFER_ACCEPTED,
+  ApplicationStatusValue.OFFER_DECLINED,
+  PipelineStageCode.REJECT.toLowerCase(),
+  PipelineStageCode.OFFER_REJECT.toLowerCase(),
+  ApplicationStatusValue.REJECTED,
+]);
 const DEFAULT_PIPELINE = [
-  "APPLIED",
-  "SCREENING",
-  "ASSESSMENT",
-  "INTERVIEW",
-  "SHORTLISTED",
-  "OFFER",
+  PipelineStageCode.INBOUND,
+  PipelineStageCode.SCREENING,
+  PipelineStageCode.ASSESSMENT,
+  PipelineStageCode.SHORTLIST,
+  PipelineStageCode.INTERVIEW,
+  PipelineStageCode.OFFER,
 ];
 const unknownStages = new Set<string>();
 
@@ -132,17 +140,19 @@ const transformApplicationToDisplay = (
   app: DashboardApplication,
 ): DisplayApplication => {
   const status = getApplicationStatusKey(app.stage);
-  if (status === "unknown" && app.stage) {
+  if (status === ApplicationStatusValue.UNKNOWN && app.stage) {
     reportUnknownStage(app.stage);
   }
   const pipeline = DEFAULT_PIPELINE;
   // Rejected applications show progress up to the stage they were rejected at.
   const progressStage =
-    status === "rejected" && app.rejectedAtStage ? app.rejectedAtStage : app.stage;
+    status === ApplicationStatusValue.REJECTED && app.rejectedAtStage ? app.rejectedAtStage : app.stage;
   const progressStatus = getApplicationStatusKey(progressStage);
+  const isClosedRejection =
+    status === ApplicationStatusValue.REJECTED && app.jobStatus?.trim().toLowerCase() === "closed";
   let displayStatus = status;
-  if (status === "rejected" && progressStatus !== "unknown") {
-    displayStatus = progressStatus === "offer_extended" ? "offer_declined" : progressStatus;
+  if (!isClosedRejection && status === ApplicationStatusValue.REJECTED && progressStatus !== ApplicationStatusValue.UNKNOWN) {
+    displayStatus = progressStatus === ApplicationStatusValue.OFFER_EXTENDED ? ApplicationStatusValue.OFFER_DECLINED : progressStatus;
   }
 
   return {
@@ -155,8 +165,10 @@ const transformApplicationToDisplay = (
       label: getApplicationStatusLabel(stageKey),
       isActive: getApplicationStatusKey(stageKey) === progressStatus,
     })),
-    fillPercent: displayStatus === "offer_declined" ? 100 : getPipelineFillPercent(progressStage, pipeline),
-    message: DASHBOARD_APPLICATION_STATUS_CONFIG[displayStatus].caption,
+    fillPercent: isClosedRejection || displayStatus === ApplicationStatusValue.OFFER_DECLINED ? 100 : getPipelineFillPercent(progressStage, pipeline),
+    message: isClosedRejection
+      ? "Unfortunately, this position has been filled and the offer wasn't extended. Thank you for your interest!"
+      : DASHBOARD_APPLICATION_STATUS_CONFIG[displayStatus].caption,
     offerAccepted: false,
   };
 };

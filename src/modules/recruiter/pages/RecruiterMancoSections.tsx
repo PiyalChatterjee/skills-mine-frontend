@@ -1,3 +1,7 @@
+import {
+  ClosedReason,
+  PipelineStageLabel as PipelineLabel,
+} from "@/enums/statuses";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -25,8 +29,7 @@ import {
   useMancoRecruiters,
 } from "@/modules/recruiter/hooks/useMancoDashboard";
 import {
-  formatAlertIssue,
-  formatAlertMetric,
+  formatName,
   formatPercentage,
   formatRevenue,
 } from "@/modules/recruiter/utils/mancoFormatters";
@@ -38,20 +41,20 @@ import type {
 } from "@/services/api/mancoApi";
 import styles from "./RecruiterMancoPage.module.css";
 
-const PIPELINE_STAGES: { key: keyof MancoPipelineDistribution; label: string }[] = [
-  { key: "inbound", label: "Inbound" },
-  { key: "screening", label: "Screening" },
-  { key: "interview", label: "Interview" },
-  { key: "offer", label: "Offer" },
-  { key: "rejected", label: "Rejected" },
-  { key: "filled", label: "Filled" },
+const PIPELINE_STAGES: {
+  key: keyof MancoPipelineDistribution;
+  label: string;
+}[] = [
+  { key: "inbound", label: PipelineLabel.INBOUND },
+  { key: "screening", label: PipelineLabel.SCREENING },
+  { key: "interview", label: PipelineLabel.INTERVIEW },
+  { key: "offer", label: PipelineLabel.OFFER },
+  { key: "filled", label: "Placement" },
+  { key: "rejected", label: ClosedReason.REJECTED },
   { key: "totalPipeline", label: "Total pipeline" },
 ];
 const PIPELINE_DISTRIBUTION_STAGES = PIPELINE_STAGES.filter(
   (stage) => stage.key !== "totalPipeline",
-);
-const PIPELINE_CHART_STAGES = PIPELINE_DISTRIBUTION_STAGES.filter(
-  (stage) => stage.key !== "rejected",
 );
 
 export const MancoPageHeader = () => (
@@ -97,7 +100,9 @@ export const MancoAttentionSection = () => {
               className={`${styles.alertExpandButton} ${isExpanded ? styles.alertExpandButtonOpen : ""}`}
               onClick={toggleExpanded}
               disableRipple
-              aria-label={isExpanded ? "Hide attention alerts" : "Show attention alerts"}
+              aria-label={
+                isExpanded ? "Hide attention alerts" : "Show attention alerts"
+              }
               aria-expanded={isExpanded}
               aria-controls="manco-attention-alerts"
             >
@@ -132,11 +137,11 @@ export const MancoAttentionSection = () => {
             {alerts.map((alert) => (
               <Box className={styles.alertListItem} key={alert.alertId}>
                 <Typography className={styles.alertListName}>
-                  {alert.fullName}
+                  {formatName(alert.fullName)}
                 </Typography>
                 <Box className={styles.alertListDetails}>
                   <Typography className={styles.alertListIssue}>
-                    {formatAlertIssue(alert)}
+                    {alert.issue}
                   </Typography>
                   <ButtonBase
                     className={styles.alertViewDetailsButton}
@@ -162,16 +167,24 @@ export const MancoAttentionSection = () => {
   );
 };
 
-export const MancoCrmCard = () => (
-  <Box className={styles.crmCard}>
-    <Typography component="p" className={styles.crmCardLabel}>
-      CRM Integration
-    </Typography>
-    <Box className={styles.crmCardIcon}>
-      <img src={groupsIcon} alt="" aria-hidden="true" />
-    </Box>
-  </Box>
-);
+export const MancoCrmCard = () => {
+  const navigate = useNavigate();
+
+  return (
+    <ButtonBase
+      className={styles.crmCard}
+      onClick={() => navigate(ROUTE_PATHS.recruiterCrm)}
+      disableRipple
+    >
+      <Typography component="span" className={styles.crmCardLabel}>
+        CRM Integration
+      </Typography>
+      <Box component="span" className={styles.crmCardIcon}>
+        <img src={groupsIcon} alt="" aria-hidden="true" />
+      </Box>
+    </ButtonBase>
+  );
+};
 
 export const MancoRecruiterSection = () => {
   const navigate = useNavigate();
@@ -202,7 +215,12 @@ export const MancoRecruiterSection = () => {
     });
   };
 
-  const viewRecruiterPipeline = (recruiterId: string) => {
+  const viewUniversalPipeline = () => {
+    setSelectedRecruiterId(null);
+    navigate(ROUTE_PATHS.recruiterDashboard);
+  };
+
+  /* const viewRecruiterPipeline = (recruiterId: string) => {
     setSelectedRecruiterId(null);
     navigate(
       ROUTE_PATHS.recruiterMancoPipeline.replace(
@@ -210,7 +228,7 @@ export const MancoRecruiterSection = () => {
         encodeURIComponent(recruiterId),
       ),
     );
-  };
+  }; */
 
   return (
     <>
@@ -246,7 +264,11 @@ export const MancoRecruiterSection = () => {
               {option.label}
               <Box className={styles.sortChevron}>
                 <img
-                  className={activeSort === option.key ? styles.sortArrowActive : undefined}
+                  className={
+                    activeSort === option.key
+                      ? styles.sortArrowActive
+                      : undefined
+                  }
                   src={arrowDownIcon}
                   alt=""
                   aria-hidden="true"
@@ -293,7 +315,7 @@ export const MancoRecruiterSection = () => {
         <RecruiterDetailsDialog
           recruiterId={selectedRecruiterId}
           onClose={() => setSelectedRecruiterId(null)}
-          onViewPipeline={() => viewRecruiterPipeline(selectedRecruiterId)}
+          onViewPipeline={viewUniversalPipeline}
         />
       )}
     </>
@@ -317,13 +339,14 @@ const EmployeeCard = ({
     recruiter.recruiterId,
     pipelineOpen,
   );
+  const recruiterName = formatName(recruiter.fullName);
 
   return (
     <Box className={styles.employeeCard}>
       <Box className={styles.employeeCardTopRow}>
         <Box>
           <Typography component="h3" className={styles.employeeName}>
-            {recruiter.fullName}
+            {recruiterName}
           </Typography>
           <Typography component="p" className={styles.employeeMeta}>
             <span className={styles.employeeRole}>{recruiter.roleName}</span>
@@ -338,8 +361,14 @@ const EmployeeCard = ({
         </ButtonBase>
       </Box>
       <Box className={styles.statsRow}>
-        <RecruiterMetric label="MTD Placements" value={recruiter.metrics.mtdPlacements} />
-        <RecruiterMetric label="Active Roles" value={recruiter.metrics.activeRoles} />
+        <RecruiterMetric
+          label="MTD Placements"
+          value={recruiter.metrics.mtdPlacements}
+        />
+        <RecruiterMetric
+          label="Active Roles"
+          value={recruiter.metrics.activeRoles}
+        />
         <RecruiterMetric
           label="Revenue Earned (MTD)"
           value={formatRevenue(recruiter.metrics.revenueEarnedMtd)}
@@ -361,12 +390,14 @@ const EmployeeCard = ({
         component="button"
         aria-expanded={pipelineOpen}
         aria-controls={`pipeline-${recruiter.recruiterId}`}
-        aria-label={`Pipeline distribution for ${recruiter.fullName}`}
+        aria-label={`Pipeline distribution for ${recruiterName}`}
       >
         <Typography component="p" className={styles.pipelineRowLabel}>
           Pipeline distribution
         </Typography>
-        <Box className={`${styles.pipelineChevron} ${pipelineOpen ? styles.pipelineChevronOpen : ""}`}>
+        <Box
+          className={`${styles.pipelineChevron} ${pipelineOpen ? styles.pipelineChevronOpen : ""}`}
+        >
           <img src={chevronDownIcon} alt="" aria-hidden="true" />
         </Box>
       </ButtonBase>
@@ -424,7 +455,7 @@ const PipelineDistributionChart = ({
 
   return (
     <Box className={styles.detailPipelineGrid}>
-      {PIPELINE_CHART_STAGES.map((stage) => {
+      {PIPELINE_DISTRIBUTION_STAGES.map((stage) => {
         const count = distribution[stage.key];
 
         return (
@@ -464,24 +495,6 @@ const PipelineDistributionChart = ({
           </Box>
         );
       })}
-      <Box
-        className={styles.detailRejectedRow}
-        role="meter"
-        aria-label={`Rejected: ${distribution.rejected}`}
-        aria-valuemin={0}
-        aria-valuemax={pipelineTotal}
-        aria-valuenow={distribution.rejected}
-      >
-        {distribution.rejected > 0 && (
-          <Box className={styles.detailRejectedMarker} aria-hidden="true" />
-        )}
-        <Typography className={styles.detailRejectedLabel}>
-          Rejected
-        </Typography>
-        <Typography className={styles.detailRejectedValue}>
-          {distribution.rejected}
-        </Typography>
-      </Box>
     </Box>
   );
 };
@@ -509,11 +522,14 @@ const AlertDetailsDialog = ({
     aria-labelledby="manco-alert-details-title"
     slotProps={{ paper: { className: styles.alertDialogPaper } }}
   >
-    <DialogTitle id="manco-alert-details-title" className={styles.alertDialogHeader}>
+    <DialogTitle
+      id="manco-alert-details-title"
+      className={styles.alertDialogHeader}
+    >
       <Box className={styles.alertDialogHeading}>
         {alert && <img src={alertWarningIcon} alt="" aria-hidden="true" />}
         <Typography component="h2" className={styles.alertDialogName}>
-          {alert?.fullName ?? "Alert details"}
+          {alert ? formatName(alert.fullName) : "Alert details"}
         </Typography>
       </Box>
       <ButtonBase
@@ -530,15 +546,19 @@ const AlertDetailsDialog = ({
         <Box className={styles.alertDetail}>
           <Box className={styles.alertIssueSummary}>
             <Box className={styles.alertIssueRow}>
-              <Typography className={styles.alertSummaryLabel}>Issue</Typography>
+              <Typography className={styles.alertSummaryLabel}>
+                Issue
+              </Typography>
               <Typography className={styles.alertSummaryValue}>
-                {formatAlertIssue(alert)}
+                {alert.issue}
               </Typography>
             </Box>
             <Box className={styles.alertIssueRow}>
-              <Typography className={styles.alertSummaryLabel}>Metric</Typography>
+              <Typography className={styles.alertSummaryLabel}>
+                Metric
+              </Typography>
               <Typography className={styles.alertSummaryValue}>
-                {formatAlertMetric(alert.metric)}
+                {alert.metric}
               </Typography>
             </Box>
           </Box>
@@ -563,7 +583,11 @@ const AlertDetailsDialog = ({
       )}
     </DialogContent>
     <DialogActions className={styles.alertDialogActions}>
-      <ButtonBase className={styles.alertCancelButton} onClick={onClose} disableRipple>
+      <ButtonBase
+        className={styles.alertCancelButton}
+        onClick={onClose}
+        disableRipple
+      >
         Cancel
       </ButtonBase>
       <ButtonBase
@@ -600,10 +624,15 @@ const RecruiterDetailsDialog = ({
       aria-labelledby="manco-recruiter-details-title"
       slotProps={{ paper: { className: styles.detailDialogPaper } }}
     >
-      <DialogTitle id="manco-recruiter-details-title" className={styles.detailDialogTitle}>
+      <DialogTitle
+        id="manco-recruiter-details-title"
+        className={styles.detailDialogTitle}
+      >
         <Box className={styles.detailHeading}>
           <Typography component="h2" className={styles.detailName}>
-            {detailQuery.data?.recruiter.fullName ?? "Recruiter details"}
+            {detailQuery.data
+              ? formatName(detailQuery.data.recruiter.fullName)
+              : "Recruiter details"}
           </Typography>
           {detailQuery.data && (
             <Typography className={styles.detailRole}>
@@ -634,8 +663,14 @@ const RecruiterDetailsDialog = ({
         {detailQuery.data && (
           <>
             <Box className={styles.detailMetricsGrid}>
-              <DetailMetric label="MTD Placements" value={detailQuery.data.metrics.mtdPlacements} />
-              <DetailMetric label="Active Roles" value={detailQuery.data.metrics.activeRoles} />
+              <DetailMetric
+                label="MTD Placements"
+                value={detailQuery.data.metrics.mtdPlacements}
+              />
+              <DetailMetric
+                label="Active Roles"
+                value={detailQuery.data.metrics.activeRoles}
+              />
               <DetailMetric
                 label="Revenue Earned (MTD)"
                 value={formatRevenue(detailQuery.data.metrics.revenueEarnedMtd)}
@@ -646,7 +681,9 @@ const RecruiterDetailsDialog = ({
               />
               <DetailMetric
                 label="Conversion"
-                value={formatPercentage(detailQuery.data.metrics.conversionRate)}
+                value={formatPercentage(
+                  detailQuery.data.metrics.conversionRate,
+                )}
               />
             </Box>
             <Box className={styles.detailPipelineSection}>
@@ -666,7 +703,8 @@ const RecruiterDetailsDialog = ({
                   Avg. Candidates per Role
                 </Typography>
                 <Typography className={styles.detailPerformanceValue}>
-                  {detailQuery.data.performanceSummary.averageCandidatesPerRole ?? "-"}
+                  {detailQuery.data.performanceSummary
+                    .averageCandidatesPerRole ?? "-"}
                 </Typography>
               </Box>
             </Box>

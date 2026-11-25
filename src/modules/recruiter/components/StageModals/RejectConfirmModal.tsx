@@ -1,3 +1,4 @@
+import { PipelineStageCode, PipelineStageLabel as PipelineLabel } from "@/enums/statuses";
 import { useState } from 'react'
 import { Box, ButtonBase, CircularProgress, Typography } from '@mui/material'
 import { mandateApi } from '@/services/api/mandateApi'
@@ -48,7 +49,7 @@ const RejectConfirmModal = ({
   company,
   applicationId,
   jobId,
-  dueDate = 'Jan 20, 2026',
+  dueDate,
   onClose,
   onRejected,
 }: RejectConfirmModalProps) => {
@@ -60,7 +61,7 @@ const RejectConfirmModal = ({
     try {
       await mandateApi.advanceJobStage(jobId, {
         applicationId: [applicationId],
-        toStageCode: 'REJECT',
+        toStageCode: stageName === PipelineLabel.OFFER ? PipelineStageCode.OFFER_REJECT : PipelineStageCode.REJECT,
       })
       onRejected?.(applicationId)
       onClose()
@@ -100,12 +101,14 @@ const RejectConfirmModal = ({
           <Typography component="p" className={styles.jobInfo}>
             {candidateTitle}, {company}
           </Typography>
-          <Box className={styles.dueDateRow}>
-            <CalendarIcon />
-            <Typography component="span" className={styles.dueDate}>
-              Due {dueDate}
-            </Typography>
-          </Box>
+          {dueDate && (
+            <Box className={styles.dueDateRow}>
+              <CalendarIcon />
+              <Typography component="span" className={styles.dueDate}>
+                Due {dueDate}
+              </Typography>
+            </Box>
+          )}
 
           {/* ── Rejected status pill ── */}
           <Box className={styles.rejectedPill}>

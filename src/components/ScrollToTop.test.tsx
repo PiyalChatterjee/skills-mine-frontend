@@ -15,6 +15,7 @@ const renderApp = (initialEntries: string[] = ["/"]) =>
       <ScrollToTop />
       <Link to="/next">next</Link>
       <Link to="/next#section">anchor</Link>
+      <Link to="/restored" state={{ restoreScrollY: 640 }}>restore</Link>
       <BackButton />
       <Routes>
         <Route path="*" element={<div />} />
@@ -56,5 +57,18 @@ describe("ScrollToTop", () => {
     await userEvent.click(getByText("back"));
 
     expect(scrollTo).not.toHaveBeenCalled();
+  });
+
+  it("restores the requested scroll offset from navigation state", async () => {
+    const { getByText } = renderApp();
+    scrollTo.mockClear();
+
+    await userEvent.click(getByText("restore"));
+
+    expect(scrollTo).toHaveBeenCalledWith({
+      top: 640,
+      left: 0,
+      behavior: "instant",
+    });
   });
 });

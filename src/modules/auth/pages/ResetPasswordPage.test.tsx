@@ -52,6 +52,14 @@ const submitValidForm = async () => {
   fireEvent.click(screen.getByRole('button', { name: /reset password/i }))
 }
 
+const submitValidChangePasswordForm = async () => {
+  const passwordInputs = screen.getAllByPlaceholderText('Password')
+  await userEvent.type(passwordInputs[0], 'Password1!')
+  await userEvent.type(passwordInputs[1], 'Password1!')
+  await userEvent.type(passwordInputs[2], 'Password1!')
+  fireEvent.click(screen.getByRole('button', { name: /change password/i }))
+}
+
 describe('ResetPasswordPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -124,8 +132,72 @@ describe('ResetPasswordPage', () => {
     })
   })
 
-  it('shows a generic error notification when reset fails', async () => {
-    mockResetPassword.mockRejectedValue(new Error('failed'))
+  it('shows the backend validation message when the reset code is invalid', async () => {
+    mockResetPassword.mockRejectedValue({
+      response: {
+        data: {
+          code: 'INVALID_RESET_CODE',
+          message: 'The confirmation code is invalid.',
+        },
+      },
+    })
+
+    renderPage('/reset-password?email=test@example.com')
+    await submitValidForm()
+
+    await waitFor(() => {
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'notification/pushNotification',
+          payload: expect.objectContaining({
+            level: 'error',
+            title: 'Reset failed',
+            message: 'The confirmation code is invalid.',
+          }),
+        }),
+      )
+      expect(mockNavigate).not.toHaveBeenCalled()
+    })
+  })
+
+  it('returns to the originating route after a successful password change', async () => {
+    render(
+      <MemoryRouter
+        initialEntries={[
+          {
+            pathname: '/reset-password',
+            search: '?mode=change',
+            state: {
+              returnTo: {
+                pathname: '/recruiter/dashboard',
+                search: '?tab=active',
+                hash: '#pipeline',
+                scrollY: 520,
+                state: { selectedFilter: 'mine' },
+              },
+            },
+          },
+        ]}
+      >
+        <ResetPasswordPage />
+      </MemoryRouter>,
+    )
+
+    await submitValidChangePasswordForm()
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(
+        '/recruiter/dashboard?tab=active#pipeline',
+        {
+          replace: true,
+          state: { selectedFilter: 'mine', restoreScrollY: 520 },
+        },
+      )
+    })
+  })
+
+  it('shows a generic error notification when reset fails without a known code', async () => {
+    mockResetPassword.mockRejectedValue({ status: 500 })
 
     renderPage('/reset-password?email=test@example.com')
     await submitValidForm()

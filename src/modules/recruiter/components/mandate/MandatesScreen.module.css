@@ -95,6 +95,60 @@
   color: inherit;
 }
 
+.assetMask {
+  display: inline-block;
+  background-color: currentColor;
+  mask: var(--icon-mask) center / contain no-repeat;
+}
+
+.companyIcon {
+  --icon-mask: url("../../../../assets/recruiter/job-post-company.svg");
+}
+
+.locationIcon {
+  --icon-mask: url("../../../../assets/recruiter/job-post-location.svg");
+}
+
+.statusIcon {
+  --icon-mask: url("../../../../assets/recruiter/job-post-status.svg");
+}
+
+.searchIcon {
+  --icon-mask: url("../../../../assets/recruiter/job-post-search.svg");
+}
+
+.sortAscendingIcon,
+.sortDescendingIcon {
+  width: 10px;
+  height: 6px;
+}
+
+.sortAscendingIcon {
+  --icon-mask: url("../../../../assets/recruiter/job-post-sort-ascending.svg");
+}
+
+.sortDescendingIcon {
+  --icon-mask: url("../../../../assets/recruiter/job-post-sort-descending.svg");
+}
+
+.previousIcon,
+.nextIcon {
+  width: 14px;
+  height: 14px;
+}
+
+.previousIcon {
+  --icon-mask: url("../../../../assets/recruiter/job-post-previous.svg");
+}
+
+.nextIcon {
+  --icon-mask: url("../../../../assets/recruiter/job-post-next.svg");
+}
+
+.closeWarningIcon {
+  flex-shrink: 0;
+}
+
 /* Filter dropdown popover */
 .filterDropdownPaper:global(.MuiPaper-root) {
   min-width: 192px;
@@ -189,6 +243,10 @@
 
 .tableRowClickable {
   cursor: pointer;
+}
+
+.jobRow + .jobRow {
+  border-top: 1px solid #d9e4ec;
 }
 
 .tableRowClickable:hover .gridBody {
@@ -378,6 +436,11 @@
   color: #ffffff;
 }
 
+.statusClosed {
+  background: #c8d0da;
+  color: #ffffff;
+}
+
 .moreButton:global(.MuiButtonBase-root) {
   display: inline-flex;
   align-items: center;
@@ -467,6 +530,7 @@
 .menuItem:global(.MuiButtonBase-root) {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 10px;
   width: 100%;
   padding: 11px 18px;
@@ -483,14 +547,21 @@
   background: #f5f7fa;
 }
 
+.menuItem:global(.MuiButtonBase-root):disabled,
+.menuItem:global(.MuiButtonBase-root).Mui-disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 .menuItemDelete:global(.MuiButtonBase-root) {
   color: #d32f2f;
 }
 
 .menuIcon {
-  width: 17px;
-  height: 17px;
+  width: 18px;
+  height: 18px;
   flex-shrink: 0;
+  display: block;
 }
 
 
@@ -585,5 +656,139 @@
 
 .blockDeleteOkBtn:global(.MuiButton-root):hover {
   background: #0a559f;
+}
+
+/* ── Close Job confirmation modal ────────────────────────────────────── */
+.confirmBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 71, 140, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1300;
+}
+
+.confirmModal {
+  background: #ffffff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: 0 8px 32px rgba(3, 71, 140, 0.18);
+  overflow: hidden;
+}
+
+.confirmModalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.confirmModalTitle,
+:global(.MuiTypography-root).confirmModalTitle {
+  margin: 0;
+  color: #03478C;
+  font-family: 'Red Hat Display', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.confirmModalCloseBtn:global(.MuiButtonBase-root) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 6px;
+  color: #57606a;
+  background: none;
+  border: none;
+  transition: background 0.15s ease;
+}
+
+.confirmModalCloseBtn:global(.MuiButtonBase-root):hover {
+  background: #f0f4f8;
+}
+
+.confirmModalBody {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 24px 20px 20px;
+}
+
+.confirmModalMessage,
+:global(.MuiTypography-root).confirmModalMessage {
+  margin: 0 0 6px;
+  color: #1f2328;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.confirmModalSubMessage,
+:global(.MuiTypography-root).confirmModalSubMessage {
+  margin: 0;
+  color: #57606a;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+.confirmModalFooter {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 20px 20px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.confirmCancelBtn:global(.MuiButtonBase-root) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 20px;
+  border-radius: 100px;
+  border: 1.5px solid #c8d0da;
+  color: #57606a;
+  background: #ffffff;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  transition: background 0.15s ease;
+}
+
+.confirmCancelBtn:global(.MuiButtonBase-root):hover {
+  background: #f7f8fa;
+}
+
+.confirmCloseBtn:global(.MuiButtonBase-root) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 20px;
+  border-radius: 100px;
+  border: none;
+  background: #C0392B;
+  color: #ffffff;
+  font-family: 'Red Hat Text', 'Inclusive Sans', 'Ubuntu', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  transition: background 0.15s ease;
+  min-width: 120px;
+}
+
+.confirmCloseBtn:global(.MuiButtonBase-root):hover {
+  background: #a93226;
+}
+
+.confirmCloseBtn:global(.MuiButtonBase-root):disabled {
+  opacity: 0.65;
+  cursor: default;
 }
 

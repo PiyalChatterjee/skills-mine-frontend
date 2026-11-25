@@ -1,12 +1,6 @@
-export type WorkflowStage =
-  | 'INBOUND'
-  | 'SCREENING'
-  | 'ASSESSMENT'
-  | 'INTERVIEW'
-  | 'SHORTLIST'
-  | 'OFFER'
-  | 'PLACED'
-  | 'CLOSED'
+import type { PipelineStageCode } from "@/enums/statuses"
+
+export type WorkflowStage = PipelineStageCode
 
 export interface WorkflowTransition {
   from: WorkflowStage

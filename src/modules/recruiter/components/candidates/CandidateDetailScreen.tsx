@@ -1,6 +1,7 @@
+import { PipelineStageLabel as PipelineLabel } from "@/enums/statuses";
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Box, ButtonBase, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Typography } from '@mui/material'
+import { Box, ButtonBase, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Tooltip, Typography } from '@mui/material'
 import { UploadDocumentModal } from './UploadDocumentModal'
 import { recruiterCandidatesApi } from '@/services/api/recruiterCandidatesApi'
 import { aiApi } from '@/services/api/aiApi'
@@ -16,14 +17,14 @@ import styles from './CandidateDetailScreen.module.css'
 
 // ── Stage badge colors ─────────────────────────────────────────────────
 const STAGE_COLORS: Record<string, string> = {
-  Interview:  '#7c5cd8',
-  Shortlist:  '#2196a8',
-  Screening:   '#2196a8',
-  Inbound:     '#3aafb9',
-  Assessment:  '#f59e0b',
-  Offer:       '#4baf73',
-  Placed:      '#2f9a5f',
-  Closed:      '#d96b6b',
+  [PipelineLabel.INTERVIEW]:  '#7c5cd8',
+  [PipelineLabel.SHORTLIST]:  '#2196a8',
+  [PipelineLabel.SCREENING]:   '#2196a8',
+  [PipelineLabel.INBOUND]:     '#3aafb9',
+  [PipelineLabel.ASSESSMENT]:  '#f59e0b',
+  [PipelineLabel.OFFER]:       '#4baf73',
+  [PipelineLabel.PLACED]:      '#2f9a5f',
+  [PipelineLabel.CLOSED]:      '#d96b6b',
 }
 
 // ── Icons ──────────────────────────────────────────────────────────────
@@ -207,7 +208,7 @@ export const CandidateDetailScreen = () => {
     return () => { cancelled = true }
   }, [candidateId])
 
-  const goBack = () => navigate(ROUTE_PATHS.recruiterCandidates)
+  const goBack = () => navigate(-1)
 
   const handleLoadMoreApplications = () => {
     if (!candidateId || loadingMoreApplications) return
@@ -429,9 +430,27 @@ export const CandidateDetailScreen = () => {
               <Box className={styles.aiActionBtns}>
                 {aiActions.map((action, index) => (
                   <Box key={`${action.action_type}-${action.job_profile_id ?? index}`} className={styles.aiActionItem}>
-                    <ButtonBase className={styles.aiBtn} disableRipple>
-                      {action.cta_label}
-                    </ButtonBase>
+                    <Tooltip
+                      title={action.description || ''}
+                      arrow
+                      placement="top"
+                      slotProps={{
+                        tooltip: {
+                          sx: {
+                            bgcolor: '#ffffff',
+                            color: '#57606a',
+                            border: '1px solid #e5e7eb',
+                            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.12)',
+                            fontSize: 13,
+                          },
+                        },
+                        arrow: { sx: { color: '#ffffff', '&::before': { border: '1px solid #e5e7eb' } } },
+                      }}
+                    >
+                      <ButtonBase className={styles.aiBtn} disableRipple>
+                        {action.cta_label}
+                      </ButtonBase>
+                    </Tooltip>
                   </Box>
                 ))}
               </Box>

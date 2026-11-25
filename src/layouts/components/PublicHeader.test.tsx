@@ -132,7 +132,12 @@ describe("PublicHeader career support dropdown", () => {
 
 const LocationProbe = () => {
   const location = useLocation();
-  return <span data-testid="location">{`${location.pathname}${location.search}`}</span>;
+  return (
+    <>
+      <span data-testid="location">{`${location.pathname}${location.search}`}</span>
+      <span data-testid="location-state">{JSON.stringify(location.state)}</span>
+    </>
+  );
 };
 
 const renderProfileHeader = (restrictNavigation: boolean) =>
@@ -171,7 +176,7 @@ describe("PublicHeader profile menu and onboarding restriction", () => {
     renderProfileHeader(false);
 
     const menu = await openProfileMenu(user);
-    await user.click(within(menu).getByRole("menuitem", { name: "Profile settings" }));
+    await user.click(within(menu).getByRole("menuitem", { name: /profile settings/i }));
 
     expect(screen.getByTestId("location")).toHaveTextContent("/profile");
     expect(screen.getByTestId("location")).not.toHaveTextContent("/profile/create");
@@ -182,19 +187,36 @@ describe("PublicHeader profile menu and onboarding restriction", () => {
     renderProfileHeader(false);
 
     const menu = await openProfileMenu(user);
-    await user.click(within(menu).getByRole("menuitem", { name: "Change password" }));
+    await user.click(within(menu).getByRole("menuitem", { name: /change password/i }));
+
+    expect(screen.getByTestId("location")).toHaveTextContent("/reset-password?mode=change");
+    expect(JSON.parse(screen.getByTestId("location-state").textContent ?? "{}")).toEqual({
+      returnTo: {
+        pathname: "/profile/create",
+        search: "",
+        hash: "",
+        scrollY: window.scrollY,
+        state: null,
+      },
+    });
+  });
+
+  it("allows change password during onboarding", async () => {
+    const user = userEvent.setup();
+    renderProfileHeader(true);
+
+    const menu = await openProfileMenu(user);
+    await user.click(within(menu).getByRole("menuitem", { name: /change password/i }));
 
     expect(screen.getByTestId("location")).toHaveTextContent("/reset-password?mode=change");
   });
 
-  it("keeps the user on the current page for account links and the logo while restricted", async () => {
+  it("keeps profile settings and the logo restricted during onboarding", async () => {
     const user = userEvent.setup();
     renderProfileHeader(true);
 
-    let menu = await openProfileMenu(user);
-    await user.click(within(menu).getByRole("menuitem", { name: "Profile settings" }));
-    menu = await openProfileMenu(user);
-    await user.click(within(menu).getByRole("menuitem", { name: "Change password" }));
+    const menu = await openProfileMenu(user);
+    await user.click(within(menu).getByRole("menuitem", { name: /profile settings/i }));
     await user.click(screen.getByRole("link", { name: "Go to landing page" }));
 
     expect(screen.getByTestId("location")).toHaveTextContent("/profile/create");
@@ -211,7 +233,7 @@ describe("PublicHeader profile menu and onboarding restriction", () => {
     renderProfileHeader(true);
 
     const menu = await openProfileMenu(user);
-    await user.click(within(menu).getByRole("menuitem", { name: "Log out" }));
+    await user.click(within(menu).getByRole("menuitem", { name: /log out/i }));
 
     await waitFor(() => expect(replace).toHaveBeenCalledWith("/"));
     expect(mocks.logoutApi).toHaveBeenCalled();
@@ -230,7 +252,7 @@ describe("PublicHeader profile menu and onboarding restriction", () => {
     renderProfileHeader(true);
 
     const menu = await openProfileMenu(user);
-    await user.click(within(menu).getByRole("menuitem", { name: "Log out" }));
+    await user.click(within(menu).getByRole("menuitem", { name: /log out/i }));
 
     await waitFor(() => expect(replace).toHaveBeenCalledWith("/"));
     expect(mocks.logout).toHaveBeenCalled();

@@ -65,6 +65,14 @@ describe('personalDetailsSchema', () => {
     expect(result.success).toBe(false)
   })
 
+  it.each(['race', 'gender', 'disabilityStatus', 'residentialLocation'])(
+    'rejects whitespace-only %s',
+    (field) => {
+      const result = personalDetailsSchema.safeParse({ ...validPersonal, [field]: '   ' })
+      expect(result.success).toBe(false)
+    },
+  )
+
   it('requires currentPosition when currentCompany is provided', () => {
     const result = personalDetailsSchema.safeParse({
       ...validPersonal,
@@ -250,6 +258,59 @@ describe('personalDetailsSchema', () => {
     expect(result.success).toBe(false)
   })
 
+  it('rejects tertiary education completed in or before secondary education', () => {
+    const result = cvBuilderSchema.safeParse({
+      personalDetails: validPersonal,
+      careerHistory: [],
+      skills: [{ name: 'React' }],
+      tertiaryEducation: [{
+        institutionName: 'University',
+        degreeOrCertification: 'BSc',
+        yearCompleted: '2017',
+      }],
+      secondaryEducation: [{
+        institutionName: 'School',
+        highestGradePassed: 'Grade 12',
+        yearCompleted: '2018',
+      }],
+      languages: ['English'],
+      otherLanguage: '',
+    })
+
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.issues).toContainEqual(
+        expect.objectContaining({
+          message:
+            'Tertiary year completed must be later than secondary year completed.',
+          path: ['tertiaryEducation', 0, 'yearCompleted'],
+        }),
+      )
+    }
+  })
+
+  it('rejects tertiary education completed in the same year as secondary education', () => {
+    const result = cvBuilderSchema.safeParse({
+      personalDetails: validPersonal,
+      careerHistory: [],
+      skills: [{ name: 'React' }],
+      tertiaryEducation: [{
+        institutionName: 'University',
+        degreeOrCertification: 'BSc',
+        yearCompleted: '2020',
+      }],
+      secondaryEducation: [{
+        institutionName: 'School',
+        highestGradePassed: 'Grade 12',
+        yearCompleted: '2020',
+      }],
+      languages: ['English'],
+      otherLanguage: '',
+    })
+
+    expect(result.success).toBe(false)
+  })
+
   it('accepts the populated CV builder values used by the review screen', () => {
     const result = cvBuilderSchema.safeParse({
       personalDetails: {
@@ -386,6 +447,15 @@ describe('tertiaryEntrySchema', () => {
     expect(result.success).toBe(false)
   })
 
+  it('rejects whitespace-only required text fields', () => {
+    expect(tertiaryEntrySchema.safeParse({ ...validEntry, institutionName: '   ' }).success).toBe(false)
+    expect(tertiaryEntrySchema.safeParse({ ...validEntry, degreeOrCertification: '   ' }).success).toBe(false)
+  })
+
+  it('rejects institution names without letters', () => {
+    expect(tertiaryEntrySchema.safeParse({ ...validEntry, institutionName: '--' }).success).toBe(false)
+  })
+
   it('rejects empty degreeOrCertification', () => {
     const result = tertiaryEntrySchema.safeParse({ ...validEntry, degreeOrCertification: '' })
     expect(result.success).toBe(false)
@@ -398,6 +468,11 @@ describe('tertiaryEntrySchema', () => {
 
   it('rejects yearCompleted not matching YYYY pattern', () => {
     const result = tertiaryEntrySchema.safeParse({ ...validEntry, yearCompleted: '18' })
+    expect(result.success).toBe(false)
+  })
+
+  it('rejects 0000 as yearCompleted', () => {
+    const result = tertiaryEntrySchema.safeParse({ ...validEntry, yearCompleted: '0000' })
     expect(result.success).toBe(false)
   })
 })
@@ -420,6 +495,15 @@ describe('secondaryEntrySchema', () => {
     expect(result.success).toBe(false)
   })
 
+  it('rejects whitespace-only required text fields', () => {
+    expect(secondaryEntrySchema.safeParse({ ...validEntry, institutionName: '   ' }).success).toBe(false)
+    expect(secondaryEntrySchema.safeParse({ ...validEntry, highestGradePassed: '   ' }).success).toBe(false)
+  })
+
+  it('rejects institution names without letters', () => {
+    expect(secondaryEntrySchema.safeParse({ ...validEntry, institutionName: '--' }).success).toBe(false)
+  })
+
   it('rejects empty highestGradePassed', () => {
     const result = secondaryEntrySchema.safeParse({ ...validEntry, highestGradePassed: '' })
     expect(result.success).toBe(false)
@@ -427,6 +511,11 @@ describe('secondaryEntrySchema', () => {
 
   it('rejects non-4-digit yearCompleted', () => {
     const result = secondaryEntrySchema.safeParse({ ...validEntry, yearCompleted: '10' })
+    expect(result.success).toBe(false)
+  })
+
+  it('rejects 0000 as yearCompleted', () => {
+    const result = secondaryEntrySchema.safeParse({ ...validEntry, yearCompleted: '0000' })
     expect(result.success).toBe(false)
   })
 })

@@ -1,3 +1,4 @@
+import { JobPostStatus, LegacyPipelineStageCode, PipelineStageCode, PipelineStageLabel as PipelineLabel } from "@/enums/statuses";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -8,15 +9,6 @@ import {
   CircularProgress,
   Typography,
 } from "@mui/material";
-import {
-  DndContext,
-  PointerSensor,
-  useDraggable,
-  useDroppable,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-} from "@dnd-kit/core";
 import { RecruiterSidebar } from "@/modules/recruiter/components/RecruiterSidebar";
 import { RecruiterTour } from "@/modules/recruiter/components/RecruiterTour";
 import { useMancoRecruiterDetail } from "@/modules/recruiter/hooks/useMancoDashboard";
@@ -24,6 +16,9 @@ import { usePageTitle } from "@/hooks/usePageTitle";
 import { useAuth } from "@/app/auth/AuthContext";
 import { ROUTE_PATHS } from "@/routes/routePaths";
 import { mandateApi } from "@/services/api/mandateApi";
+import cvsDueIcon from "@/assets/recruiter/cvs-due.svg";
+import interviewsIcon from "@/assets/recruiter/interviews.svg";
+import offerLetterIcon from "@/assets/recruiter/offer-letter.svg";
 import type {
   PipelineDashboardStats,
   PipelineApplication,
@@ -36,14 +31,7 @@ import styles from "./RecruiterPage.module.css";
 
 // ── Types ─────────────────────────────────────────────────────────────
 
-type PipelineStageLabel =
-  | "Inbound"
-  | "Screening"
-  | "Assessment"
-  | "Interview"
-  | "Shortlist"
-  | "Offer"
-  | "Closed";
+type PipelineStageLabel = Exclude<PipelineLabel, typeof PipelineLabel.PLACED>;
 
 type CardTone =
   | "cream"
@@ -59,6 +47,7 @@ type PipelineCard = {
   id: string;
   jobProfileId: string;
   title: string;
+  fullTitle: string;
   company: string;
   companyIcon: string;
   tone: CardTone;
@@ -75,87 +64,16 @@ type PipelineColumn = {
 
 /** Column skeleton — no cards; cards are loaded from the API. */
 const PIPELINE_COLUMNS: PipelineColumn[] = [
-  { label: "Inbound",    colorClass: styles.colInbound,    cards: [] },
-  { label: "Screening",  colorClass: styles.colScreening,  cards: [] },
-  { label: "Assessment", colorClass: styles.colAssessment, cards: [] },
-  { label: "Interview",  colorClass: styles.colInterview,  cards: [] },
-  { label: "Shortlist", colorClass: styles.colShortlist,  cards: [] },
-  { label: "Offer",      colorClass: styles.colOffer,      cards: [] },
-  { label: "Closed",     colorClass: styles.colClosed,     cards: [] },
+  { label: PipelineLabel.INBOUND, colorClass: styles.colInbound, cards: [] },
+  { label: PipelineLabel.SCREENING, colorClass: styles.colScreening, cards: [] },
+  { label: PipelineLabel.ASSESSMENT, colorClass: styles.colAssessment, cards: [] },
+  { label: PipelineLabel.SHORTLIST, colorClass: styles.colShortlist, cards: [] },
+  { label: PipelineLabel.INTERVIEW, colorClass: styles.colInterview, cards: [] },
+  { label: PipelineLabel.OFFER, colorClass: styles.colOffer, cards: [] },
+  { label: PipelineLabel.CLOSED, colorClass: styles.colClosed, cards: [] },
 ];
 
 // ── Sub-components ────────────────────────────────────────────────────
-
-const CvsDueIcon = () => (
-  <svg
-    width="22"
-    height="22"
-    viewBox="0 0 24 24"
-    fill="none"
-    aria-hidden="true"
-  >
-    <rect
-      x="4"
-      y="3"
-      width="16"
-      height="18"
-      rx="2"
-      stroke="currentColor"
-      strokeWidth="1.7"
-    />
-    <path
-      d="M8 8h8M8 12h8M8 16h5"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-    />
-  </svg>
-);
-
-const InterviewsIcon = () => (
-  <svg
-    width="22"
-    height="22"
-    viewBox="0 0 24 24"
-    fill="none"
-    aria-hidden="true"
-  >
-    <circle cx="12" cy="8" r="3.5" stroke="currentColor" strokeWidth="1.7" />
-    <path
-      d="M4 20c0-4.418 3.582-8 8-8s8 3.582 8 8"
-      stroke="currentColor"
-      strokeWidth="1.7"
-      strokeLinecap="round"
-    />
-  </svg>
-);
-
-const OfferLetterIcon = () => (
-  <svg
-    width="22"
-    height="22"
-    viewBox="0 0 24 24"
-    fill="none"
-    aria-hidden="true"
-  >
-    <rect
-      x="3"
-      y="5"
-      width="18"
-      height="14"
-      rx="2"
-      stroke="currentColor"
-      strokeWidth="1.7"
-    />
-    <path
-      d="M3 8l9 6 9-6"
-      stroke="currentColor"
-      strokeWidth="1.7"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
 
 type KpiCardProps = {
   value: number;
@@ -187,22 +105,15 @@ type PipelineCardProps = {
 };
 
 const PipelineCardItem = ({ card, onView }: PipelineCardProps) => {
-  const { attributes, listeners, setNodeRef, transform, isDragging } =
-    useDraggable({ id: card.id });
-
   return (
     <Box
-      ref={setNodeRef}
-      className={`${styles.pipelineCard} ${styles[`card${card.tone[0].toUpperCase()}${card.tone.slice(1)}`]} ${isDragging ? styles.pipelineCardDragging : ""}`}
-      style={
-        transform
-          ? { transform: `translate3d(${transform.x}px, ${transform.y}px, 0)` }
-          : undefined
-      }
-      {...attributes}
-      {...listeners}
+      className={`${styles.pipelineCard} ${styles[`card${card.tone[0].toUpperCase()}${card.tone.slice(1)}`]}`}
     >
-      <Typography component="p" className={styles.pipelineCardTitle}>
+      <Typography
+        component="p"
+        className={styles.pipelineCardTitle}
+        title={card.fullTitle}
+      >
         {card.title}
       </Typography>
       <Box className={styles.pipelineCardCompany}>
@@ -217,24 +128,7 @@ const PipelineCardItem = ({ card, onView }: PipelineCardProps) => {
           disableRipple
           aria-label="View"
         >
-          <span className={styles.pipelineCardViewBtnIcon}>
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 20 20"
-              fill="none"
-              aria-hidden="true"
-            >
-              <circle cx="10" cy="10" r="9" stroke="currentColor" strokeWidth="1.5" />
-              <path
-                d="M6.5 10H13.5M10.5 7L13.5 10L10.5 13"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </span>
+          <span className={styles.pipelineCardViewBtnIcon} aria-hidden="true" />
           View
         </ButtonBase>
       </Box>
@@ -242,56 +136,47 @@ const PipelineCardItem = ({ card, onView }: PipelineCardProps) => {
   );
 };
 
-type PipelineColumnDropProps = {
-  label: PipelineStageLabel;
-  children: React.ReactNode;
-};
-
-const PipelineColumnDrop = ({ label, children }: PipelineColumnDropProps) => {
-  const { setNodeRef, isOver } = useDroppable({ id: label });
-
-  return (
-    <Box
-      ref={setNodeRef}
-      className={`${styles.pipelineColumn} ${isOver ? styles.pipelineColumnOver : ""}`}
-    >
-      {children}
-    </Box>
-  );
-};
-
 // ── Pipeline helpers ──────────────────────────────────────────────────
 
 const STAGE_CODE_MAP: Record<string, PipelineStageLabel> = {
-  INBOUND: "Inbound",
-  SCREENING: "Screening",
-  ASSESSMENT: "Assessment",
-  INTERVIEW: "Interview",
-  SHORTLIST: "Shortlist",
-  OFFER: "Offer",
-  CLOSED: "Closed",
+  [PipelineStageCode.INBOUND]: PipelineLabel.INBOUND,
+  [PipelineStageCode.SCREENING]: PipelineLabel.SCREENING,
+  [PipelineStageCode.ASSESSMENT]: PipelineLabel.ASSESSMENT,
+  [PipelineStageCode.INTERVIEW]: PipelineLabel.INTERVIEW,
+  [PipelineStageCode.SHORTLIST]: PipelineLabel.SHORTLIST,
+  [LegacyPipelineStageCode.SHORTLISTED]: PipelineLabel.SHORTLIST,
+  [PipelineStageCode.OFFER]: PipelineLabel.OFFER,
+  [PipelineStageCode.CLOSED]: PipelineLabel.CLOSED,
 };
 
 const STAGE_TONE_MAP: Record<PipelineStageLabel, CardTone> = {
-  Inbound: "cream",
-  Screening: "lilac",
-  Assessment: "yellow",
-  Interview: "blush",
-  Shortlist: "ice",
-  Offer: "mint",
-  Closed: "success",
+  [PipelineLabel.INBOUND]: "cream",
+  [PipelineLabel.SCREENING]: "lilac",
+  [PipelineLabel.ASSESSMENT]: "yellow",
+  [PipelineLabel.INTERVIEW]: "blush",
+  [PipelineLabel.SHORTLIST]: "ice",
+  [PipelineLabel.OFFER]: "mint",
+  [PipelineLabel.CLOSED]: "danger",
 };
 
 const truncate = (text: string, max = 16) =>
   text.length > max ? `${text.slice(0, max)}…` : text;
 
-const mapUniversalItemToCard = (item: UniversalPipelineItem): PipelineCard | null => {
-  const stage = STAGE_CODE_MAP[item.pipelineStatus.toUpperCase()];
+const mapUniversalItemToCard = (
+  item: UniversalPipelineItem,
+): PipelineCard | null => {
+  const resolvedStatus =
+    item.jobStatus?.toUpperCase() === JobPostStatus.POSTED &&
+    item.pipelineStatus?.toUpperCase() === PipelineStageCode.CLOSED
+      ? PipelineStageCode.OFFER
+      : item.pipelineStatus.toUpperCase();
+  const stage = STAGE_CODE_MAP[resolvedStatus];
   if (!stage) return null;
   return {
     id: item.jobProfileId,
     jobProfileId: item.jobProfileId,
     title: truncate(item.positionTitle),
+    fullTitle: item.positionTitle,
     company: truncate(item.clientName, 18),
     companyIcon: item.clientName.charAt(0).toUpperCase(),
     tone: STAGE_TONE_MAP[stage],
@@ -304,13 +189,13 @@ const buildColumnsFromApi = (
   baseColumns: PipelineColumn[],
 ): PipelineColumn[] => {
   const cardsByStage: Record<PipelineStageLabel, PipelineCard[]> = {
-    Inbound: [],
-    Screening: [],
-    Assessment: [],
-    Interview: [],
-    Shortlist: [],
-    Offer: [],
-    Closed: [],
+    [PipelineLabel.INBOUND]: [],
+    [PipelineLabel.SCREENING]: [],
+    [PipelineLabel.ASSESSMENT]: [],
+    [PipelineLabel.INTERVIEW]: [],
+    [PipelineLabel.SHORTLIST]: [],
+    [PipelineLabel.OFFER]: [],
+    [PipelineLabel.CLOSED]: [],
   };
 
   for (const item of items) {
@@ -326,35 +211,55 @@ const buildColumnsFromApi = (
   }));
 };
 
-const buildColumnsFromApplications = (
+export const buildColumnsFromApplications = (
   applications: PipelineApplication[],
   baseColumns: PipelineColumn[],
 ): PipelineColumn[] => {
   const cardsByStage: Record<PipelineStageLabel, PipelineCard[]> = {
-    Inbound: [],
-    Screening: [],
-    Assessment: [],
-    Interview: [],
-    Shortlist: [],
-    Offer: [],
-    Closed: [],
+    [PipelineLabel.INBOUND]: [],
+    [PipelineLabel.SCREENING]: [],
+    [PipelineLabel.ASSESSMENT]: [],
+    [PipelineLabel.INTERVIEW]: [],
+    [PipelineLabel.SHORTLIST]: [],
+    [PipelineLabel.OFFER]: [],
+    [PipelineLabel.CLOSED]: [],
   };
+  const cardsByJobProfileId = new Map<string, PipelineCard>();
 
   for (const application of applications) {
-    const stage = STAGE_CODE_MAP[application.currentStageCode.toUpperCase()];
-    if (!stage) {
+    const stage = STAGE_CODE_MAP[application.currentStageCode?.toUpperCase()];
+    const jobProfileId = application.jobProfile?.jobProfileId;
+    if (!stage || !jobProfileId) {
       continue;
     }
 
-    cardsByStage[stage].push({
-      id: application.applicationId,
-      jobProfileId: application.jobProfile.jobProfileId,
-      title: truncate(application.jobProfile.positionTitle),
-      company: truncate(application.jobProfile.clientName, 18),
-      companyIcon: application.jobProfile.clientName.charAt(0).toUpperCase(),
+    const existingCard = cardsByJobProfileId.get(jobProfileId);
+    const stageIndex = baseColumns.findIndex((column) => column.label === stage);
+    const existingStageIndex = existingCard
+      ? baseColumns.findIndex((column) => column.label === existingCard.stage)
+      : -1;
+    if (stageIndex <= existingStageIndex) {
+      continue;
+    }
+
+    const positionTitle =
+      application.jobProfile?.positionTitle ?? "Untitled Position";
+    const clientName = application.jobProfile?.clientName ?? "Company";
+
+    cardsByJobProfileId.set(jobProfileId, {
+      id: jobProfileId,
+      jobProfileId,
+      title: truncate(positionTitle),
+      fullTitle: positionTitle,
+      company: truncate(clientName, 18),
+      companyIcon: clientName.charAt(0).toUpperCase() || "C",
       tone: STAGE_TONE_MAP[stage],
       stage,
     });
+  }
+
+  for (const card of cardsByJobProfileId.values()) {
+    cardsByStage[card.stage].push(card);
   }
 
   return baseColumns.map((column) => ({
@@ -365,7 +270,7 @@ const buildColumnsFromApplications = (
 
 // ── Main Component ────────────────────────────────────────────────────
 
-const CARDS_VISIBLE = 4
+const CARDS_VISIBLE = 4;
 
 const RecruiterPage = () => {
   const { recruiterId } = useParams<{ recruiterId?: string }>();
@@ -388,9 +293,6 @@ const RecruiterPage = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [columns, setColumns] = useState<PipelineColumn[]>(PIPELINE_COLUMNS);
   const [allExpanded, setAllExpanded] = useState(false);
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-  );
 
   useEffect(() => {
     let isActive = true;
@@ -399,7 +301,7 @@ const RecruiterPage = () => {
       try {
         setLoading(true);
         setErrorMessage(null);
-         setEmployeePipelineData(null);
+        setEmployeePipelineData(null);
 
         if (recruiterId) {
           const pipelineResponse = await mandateApi.listPipelines({
@@ -414,7 +316,10 @@ const RecruiterPage = () => {
 
           setEmployeePipelineData(pipelineResponse);
           setColumns(
-            buildColumnsFromApplications(pipelineResponse.data, PIPELINE_COLUMNS),
+            buildColumnsFromApplications(
+              pipelineResponse.data,
+              PIPELINE_COLUMNS,
+            ),
           );
           return;
         }
@@ -438,7 +343,12 @@ const RecruiterPage = () => {
         setDashboardData(dashboardResponse.data);
         setPipelineDashboardStats(pipelineDashboardResponse);
         setMandatesData(mandatesResponse.data);
-        setColumns(buildColumnsFromApi(universalPipelinesResponse.data, PIPELINE_COLUMNS));
+        setColumns(
+          buildColumnsFromApi(
+            universalPipelinesResponse.data,
+            PIPELINE_COLUMNS,
+          ),
+        );
       } catch (error) {
         if (!isActive) {
           return;
@@ -448,7 +358,7 @@ const RecruiterPage = () => {
           typeof error === "object" && error !== null && "message" in error
             ? String(
                 (error as { message?: unknown }).message ??
-                 `Failed to load ${recruiterId ? "recruiter pipeline" : "recruiter dashboard"}.`,
+                  `Failed to load ${recruiterId ? "recruiter pipeline" : "recruiter dashboard"}.`,
               )
             : `Failed to load ${recruiterId ? "recruiter pipeline" : "recruiter dashboard"}.`;
         setErrorMessage(message);
@@ -468,24 +378,25 @@ const RecruiterPage = () => {
 
   const stageCounts = useMemo(() => {
     const counts: Record<PipelineStageLabel, number> = {
-      Inbound: 0,
-      Screening: 0,
-      Assessment: 0,
-      Interview: 0,
-      Shortlist: 0,
-      Offer: 0,
-      Closed: 0,
+      [PipelineLabel.INBOUND]: 0,
+      [PipelineLabel.SCREENING]: 0,
+      [PipelineLabel.ASSESSMENT]: 0,
+      [PipelineLabel.INTERVIEW]: 0,
+      [PipelineLabel.SHORTLIST]: 0,
+      [PipelineLabel.OFFER]: 0,
+      [PipelineLabel.CLOSED]: 0,
     };
 
     dashboardData?.pipeline.forEach((stage) => {
       const normalized = stage.stage.trim().toLowerCase();
-      if (normalized === "inbound") counts.Inbound = stage.count;
-      if (normalized === "screening") counts.Screening = stage.count;
-      if (normalized === "assessment") counts.Assessment = stage.count;
-      if (normalized === "interview") counts.Interview = stage.count;
-      if (normalized === "shortlisted" || normalized === "shortlist") counts.Shortlist = stage.count;
-      if (normalized === "offer") counts.Offer = stage.count;
-      if (normalized === "closed") counts.Closed = stage.count;
+      if (normalized === PipelineStageCode.INBOUND.toLowerCase()) counts.Inbound = stage.count;
+      if (normalized === PipelineStageCode.SCREENING.toLowerCase()) counts.Screening = stage.count;
+      if (normalized === PipelineStageCode.ASSESSMENT.toLowerCase()) counts.Assessment = stage.count;
+      if (normalized === PipelineStageCode.INTERVIEW.toLowerCase()) counts.Interview = stage.count;
+      if (normalized === LegacyPipelineStageCode.SHORTLISTED.toLowerCase() || normalized === PipelineStageCode.SHORTLIST.toLowerCase())
+        counts.Shortlist = stage.count;
+      if (normalized === PipelineStageCode.OFFER.toLowerCase()) counts.Offer = stage.count;
+      if (normalized === PipelineStageCode.CLOSED.toLowerCase()) counts.Closed = stage.count;
     });
 
     return counts;
@@ -499,48 +410,8 @@ const RecruiterPage = () => {
     setAllExpanded(true);
   };
 
-  const handleCardView = (_cardId: string, jobProfileId: string, _stage: PipelineStageLabel) => {
+  const handleCardView = (_cardId: string, jobProfileId: string) => {
     navigate(ROUTE_PATHS.recruiterMandate.replace(":cardId", jobProfileId));
-  };
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over) {
-      return;
-    }
-
-    const cardId = String(active.id);
-    const targetStage = over.id as PipelineStageLabel;
-
-    setColumns((current) => {
-      const sourceColumn = current.find((col) =>
-        col.cards.some((card) => card.id === cardId),
-      );
-      if (!sourceColumn || sourceColumn.label === targetStage) {
-        return current;
-      }
-
-      const movedCard = sourceColumn.cards.find((card) => card.id === cardId);
-      if (!movedCard) {
-        return current;
-      }
-
-      return current.map((col) => {
-        if (col.label === sourceColumn.label) {
-          return {
-            ...col,
-            cards: col.cards.filter((card) => card.id !== cardId),
-          };
-        }
-        if (col.label === targetStage) {
-          return {
-            ...col,
-            cards: [...col.cards, { ...movedCard, stage: targetStage }],
-          };
-        }
-        return col;
-      });
-    });
   };
 
   if (loading || (recruiterId && employeeQuery.isLoading)) {
@@ -563,7 +434,11 @@ const RecruiterPage = () => {
         className={`${styles.pageRoot} ${recruiterId ? styles.employeePipelinePage : ""}`}
       >
         {recruiterId && (
-          <Box component="nav" aria-label="Breadcrumb" className={styles.employeeBreadcrumbs}>
+          <Box
+            component="nav"
+            aria-label="Breadcrumb"
+            className={styles.employeeBreadcrumbs}
+          >
             <ButtonBase
               className={styles.employeeBackButton}
               onClick={() => navigate(ROUTE_PATHS.recruiterManco)}
@@ -578,7 +453,10 @@ const RecruiterPage = () => {
             >
               MANCO Dashboard
             </ButtonBase>
-            <Box className={styles.employeeBreadcrumbChevron} aria-hidden="true" />
+            <Box
+              className={styles.employeeBreadcrumbChevron}
+              aria-hidden="true"
+            />
             <Typography
               className={styles.employeeBreadcrumbCurrent}
               aria-current="page"
@@ -616,9 +494,10 @@ const RecruiterPage = () => {
         >
           <Box className={styles.welcomeTextCol}>
             <Typography component="p" className={styles.welcomeGreeting}>
-              Hi {recruiterId
-                ? employeeQuery.data?.recruiter.fullName.split(" ")[0] ?? ""
-                : "Michael"}
+              Hi{" "}
+              {recruiterId
+                ? (employeeQuery.data?.recruiter.fullName.split(" ")[0] ?? "")
+                : "Team"}
             </Typography>
             <Typography component="p" className={styles.welcomeSubtitle}>
               Here's a snapshot of what you need to do this week
@@ -626,21 +505,33 @@ const RecruiterPage = () => {
           </Box>
           <Box className={styles.kpiRow}>
             <KpiCard
-              value={employeePipelineData?.stageCounters.INBOUND ?? pipelineDashboardStats?.cvsDue ?? stageCounts.Inbound}
+              value={
+                employeePipelineData?.stageCounters.INBOUND ??
+                pipelineDashboardStats?.cvsDue ??
+                stageCounts.Inbound
+              }
               label={recruiterId ? "CVs to screen" : "CVs due"}
-              icon={<CvsDueIcon />}
+              icon={<img src={cvsDueIcon} width="22" height="22" alt="" />}
               colorClass={styles.kpiBlue}
             />
             <KpiCard
-              value={employeePipelineData?.stageCounters.INTERVIEW ?? pipelineDashboardStats?.interviewsToSchedule ?? stageCounts.Interview}
+              value={
+                employeePipelineData?.stageCounters.INTERVIEW ??
+                pipelineDashboardStats?.interviewsToSchedule ??
+                stageCounts.Interview
+              }
               label="Interviews to schedule"
-              icon={<InterviewsIcon />}
+              icon={<img src={interviewsIcon} width="22" height="22" alt="" />}
               colorClass={styles.kpiPurple}
             />
             <KpiCard
-              value={employeePipelineData?.stageCounters.OFFER ?? pipelineDashboardStats?.offerLetterAcceptanceDeadline ?? stageCounts.Offer}
+              value={
+                employeePipelineData?.stageCounters.OFFER ??
+                pipelineDashboardStats?.offerLetterAcceptanceDeadline ??
+                stageCounts.Offer
+              }
               label="Offer Letter Acceptance Deadlines"
-              icon={<OfferLetterIcon />}
+              icon={<img src={offerLetterIcon} width="22" height="22" alt="" />}
               colorClass={styles.kpiAmber}
             />
           </Box>
@@ -652,8 +543,8 @@ const RecruiterPage = () => {
             {employeePipelineData
               ? `${new Set(employeePipelineData.data.map((application) => application.jobProfile.jobProfileId)).size} active Job Post${new Set(employeePipelineData.data.map((application) => application.jobProfile.jobProfileId)).size !== 1 ? "s" : ""} across ${new Set(employeePipelineData.data.map((application) => application.jobProfile.clientId)).size} ${new Set(employeePipelineData.data.map((application) => application.jobProfile.clientId)).size !== 1 ? "companies" : "company"}`
               : pipelineDashboardStats
-              ? `${pipelineDashboardStats.activeJobs} active Job Post${pipelineDashboardStats.activeJobs !== 1 ? "s" : ""} across ${pipelineDashboardStats.companiesCount} ${pipelineDashboardStats.companiesCount !== 1 ? "companies" : "company"}`
-              : `${mandatesData?.pagination.total ?? 0} active Job Post${(mandatesData?.pagination.total ?? 0) !== 1 ? "s" : ""} across ${new Set(mandatesData?.mandates.map((m) => m.client) ?? []).size} ${new Set(mandatesData?.mandates.map((m) => m.client) ?? []).size !== 1 ? "companies" : "company"}`}
+                ? `${pipelineDashboardStats.activeJobs} active Job Post${pipelineDashboardStats.activeJobs !== 1 ? "s" : ""} across ${pipelineDashboardStats.companiesCount} ${pipelineDashboardStats.companiesCount !== 1 ? "companies" : "company"}`
+                : `${mandatesData?.pagination.total ?? 0} active Job Post${(mandatesData?.pagination.total ?? 0) !== 1 ? "s" : ""} across ${new Set(mandatesData?.mandates.map((m) => m.client) ?? []).size} ${new Set(mandatesData?.mandates.map((m) => m.client) ?? []).size !== 1 ? "companies" : "company"}`}
           </Typography>
 
           <Box className={styles.pipelineWrapper}>
@@ -670,37 +561,38 @@ const RecruiterPage = () => {
               </Box>
 
               {/* Cards board */}
-              <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-                <Box className={styles.pipelineBoard}>
-                  {columns.map((col) => {
-                    const visibleCards = allExpanded ? col.cards : col.cards.slice(0, CARDS_VISIBLE)
-                    const hasMore = !allExpanded && col.cards.length > CARDS_VISIBLE
-                    return (
-                      <PipelineColumnDrop key={col.label} label={col.label}>
-                        <Box className={styles.colCards}>
-                          {visibleCards.map((card) => (
-                            <PipelineCardItem
-                              key={card.id}
-                              card={card}
-                              onView={handleCardView}
-                            />
-                          ))}
-                        </Box>
+              <Box className={styles.pipelineBoard}>
+                {columns.map((col) => {
+                  const visibleCards = allExpanded
+                    ? col.cards
+                    : col.cards.slice(0, CARDS_VISIBLE);
+                  const hasMore =
+                    !allExpanded && col.cards.length > CARDS_VISIBLE;
+                  return (
+                    <Box key={col.label} className={styles.pipelineColumn}>
+                      <Box className={styles.colCards}>
+                        {visibleCards.map((card) => (
+                          <PipelineCardItem
+                            key={card.id}
+                            card={card}
+                            onView={handleCardView}
+                          />
+                        ))}
+                      </Box>
 
-                        {hasMore && (
-                          <ButtonBase
-                            className={styles.viewMoreBtn}
-                            onClick={handleViewMore}
-                            disableRipple
-                          >
-                            View more
-                          </ButtonBase>
-                        )}
-                      </PipelineColumnDrop>
-                    )
-                  })}
-                </Box>
-              </DndContext>
+                      {hasMore && (
+                        <ButtonBase
+                          className={styles.viewMoreBtn}
+                          onClick={handleViewMore}
+                          disableRipple
+                        >
+                          View more
+                        </ButtonBase>
+                      )}
+                    </Box>
+                  );
+                })}
+              </Box>
             </Box>
           </Box>
         </Box>

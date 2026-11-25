@@ -28,12 +28,23 @@ export const optionalEmailSchema = z
     message: INVALID_EMAIL_MESSAGE,
   });
 
-const requiredField = (label: string) =>
+export const requiredField = (label: string) =>
   z.string().trim().min(1, `${label} is required`);
+
+const completedYearSchema = z
+  .string()
+  .trim()
+  .min(1, "Year completed is required")
+  .regex(/^(?!0000)\d{4}$/, "Enter a valid year (YYYY)");
+
+const institutionNameSchema = requiredField("Institution name").refine(
+  (value) => /\p{L}/u.test(value),
+  "Institution name must include at least one letter",
+);
 
 const signupNamePattern =
   /^\p{L}[\p{L}\p{M}]*(?:[ '\u2019-]\p{L}[\p{L}\p{M}]*)*$/u;
-const signupName = (label: string) =>
+export const signupName = (label: string) =>
   z
     .string()
     .trim()
@@ -159,7 +170,7 @@ const profilePhoneNumberSchema = z
   .max(10, "Phone number must be at most 10 digits")
   .regex(/^\d+$/, "Phone number must contain digits only");
 
-const restrictedTextField = (
+export const restrictedTextField = (
   label: string,
   allowedPattern: RegExp,
   allowedDescription: string,
@@ -305,15 +316,13 @@ export const createPersonalDetailsSchema = (isVisitor = false) =>
         ),
       email: optionalEmailSchema.default(""),
       phoneNumber: optionalLocalPhoneNumberSchema.default(""),
-      race: z.string().min(1, "Race is required"),
-      gender: z.string().min(1, "Gender is required"),
-      disabilityStatus: z.string().min(1, "Disability status is required"),
+      race: requiredField("Race"),
+      gender: requiredField("Gender"),
+      disabilityStatus: requiredField("Disability status"),
       nationality: z.string().refine((value) => value.trim().length > 0, {
         message: "Nationality is required",
       }),
-      residentialLocation: z
-        .string()
-        .min(1, "Residential location is required"),
+      residentialLocation: requiredField("Residential location"),
       currentCompany: z.string(),
       currentPosition: z.string(),
       noticePeriod: z.string(),
@@ -449,24 +458,57 @@ export const careerHistoryEntrySchema = z
 export const skillEntrySchema = z.object({ name: z.string() });
 
 export const tertiaryEntrySchema = z.object({
-  institutionName: z.string().min(1, "Institution name is required"),
-  degreeOrCertification: z
-    .string()
-    .min(1, "Degree or certification is required"),
-  yearCompleted: z
-    .string()
-    .min(1, "Year completed is required")
-    .regex(/^\d{4}$/, "Enter a valid year (YYYY)"),
+  institutionName: institutionNameSchema,
+  degreeOrCertification: requiredField("Degree or certification"),
+  yearCompleted: completedYearSchema,
 });
 
 export const secondaryEntrySchema = z.object({
-  institutionName: z.string().min(1, "Institution name is required"),
-  highestGradePassed: z.string().min(1, "Highest grade passed is required"),
-  yearCompleted: z
-    .string()
-    .min(1, "Year completed is required")
-    .regex(/^\d{4}$/, "Enter a valid year (YYYY)"),
+  institutionName: institutionNameSchema,
+  highestGradePassed: requiredField("Highest grade passed"),
+  yearCompleted: completedYearSchema,
 });
+
+export const getDuplicateEducationYearIndexes = (
+  education: readonly { yearCompleted: string }[],
+): number[] => {
+  const indexesByYear = new Map<string, number[]>();
+
+  education.forEach((entry, index) => {
+    const year = entry.yearCompleted.trim();
+    if (!/^(?!0000)\d{4}$/.test(year)) return;
+
+    const indexes = indexesByYear.get(year) ?? [];
+    indexes.push(index);
+    indexesByYear.set(year, indexes);
+  });
+
+  return [...indexesByYear.values()]
+    .filter((indexes) => indexes.length > 1)
+    .flat()
+    .sort((left, right) => left - right);
+};
+
+export const getTertiaryYearIndexesAtOrBeforeSecondary = (
+  tertiaryEducation: readonly { yearCompleted: string }[],
+  secondaryEducation: readonly { yearCompleted: string }[],
+): number[] => {
+  const latestSecondaryYear = Math.max(
+    ...secondaryEducation
+      .map((entry) => entry.yearCompleted.trim())
+      .filter((year) => /^\d{4}$/.test(year) && year !== "0000")
+      .map(Number),
+  );
+
+  if (!Number.isFinite(latestSecondaryYear)) return [];
+
+  return tertiaryEducation.flatMap((entry, index) => {
+    const year = entry.yearCompleted.trim();
+    return /^\d{4}$/.test(year) && Number(year) <= latestSecondaryYear
+      ? [index]
+      : [];
+  });
+};
 
 export const createCvBuilderSchema = (isVisitor = false) =>
   z
@@ -485,6 +527,38 @@ export const createCvBuilderSchema = (isVisitor = false) =>
       otherLanguage: z.string(),
     })
     .superRefine((data, ctx) => {
+      [
+        {
+          field: "tertiaryEducation",
+          label: "tertiary",
+          entries: data.tertiaryEducation,
+        },
+        {
+          field: "secondaryEducation",
+          label: "secondary",
+          entries: data.secondaryEducation,
+        },
+      ].forEach(({ field, label, entries }) => {
+        getDuplicateEducationYearIndexes(entries).forEach((index) => {
+          ctx.addIssue({
+            code: "custom",
+            message: `Year completed must be unique within ${label} education.`,
+            path: [field, index, "yearCompleted"],
+          });
+        });
+      });
+
+      getTertiaryYearIndexesAtOrBeforeSecondary(
+        data.tertiaryEducation,
+        data.secondaryEducation,
+      ).forEach((index) => {
+        ctx.addIssue({
+          code: "custom",
+          message: "Tertiary year completed must be later than secondary year completed.",
+          path: ["tertiaryEducation", index, "yearCompleted"],
+        });
+      });
+
       if (!data.personalDetails.currentCompany.trim()) return;
 
       data.careerHistory.forEach((entry, entryIndex) => {
